@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Personal AI assistant context files
+AGENTS.md
+MEMORY.md
