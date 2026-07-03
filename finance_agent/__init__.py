@@ -9,6 +9,12 @@ from finance_agent.ingestion import (
     inspect_sheet,
     inspect_workbook,
     load_excel_workbook,
+    load_raw_excel_workbook,
+)
+from finance_agent.intermediate import (
+    build_feature_summary,
+    build_financial_document_model,
+    save_intermediate_outputs,
 )
 from finance_agent.schema import COLUMN_ALIASES, clean_column_name, map_column_alias, normalize_column_names
 
@@ -23,6 +29,10 @@ __all__ = [
     "inspect_sheet",
     "inspect_workbook",
     "load_excel_workbook",
+    "load_raw_excel_workbook",
     "map_column_alias",
     "normalize_column_names",
+    "build_feature_summary",
+    "build_financial_document_model",
+    "save_intermediate_outputs",
 ]

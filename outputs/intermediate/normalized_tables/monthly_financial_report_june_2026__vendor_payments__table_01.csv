@@ -1,0 +1,41 @@
+payment_id,payment_date,month,department,vendor,invoice_number,expense_category,amount,payment_method,approval_status,potential_duplicate,high_value_flag
+PAY-00051,2026-06-08,June,Engineering,Northstar Facilities Group,FAC-06-ENG-01,Facilities,76217,ACH,Approved,No,Yes
+PAY-00052,2026-06-15,June,Engineering,Northstar Facilities Group,FAC-06-ENG-02,Facilities,55192,ACH,Approved,No,Yes
+PAY-00053,2026-06-08,June,Engineering,Academic Equipment Partners,EQP-0626-ENG-4471,Equipment,54750,ACH,Approved,Yes,Yes
+PAY-00054,2026-06-15,June,Engineering,Academic Equipment Partners,EQP-0626-ENG-4471,Equipment,54750,ACH,Approved,Yes,Yes
+PAY-00055,2026-06-22,June,Engineering,Academic Equipment Partners,EQP-06-ENG-03,Equipment,37837,ACH,Approved,No,No
+PAY-00056,2026-06-08,June,Engineering,Campus Technology Systems,TEC-06-ENG-01,Technology,42584,ACH,Approved,No,No
+PAY-00057,2026-06-15,June,Engineering,Campus Technology Systems,TEC-06-ENG-02,Technology,30836,ACH,Approved,No,No
+PAY-00058,2026-06-08,June,Engineering,University Supply Cooperative,SUP-06-ENG-01,Supplies,33489,ACH,Approved,No,No
+PAY-00059,2026-06-15,June,Engineering,University Supply Cooperative,SUP-06-ENG-02,Supplies,24251,ACH,Approved,No,No
+PAY-00060,2026-06-08,June,Engineering,Professional Services Network,SRV-06-ENG-01,Services,26445,ACH,Approved,No,No
+PAY-00061,2026-06-15,June,Engineering,Professional Services Network,SRV-06-ENG-02,Services,19149,ACH,Approved,No,No
+PAY-00172,2026-06-08,June,Business,Northstar Facilities Group,FAC-06-BUS-01,Facilities,44446,ACH,Approved,No,No
+PAY-00173,2026-06-15,June,Business,Northstar Facilities Group,FAC-06-BUS-02,Facilities,32185,ACH,Approved,No,No
+PAY-00174,2026-06-08,June,Business,Academic Equipment Partners,EQP-06-BUS-01,Equipment,19754,ACH,Approved,No,No
+PAY-00175,2026-06-15,June,Business,Academic Equipment Partners,EQP-06-BUS-02,Equipment,14304,ACH,Approved,No,No
+PAY-00176,2026-06-08,June,Business,Campus Technology Systems,TEC-06-BUS-01,Technology,24692,ACH,Approved,No,No
+PAY-00177,2026-06-15,June,Business,Campus Technology Systems,TEC-06-BUS-02,Technology,17881,ACH,Approved,No,No
+PAY-00178,2026-06-08,June,Business,University Supply Cooperative,SUP-06-BUS-01,Supplies,17285,ACH,Approved,No,No
+PAY-00179,2026-06-15,June,Business,University Supply Cooperative,SUP-06-BUS-02,Supplies,12516,ACH,Approved,No,No
+PAY-00180,2026-06-08,June,Business,Professional Services Network,SRV-06-BUS-01,Services,27161,ACH,Approved,No,No
+PAY-00181,2026-06-15,June,Business,Professional Services Network,SRV-06-BUS-02,Services,19669,ACH,Approved,No,No
+PAY-00292,2026-06-08,June,Health Sciences,Northstar Facilities Group,FAC-06-HEA-01,Facilities,60165,ACH,Approved,No,Yes
+PAY-00293,2026-06-15,June,Health Sciences,Northstar Facilities Group,FAC-06-HEA-02,Facilities,43567,ACH,Approved,No,No
+PAY-00294,2026-06-08,June,Health Sciences,Academic Equipment Partners,EQP-06-HEA-01,Equipment,46795,ACH,Approved,No,No
+PAY-00295,2026-06-15,June,Health Sciences,Academic Equipment Partners,EQP-06-HEA-02,Equipment,33886,ACH,Approved,No,No
+PAY-00296,2026-06-08,June,Health Sciences,Campus Technology Systems,TEC-06-HEA-01,Technology,20055,ACH,Approved,No,No
+PAY-00297,2026-06-15,June,Health Sciences,Campus Technology Systems,TEC-06-HEA-02,Technology,14522,ACH,Approved,No,No
+PAY-00298,2026-06-08,June,Health Sciences,University Supply Cooperative,SUP-06-HEA-01,Supplies,40110,ACH,Approved,No,No
+PAY-00299,2026-06-15,June,Health Sciences,University Supply Cooperative,SUP-06-HEA-02,Supplies,29045,ACH,Approved,No,No
+PAY-00300,2026-06-08,June,Health Sciences,Professional Services Network,SRV-06-HEA-01,Services,16712,ACH,Approved,No,No
+PAY-00301,2026-06-15,June,Health Sciences,Professional Services Network,SRV-06-HEA-02,Services,12102,ACH,Approved,No,No
+PAY-00412,2026-06-08,June,Administration,Northstar Facilities Group,FAC-06-ADM-01,Facilities,96000,ACH,Approved,No,Yes
+PAY-00413,2026-06-08,June,Administration,Academic Equipment Partners,EQP-06-ADM-01,Equipment,8913,ACH,Approved,No,No
+PAY-00414,2026-06-15,June,Administration,Academic Equipment Partners,EQP-06-ADM-02,Equipment,6455,ACH,Approved,No,No
+PAY-00415,2026-06-08,June,Administration,Campus Technology Systems,TEC-06-ADM-01,Technology,17826,ACH,Approved,No,No
+PAY-00416,2026-06-15,June,Administration,Campus Technology Systems,TEC-06-ADM-02,Technology,12909,ACH,Approved,No,No
+PAY-00417,2026-06-08,June,Administration,University Supply Cooperative,SUP-06-ADM-01,Supplies,11142,ACH,Approved,No,No
+PAY-00418,2026-06-15,June,Administration,University Supply Cooperative,SUP-06-ADM-02,Supplies,8068,ACH,Approved,No,No
+PAY-00419,2026-06-08,June,Administration,Professional Services Network,SRV-06-ADM-01,Services,26740,ACH,Approved,No,No
+PAY-00420,2026-06-15,June,Administration,Professional Services Network,SRV-06-ADM-02,Services,19363,ACH,Approved,No,No

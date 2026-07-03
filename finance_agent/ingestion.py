@@ -12,7 +12,10 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+from openpyxl import load_workbook
 from pypdf import PdfReader
+
+from finance_agent.models import RawSheetData, RawWorkbookData
 
 
 class WorkbookIngestionError(RuntimeError):
@@ -135,6 +138,68 @@ def load_excel_workbook(
         row_counts=row_counts,
         column_names=column_names,
         dataframes=dataframes,
+    )
+
+
+def load_raw_excel_workbook(workbook_path: str | Path) -> RawWorkbookData:
+    """Load raw worksheet cells and layout evidence without assuming a header.
+
+    Inputs: path to an Excel workbook.
+    Outputs: original cell matrices, sheet order, and merged-cell ranges.
+    Assumptions: formulas should be represented by their cached displayed values.
+    """
+
+    path = _validate_input_file(workbook_path, ".xlsx")
+    try:
+        # read_only=False is intentional: openpyxl exposes merged-cell geometry
+        # only through a normal worksheet, and Step 2 needs that layout evidence.
+        workbook = load_workbook(path, read_only=False, data_only=True)
+    except Exception as error:
+        raise WorkbookIngestionError(f"Unable to open raw workbook '{path}': {error}") from error
+
+    sheets: dict[str, RawSheetData] = {}
+    try:
+        for worksheet in workbook.worksheets:
+            # max_row/max_column can include styled empty cells. Trimming to the
+            # last populated coordinate prevents formatting from becoming data.
+            populated_coordinates = [
+                (cell.row, cell.column)
+                for row in worksheet.iter_rows()
+                for cell in row
+                if cell.value is not None
+            ]
+            if populated_coordinates:
+                max_row = max(row for row, _ in populated_coordinates)
+                max_column = max(column for _, column in populated_coordinates)
+                values = tuple(
+                    tuple(
+                        worksheet.cell(row=row_number, column=column_number).value
+                        for column_number in range(1, max_column + 1)
+                    )
+                    for row_number in range(1, max_row + 1)
+                )
+            else:
+                max_row = 0
+                max_column = 0
+                values = tuple()
+
+            sheets[worksheet.title] = RawSheetData(
+                sheet_name=worksheet.title,
+                values=values,
+                max_row=max_row,
+                max_column=max_column,
+                merged_ranges=tuple(
+                    str(cell_range) for cell_range in worksheet.merged_cells.ranges
+                ),
+            )
+    finally:
+        # Releasing the handle matters when workbooks live in OneDrive folders.
+        workbook.close()
+
+    return RawWorkbookData(
+        workbook_path=str(path),
+        sheet_names=tuple(sheets),
+        sheets=sheets,
     )
 
 

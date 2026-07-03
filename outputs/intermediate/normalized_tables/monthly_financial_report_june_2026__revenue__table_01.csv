@@ -1,0 +1,13 @@
+period,month,department,revenue_category,budget_revenue,actual_revenue,variance,variance_pct
+2026-06-01,June,Engineering,Tuition,473616,434779,-38837,-0.08200103037059558
+2026-06-01,June,Engineering,Research Grants,179400,170430,-8970,-0.05
+2026-06-01,June,Engineering,Other Revenue,64584,60063,-4521,-0.0700018580453363
+2026-06-01,June,Business,Tuition,433758,398190,-35568,-0.08199964035245459
+2026-06-01,June,Business,Research Grants,36582,34753,-1829,-0.04999726641517686
+2026-06-01,June,Business,Other Revenue,52260,48602,-3658,-0.0699961729812476
+2026-06-01,June,Health Sciences,Tuition,442260,405995,-36265,-0.08199927644372089
+2026-06-01,June,Health Sciences,Research Grants,138996,132046,-6950,-0.05000143889032778
+2026-06-01,June,Health Sciences,Other Revenue,50544,47006,-3538,-0.06999841722063944
+2026-06-01,June,Administration,Service Fees,85800,79794,-6006,-0.07
+2026-06-01,June,Administration,Donations,39000,37050,-1950,-0.05
+2026-06-01,June,Administration,Other Revenue,31200,29016,-2184,-0.07

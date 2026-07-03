@@ -1,0 +1,10 @@
+metric,actual,goal_or_budget,variance,format,status
+Actual Revenue,25171468.0,26000000.0,-828532.0,Currency,Below target
+Actual Operating Expenses,23658971.0,23340000.0,318971.0,Currency,Over budget
+Operating Surplus,1512497.0,2660000.0,-1147503.0,Currency,Monitor
+Payroll as % of Revenue,0.4254861893632902,0.42,0.005486189363290206,Percent,Flag
+Tuition Collection Rate,0.9750632260301682,0.94,0.0350632260301682,Percent,Within goal
+Overdue Payment Rate,0.02604166666666667,0.06,-0.03395833333333333,Percent,Within goal
+Ending Cash,3950648.0,5090000.0,-1139352.0,Currency,Below plan
+Cash Reserve (months),2.00379703749584,3.0,-0.9962029625041597,Number,Flag
+Open Anomalies,7.0,0.0,7.0,Count,Review required

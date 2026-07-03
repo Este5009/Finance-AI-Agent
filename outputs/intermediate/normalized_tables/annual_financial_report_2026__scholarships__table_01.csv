@@ -1,0 +1,109 @@
+period,month,department,scholarship_type,allocated,awarded,remaining,recipients,utilization_pct
+2026-01-01,January,Engineering,Merit,29334,26987,2347,6,0.9199904547623917
+2026-01-01,January,Engineering,Need-Based,33000,30360,2640,6,0.92
+2026-01-01,January,Engineering,Research,11000,10120,880,2,0.92
+2026-02-01,February,Engineering,Merit,29334,27574,1760,6,0.9400013636053726
+2026-02-01,February,Engineering,Need-Based,33000,31020,1980,6,0.94
+2026-02-01,February,Engineering,Research,11000,10340,660,2,0.94
+2026-03-01,March,Engineering,Merit,29334,28161,1173,6,0.9600122724483534
+2026-03-01,March,Engineering,Need-Based,33000,31680,1320,7,0.96
+2026-03-01,March,Engineering,Research,11000,10560,440,2,0.96
+2026-04-01,April,Engineering,Merit,29334,28454,880,6,0.9700006818026863
+2026-04-01,April,Engineering,Need-Based,33000,32010,990,7,0.97
+2026-04-01,April,Engineering,Research,11000,10670,330,2,0.97
+2026-05-01,May,Engineering,Merit,29333,28746,587,6,0.9799884089591927
+2026-05-01,May,Engineering,Need-Based,33000,32340,660,7,0.98
+2026-05-01,May,Engineering,Research,11000,10780,220,2,0.98
+2026-06-01,June,Engineering,Merit,29333,29040,293,6,0.9900112501278424
+2026-06-01,June,Engineering,Need-Based,33000,32670,330,7,0.99
+2026-06-01,June,Engineering,Research,11000,10890,110,2,0.99
+2026-07-01,July,Engineering,Merit,29333,27866,1467,6,0.9499880680462278
+2026-07-01,July,Engineering,Need-Based,33000,31350,1650,7,0.95
+2026-07-01,July,Engineering,Research,11000,10450,550,2,0.95
+2026-08-01,August,Engineering,Merit,29333,28160,1173,6,0.9600109092148774
+2026-08-01,August,Engineering,Need-Based,33000,31680,1320,7,0.96
+2026-08-01,August,Engineering,Research,11000,10560,440,2,0.96
+2026-09-01,September,Engineering,Merit,29333,29333,0,6,1.0
+2026-09-01,September,Engineering,Need-Based,33000,33000,0,7,1.0
+2026-09-01,September,Engineering,Research,11000,11000,0,2,1.0
+2026-10-01,October,Engineering,Merit,29333,29333,0,6,1.0
+2026-10-01,October,Engineering,Need-Based,33000,33000,0,7,1.0
+2026-10-01,October,Engineering,Research,11000,11000,0,2,1.0
+2026-11-01,November,Engineering,Merit,29333,28746,587,6,0.9799884089591927
+2026-11-01,November,Engineering,Need-Based,33000,32340,660,7,0.98
+2026-11-01,November,Engineering,Research,11000,10780,220,2,0.98
+2026-12-01,December,Engineering,Merit,29333,28453,880,6,0.9699996590870351
+2026-12-01,December,Engineering,Need-Based,33000,32010,990,7,0.97
+2026-12-01,December,Engineering,Research,11000,10670,330,2,0.97
+2026-01-01,January,Business,Merit,20334,18707,1627,4,0.9199862299596735
+2026-01-01,January,Business,Need-Based,22875,21045,1830,4,0.92
+2026-01-01,January,Business,Research,7625,7015,610,1,0.92
+2026-02-01,February,Business,Merit,20334,19114,1220,4,0.9400019671486181
+2026-02-01,February,Business,Need-Based,22875,21502,1373,4,0.9399781420765028
+2026-02-01,February,Business,Research,7625,7168,457,1,0.9400655737704918
+2026-03-01,March,Business,Merit,20334,19521,813,4,0.9600177043375627
+2026-03-01,March,Business,Need-Based,22875,21960,915,5,0.96
+2026-03-01,March,Business,Research,7625,7320,305,2,0.96
+2026-04-01,April,Business,Merit,20334,19724,610,4,0.9700009835743091
+2026-04-01,April,Business,Need-Based,22875,22189,686,5,0.9700109289617487
+2026-04-01,April,Business,Research,7625,7396,229,2,0.9699672131147541
+2026-05-01,May,Business,Merit,20333,19926,407,4,0.9799832784144002
+2026-05-01,May,Business,Need-Based,22875,22418,457,5,0.9800218579234973
+2026-05-01,May,Business,Research,7625,7472,153,2,0.9799344262295082
+2026-06-01,June,Business,Merit,20333,20130,203,4,0.9900162297742586
+2026-06-01,June,Business,Need-Based,22875,22646,229,5,0.9899890710382514
+2026-06-01,June,Business,Research,7625,7549,76,2,0.9900327868852459
+2026-07-01,July,Business,Merit,20333,19316,1017,4,0.949982786603059
+2026-07-01,July,Business,Need-Based,22875,21731,1144,5,0.9499890710382514
+2026-07-01,July,Business,Research,7625,7244,381,2,0.950032786885246
+2026-08-01,August,Business,Merit,20333,19520,813,4,0.9600157379629174
+2026-08-01,August,Business,Need-Based,22875,21960,915,5,0.96
+2026-08-01,August,Business,Research,7625,7320,305,2,0.96
+2026-09-01,September,Business,Merit,20333,20333,0,4,1.0
+2026-09-01,September,Business,Need-Based,22875,22875,0,5,1.0
+2026-09-01,September,Business,Research,7625,7625,0,2,1.0
+2026-10-01,October,Business,Merit,20333,20333,0,4,1.0
+2026-10-01,October,Business,Need-Based,22875,22875,0,5,1.0
+2026-10-01,October,Business,Research,7625,7625,0,2,1.0
+2026-11-01,November,Business,Merit,20333,19926,407,4,0.9799832784144002
+2026-11-01,November,Business,Need-Based,22875,22418,457,5,0.9800218579234973
+2026-11-01,November,Business,Research,7625,7472,153,2,0.9799344262295082
+2026-12-01,December,Business,Merit,20333,19723,610,4,0.9699995081886589
+2026-12-01,December,Business,Need-Based,22875,22189,686,5,0.9700109289617487
+2026-12-01,December,Business,Research,7625,7396,229,2,0.9699672131147541
+2026-01-01,January,Health Sciences,Merit,26334,24227,2107,5,0.9199893673577884
+2026-01-01,January,Health Sciences,Need-Based,29625,27255,2370,6,0.92
+2026-01-01,January,Health Sciences,Research,9875,9085,790,2,0.92
+2026-02-01,February,Health Sciences,Merit,26334,24754,1580,5,0.9400015189488874
+2026-02-01,February,Health Sciences,Need-Based,29625,27848,1777,6,0.9400168776371308
+2026-02-01,February,Health Sciences,Research,9875,9282,593,2,0.9399493670886075
+2026-03-01,March,Health Sciences,Merit,26334,25281,1053,5,0.9600136705399863
+2026-03-01,March,Health Sciences,Need-Based,29625,28440,1185,6,0.96
+2026-03-01,March,Health Sciences,Research,9875,9480,395,2,0.96
+2026-04-01,April,Health Sciences,Merit,26334,25544,790,5,0.9700007594744436
+2026-04-01,April,Health Sciences,Need-Based,29625,28736,889,6,0.9699915611814346
+2026-04-01,April,Health Sciences,Research,9875,9579,296,2,0.9700253164556962
+2026-05-01,May,Health Sciences,Merit,26333,25806,527,5,0.9799870884441575
+2026-05-01,May,Health Sciences,Need-Based,29625,29032,593,6,0.9799831223628692
+2026-05-01,May,Health Sciences,Research,9875,9678,197,2,0.9800506329113924
+2026-06-01,June,Health Sciences,Merit,26333,26070,263,5,0.9900125318042
+2026-06-01,June,Health Sciences,Need-Based,29625,29329,296,6,0.9900084388185654
+2026-06-01,June,Health Sciences,Research,9875,9776,99,2,0.9899746835443038
+2026-07-01,July,Health Sciences,Merit,26333,25016,1317,5,0.9499867086925151
+2026-07-01,July,Health Sciences,Need-Based,29625,28144,1481,6,0.9500084388185654
+2026-07-01,July,Health Sciences,Research,9875,9381,494,2,0.9499746835443038
+2026-08-01,August,Health Sciences,Merit,26333,25280,1053,5,0.9600121520525576
+2026-08-01,August,Health Sciences,Need-Based,29625,28440,1185,6,0.96
+2026-08-01,August,Health Sciences,Research,9875,9480,395,2,0.96
+2026-09-01,September,Health Sciences,Merit,26333,26333,0,5,1.0
+2026-09-01,September,Health Sciences,Need-Based,29625,29625,0,6,1.0
+2026-09-01,September,Health Sciences,Research,9875,9875,0,2,1.0
+2026-10-01,October,Health Sciences,Merit,26333,26333,0,5,1.0
+2026-10-01,October,Health Sciences,Need-Based,29625,29625,0,6,1.0
+2026-10-01,October,Health Sciences,Research,9875,9875,0,2,1.0
+2026-11-01,November,Health Sciences,Merit,26333,25806,527,5,0.9799870884441575
+2026-11-01,November,Health Sciences,Need-Based,29625,29032,593,6,0.9799831223628692
+2026-11-01,November,Health Sciences,Research,9875,9678,197,2,0.9800506329113924
+2026-12-01,December,Health Sciences,Merit,26333,25543,790,5,0.9699996202483576
+2026-12-01,December,Health Sciences,Need-Based,29625,28736,889,6,0.9699915611814346
+2026-12-01,December,Health Sciences,Research,9875,9579,296,2,0.9700253164556962

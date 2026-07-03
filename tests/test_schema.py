@@ -50,3 +50,23 @@ def test_normalize_column_names_makes_alias_collisions_unique() -> None:
         "date",
         "unnamed_column_4",
     ]
+
+
+def test_composite_financial_aliases_are_normalized() -> None:
+    """Verify common compound financial headers map across languages."""
+
+    assert normalize_column_names(
+        [
+            "Ingreso Presupuestado",
+            "Gasto Ejecutado",
+            "Monto Pagado",
+            "Saldo Pendiente",
+            "Flujo de Caja",
+        ]
+    ) == [
+        "budget_revenue",
+        "actual_expense",
+        "amount_paid",
+        "outstanding",
+        "cash_flow",
+    ]
