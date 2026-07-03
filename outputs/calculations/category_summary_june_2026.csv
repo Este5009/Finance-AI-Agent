@@ -1,7 +1,7 @@
-category_type,category,actual_amount
-expense,Equipment,277444
-expense,Facilities,407772
-expense,Payroll,997102
-expense,Services,167341
-expense,Supplies,175906
-expense,Technology,181305
+category_type,category,budget_amount,actual_amount,variance,variance_pct
+expense,Equipment,227358,277444,50086,0.22029574503646232
+expense,Facilities,367302,407772,40470,0.11018181224169757
+expense,Payroll,898263,997102,98839,0.11003347571924926
+expense,Services,156927,167341,10414,0.06636206643853511
+expense,Supplies,165852,175906,10054,0.0606203120854738
+expense,Technology,168198,181305,13107,0.0779260157671316

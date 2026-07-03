@@ -11,6 +11,9 @@ import pandas as pd
 
 from finance_agent.calculation_loader import LoadedIntermediateModel
 from finance_agent.finance_calculations import (
+    calculate_budget_expenses_by_category,
+    calculate_budget_expenses_by_department,
+    calculate_budget_revenue_by_department,
     calculate_budget_vs_actual,
     calculate_cash_flow_summary,
     calculate_monthly_trends,
@@ -47,29 +50,64 @@ class FinanceCalculationResult:
 
 
 def _merge_department_summaries(
+    budget_revenue_by_department: pd.DataFrame,
     revenue_by_department: pd.DataFrame,
+    budget_expenses_by_department: pd.DataFrame,
     expenses_by_department: pd.DataFrame,
 ) -> pd.DataFrame:
     """Combine revenue and expense aggregates into department operating results.
 
-    Inputs: revenue and expense department DataFrames.
-    Outputs: department summary with actual revenue, expenses, and net result.
+    Inputs: department budget/actual revenue and expense DataFrames.
+    Outputs: department summary with budgets, variances, and net result.
     Assumptions: absent values remain unavailable rather than being treated as zero.
     """
 
     columns = [
         "department",
+        "budget_revenue",
         "actual_revenue",
+        "revenue_variance",
+        "revenue_variance_pct",
+        "budget_expenses",
         "actual_expenses",
+        "expense_variance",
+        "expense_variance_pct",
         "net_operating_result",
     ]
     if revenue_by_department.empty and expenses_by_department.empty:
         return pd.DataFrame(columns=columns)
 
-    merged = revenue_by_department.merge(
+    frames = [
+        budget_revenue_by_department,
+        revenue_by_department,
+        budget_expenses_by_department,
         expenses_by_department,
-        on="department",
-        how="outer",
+    ]
+    nonempty_frames = [frame for frame in frames if not frame.empty]
+    merged = nonempty_frames[0]
+    for frame in nonempty_frames[1:]:
+        merged = merged.merge(frame, on="department", how="outer")
+    for column in [
+        "budget_revenue",
+        "actual_revenue",
+        "budget_expenses",
+        "actual_expenses",
+    ]:
+        if column not in merged.columns:
+            merged[column] = pd.NA
+    merged["revenue_variance"] = (
+        merged["actual_revenue"] - merged["budget_revenue"]
+    )
+    merged["revenue_variance_pct"] = (
+        merged["revenue_variance"]
+        / merged["budget_revenue"].where(merged["budget_revenue"] != 0)
+    )
+    merged["expense_variance"] = (
+        merged["actual_expenses"] - merged["budget_expenses"]
+    )
+    merged["expense_variance_pct"] = (
+        merged["expense_variance"]
+        / merged["budget_expenses"].where(merged["budget_expenses"] != 0)
     )
     merged["net_operating_result"] = (
         merged["actual_revenue"] - merged["actual_expenses"]
@@ -77,26 +115,57 @@ def _merge_department_summaries(
     return merged[columns].sort_values("department").reset_index(drop=True)
 
 
-def _build_category_summary(expenses_by_category: pd.DataFrame) -> pd.DataFrame:
+def _build_category_summary(
+    budget_expenses_by_category: pd.DataFrame,
+    expenses_by_category: pd.DataFrame,
+) -> pd.DataFrame:
     """Convert expense-category totals to the stable category output schema.
 
-    Inputs: expense category aggregation.
-    Outputs: category_type, category, and actual_amount DataFrame.
+    Inputs: budget and actual expense category aggregations.
+    Outputs: category budget, actual, variance, and percentage DataFrame.
     Assumptions: Step 3 currently requires expense categories, not a unified taxonomy.
     """
 
-    if expenses_by_category.empty:
+    if expenses_by_category.empty and budget_expenses_by_category.empty:
         return pd.DataFrame(
-            columns=["category_type", "category", "actual_amount"]
+            columns=[
+                "category_type",
+                "category",
+                "budget_amount",
+                "actual_amount",
+                "variance",
+                "variance_pct",
+            ]
         )
-    summary = expenses_by_category.rename(
+    budget = budget_expenses_by_category.rename(
+        columns={
+            "expense_category": "category",
+            "budget_expenses": "budget_amount",
+        }
+    )
+    actual = expenses_by_category.rename(
         columns={
             "expense_category": "category",
             "actual_expenses": "actual_amount",
         }
     )
+    summary = budget.merge(actual, on="category", how="outer")
+    summary["variance"] = summary["actual_amount"] - summary["budget_amount"]
+    summary["variance_pct"] = (
+        summary["variance"]
+        / summary["budget_amount"].where(summary["budget_amount"] != 0)
+    )
     summary.insert(0, "category_type", "expense")
-    return summary[["category_type", "category", "actual_amount"]]
+    return summary[
+        [
+            "category_type",
+            "category",
+            "budget_amount",
+            "actual_amount",
+            "variance",
+            "variance_pct",
+        ]
+    ]
 
 
 def _kpi_row(
@@ -270,11 +339,23 @@ def run_finance_calculations(
         selected["Revenue"],
         warnings,
     )
+    budget_revenue_by_department = calculate_budget_revenue_by_department(
+        selected["Revenue"],
+        warnings,
+    )
     expenses_by_department = calculate_expenses_by_department(
         selected["Expenses"],
         warnings,
     )
+    budget_expenses_by_department = calculate_budget_expenses_by_department(
+        selected["Expenses"],
+        warnings,
+    )
     expenses_by_category = calculate_expenses_by_category(
+        selected["Expenses"],
+        warnings,
+    )
+    budget_expenses_by_category = calculate_budget_expenses_by_category(
         selected["Expenses"],
         warnings,
     )
@@ -334,10 +415,15 @@ def run_finance_calculations(
         finance_summary=finance_summary,
         kpi_summary=_build_kpi_summary(finance_summary),
         department_summary=_merge_department_summaries(
+            budget_revenue_by_department,
             revenue_by_department,
+            budget_expenses_by_department,
             expenses_by_department,
         ),
-        category_summary=_build_category_summary(expenses_by_category),
+        category_summary=_build_category_summary(
+            budget_expenses_by_category,
+            expenses_by_category,
+        ),
         monthly_trends=monthly_trends,
         calculation_warnings=warnings,
     )

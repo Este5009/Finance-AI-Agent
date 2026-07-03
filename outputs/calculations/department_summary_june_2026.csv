@@ -1,5 +1,5 @@
-department,actual_revenue,actual_expenses,net_operating_result
-Administration,145860,387987,-242127
-Business,481545,425728,55817
-Engineering,665272,734196,-68924
-Health Sciences,585047,658959,-73912
+department,budget_revenue,actual_revenue,revenue_variance,revenue_variance_pct,budget_expenses,actual_expenses,expense_variance,expense_variance_pct,net_operating_result
+Administration,156000,145860,-10140,-0.065,377400,387987,10587,0.028052464228934818,-242127
+Business,522600,481545,-41055,-0.07855912743972446,418200,425728,7528,0.018000956480153037,55817
+Engineering,717600,665272,-52328,-0.07292084726867336,622200,734196,111996,0.18,-68924
+Health Sciences,631800,585047,-46753,-0.07399968344412788,566100,658959,92859,0.16403285638579757,-73912

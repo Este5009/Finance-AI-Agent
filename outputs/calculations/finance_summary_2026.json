@@ -38,7 +38,8 @@
     },
     "vendor_payments": {
       "payment_count": 480,
-      "total_amount": 12948859.0
+      "total_amount": 12948859.0,
+      "maximum_payment_amount": 96000.0
     },
     "scholarships": {
       "allocated": 2280000.0,
@@ -168,26 +169,50 @@
   "department_summary": [
     {
       "department": "Administration",
+      "budget_revenue": 2000000,
       "actual_revenue": 1954468,
+      "revenue_variance": -45532,
+      "revenue_variance_pct": -0.022766,
+      "budget_expenses": 4440000,
       "actual_expenses": 4468847,
+      "expense_variance": 28847,
+      "expense_variance_pct": 0.0064970721,
       "net_operating_result": -2514379
     },
     {
       "department": "Business",
+      "budget_revenue": 6700000,
       "actual_revenue": 6456616,
+      "revenue_variance": -243384,
+      "revenue_variance_pct": -0.0363259701,
+      "budget_expenses": 4920000,
       "actual_expenses": 4947764,
+      "expense_variance": 27764,
+      "expense_variance_pct": 0.0056430894,
       "net_operating_result": 1508852
     },
     {
       "department": "Engineering",
+      "budget_revenue": 9200000,
       "actual_revenue": 8917688,
+      "revenue_variance": -282312,
+      "revenue_variance_pct": -0.030686087,
+      "budget_expenses": 7320000,
       "actual_expenses": 7462110,
+      "expense_variance": 142110,
+      "expense_variance_pct": 0.0194139344,
       "net_operating_result": 1455578
     },
     {
       "department": "Health Sciences",
+      "budget_revenue": 8100000,
       "actual_revenue": 7842696,
+      "revenue_variance": -257304,
+      "revenue_variance_pct": -0.0317659259,
+      "budget_expenses": 6660000,
       "actual_expenses": 6780250,
+      "expense_variance": 120250,
+      "expense_variance_pct": 0.0180555556,
       "net_operating_result": 1062446
     }
   ],
@@ -195,32 +220,50 @@
     {
       "category_type": "expense",
       "category": "Equipment",
-      "actual_amount": 2735887
+      "budget_amount": 2674800,
+      "actual_amount": 2735887,
+      "variance": 61087,
+      "variance_pct": 0.0228379692
     },
     {
       "category_type": "expense",
       "category": "Facilities",
-      "actual_amount": 4379443
+      "budget_amount": 4321200,
+      "actual_amount": 4379443,
+      "variance": 58243,
+      "variance_pct": 0.0134784319
     },
     {
       "category_type": "expense",
       "category": "Payroll",
-      "actual_amount": 10710112
+      "budget_amount": 10567803,
+      "actual_amount": 10710112,
+      "variance": 142309,
+      "variance_pct": 0.0134662806
     },
     {
       "category_type": "expense",
       "category": "Services",
-      "actual_amount": 1864202
+      "budget_amount": 1846197,
+      "actual_amount": 1864202,
+      "variance": 18005,
+      "variance_pct": 0.0097524804
     },
     {
       "category_type": "expense",
       "category": "Supplies",
-      "actual_amount": 1969281
+      "budget_amount": 1951200,
+      "actual_amount": 1969281,
+      "variance": 18081,
+      "variance_pct": 0.0092666052
     },
     {
       "category_type": "expense",
       "category": "Technology",
-      "actual_amount": 2000046
+      "budget_amount": 1978800,
+      "actual_amount": 2000046,
+      "variance": 21246,
+      "variance_pct": 0.0107368102
     }
   ],
   "monthly_trends": [

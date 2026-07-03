@@ -234,6 +234,28 @@ def calculate_revenue_by_department(
     )
 
 
+def calculate_budget_revenue_by_department(
+    revenue_tables: Sequence[LoadedIntermediateTable],
+    warnings: list[str] | None = None,
+) -> pd.DataFrame:
+    """Calculate budget revenue by department.
+
+    Inputs: selected Revenue tables and optional warnings.
+    Outputs: department and budget_revenue DataFrame.
+    Assumptions: budget_revenue is additive across detailed revenue rows.
+    """
+
+    return _group_metric(
+        revenue_tables,
+        group_candidates=("department",),
+        value_candidates=("budget_revenue", "budget_amount", "budget"),
+        output_group_name="department",
+        output_value_name="budget_revenue",
+        table_type="Revenue",
+        warnings=warnings,
+    )
+
+
 def calculate_expenses_by_department(
     expense_tables: Sequence[LoadedIntermediateTable],
     warnings: list[str] | None = None,
@@ -256,6 +278,28 @@ def calculate_expenses_by_department(
     )
 
 
+def calculate_budget_expenses_by_department(
+    expense_tables: Sequence[LoadedIntermediateTable],
+    warnings: list[str] | None = None,
+) -> pd.DataFrame:
+    """Calculate budget operating expenses by department.
+
+    Inputs: selected Expenses tables and optional warnings.
+    Outputs: department and budget_expenses DataFrame.
+    Assumptions: budget expense rows use compatible currency units.
+    """
+
+    return _group_metric(
+        expense_tables,
+        group_candidates=("department",),
+        value_candidates=("budget_expense", "budget_amount", "budget"),
+        output_group_name="department",
+        output_value_name="budget_expenses",
+        table_type="Expenses",
+        warnings=warnings,
+    )
+
+
 def calculate_expenses_by_category(
     expense_tables: Sequence[LoadedIntermediateTable],
     warnings: list[str] | None = None,
@@ -273,6 +317,28 @@ def calculate_expenses_by_category(
         value_candidates=("actual_expense", "expenses", "actual_amount", "amount"),
         output_group_name="expense_category",
         output_value_name="actual_expenses",
+        table_type="Expenses",
+        warnings=warnings,
+    )
+
+
+def calculate_budget_expenses_by_category(
+    expense_tables: Sequence[LoadedIntermediateTable],
+    warnings: list[str] | None = None,
+) -> pd.DataFrame:
+    """Calculate budget operating expenses by expense category.
+
+    Inputs: selected Expenses tables and optional warnings.
+    Outputs: expense_category and budget_expenses DataFrame.
+    Assumptions: category labels were normalized by Step 2.
+    """
+
+    return _group_metric(
+        expense_tables,
+        group_candidates=("expense_category", "category"),
+        value_candidates=("budget_expense", "budget_amount", "budget"),
+        output_group_name="expense_category",
+        output_value_name="budget_expenses",
         table_type="Expenses",
         warnings=warnings,
     )
@@ -546,9 +612,26 @@ def calculate_vendor_payment_totals(
     )
     if total is None:
         return None
+    maximum_values = [
+        _numeric_values(table.dataframe, column).max(skipna=True)
+        for table in table_list
+        if (
+            column := _first_existing_column(
+                table.dataframe,
+                ("amount", "payment", "actual_amount"),
+            )
+        )
+        is not None
+    ]
+    maximum_payment = (
+        float(max(value for value in maximum_values if pd.notna(value)))
+        if any(pd.notna(value) for value in maximum_values)
+        else None
+    )
     return {
         "payment_count": sum(len(table.dataframe.index) for table in table_list),
         "total_amount": total,
+        "maximum_payment_amount": maximum_payment,
     }
 
 
