@@ -258,6 +258,24 @@ def test_invalid_json_is_rejected() -> None:
     assert validation.errors == ("response is not strict JSON",)
 
 
+def test_long_reasoning_is_safely_repaired() -> None:
+    """Verify oversized prose is capped without changing tool semantics."""
+
+    payload = json.loads(_valid_response())
+    payload["investigation_steps"][0]["reasoning"] = "R" * 900
+
+    validation = validate_ollama_plan_response(json.dumps(payload))
+
+    assert validation.is_valid is True
+    assert validation.repaired_text_fields == 1
+    assert len(validation.steps[0]["reasoning"]) == 500
+    assert validation.steps[0]["reasoning"].endswith("…")
+    assert validation.steps[0]["arguments"] == {
+        "department": "all",
+        "months": 6,
+    }
+
+
 def test_equivalent_tool_calls_are_safely_deduplicated() -> None:
     """Verify equivalent calls merge while retaining urgency and intent."""
 
@@ -279,6 +297,24 @@ def test_equivalent_tool_calls_are_safely_deduplicated() -> None:
     assert validation.steps[0]["priority"] == "critical"
     assert validation.steps[0]["anomaly_id"] is None
     assert "differently worded" in validation.steps[0]["question"]
+
+
+def test_long_merged_duplicate_text_is_repaired() -> None:
+    """Verify safe duplicate intent is capped instead of forcing fallback."""
+
+    payload = json.loads(_valid_response())
+    payload["investigation_steps"][0]["question"] = "A" * 240
+    duplicate = dict(payload["investigation_steps"][0])
+    duplicate["step_id"] = "STEP-002"
+    duplicate["question"] = "B" * 240
+    payload["investigation_steps"].append(duplicate)
+
+    validation = validate_ollama_plan_response(json.dumps(payload))
+
+    assert validation.is_valid is True
+    assert validation.deduplicated_steps == 1
+    assert validation.repaired_text_fields >= 1
+    assert len(validation.steps[0]["question"]) == 320
 
 
 def test_mocked_ollama_duplicate_calls_are_cleaned_without_fallback() -> None:
@@ -361,6 +397,8 @@ def test_prompt_contains_only_compressed_summaries_and_interfaces() -> None:
     )
 
     assert "available_tool_interfaces" in prompt
+    assert "under 180 characters" in prompt
+    assert MAX_PLAN_STEPS == 8
     assert "MUST_NOT_APPEAR" not in prompt
     assert "sample_rows" not in prompt
     assert "final_column_mappings" not in prompt

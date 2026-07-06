@@ -102,6 +102,7 @@ def _print_result(label: str, result: OllamaPlannerResult) -> None:
     print(f"  Deterministic fallback used: {'yes' if result.fallback_used else 'no'}")
     print(f"  Investigation steps: {plan['total_steps']}")
     print(f"  Safely deduplicated calls: {plan['deduplicated_tool_calls']}")
+    print(f"  Repaired text fields: {plan['repaired_text_fields']}")
     for error in result.validation_errors[:3]:
         print(f"  Validation error: {error}")
 

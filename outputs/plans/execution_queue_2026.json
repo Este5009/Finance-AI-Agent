@@ -5,7 +5,7 @@
   "planner_source": "ollama",
   "status": "pending",
   "tools_executed": false,
-  "total_items": 10,
+  "total_items": 6,
   "items": [
     {
       "queue_position": 1,
@@ -13,13 +13,13 @@
       "step_id": "STEP-001",
       "anomaly_id": "ANOM-2026-005",
       "priority": "critical",
-      "question": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-06?",
+      "question": "What caused the operating deficit in 2026-06?",
       "tool_name": "get_full_report",
       "arguments": {
         "period": "2026-06"
       },
-      "reasoning": "Critical anomaly with high priority score; requires full report to isolate drivers.",
-      "expected_output": "Evidence breakdown of the primary risk drivers.",
+      "reasoning": "Critical anomaly with monthly deficit; requires full report for root cause.",
+      "expected_output": "Revenue and expense drivers for June 2026 deficit.",
       "status": "queued",
       "dependencies": []
     },
@@ -29,13 +29,13 @@
       "step_id": "STEP-002",
       "anomaly_id": "ANOM-2026-006",
       "priority": "critical",
-      "question": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-07?",
+      "question": "What caused the operating deficit in 2026-07?",
       "tool_name": "get_full_report",
       "arguments": {
         "period": "2026-07"
       },
-      "reasoning": "Critical anomaly with high priority score; requires full report to isolate drivers.",
-      "expected_output": "Evidence breakdown of the primary risk drivers.",
+      "reasoning": "Critical anomaly with monthly deficit; requires full report for root cause.",
+      "expected_output": "Revenue and expense drivers for July 2026 deficit.",
       "status": "queued",
       "dependencies": []
     },
@@ -45,13 +45,13 @@
       "step_id": "STEP-003",
       "anomaly_id": "ANOM-2026-007",
       "priority": "critical",
-      "question": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-08?",
+      "question": "What caused the operating deficit in 2026-08?",
       "tool_name": "get_full_report",
       "arguments": {
         "period": "2026-08"
       },
-      "reasoning": "Critical anomaly with high priority score; requires full report to isolate drivers.",
-      "expected_output": "Evidence breakdown of the primary risk drivers.",
+      "reasoning": "Critical anomaly with monthly deficit; requires full report for root cause.",
+      "expected_output": "Revenue and expense drivers for August 2026 deficit.",
       "status": "queued",
       "dependencies": []
     },
@@ -61,14 +61,14 @@
       "step_id": "STEP-004",
       "anomaly_id": null,
       "priority": "critical",
-      "question": "What payroll components and departments caused the payroll risk in 2026-06? | What payroll components and departments caused the payroll risk in 2026-07? | What payroll components and departments caused the payroll risk in 2026-08?",
+      "question": "What payroll components caused the payroll risk in 2026-06? | What payroll components caused the payroll risk in 2026-07? | What payroll components caused the payroll risk in 2026-08?",
       "tool_name": "get_payroll_history",
       "arguments": {
         "department": "all",
         "months": 1
       },
-      "reasoning": "Critical anomaly with high priority score; requires payroll history for institution-wide analysis.",
-      "expected_output": "Payroll components and department breakdown.",
+      "reasoning": "Payroll ratio exceeded threshold; requires payroll history for analysis.",
+      "expected_output": "Payroll breakdown by department for June 2026. | Payroll breakdown by department for July 2026. | Payroll breakdown by department for August 2026.",
       "status": "queued",
       "dependencies": []
     },
@@ -83,11 +83,11 @@
       "arguments": {
         "filters": {
           "period": "2026-06",
-          "type": "collection"
+          "type": "student_payment"
         }
       },
-      "reasoning": "Critical anomaly with high priority score; requires transaction data to identify collection issues.",
-      "expected_output": "Transaction details showing collection rate issues.",
+      "reasoning": "Collection rate missed target; requires transaction data for analysis.",
+      "expected_output": "Student payment transactions for June 2026.",
       "status": "queued",
       "dependencies": []
     },
@@ -95,86 +95,13 @@
       "queue_position": 6,
       "execution_id": "EXEC-2026-006",
       "step_id": "STEP-008",
-      "anomaly_id": "ANOM-2026-003",
-      "priority": "high",
-      "question": "Does the flagged vendor payment in 2026 have valid invoice, approval, and duplicate evidence?",
-      "tool_name": "get_transactions",
-      "arguments": {
-        "filters": {
-          "period": "2026",
-          "vendor": "flagged_vendor"
-        }
-      },
-      "reasoning": "High priority anomaly; requires transaction data to verify payment validity.",
-      "expected_output": "Invoice, approval, and duplicate evidence for the vendor payment.",
-      "status": "queued",
-      "dependencies": []
-    },
-    {
-      "queue_position": 7,
-      "execution_id": "EXEC-2026-007",
-      "step_id": "STEP-009",
       "anomaly_id": null,
       "priority": "high",
-      "question": "What is the current status of unresolved data quality issues?",
+      "question": "What unresolved data quality issues require human review?",
       "tool_name": "get_previous_cycle_memory",
       "arguments": {},
-      "reasoning": "Data quality summary shows unresolved tables requiring human review; previous cycle memory may provide context.",
-      "expected_output": "Status of unresolved data quality issues from previous cycle.",
-      "status": "queued",
-      "dependencies": []
-    },
-    {
-      "queue_position": 8,
-      "execution_id": "EXEC-2026-008",
-      "step_id": "STEP-010",
-      "anomaly_id": null,
-      "priority": "high",
-      "question": "What is the current status of unresolved data quality issues?",
-      "tool_name": "get_transactions",
-      "arguments": {
-        "filters": {
-          "table_id": "annual_financial_report_2026__department_summary__table_01"
-        }
-      },
-      "reasoning": "Unresolved table requires transaction-level data to resolve data quality issues.",
-      "expected_output": "Transaction data for the department summary table.",
-      "status": "queued",
-      "dependencies": []
-    },
-    {
-      "queue_position": 9,
-      "execution_id": "EXEC-2026-009",
-      "step_id": "STEP-011",
-      "anomaly_id": null,
-      "priority": "high",
-      "question": "What is the current status of unresolved data quality issues?",
-      "tool_name": "get_transactions",
-      "arguments": {
-        "filters": {
-          "table_id": "annual_financial_report_2026__cash_flow__table_01"
-        }
-      },
-      "reasoning": "Unresolved table requires transaction-level data to resolve data quality issues.",
-      "expected_output": "Transaction data for the cash flow table.",
-      "status": "queued",
-      "dependencies": []
-    },
-    {
-      "queue_position": 10,
-      "execution_id": "EXEC-2026-010",
-      "step_id": "STEP-012",
-      "anomaly_id": null,
-      "priority": "high",
-      "question": "What is the current status of unresolved data quality issues?",
-      "tool_name": "get_transactions",
-      "arguments": {
-        "filters": {
-          "table_id": "annual_financial_report_2026__scholarships__table_01"
-        }
-      },
-      "reasoning": "Unresolved table requires transaction-level data to resolve data quality issues.",
-      "expected_output": "Transaction data for the scholarships table.",
+      "reasoning": "Data quality summary shows unresolved tables needing review.",
+      "expected_output": "Summary of unresolved data quality issues from previous cycle.",
       "status": "queued",
       "dependencies": []
     }

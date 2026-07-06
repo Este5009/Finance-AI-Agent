@@ -300,6 +300,8 @@ def build_ollama_planner_prompt(
         "all questions supported by that call into one cross-cutting step. In "
         "particular, get_previous_cycle_memory with empty arguments may appear at "
         "most once, and get_full_report may appear at most once per period. "
+        "Keep question and expected_output under 160 characters each. Keep "
+        "reasoning short and factual, under 180 characters. "
         "Do not copy an anomaly object as the response. "
         "The example below demonstrates shape only; replace its contents with the "
         "best plan for the context. Your response must begin with "
@@ -382,6 +384,7 @@ def _build_plan_document(
     validation_status: str,
     validation_errors: tuple[str, ...],
     deduplicated_tool_calls: int,
+    repaired_text_fields: int,
     baseline_plan: InvestigationPlan,
     steps: tuple[dict[str, Any], ...],
 ) -> dict[str, Any]:
@@ -402,6 +405,7 @@ def _build_plan_document(
         "fallback_used": planner_source == "deterministic_fallback",
         "validation_errors": list(validation_errors),
         "deduplicated_tool_calls": deduplicated_tool_calls,
+        "repaired_text_fields": repaired_text_fields,
         "maximum_ollama_plan_steps": MAX_PLAN_STEPS,
         "deterministic_baseline_task_count": len(baseline_plan.tasks),
         "total_steps": len(steps),
@@ -475,6 +479,7 @@ def create_ollama_investigation_plan(
     validation: PlanValidationResult | None = None
     errors: tuple[str, ...] = ()
     deduplicated_tool_calls = 0
+    repaired_text_fields = 0
     if available:
         prompt = build_ollama_planner_prompt(
             finance_document=finance_document,
@@ -496,6 +501,7 @@ def create_ollama_investigation_plan(
             )
             errors = validation.errors
             deduplicated_tool_calls = validation.deduplicated_steps
+            repaired_text_fields = validation.repaired_text_fields
         except OllamaError as exc:
             errors = (str(exc),)
 
@@ -518,6 +524,7 @@ def create_ollama_investigation_plan(
         validation_status=validation_status,
         validation_errors=errors,
         deduplicated_tool_calls=deduplicated_tool_calls,
+        repaired_text_fields=repaired_text_fields,
         baseline_plan=baseline_plan,
         steps=steps,
     )

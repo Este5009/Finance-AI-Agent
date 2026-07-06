@@ -7,9 +7,14 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 
-MAX_PLAN_STEPS = 12
+MAX_PLAN_STEPS = 8
 MAX_RESPONSE_CHARACTERS = 60_000
 ALLOWED_PRIORITIES = frozenset({"critical", "high", "medium", "low"})
+TEXT_FIELD_LIMITS = {
+    "question": 320,
+    "reasoning": 500,
+    "expected_output": 320,
+}
 PRIORITY_RANK = {
     "critical": 4,
     "high": 3,
@@ -92,6 +97,7 @@ class PlanValidationResult:
     steps: tuple[dict[str, Any], ...]
     errors: tuple[str, ...]
     deduplicated_steps: int = 0
+    repaired_text_fields: int = 0
 
 
 def _is_int(value: Any) -> bool:
@@ -118,6 +124,42 @@ def _valid_string(value: Any, *, maximum: int) -> bool:
         and bool(value.strip())
         and len(value.strip()) <= maximum
     )
+
+
+def _cap_text(value: str, *, maximum: int) -> tuple[str, bool]:
+    """Trim whitespace and cap descriptive text at a safe schema limit.
+
+    Inputs: descriptive model text and maximum output length.
+    Outputs: repaired text and whether repair changed the value.
+    Assumptions: leading text contains the primary investigation intent.
+    """
+
+    stripped = value.strip()
+    if len(stripped) <= maximum:
+        return stripped, stripped != value
+    return stripped[: maximum - 1].rstrip() + "…", True
+
+
+def _repair_descriptive_text(step: Any) -> tuple[Any, int]:
+    """Repair bounded prose without modifying semantic planner fields.
+
+    Inputs: untrusted investigation step.
+    Outputs: shallow repaired step and changed-field count.
+    Assumptions: IDs, priorities, tools, and arguments must never be rewritten.
+    """
+
+    if not isinstance(step, dict):
+        return step, 0
+    repaired = dict(step)
+    repair_count = 0
+    for field_name, maximum in TEXT_FIELD_LIMITS.items():
+        value = repaired.get(field_name)
+        if not isinstance(value, str):
+            continue
+        repaired_value, changed = _cap_text(value, maximum=maximum)
+        repaired[field_name] = repaired_value
+        repair_count += int(changed)
+    return repaired, repair_count
 
 
 def _validate_exact_arguments(
@@ -309,11 +351,20 @@ def _validate_step(step: Any, index: int) -> list[str]:
         errors.append(f"{prefix}.anomaly_id must be null or a bounded string")
     if step["priority"] not in ALLOWED_PRIORITIES:
         errors.append(f"{prefix}.priority is not allowed")
-    if not _valid_string(step["question"], maximum=320):
+    if not _valid_string(
+        step["question"],
+        maximum=TEXT_FIELD_LIMITS["question"],
+    ):
         errors.append(f"{prefix}.question must be a bounded non-empty string")
-    if not _valid_string(step["reasoning"], maximum=500):
+    if not _valid_string(
+        step["reasoning"],
+        maximum=TEXT_FIELD_LIMITS["reasoning"],
+    ):
         errors.append(f"{prefix}.reasoning must be a bounded non-empty string")
-    if not _valid_string(step["expected_output"], maximum=320):
+    if not _valid_string(
+        step["expected_output"],
+        maximum=TEXT_FIELD_LIMITS["expected_output"],
+    ):
         errors.append(f"{prefix}.expected_output must be a bounded non-empty string")
 
     tool_name = step["tool_name"]
@@ -352,34 +403,28 @@ def _merge_text_values(
     field_name: str,
     *,
     maximum: int,
-) -> tuple[str | None, str | None]:
-    """Combine unique duplicate-step text while enforcing output limits.
+) -> tuple[str, bool]:
+    """Combine unique duplicate-step text and safely cap the result.
 
     Inputs: equivalent steps, text field name, and maximum merged length.
-    Outputs: merged text and no error, or None and an explanatory error.
-    Assumptions: separator preserves each distinct investigation intent.
+    Outputs: bounded merged text and whether it required repair.
+    Assumptions: highest-priority text appears first.
     """
 
     unique_values = list(
         dict.fromkeys(str(step[field_name]).strip() for step in steps)
     )
     merged = " | ".join(unique_values)
-    if len(merged) > maximum:
-        return (
-            None,
-            f"equivalent tool calls have conflicting {field_name} values "
-            f"that exceed the {maximum}-character merge limit",
-        )
-    return merged, None
+    return _cap_text(merged, maximum=maximum)
 
 
 def _merge_equivalent_steps(
     equivalent_steps: list[dict[str, Any]],
-) -> tuple[dict[str, Any] | None, list[str]]:
+) -> tuple[dict[str, Any], int]:
     """Safely merge steps that request the same tool with the same arguments.
 
     Inputs: two or more individually valid equivalent tool-call steps.
-    Outputs: one merged step or conflict errors.
+    Outputs: merged step and number of repaired merged text fields.
     Assumptions: differing priorities are compatible; highest urgency is preserved.
     """
 
@@ -389,21 +434,19 @@ def _merge_equivalent_steps(
         key=lambda step: PRIORITY_RANK[step["priority"]],
     )
     merged = dict(representative)
-    errors: list[str] = []
-    for field_name, maximum in (
-        ("question", 320),
-        ("reasoning", 500),
-        ("expected_output", 320),
-    ):
-        merged_text, error = _merge_text_values(
-            equivalent_steps,
+    repair_count = 0
+    ordered_steps = [
+        representative,
+        *[step for step in equivalent_steps if step is not representative],
+    ]
+    for field_name, maximum in TEXT_FIELD_LIMITS.items():
+        merged_text, repaired = _merge_text_values(
+            ordered_steps,
             field_name,
             maximum=maximum,
         )
-        if error:
-            errors.append(error)
-        elif merged_text is not None:
-            merged[field_name] = merged_text
+        merged[field_name] = merged_text
+        repair_count += int(repaired)
 
     anomaly_ids = {
         step["anomaly_id"]
@@ -413,16 +456,16 @@ def _merge_equivalent_steps(
     # One retrieval may support several anomalies. Null accurately marks the
     # merged call as cross-cutting without inventing a compound identifier.
     merged["anomaly_id"] = next(iter(anomaly_ids)) if len(anomaly_ids) == 1 else None
-    return (None, errors) if errors else (merged, [])
+    return merged, repair_count
 
 
 def _deduplicate_tool_calls(
     steps: list[dict[str, Any]],
-) -> tuple[list[dict[str, Any]], list[str], int]:
+) -> tuple[list[dict[str, Any]], int, int]:
     """Collapse safely equivalent tool calls and identify merge conflicts.
 
     Inputs: individually valid steps with unique step IDs.
-    Outputs: cleaned ordered steps, conflict errors, and removed-step count.
+    Outputs: cleaned steps, removed count, and merged-text repair count.
     Assumptions: first occurrence determines queue position.
     """
 
@@ -436,17 +479,16 @@ def _deduplicate_tool_calls(
         grouped[signature].append(step)
 
     cleaned: list[dict[str, Any]] = []
-    errors: list[str] = []
+    merged_repair_count = 0
     for signature in signature_order:
         equivalent_steps = grouped[signature]
         if len(equivalent_steps) == 1:
             cleaned.append(dict(equivalent_steps[0]))
             continue
-        merged, merge_errors = _merge_equivalent_steps(equivalent_steps)
-        errors.extend(merge_errors)
-        if merged is not None:
-            cleaned.append(merged)
-    return cleaned, errors, len(steps) - len(cleaned)
+        merged, repair_count = _merge_equivalent_steps(equivalent_steps)
+        cleaned.append(merged)
+        merged_repair_count += repair_count
+    return cleaned, len(steps) - len(cleaned), merged_repair_count
 
 
 def validate_ollama_plan_response(
@@ -484,13 +526,21 @@ def validate_ollama_plan_response(
             ),
         )
 
-    steps = payload["investigation_steps"]
-    if not isinstance(steps, list) or not steps:
+    raw_steps = payload["investigation_steps"]
+    if not isinstance(raw_steps, list) or not raw_steps:
         return PlanValidationResult(
             False,
             (),
             ("investigation_steps must be a non-empty list",),
         )
+
+    steps: list[Any] = []
+    repaired_text_fields = 0
+    for raw_step in raw_steps:
+        repaired_step, repair_count = _repair_descriptive_text(raw_step)
+        steps.append(repaired_step)
+        repaired_text_fields += repair_count
+
     errors: list[str] = []
     for index, step in enumerate(steps):
         errors.extend(_validate_step(step, index))
@@ -513,28 +563,29 @@ def validate_ollama_plan_response(
         errors.append("conflicting duplicate step_id values must be unique")
 
     if errors:
-        return PlanValidationResult(False, (), tuple(errors))
-
-    cleaned_steps, merge_errors, deduplicated_steps = _deduplicate_tool_calls(
-        [dict(step) for step in steps]
-    )
-    if merge_errors:
         return PlanValidationResult(
             False,
             (),
-            tuple(merge_errors),
-            deduplicated_steps,
+            tuple(errors),
+            repaired_text_fields=repaired_text_fields,
         )
+
+    cleaned_steps, deduplicated_steps, merged_repair_count = _deduplicate_tool_calls(
+        [dict(step) for step in steps]
+    )
+    repaired_text_fields += merged_repair_count
     if len(cleaned_steps) > MAX_PLAN_STEPS:
         return PlanValidationResult(
             False,
             (),
             (f"cleaned plan exceeds maximum size of {MAX_PLAN_STEPS}",),
             deduplicated_steps,
+            repaired_text_fields,
         )
     return PlanValidationResult(
         True,
         tuple(cleaned_steps),
         (),
         deduplicated_steps,
+        repaired_text_fields,
     )
