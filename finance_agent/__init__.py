@@ -36,10 +36,35 @@ from finance_agent.finance_engine import (
 )
 from finance_agent.periods import PeriodScope, filter_table_for_period
 from finance_agent.ollama_client import OllamaClient, OllamaError
+from finance_agent.ollama_planner import (
+    OllamaPlannerResult,
+    build_execution_queue,
+    build_ollama_planner_prompt,
+    create_ollama_investigation_plan,
+)
 from finance_agent.intermediate import (
     build_feature_summary,
     build_financial_document_model,
     save_intermediate_outputs,
+)
+from finance_agent.investigation_planner import (
+    build_investigation_plan,
+    save_investigation_plan,
+)
+from finance_agent.planner_loader import (
+    PlannerInputBundle,
+    PlannerInputError,
+    load_planner_inputs,
+)
+from finance_agent.planner_models import (
+    EvidenceRequest,
+    InvestigationPlan,
+    InvestigationTask,
+    PriorityLevel,
+)
+from finance_agent.planner_validation import (
+    PlanValidationResult,
+    validate_ollama_plan_response,
 )
 from finance_agent.structure_fallback import (
     FallbackSummary,
@@ -58,11 +83,18 @@ __all__ = [
     "FinanceCalculationResult",
     "GoalsPdfResult",
     "IntermediateModelLoadError",
+    "InvestigationPlan",
+    "InvestigationTask",
     "LoadedIntermediateModel",
     "LoadedIntermediateTable",
     "OllamaClient",
     "OllamaError",
+    "OllamaPlannerResult",
     "PeriodScope",
+    "PlannerInputBundle",
+    "PlannerInputError",
+    "PlanValidationResult",
+    "PriorityLevel",
     "PdfIngestionError",
     "WorkbookIngestionError",
     "WorkbookIngestionResult",
@@ -78,15 +110,23 @@ __all__ = [
     "normalize_column_names",
     "build_feature_summary",
     "build_financial_document_model",
+    "build_execution_queue",
+    "build_investigation_plan",
+    "build_ollama_planner_prompt",
+    "create_ollama_investigation_plan",
     "detect_low_confidence_items",
     "enrich_intermediate_model",
     "FallbackSummary",
     "save_intermediate_outputs",
     "save_enriched_model",
+    "save_investigation_plan",
     "run_finance_calculations",
     "run_anomaly_detection",
     "save_anomaly_report",
     "save_finance_calculation_outputs",
     "save_risk_summary",
     "filter_table_for_period",
+    "load_planner_inputs",
+    "validate_ollama_plan_response",
+    "EvidenceRequest",
 ]

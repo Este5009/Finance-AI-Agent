@@ -19,7 +19,7 @@ class OllamaError(RuntimeError):
 
 @dataclass
 class OllamaClient:
-    """Reusable client for the small subset of the Ollama API used by Step 5."""
+    """Reusable client for strict-JSON calls to the local Ollama API."""
 
     endpoint: str = DEFAULT_OLLAMA_ENDPOINT
     model: str = DEFAULT_OLLAMA_MODEL
@@ -79,9 +79,9 @@ class OllamaClient:
         return True
 
     def generate(self, prompt: str) -> str:
-        """Ask Ollama for one non-streaming strict-JSON structure interpretation.
+        """Ask Ollama for one non-streaming strict-JSON response.
 
-        Inputs: compact structure-only prompt.
+        Inputs: compact task-specific prompt.
         Outputs: model response text from Ollama's response envelope.
         Assumptions: callers validate the model-authored JSON before using it.
         """

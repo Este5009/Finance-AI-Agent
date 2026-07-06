@@ -1,0 +1,25 @@
+{
+  "reporting_year": "2026",
+  "plan_count": 2,
+  "total_tasks": 38,
+  "tasks_by_priority": {
+    "critical": 14,
+    "high": 15,
+    "medium": 9,
+    "low": 0
+  },
+  "human_review_task_count": 8,
+  "plan_files": [
+    "investigation_plan_june_2026.json",
+    "investigation_plan_2026.json"
+  ],
+  "top_5_investigation_questions": [
+    "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-06?",
+    "Which revenue shortfalls and expense drivers caused the operating deficit in June 2026?",
+    "Which operating, scholarship, or capital outflows caused cash-flow risk in June 2026?",
+    "Which operating, scholarship, or capital outflows caused cash-flow risk in 2026?",
+    "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-07?"
+  ],
+  "llm_used": false,
+  "evidence_retrieved": false
+}
