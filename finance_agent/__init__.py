@@ -29,6 +29,11 @@ from finance_agent.anomaly_loader import (
     CalculationOutputLoadError,
     load_calculation_outputs,
 )
+from finance_agent.analysis_models import (
+    AnalysisRunSummary,
+    AnalysisValidationResult,
+    StrategicAnalysisResult,
+)
 from finance_agent.finance_engine import (
     FinanceCalculationResult,
     run_finance_calculations,
@@ -83,6 +88,12 @@ from finance_agent.retrieval_registry import (
     RetrievalRegistry,
     create_default_registry,
 )
+from finance_agent.strategic_analysis import (
+    build_analysis_summary,
+    build_strategic_analysis_prompt,
+    create_strategic_analysis,
+    validate_strategic_analysis_response,
+)
 from finance_agent.structure_fallback import (
     FallbackSummary,
     detect_low_confidence_items,
@@ -95,6 +106,8 @@ __all__ = [
     "COLUMN_ALIASES",
     "AnomalyReport",
     "AnomalyThresholds",
+    "AnalysisRunSummary",
+    "AnalysisValidationResult",
     "CalculationOutputBundle",
     "CalculationOutputLoadError",
     "FinanceCalculationResult",
@@ -119,11 +132,15 @@ __all__ = [
     "RetrievalRequest",
     "RetrievalResult",
     "RetrievalRunSummary",
+    "StrategicAnalysisResult",
     "WorkbookIngestionError",
     "WorkbookIngestionResult",
     "build_retrieval_summary",
+    "build_analysis_summary",
+    "build_strategic_analysis_prompt",
     "clean_column_name",
     "create_default_registry",
+    "create_strategic_analysis",
     "extract_goals_pdf",
     "execute_retrieval_queue",
     "inspect_sheet",
@@ -155,6 +172,7 @@ __all__ = [
     "load_planner_inputs",
     "load_execution_queue",
     "load_retrieval_context",
+    "validate_strategic_analysis_response",
     "validate_ollama_plan_response",
     "EvidenceRequest",
 ]

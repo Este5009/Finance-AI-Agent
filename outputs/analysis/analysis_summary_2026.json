@@ -1,0 +1,24 @@
+{
+  "summary_id": "ANALYSIS-SUMMARY-2026",
+  "analyses_requested": 2,
+  "analyses_generated": 2,
+  "analyses_rejected": 0,
+  "average_confidence": 0.85,
+  "recommendations_generated": 7,
+  "scopes": [
+    {
+      "analysis_id": "STRATEGIC-ANALYSIS-JUNE-2026",
+      "period_slug": "june_2026",
+      "validation_status": "accepted",
+      "confidence": 0.85,
+      "recommendation_count": 3
+    },
+    {
+      "analysis_id": "STRATEGIC-ANALYSIS-2026",
+      "period_slug": "2026",
+      "validation_status": "accepted",
+      "confidence": 0.85,
+      "recommendation_count": 4
+    }
+  ]
+}

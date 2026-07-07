@@ -1,0 +1,63 @@
+{
+  "analysis_id": "STRATEGIC-ANALYSIS-JUNE-2026",
+  "period_slug": "june_2026",
+  "report_period": "June 2026",
+  "analysis_source": "ollama",
+  "ollama_available": true,
+  "validation_status": "accepted",
+  "analysis_generated": true,
+  "validation_errors": [],
+  "recommendation_count": 3,
+  "analysis": {
+    "executive_summary": "June 2026 financial performance shows significant anomalies, including payroll variance exceeding thresholds, operating deficits, and collection rate shortfalls. Critical risks include negative cash flow and payroll ratio issues, requiring immediate attention to align with annual budget targets.",
+    "key_findings": [
+      "Payroll expense variance at 11.00% exceeds the 8.0% threshold, with actuals $997,102 vs. budget $898,263.",
+      "Monthly operating deficit observed in June 2026, indicating revenue shortfalls or expense drivers.",
+      "Student collection rate below target (94.0% minimum), with evidence of overdue invoices.",
+      "Vendor payment review threshold exceeded, but evidence unavailable for verification."
+    ],
+    "root_causes": [
+      "Unplanned payroll increases due to overtime, benefits, or headcount growth.",
+      "Revenue shortfalls from uncollected student payments or delayed collections.",
+      "Inadequate cash flow management leading to negative cash flow risk.",
+      "Potential duplicate checks or unapproved vendor payments due to missing evidence."
+    ],
+    "recommendations": [
+      {
+        "priority": "critical",
+        "action": "Review payroll components and revenue denominator for June 2026.",
+        "rationale": "Payroll variance exceeds threshold, requiring immediate analysis of payroll drivers.",
+        "supporting_evidence": "Payroll actual $997,102 vs. budget $898,263; variance 11.00%.",
+        "expected_impact": "Reduce payroll ratio to below 42.0% threshold.",
+        "confidence": 0.95
+      },
+      {
+        "priority": "high",
+        "action": "Inspect overdue invoices and collection actions for June 2026.",
+        "rationale": "Collection rate below target indicates poor collection efficiency.",
+        "supporting_evidence": "Monthly student collection rate below 94.0% target.",
+        "expected_impact": "Improve collection rate to meet 94.0% minimum.",
+        "confidence": 0.95
+      },
+      {
+        "priority": "high",
+        "action": "Verify vendor payment evidence for flagged transactions.",
+        "rationale": "Vendor payment exceeds review threshold but evidence unavailable.",
+        "supporting_evidence": "Vendor payment review threshold: $50,000.00.",
+        "expected_impact": "Prevent duplicate or unapproved payments.",
+        "confidence": 0.55
+      }
+    ],
+    "strategic_priorities": [
+      "Align payroll ratio with annual target of 42.0%.",
+      "Improve student collection rate to 94.0% minimum.",
+      "Ensure vendor payment approvals are validated."
+    ],
+    "missing_information": [
+      "Vendor payment evidence for STEP-006 (unavailable data: 'No processed transactions matched the filters').",
+      "Detailed breakdown of Engineering and Health Sciences department overspending."
+    ],
+    "confidence": 0.85,
+    "reasoning_summary": "Evidence confirms payroll variance, operating deficit, and collection rate issues. Vendor payment evidence is missing, reducing confidence in that area. Payroll and collection actions are prioritized based on threshold breaches and available data."
+  }
+}
