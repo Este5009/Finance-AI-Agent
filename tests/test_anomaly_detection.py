@@ -1,23 +1,23 @@
-"""Tests for deterministic rule, trend, statistical, and severity detection."""
+﻿"""Tests for deterministic rule, trend, statistical, and severity detection."""
 
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
-from finance_agent.anomaly_config import AnomalyThresholds
-from finance_agent.anomaly_loader import CalculationOutputBundle
-from finance_agent.anomaly_models import AnomalyIdGenerator
-from finance_agent.anomaly_rules import detect_rule_based_anomalies
-from finance_agent.anomaly_severity import (
+from finance_agent.anomalies.anomaly_config import AnomalyThresholds
+from finance_agent.anomalies.anomaly_loader import CalculationOutputBundle
+from finance_agent.anomalies.anomaly_models import AnomalyIdGenerator
+from finance_agent.anomalies.anomaly_rules import detect_rule_based_anomalies
+from finance_agent.anomalies.anomaly_severity import (
     severity_for_negative_value,
     severity_for_upper_threshold,
 )
-from finance_agent.anomaly_statistics import (
+from finance_agent.anomalies.anomaly_statistics import (
     calculate_z_scores,
     detect_statistical_anomalies,
 )
-from finance_agent.anomaly_trends import detect_trend_anomalies
+from finance_agent.anomalies.anomaly_trends import detect_trend_anomalies
 
 
 def _bundle(

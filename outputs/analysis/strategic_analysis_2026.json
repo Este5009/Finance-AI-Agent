@@ -7,65 +7,57 @@
   "validation_status": "accepted",
   "analysis_generated": true,
   "validation_errors": [],
-  "recommendation_count": 4,
+  "recommendation_count": 3,
   "analysis": {
-    "executive_summary": "The organization faces significant financial risks in 2026, including critical operating deficits in June, July, and August, payroll ratios exceeding thresholds, and below-target collection rates. These issues threaten annual financial goals and require immediate attention to prevent further deterioration.",
+    "executive_summary": "The organization faces significant financial risks in 2026, with critical operating deficits in June, July, and August, alongside payroll ratios exceeding thresholds. Key issues include revenue shortfalls, high payroll costs, and collection rate failures, requiring immediate attention to stabilize operations and meet annual goals.",
     "key_findings": [
       "Monthly operating deficits occurred in June, July, and August 2026, with critical severity for June.",
-      "Payroll as a percentage of revenue exceeded the 42% threshold in June, July, and August (43.10%, 43.10%, 43.10%).",
-      "Student collection rate missed target in June 2026, with evidence showing 48 transaction records related to collections.",
-      "Vendor payment review threshold was exceeded in multiple instances, though specific details are not provided."
+      "Payroll percentage of revenue exceeded the 42% threshold in June, July, and August (43.10%, 43.10%, 43.10%).",
+      "Student collection rate missed target in June 2026, with evidence showing 48 transactions retrieved.",
+      "Vendor payment review threshold was exceeded in multiple instances, though specific details are unavailable."
     ],
     "root_causes": [
-      "Unplanned expense growth or revenue shortfalls likely caused operating deficits, particularly in June, July, and August.",
-      "Payroll costs may have increased due to overtime, benefits, or headcount without corresponding revenue growth.",
-      "Collection rate shortfall may stem from overdue invoices or ineffective collection actions in June.",
-      "Vendor payment issues may relate to lack of proper approval processes or duplicate payments."
+      "Revenue shortfalls likely drove operating deficits, compounded by payroll costs exceeding revenue thresholds.",
+      "Inconsistent collection practices may have contributed to the below-target student collection rate.",
+      "Payroll components (e.g., overtime, benefits) may be driving the payroll ratio above threshold without corresponding revenue growth."
     ],
     "recommendations": [
       {
         "priority": "critical",
         "action": "Conduct detailed review of June 2026 revenue and expense drivers against budget.",
-        "rationale": "June had a critical operating deficit with available evidence; understanding root causes is essential to prevent recurrence.",
-        "supporting_evidence": "ANOM-2026-005 (June operating deficit)",
-        "expected_impact": "Identify specific revenue or expense variances to adjust budgeting and forecasting.",
+        "rationale": "June's operating deficit is critical, and evidence shows a detailed finance summary is unavailable for July and August.",
+        "supporting_evidence": "ANOM-2026-005 (critical deficit in June), evidence package STEP-001",
+        "expected_impact": "Identify root causes of revenue shortfall and expense overruns to prevent future deficits.",
         "confidence": 0.98
       },
       {
         "priority": "high",
-        "action": "Review payroll components (overtime, benefits, headcount) for June, July, and August 2026.",
-        "rationale": "Payroll ratio exceeded threshold in all three months; understanding components will help control costs.",
+        "action": "Audit payroll components and revenue denominator for June, July, and August 2026.",
+        "rationale": "Payroll ratio exceeded threshold in all three months, requiring analysis of payroll structure and revenue base.",
         "supporting_evidence": "ANOM-2026-008, ANOM-2026-011, ANOM-2026-012",
-        "expected_impact": "Reduce payroll costs to stay within 42% threshold, improving operating margin.",
+        "expected_impact": "Adjust payroll costs to align with revenue, reducing risk of future payroll ratio breaches.",
         "confidence": 0.95
       },
       {
         "priority": "high",
-        "action": "Inspect overdue invoices and collection actions for June 2026.",
-        "rationale": "Collection rate missed target in June; addressing overdue invoices can improve cash flow.",
-        "supporting_evidence": "ANOM-2026-014",
-        "expected_impact": "Increase student collection rate to 94% target, enhancing revenue predictability.",
+        "action": "Investigate overdue invoices and collection actions for June 2026 student payments.",
+        "rationale": "Student collection rate missed target in June, with 48 transactions retrieved indicating potential collection issues.",
+        "supporting_evidence": "ANOM-2026-014, evidence package STEP-007",
+        "expected_impact": "Improve collection rates to meet 94% target, increasing cash flow and reducing financial strain.",
         "confidence": 0.95
-      },
-      {
-        "priority": "high",
-        "action": "Audit vendor payments for June, July, and August 2026 to identify review threshold breaches.",
-        "rationale": "Vendor payment exceeds review threshold; ensuring proper approvals will prevent financial leakage.",
-        "supporting_evidence": "ANOM-2026-003",
-        "expected_impact": "Reduce unauthorized or duplicate payments, improving cash flow management.",
-        "confidence": 0.7
       }
     ],
     "strategic_priorities": [
-      "Address operating deficits to stabilize cash flow.",
-      "Control payroll costs to maintain revenue ratio thresholds.",
-      "Improve student collection rates to meet revenue targets."
+      "Stabilize operating results to avoid further deficits.",
+      "Align payroll costs with revenue growth to meet threshold.",
+      "Improve student collection rates to meet annual targets."
     ],
     "missing_information": [
-      "Detailed finance summary for July and August 2026 (unavailable data: detailed_finance_summary:2026-07, detailed_finance_summary:2026-08).",
-      "Historical memory database for unresolved data-quality issues (unavailable: previous_cycle_memory_database)."
+      "Detailed finance summary for July and August 2026 (unavailable in evidence package).",
+      "Specific vendor invoice details for payments exceeding review threshold.",
+      "Historical memory database for data quality issues (unavailable in evidence package)."
     ],
     "confidence": 0.85,
-    "reasoning_summary": "Evidence confirms operating deficits in June, July, and August; payroll ratios exceeded thresholds; and collection rates missed targets. Available evidence supports critical actions for June, but July and August lack detailed summaries. Confidence is high for June-related actions but lower for July/August due to missing data."
+    "reasoning_summary": "Evidence confirms operating deficits in June, July, and August, with payroll ratios exceeding thresholds. Collection rate issues are supported by transaction data. Missing detailed summaries for July/August and vendor invoice details limit full analysis, but recommendations focus on critical and high-severity anomalies with available evidence."
   }
 }

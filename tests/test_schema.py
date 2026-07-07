@@ -1,15 +1,15 @@
-"""Tests for starter schema-normalization helpers."""
+﻿"""Tests for starter schema-normalization helpers."""
 
 import pytest
 
-from finance_agent.schema import clean_column_name, map_column_alias, normalize_column_names
+from finance_agent.ingestion.schema import clean_column_name, map_column_alias, normalize_column_names
 
 
 @pytest.mark.parametrize(
     ("raw_name", "expected"),
     [
         ("  Fecha de Pago  ", "fecha_de_pago"),
-        ("ÁREA / UNIDAD", "area_unidad"),
+        ("ÃREA / UNIDAD", "area_unidad"),
         ("Total   Ejecutado", "total_ejecutado"),
         ("Proveedor-Nombre", "proveedor_nombre"),
     ],
@@ -24,7 +24,7 @@ def test_clean_column_name(raw_name: str, expected: str) -> None:
     ("alias", "canonical"),
     [
         ("Departamento", "department"),
-        ("área", "department"),
+        ("Ã¡rea", "department"),
         ("importe", "amount"),
         ("Fecha", "date"),
         ("Ingresos", "revenue"),

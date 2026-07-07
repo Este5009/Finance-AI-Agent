@@ -1,4 +1,4 @@
-"""Run deterministic Step 3 calculations for the June 2026 report."""
+﻿"""Run deterministic Step 3 calculations for the June 2026 report."""
 
 from __future__ import annotations
 
@@ -12,13 +12,13 @@ if str(PROJECT_ROOT) not in sys.path:
     # Direct script execution begins in scripts/, so expose the project package.
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from finance_agent.calculation_loader import load_intermediate_model  # noqa: E402
-from finance_agent.finance_engine import (  # noqa: E402
+from finance_agent.calculations.calculation_loader import load_intermediate_model  # noqa: E402
+from finance_agent.calculations.finance_engine import (  # noqa: E402
     FinanceCalculationResult,
     run_finance_calculations,
     save_finance_calculation_outputs,
 )
-from finance_agent.periods import PeriodScope  # noqa: E402
+from finance_agent.calculations.periods import PeriodScope  # noqa: E402
 
 
 INTERMEDIATE_MODEL = (

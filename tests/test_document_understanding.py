@@ -1,7 +1,7 @@
-"""Tests for worksheet geometry and logical-table detection."""
+﻿"""Tests for worksheet geometry and logical-table detection."""
 
-from finance_agent.document_understanding import understand_sheet
-from finance_agent.models import RawSheetData
+from finance_agent.understanding.document_understanding import understand_sheet
+from finance_agent.understanding.models import RawSheetData
 
 
 def _raw_sheet(

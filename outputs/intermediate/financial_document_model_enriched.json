@@ -2,8 +2,8 @@
   "model_version": "2.0",
   "purpose": "Intermediate bridge between arbitrary financial workbooks and deterministic finance calculations.",
   "source_workbooks": [
-    "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
-    "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
   ],
   "sheet_count": 22,
   "table_count": 22,
@@ -42,7 +42,7 @@
       "detected_table_ids": [
         "monthly_financial_report_june_2026__executive_summary__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
     },
     {
       "sheet_name": "Revenue",
@@ -78,7 +78,7 @@
       "detected_table_ids": [
         "monthly_financial_report_june_2026__revenue__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
     },
     {
       "sheet_name": "Expenses",
@@ -114,7 +114,7 @@
       "detected_table_ids": [
         "monthly_financial_report_june_2026__expenses__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
     },
     {
       "sheet_name": "Budget_vs_Actual",
@@ -150,7 +150,7 @@
       "detected_table_ids": [
         "monthly_financial_report_june_2026__budget_vs_actual__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
     },
     {
       "sheet_name": "Department_Summary",
@@ -186,7 +186,7 @@
       "detected_table_ids": [
         "monthly_financial_report_june_2026__department_summary__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
     },
     {
       "sheet_name": "Payroll",
@@ -222,7 +222,7 @@
       "detected_table_ids": [
         "monthly_financial_report_june_2026__payroll__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
     },
     {
       "sheet_name": "Student_Payments",
@@ -258,7 +258,7 @@
       "detected_table_ids": [
         "monthly_financial_report_june_2026__student_payments__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
     },
     {
       "sheet_name": "Cash_Flow",
@@ -294,7 +294,7 @@
       "detected_table_ids": [
         "monthly_financial_report_june_2026__cash_flow__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
     },
     {
       "sheet_name": "Scholarships",
@@ -330,7 +330,7 @@
       "detected_table_ids": [
         "monthly_financial_report_june_2026__scholarships__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
     },
     {
       "sheet_name": "Vendor_Payments",
@@ -366,7 +366,7 @@
       "detected_table_ids": [
         "monthly_financial_report_june_2026__vendor_payments__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
     },
     {
       "sheet_name": "Anomalies_Embedded",
@@ -402,7 +402,7 @@
       "detected_table_ids": [
         "monthly_financial_report_june_2026__anomalies_embedded__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
     },
     {
       "sheet_name": "Executive_Summary",
@@ -438,7 +438,7 @@
       "detected_table_ids": [
         "annual_financial_report_2026__executive_summary__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
     },
     {
       "sheet_name": "Revenue",
@@ -474,7 +474,7 @@
       "detected_table_ids": [
         "annual_financial_report_2026__revenue__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
     },
     {
       "sheet_name": "Expenses",
@@ -510,7 +510,7 @@
       "detected_table_ids": [
         "annual_financial_report_2026__expenses__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
     },
     {
       "sheet_name": "Budget_vs_Actual",
@@ -546,7 +546,7 @@
       "detected_table_ids": [
         "annual_financial_report_2026__budget_vs_actual__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
     },
     {
       "sheet_name": "Department_Summary",
@@ -582,7 +582,7 @@
       "detected_table_ids": [
         "annual_financial_report_2026__department_summary__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
     },
     {
       "sheet_name": "Payroll",
@@ -618,7 +618,7 @@
       "detected_table_ids": [
         "annual_financial_report_2026__payroll__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
     },
     {
       "sheet_name": "Student_Payments",
@@ -654,7 +654,7 @@
       "detected_table_ids": [
         "annual_financial_report_2026__student_payments__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
     },
     {
       "sheet_name": "Cash_Flow",
@@ -690,7 +690,7 @@
       "detected_table_ids": [
         "annual_financial_report_2026__cash_flow__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
     },
     {
       "sheet_name": "Scholarships",
@@ -726,7 +726,7 @@
       "detected_table_ids": [
         "annual_financial_report_2026__scholarships__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
     },
     {
       "sheet_name": "Vendor_Payments",
@@ -762,7 +762,7 @@
       "detected_table_ids": [
         "annual_financial_report_2026__vendor_payments__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
     },
     {
       "sheet_name": "Anomalies_Embedded",
@@ -798,13 +798,13 @@
       "detected_table_ids": [
         "annual_financial_report_2026__anomalies_embedded__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx"
     }
   ],
   "tables": [
     {
       "table_id": "monthly_financial_report_june_2026__executive_summary__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
       "sheet": "Executive_Summary",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Executive_Summary",
@@ -988,7 +988,7 @@
     },
     {
       "table_id": "monthly_financial_report_june_2026__revenue__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
       "sheet": "Revenue",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Revenue",
@@ -1216,7 +1216,7 @@
     },
     {
       "table_id": "monthly_financial_report_june_2026__expenses__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
       "sheet": "Expenses",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Expenses",
@@ -1444,7 +1444,7 @@
     },
     {
       "table_id": "monthly_financial_report_june_2026__budget_vs_actual__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
       "sheet": "Budget_vs_Actual",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Budget_vs_Actual",
@@ -1767,7 +1767,7 @@
     },
     {
       "table_id": "monthly_financial_report_june_2026__department_summary__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
       "sheet": "Department_Summary",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Department_Summary",
@@ -1984,21 +1984,11 @@
           "status": "Flag - Overspend"
         }
       ],
-      "llm_reviewed": true,
-      "llm_suggested_type": "Budget_vs_Actual",
-      "llm_column_mappings": {
-        "Department": "department",
-        "Budget_Revenue": "budget_revenue",
-        "Actual_Revenue": "actual_revenue",
-        "Budget_Expense": "budget_expense",
-        "Actual_Expense": "actual_expense",
-        "Net_Contribution": "net_contribution",
-        "Expense_Variance": "expense_variance",
-        "Expense_Variance_Pct": "expense_variance_pct",
-        "Status": "status"
-      },
-      "llm_confidence": 0.87,
-      "llm_reasoning_short": "Table compares budget vs actual revenue and expenses per department with variance metrics. 'Net_Contribution' is a metric despite low confidence score. Status is a dimension.",
+      "llm_reviewed": false,
+      "llm_suggested_type": null,
+      "llm_column_mappings": {},
+      "llm_confidence": null,
+      "llm_reasoning_short": null,
       "final_table_type": "Department_Summary",
       "final_column_mappings": {
         "Department": "department",
@@ -2016,7 +2006,7 @@
     },
     {
       "table_id": "monthly_financial_report_june_2026__payroll__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
       "sheet": "Payroll",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Payroll",
@@ -2297,7 +2287,7 @@
     },
     {
       "table_id": "monthly_financial_report_june_2026__student_payments__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
       "sheet": "Student_Payments",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Student_Payments",
@@ -2591,7 +2581,7 @@
     },
     {
       "table_id": "monthly_financial_report_june_2026__cash_flow__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
       "sheet": "Cash_Flow",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Cash_Flow",
@@ -2894,7 +2884,7 @@
           "ending_cash_variance": -593882
         }
       ],
-      "llm_reviewed": true,
+      "llm_reviewed": false,
       "llm_suggested_type": null,
       "llm_column_mappings": {},
       "llm_confidence": null,
@@ -2923,7 +2913,7 @@
     },
     {
       "table_id": "monthly_financial_report_june_2026__scholarships__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
       "sheet": "Scholarships",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Scholarships",
@@ -3151,7 +3141,7 @@
           "utilization_pct": 0.989989071
         }
       ],
-      "llm_reviewed": true,
+      "llm_reviewed": false,
       "llm_suggested_type": null,
       "llm_column_mappings": {},
       "llm_confidence": null,
@@ -3173,7 +3163,7 @@
     },
     {
       "table_id": "monthly_financial_report_june_2026__vendor_payments__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
       "sheet": "Vendor_Payments",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Vendor_Payments",
@@ -3464,24 +3454,11 @@
           "high_value_flag": "No"
         }
       ],
-      "llm_reviewed": true,
-      "llm_suggested_type": "Vendor_Payments",
-      "llm_column_mappings": {
-        "Payment_ID": "payment_id",
-        "Payment_Date": "payment_date",
-        "Month": "month",
-        "Department": "department",
-        "Vendor": "vendor",
-        "Invoice_Number": "invoice_number",
-        "Expense_Category": "expense_category",
-        "Amount": "amount",
-        "Payment_Method": "payment_method",
-        "Approval_Status": "approval_status",
-        "Potential_Duplicate": "potential_duplicate",
-        "High_Value_Flag": "high_value_flag"
-      },
-      "llm_confidence": 0.99,
-      "llm_reasoning_short": "All columns map to canonical fields with high confidence except low-confidence fields which are mapped as-is. Table type matches source name.",
+      "llm_reviewed": false,
+      "llm_suggested_type": null,
+      "llm_column_mappings": {},
+      "llm_confidence": null,
+      "llm_reasoning_short": null,
       "final_table_type": "Vendor_Payments",
       "final_column_mappings": {
         "Payment_ID": "payment_id",
@@ -3498,11 +3475,11 @@
         "High_Value_Flag": "high_value_flag"
       },
       "final_confidence": 0.99,
-      "requires_human_review": false
+      "requires_human_review": true
     },
     {
       "table_id": "monthly_financial_report_june_2026__anomalies_embedded__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
       "sheet": "Anomalies_Embedded",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Unknown",
@@ -3730,21 +3707,11 @@
           "source_sheet": "Vendor_Payments"
         }
       ],
-      "llm_reviewed": true,
-      "llm_suggested_type": "Unknown",
-      "llm_column_mappings": {
-        "Anomaly_ID": "anomaly_id",
-        "Detected_Period": "detected_period",
-        "Department": "department",
-        "Anomaly_Type": "anomaly_type",
-        "Severity": "severity",
-        "Description": "description",
-        "Observed_Value": "observed_value",
-        "Threshold": "threshold",
-        "Source_Sheet": "source_sheet"
-      },
-      "llm_confidence": 0.3,
-      "llm_reasoning_short": "Table contains anomaly detection data with observed values vs thresholds. No clear financial metric alignment. All columns mapped to canonical fields except 'unknown' fields. Low confidence due to mismatched context.",
+      "llm_reviewed": false,
+      "llm_suggested_type": null,
+      "llm_column_mappings": {},
+      "llm_confidence": null,
+      "llm_reasoning_short": null,
       "final_table_type": "Unknown",
       "final_column_mappings": {
         "Anomaly_ID": "anomaly_id",
@@ -3762,7 +3729,7 @@
     },
     {
       "table_id": "annual_financial_report_2026__executive_summary__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
       "sheet": "Executive_Summary",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Executive_Summary",
@@ -3946,7 +3913,7 @@
     },
     {
       "table_id": "annual_financial_report_2026__revenue__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
       "sheet": "Revenue",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Revenue",
@@ -4174,7 +4141,7 @@
     },
     {
       "table_id": "annual_financial_report_2026__expenses__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
       "sheet": "Expenses",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Expenses",
@@ -4402,7 +4369,7 @@
     },
     {
       "table_id": "annual_financial_report_2026__budget_vs_actual__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
       "sheet": "Budget_vs_Actual",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Budget_vs_Actual",
@@ -4740,7 +4707,7 @@
     },
     {
       "table_id": "annual_financial_report_2026__department_summary__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
       "sheet": "Department_Summary",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Department_Summary",
@@ -4957,21 +4924,11 @@
           "status": "Within Threshold"
         }
       ],
-      "llm_reviewed": true,
-      "llm_suggested_type": "Budget_vs_Actual",
-      "llm_column_mappings": {
-        "Department": "department",
-        "Budget_Revenue": "budget_revenue",
-        "Actual_Revenue": "actual_revenue",
-        "Budget_Expense": "budget_expense",
-        "Actual_Expense": "actual_expense",
-        "Net_Contribution": "net_contribution",
-        "Expense_Variance": "expense_variance",
-        "Expense_Variance_Pct": "expense_variance_pct",
-        "Status": "status"
-      },
-      "llm_confidence": 0.87,
-      "llm_reasoning_short": "Table matches Budget_vs_Actual type with high confidence. Dimensions: department, status. Metrics include budget/actual revenue/expense and variance metrics. Net_Contribution has lower confidence but aligns with net_contribution.",
+      "llm_reviewed": false,
+      "llm_suggested_type": null,
+      "llm_column_mappings": {},
+      "llm_confidence": null,
+      "llm_reasoning_short": null,
       "final_table_type": "Department_Summary",
       "final_column_mappings": {
         "Department": "department",
@@ -4989,7 +4946,7 @@
     },
     {
       "table_id": "annual_financial_report_2026__payroll__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
       "sheet": "Payroll",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Payroll",
@@ -5283,7 +5240,7 @@
     },
     {
       "table_id": "annual_financial_report_2026__student_payments__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
       "sheet": "Student_Payments",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Student_Payments",
@@ -5577,7 +5534,7 @@
     },
     {
       "table_id": "annual_financial_report_2026__cash_flow__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
       "sheet": "Cash_Flow",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Cash_Flow",
@@ -5952,7 +5909,7 @@
           "ending_cash_variance": -178785
         }
       ],
-      "llm_reviewed": true,
+      "llm_reviewed": false,
       "llm_suggested_type": null,
       "llm_column_mappings": {},
       "llm_confidence": null,
@@ -5981,7 +5938,7 @@
     },
     {
       "table_id": "annual_financial_report_2026__scholarships__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
       "sheet": "Scholarships",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Scholarships",
@@ -6209,7 +6166,7 @@
           "utilization_pct": 0.94
         }
       ],
-      "llm_reviewed": true,
+      "llm_reviewed": false,
       "llm_suggested_type": null,
       "llm_column_mappings": {},
       "llm_confidence": null,
@@ -6231,7 +6188,7 @@
     },
     {
       "table_id": "annual_financial_report_2026__vendor_payments__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
       "sheet": "Vendor_Payments",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Vendor_Payments",
@@ -6522,24 +6479,11 @@
           "high_value_flag": "No"
         }
       ],
-      "llm_reviewed": true,
-      "llm_suggested_type": "Vendor_Payments",
-      "llm_column_mappings": {
-        "Payment_ID": "payment_id",
-        "Payment_Date": "payment_date",
-        "Month": "month",
-        "Department": "department",
-        "Vendor": "vendor",
-        "Invoice_Number": "invoice_number",
-        "Expense_Category": "expense_category",
-        "Amount": "amount",
-        "Payment_Method": "payment_method",
-        "Approval_Status": "approval_status",
-        "Potential_Duplicate": "potential_duplicate",
-        "High_Value_Flag": "high_value_flag"
-      },
-      "llm_confidence": 0.99,
-      "llm_reasoning_short": "All columns match canonical fields except 'Potential_Duplicate' and 'High_Value_Flag' which have low confidence but are mapped to allowed fields. Table type matches source.",
+      "llm_reviewed": false,
+      "llm_suggested_type": null,
+      "llm_column_mappings": {},
+      "llm_confidence": null,
+      "llm_reasoning_short": null,
       "final_table_type": "Vendor_Payments",
       "final_column_mappings": {
         "Payment_ID": "payment_id",
@@ -6556,11 +6500,11 @@
         "High_Value_Flag": "high_value_flag"
       },
       "final_confidence": 0.99,
-      "requires_human_review": false
+      "requires_human_review": true
     },
     {
       "table_id": "annual_financial_report_2026__anomalies_embedded__table_01",
-      "source_workbook": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
       "sheet": "Anomalies_Embedded",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Unknown",
@@ -6788,21 +6732,11 @@
           "source_sheet": "Vendor_Payments"
         }
       ],
-      "llm_reviewed": true,
-      "llm_suggested_type": "Unknown",
-      "llm_column_mappings": {
-        "Anomaly_ID": "anomaly_id",
-        "Detected_Period": "detected_period",
-        "Department": "department",
-        "Anomaly_Type": "anomaly_type",
-        "Severity": "severity",
-        "Description": "description",
-        "Observed_Value": "observed_value",
-        "Threshold": "threshold",
-        "Source_Sheet": "source_sheet"
-      },
-      "llm_confidence": 0.3,
-      "llm_reasoning_short": "Table contains anomaly detection data with observed values vs thresholds. No clear financial metric alignment. All columns mapped to canonical fields except 'unknown' fields. Low confidence due to mismatched context.",
+      "llm_reviewed": false,
+      "llm_suggested_type": null,
+      "llm_column_mappings": {},
+      "llm_confidence": null,
+      "llm_reasoning_short": null,
       "final_table_type": "Unknown",
       "final_column_mappings": {
         "Anomaly_ID": "anomaly_id",
@@ -6821,8 +6755,8 @@
   ],
   "enrichment": {
     "stage": "ollama_structure_fallback",
-    "generated_at_utc": "2026-07-06T16:38:57.024705+00:00",
-    "ollama_available": true,
+    "generated_at_utc": "2026-07-07T16:43:41.977420+00:00",
+    "ollama_available": false,
     "items_detected": 10,
     "acceptance_threshold": 0.75,
     "deterministic_fields_preserved": true

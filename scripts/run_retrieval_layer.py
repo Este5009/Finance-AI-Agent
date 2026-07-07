@@ -1,4 +1,4 @@
-"""Run Step 8 retrieval over validated investigation execution queues."""
+﻿"""Run Step 8 retrieval over validated investigation execution queues."""
 
 from __future__ import annotations
 
@@ -12,14 +12,14 @@ if str(PROJECT_ROOT) not in sys.path:
     # Direct script execution starts in scripts/, so expose the package root.
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from finance_agent.retrieval_engine import (  # noqa: E402
+from finance_agent.retrieval.retrieval_engine import (  # noqa: E402
     build_retrieval_summary,
     execute_retrieval_queue,
     load_execution_queue,
     load_retrieval_context,
     save_json_artifact,
 )
-from finance_agent.retrieval_registry import create_default_registry  # noqa: E402
+from finance_agent.retrieval.retrieval_registry import create_default_registry  # noqa: E402
 
 
 PLAN_DIRECTORY = PROJECT_ROOT / "outputs" / "plans"

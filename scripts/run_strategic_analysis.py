@@ -1,4 +1,4 @@
-"""Run Step 9 Ollama strategic financial analysis."""
+﻿"""Run Step 9 Ollama strategic financial analysis."""
 
 from __future__ import annotations
 
@@ -12,12 +12,12 @@ if str(PROJECT_ROOT) not in sys.path:
     # Direct script execution begins in scripts/, so expose the package root.
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from finance_agent.ollama_client import (  # noqa: E402
+from finance_agent.llm.ollama_client import (  # noqa: E402
     DEFAULT_OLLAMA_ENDPOINT,
     DEFAULT_OLLAMA_MODEL,
     OllamaClient,
 )
-from finance_agent.strategic_analysis import (  # noqa: E402
+from finance_agent.analysis.strategic_analysis import (  # noqa: E402
     StrategicAnalysisResult,
     build_analysis_summary,
     create_strategic_analysis,

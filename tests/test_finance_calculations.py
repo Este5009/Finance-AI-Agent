@@ -1,22 +1,22 @@
-"""Tests for deterministic Step 3 financial calculations."""
+﻿"""Tests for deterministic Step 3 financial calculations."""
 
 from typing import Any
 
 import pandas as pd
 import pytest
 
-from finance_agent.calculation_loader import (
+from finance_agent.calculations.calculation_loader import (
     LoadedIntermediateModel,
     LoadedIntermediateTable,
 )
-from finance_agent.finance_calculations import (
+from finance_agent.calculations.finance_calculations import (
     calculate_budget_vs_actual,
     calculate_net_operating_result,
     calculate_payroll_percentage,
     calculate_total_expenses,
     calculate_total_revenue,
 )
-from finance_agent.finance_engine import run_finance_calculations
+from finance_agent.calculations.finance_engine import run_finance_calculations
 
 
 def _table(

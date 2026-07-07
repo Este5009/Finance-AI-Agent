@@ -1,11 +1,11 @@
-"""Tests for classification, normalization confidence, and feature extraction."""
+﻿"""Tests for classification, normalization confidence, and feature extraction."""
 
 import pandas as pd
 
-from finance_agent.classification import classify_table
-from finance_agent.features import extract_financial_features
-from finance_agent.models import DetectedRawTable
-from finance_agent.normalization import normalize_detected_table
+from finance_agent.understanding.classification import classify_table
+from finance_agent.understanding.features import extract_financial_features
+from finance_agent.understanding.models import DetectedRawTable
+from finance_agent.understanding.normalization import normalize_detected_table
 
 
 def _detected_table(

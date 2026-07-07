@@ -10,7 +10,7 @@
   "deduplicated_tool_calls": 2,
   "repaired_text_fields": 0,
   "maximum_ollama_plan_steps": 8,
-  "deterministic_baseline_task_count": 23,
+  "deterministic_baseline_task_count": 24,
   "total_steps": 6,
   "investigation_steps": [
     {
@@ -22,8 +22,8 @@
       "arguments": {
         "period": "2026-06"
       },
-      "reasoning": "Critical anomaly with monthly deficit; requires full report for root cause.",
-      "expected_output": "Revenue and expense drivers for June 2026 deficit."
+      "reasoning": "Critical anomaly requiring detailed report for root cause analysis.",
+      "expected_output": "Revenue and expense drivers for the deficit."
     },
     {
       "step_id": "STEP-002",
@@ -34,8 +34,8 @@
       "arguments": {
         "period": "2026-07"
       },
-      "reasoning": "Critical anomaly with monthly deficit; requires full report for root cause.",
-      "expected_output": "Revenue and expense drivers for July 2026 deficit."
+      "reasoning": "Critical anomaly requiring detailed report for root cause analysis.",
+      "expected_output": "Revenue and expense drivers for the deficit."
     },
     {
       "step_id": "STEP-003",
@@ -46,8 +46,8 @@
       "arguments": {
         "period": "2026-08"
       },
-      "reasoning": "Critical anomaly with monthly deficit; requires full report for root cause.",
-      "expected_output": "Revenue and expense drivers for August 2026 deficit."
+      "reasoning": "Critical anomaly requiring detailed report for root cause analysis.",
+      "expected_output": "Revenue and expense drivers for the deficit."
     },
     {
       "step_id": "STEP-004",
@@ -59,8 +59,8 @@
         "department": "all",
         "months": 1
       },
-      "reasoning": "Payroll ratio exceeded threshold; requires payroll history for analysis.",
-      "expected_output": "Payroll breakdown by department for June 2026. | Payroll breakdown by department for July 2026. | Payroll breakdown by department for August 2026."
+      "reasoning": "High payroll ratio requires institution-wide payroll analysis.",
+      "expected_output": "Payroll breakdown by department and component."
     },
     {
       "step_id": "STEP-007",
@@ -74,18 +74,18 @@
           "type": "student_payment"
         }
       },
-      "reasoning": "Collection rate missed target; requires transaction data for analysis.",
-      "expected_output": "Student payment transactions for June 2026."
+      "reasoning": "Critical anomaly requiring transaction-level analysis.",
+      "expected_output": "Transaction patterns affecting collection rate."
     },
     {
       "step_id": "STEP-008",
       "anomaly_id": null,
       "priority": "high",
-      "question": "What unresolved data quality issues require human review?",
+      "question": "What data quality issues require human review?",
       "tool_name": "get_previous_cycle_memory",
       "arguments": {},
-      "reasoning": "Data quality summary shows unresolved tables needing review.",
-      "expected_output": "Summary of unresolved data quality issues from previous cycle."
+      "reasoning": "Data quality summary requires historical context for resolution.",
+      "expected_output": "Historical data quality patterns and unresolved table details."
     }
   ]
 }

@@ -1,4 +1,4 @@
-"""Run Step 1 ingestion against the project's synthetic documents."""
+﻿"""Run Step 1 ingestion against the project's synthetic documents."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ if str(PROJECT_ROOT) not in sys.path:
     # without introducing package-installation work in this foundation phase.
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from finance_agent.ingestion import extract_goals_pdf, inspect_workbook, load_excel_workbook  # noqa: E402
+from finance_agent.ingestion.ingestion import extract_goals_pdf, inspect_workbook, load_excel_workbook  # noqa: E402
 
 
 MONTHLY_REPORT = PROJECT_ROOT / "data" / "synthetic" / "monthly_financial_report_june_2026.xlsx"

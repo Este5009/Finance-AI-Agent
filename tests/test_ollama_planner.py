@@ -1,21 +1,21 @@
-"""Tests for validated Ollama planning and deterministic fallback."""
+﻿"""Tests for validated Ollama planning and deterministic fallback."""
 
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass
 
-from finance_agent.ollama_planner import (
+from finance_agent.agent.ollama_planner import (
     build_ollama_planner_prompt,
     create_ollama_investigation_plan,
 )
-from finance_agent.planner_models import (
+from finance_agent.agent.planner_models import (
     EvidenceRequest,
     InvestigationPlan,
     InvestigationTask,
     PriorityLevel,
 )
-from finance_agent.planner_validation import (
+from finance_agent.agent.planner_validation import (
     MAX_PLAN_STEPS,
     validate_ollama_plan_response,
 )
@@ -269,7 +269,7 @@ def test_long_reasoning_is_safely_repaired() -> None:
     assert validation.is_valid is True
     assert validation.repaired_text_fields == 1
     assert len(validation.steps[0]["reasoning"]) == 500
-    assert validation.steps[0]["reasoning"].endswith("…")
+    assert validation.steps[0]["reasoning"].endswith("â€¦")
     assert validation.steps[0]["arguments"] == {
         "department": "all",
         "months": 6,

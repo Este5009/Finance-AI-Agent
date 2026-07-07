@@ -1,4 +1,4 @@
-"""Run Step 2 workbook understanding and intermediate-model generation."""
+﻿"""Run Step 2 workbook understanding and intermediate-model generation."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ if str(PROJECT_ROOT) not in sys.path:
     # Direct script execution begins in scripts/, so expose the project package.
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from finance_agent.intermediate import (  # noqa: E402
+from finance_agent.understanding.intermediate import (  # noqa: E402
     build_financial_document_model,
     save_intermediate_outputs,
 )

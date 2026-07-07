@@ -1,4 +1,4 @@
-"""Run deterministic Step 4 anomaly detection for June and annual 2026."""
+﻿"""Run deterministic Step 4 anomaly detection for June and annual 2026."""
 
 from __future__ import annotations
 
@@ -11,14 +11,14 @@ if str(PROJECT_ROOT) not in sys.path:
     # Direct script execution starts in scripts/, so expose the project package.
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from finance_agent.anomaly_config import AnomalyThresholds  # noqa: E402
-from finance_agent.anomaly_engine import (  # noqa: E402
+from finance_agent.anomalies.anomaly_config import AnomalyThresholds  # noqa: E402
+from finance_agent.anomalies.anomaly_engine import (  # noqa: E402
     AnomalyReport,
     run_anomaly_detection,
     save_anomaly_report,
     save_risk_summary,
 )
-from finance_agent.anomaly_loader import load_calculation_outputs  # noqa: E402
+from finance_agent.anomalies.anomaly_loader import load_calculation_outputs  # noqa: E402
 
 
 CALCULATIONS_DIRECTORY = PROJECT_ROOT / "outputs" / "calculations"

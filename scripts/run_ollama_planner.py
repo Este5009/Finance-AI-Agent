@@ -1,4 +1,4 @@
-"""Run primary Ollama investigation planning with deterministic fallback."""
+﻿"""Run primary Ollama investigation planning with deterministic fallback."""
 
 from __future__ import annotations
 
@@ -12,24 +12,24 @@ if str(PROJECT_ROOT) not in sys.path:
     # Direct script execution begins in scripts/, so expose the project package.
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from finance_agent.investigation_planner import (  # noqa: E402
+from finance_agent.agent.investigation_planner import (  # noqa: E402
     build_investigation_plan,
 )
-from finance_agent.ollama_client import (  # noqa: E402
+from finance_agent.llm.ollama_client import (  # noqa: E402
     DEFAULT_OLLAMA_ENDPOINT,
     DEFAULT_OLLAMA_MODEL,
     OllamaClient,
 )
-from finance_agent.ollama_planner import (  # noqa: E402
+from finance_agent.agent.ollama_planner import (  # noqa: E402
     OllamaPlannerResult,
     create_ollama_investigation_plan,
     save_json_artifact,
 )
-from finance_agent.planner_loader import (  # noqa: E402
+from finance_agent.agent.planner_loader import (  # noqa: E402
     PlannerInputBundle,
     load_planner_inputs,
 )
-from finance_agent.planner_models import InvestigationPlan  # noqa: E402
+from finance_agent.agent.planner_models import InvestigationPlan  # noqa: E402
 
 
 OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs" / "plans"

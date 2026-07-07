@@ -1,11 +1,11 @@
-"""Tests for Step 9 Ollama strategic financial analysis."""
+﻿"""Tests for Step 9 Ollama strategic financial analysis."""
 
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass
 
-from finance_agent.strategic_analysis import (
+from finance_agent.analysis.strategic_analysis import (
     build_strategic_analysis_prompt,
     create_strategic_analysis,
     validate_strategic_analysis_response,

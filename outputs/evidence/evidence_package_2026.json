@@ -34,7 +34,7 @@
               "end_date": "2026-06-30"
             },
             "source_workbook": "monthly_financial_report_june_2026.xlsx",
-            "intermediate_model": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\financial_document_model.json",
+            "intermediate_model": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\financial_document_model.json",
             "finance_summary": {
               "total_revenue": 1877724.0,
               "total_expenses": 2206870.0,
@@ -1227,13 +1227,13 @@
       "execution_id": "EXEC-2026-006",
       "anomaly_id": null,
       "priority": "high",
-      "investigation_question": "What unresolved data quality issues require human review?",
+      "investigation_question": "What data quality issues require human review?",
       "retrieved_evidence": {
         "retrieval_name": "previous_cycle_memory",
         "success": true,
         "data": {
           "summary": "Previous-cycle memory database is not implemented; returned current unresolved data-quality notes instead.",
-          "unresolved_table_count": 8,
+          "unresolved_table_count": 10,
           "unresolved_tables": [
             {
               "table_id": "monthly_financial_report_june_2026__department_summary__table_01",
@@ -1250,6 +1250,12 @@
             {
               "table_id": "monthly_financial_report_june_2026__scholarships__table_01",
               "final_table_type": "Scholarships",
+              "requires_human_review": true,
+              "final_confidence": 0.99
+            },
+            {
+              "table_id": "monthly_financial_report_june_2026__vendor_payments__table_01",
+              "final_table_type": "Vendor_Payments",
               "requires_human_review": true,
               "final_confidence": 0.99
             },
@@ -1274,6 +1280,12 @@
             {
               "table_id": "annual_financial_report_2026__scholarships__table_01",
               "final_table_type": "Scholarships",
+              "requires_human_review": true,
+              "final_confidence": 0.99
+            },
+            {
+              "table_id": "annual_financial_report_2026__vendor_payments__table_01",
+              "final_table_type": "Vendor_Payments",
               "requires_human_review": true,
               "final_confidence": 0.99
             },

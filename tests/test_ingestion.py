@@ -1,11 +1,11 @@
-"""Tests for deterministic document ingestion and inspection."""
+﻿"""Tests for deterministic document ingestion and inspection."""
 
 from pathlib import Path
 
 import pandas as pd
 import pytest
 
-from finance_agent.ingestion import extract_goals_pdf, inspect_sheet, load_excel_workbook
+from finance_agent.ingestion.ingestion import extract_goals_pdf, inspect_sheet, load_excel_workbook
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]

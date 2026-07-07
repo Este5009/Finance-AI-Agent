@@ -1,4 +1,4 @@
-"""Run optional Step 5 Ollama structure interpretation on the Step 2 model."""
+﻿"""Run optional Step 5 Ollama structure interpretation on the Step 2 model."""
 
 from __future__ import annotations
 
@@ -12,12 +12,12 @@ if str(PROJECT_ROOT) not in sys.path:
     # Direct script execution starts in scripts/, so expose the project package.
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from finance_agent.ollama_client import (  # noqa: E402
+from finance_agent.llm.ollama_client import (  # noqa: E402
     DEFAULT_OLLAMA_ENDPOINT,
     DEFAULT_OLLAMA_MODEL,
     OllamaClient,
 )
-from finance_agent.structure_fallback import (  # noqa: E402
+from finance_agent.understanding.structure_fallback import (  # noqa: E402
     enrich_intermediate_model,
     load_intermediate_model_json,
     save_enriched_model,

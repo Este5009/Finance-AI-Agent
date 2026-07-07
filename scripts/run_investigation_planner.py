@@ -1,4 +1,4 @@
-"""Generate deterministic June and annual investigation plans from prior outputs."""
+﻿"""Generate deterministic June and annual investigation plans from prior outputs."""
 
 from __future__ import annotations
 
@@ -11,14 +11,14 @@ if str(PROJECT_ROOT) not in sys.path:
     # Direct script execution begins in scripts/, so expose the project package.
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from finance_agent.investigation_planner import (  # noqa: E402
+from finance_agent.agent.investigation_planner import (  # noqa: E402
     build_investigation_plan,
     build_planner_summary,
     save_investigation_plan,
     save_planner_summary,
 )
-from finance_agent.planner_loader import load_planner_inputs  # noqa: E402
-from finance_agent.planner_models import (  # noqa: E402
+from finance_agent.agent.planner_loader import load_planner_inputs  # noqa: E402
+from finance_agent.agent.planner_models import (  # noqa: E402
     InvestigationPlan,
     PriorityLevel,
 )

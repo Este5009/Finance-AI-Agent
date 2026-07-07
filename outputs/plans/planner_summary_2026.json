@@ -1,14 +1,14 @@
 {
   "reporting_year": "2026",
   "plan_count": 2,
-  "total_tasks": 38,
+  "total_tasks": 40,
   "tasks_by_priority": {
     "critical": 14,
     "high": 15,
-    "medium": 9,
+    "medium": 11,
     "low": 0
   },
-  "human_review_task_count": 8,
+  "human_review_task_count": 10,
   "plan_files": [
     "investigation_plan_june_2026.json",
     "investigation_plan_2026.json"

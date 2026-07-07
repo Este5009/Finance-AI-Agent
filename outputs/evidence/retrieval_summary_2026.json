@@ -1,16 +1,16 @@
 {
   "summary_id": "RETRIEVAL-SUMMARY-2026",
   "total_scopes": 2,
-  "tasks_executed": 13,
-  "successful_retrievals": 12,
+  "tasks_executed": 22,
+  "successful_retrievals": 21,
   "failed_retrievals": 1,
   "unavailable_evidence": 4,
   "scopes": [
     {
       "package_id": "EVIDENCE-JUNE-2026",
       "period_slug": "june_2026",
-      "tasks_executed": 7,
-      "successful_retrievals": 6,
+      "tasks_executed": 16,
+      "successful_retrievals": 15,
       "failed_retrievals": 1,
       "unavailable_evidence": 1
     },

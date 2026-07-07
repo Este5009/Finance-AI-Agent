@@ -1,4 +1,4 @@
-"""Tests for optional, validated Ollama structure interpretation."""
+﻿"""Tests for optional, validated Ollama structure interpretation."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from finance_agent.structure_fallback import (
+from finance_agent.understanding.structure_fallback import (
     LowConfidenceItem,
     StructureResponseError,
     build_structure_prompt,
@@ -32,11 +32,11 @@ def _uncertain_table() -> dict[str, object]:
         "detected_type": "Unknown",
         "confidence": 0.30,
         "requires_future_ollama_interpretation": True,
-        "original_columns": ["Ciclo Académico", "Monto"],
+        "original_columns": ["Ciclo AcadÃ©mico", "Monto"],
         "normalized_columns": ["ciclo_academico", "amount"],
         "column_mappings": [
             {
-                "original_name": "Ciclo Académico",
+                "original_name": "Ciclo AcadÃ©mico",
                 "normalized_name": "ciclo_academico",
                 "confidence": 0.55,
             },
@@ -70,7 +70,7 @@ def _valid_response() -> str:
             "suggested_table_type": "Revenue",
             "table_confidence": 0.87,
             "column_mappings": {
-                "Ciclo Académico": "student_year",
+                "Ciclo AcadÃ©mico": "student_year",
                 "Monto": "amount",
             },
             "dimension_fields": ["student_year"],
@@ -119,7 +119,7 @@ def test_low_confidence_detection_identifies_table_and_column() -> None:
     assert len(items) == 1
     assert items[0].table_id == "workbook__datos__table_01"
     assert "unknown_table_type" in items[0].reasons
-    assert items[0].uncertain_columns == ("Ciclo Académico",)
+    assert items[0].uncertain_columns == ("Ciclo AcadÃ©mico",)
 
 
 def test_prompt_is_compact_and_contains_only_five_sample_rows() -> None:
@@ -129,7 +129,7 @@ def test_prompt_is_compact_and_contains_only_five_sample_rows() -> None:
     item = LowConfidenceItem(
         table_id="workbook__datos__table_01",
         reasons=("unknown_table_type",),
-        uncertain_columns=("Ciclo Académico",),
+        uncertain_columns=("Ciclo AcadÃ©mico",),
     )
 
     prompt = build_structure_prompt(table, item)
@@ -147,12 +147,12 @@ def test_valid_json_response_is_parsed() -> None:
 
     suggestion = parse_and_validate_structure_response(
         _valid_response(),
-        original_columns=["Ciclo Académico", "Monto"],
+        original_columns=["Ciclo AcadÃ©mico", "Monto"],
     )
 
     assert suggestion.suggested_table_type == "Revenue"
     assert suggestion.table_confidence == 0.87
-    assert suggestion.column_mappings["Ciclo Académico"] == "student_year"
+    assert suggestion.column_mappings["Ciclo AcadÃ©mico"] == "student_year"
 
 
 def test_invalid_json_response_is_rejected() -> None:
@@ -161,7 +161,7 @@ def test_invalid_json_response_is_rejected() -> None:
     with pytest.raises(StructureResponseError, match="strict JSON"):
         parse_and_validate_structure_response(
             "```json\n{}\n```",
-            original_columns=["Ciclo Académico", "Monto"],
+            original_columns=["Ciclo AcadÃ©mico", "Monto"],
         )
 
 
@@ -174,7 +174,7 @@ def test_invalid_canonical_field_is_rejected() -> None:
     with pytest.raises(StructureResponseError, match="invalid canonical"):
         parse_and_validate_structure_response(
             json.dumps(payload),
-            original_columns=["Ciclo Académico", "Monto"],
+            original_columns=["Ciclo AcadÃ©mico", "Monto"],
         )
 
 
@@ -193,7 +193,7 @@ def test_unavailable_ollama_preserves_deterministic_fallback() -> None:
     assert summary.requiring_human_review == 1
     assert table["llm_reviewed"] is False
     assert table["final_table_type"] == "Unknown"
-    assert table["final_column_mappings"]["Ciclo Académico"] == "ciclo_academico"
+    assert table["final_column_mappings"]["Ciclo AcadÃ©mico"] == "ciclo_academico"
     assert table["requires_human_review"] is True
 
 
@@ -213,7 +213,7 @@ def test_enriched_model_accepts_only_validated_uncertain_mapping() -> None:
     assert table["llm_reviewed"] is True
     assert table["llm_suggested_type"] == "Revenue"
     assert table["final_table_type"] == "Revenue"
-    assert table["final_column_mappings"]["Ciclo Académico"] == "student_year"
+    assert table["final_column_mappings"]["Ciclo AcadÃ©mico"] == "student_year"
     # "Monto" was already a strong deterministic mapping and remains locked.
     assert table["final_column_mappings"]["Monto"] == "amount"
     assert table["requires_human_review"] is False
@@ -231,7 +231,7 @@ def test_invalid_response_is_rejected_and_keeps_original_mapping() -> None:
 
     assert summary.rejected == 1
     assert table["final_table_type"] == "Unknown"
-    assert table["final_column_mappings"]["Ciclo Académico"] == "ciclo_academico"
+    assert table["final_column_mappings"]["Ciclo AcadÃ©mico"] == "ciclo_academico"
     assert table["requires_human_review"] is True
 
 

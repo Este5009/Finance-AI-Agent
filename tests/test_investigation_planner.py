@@ -1,13 +1,13 @@
-"""Tests for deterministic investigation planning and evidence requests."""
+﻿"""Tests for deterministic investigation planning and evidence requests."""
 
 from __future__ import annotations
 
-from finance_agent.investigation_planner import (
+from finance_agent.agent.investigation_planner import (
     build_investigation_plan,
     severity_to_priority,
     validate_plan_schema,
 )
-from finance_agent.planner_models import PriorityLevel
+from finance_agent.agent.planner_models import PriorityLevel
 
 
 def _anomaly(

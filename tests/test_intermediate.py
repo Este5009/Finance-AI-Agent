@@ -1,11 +1,11 @@
-"""Tests for intermediate model assembly and output serialization."""
+﻿"""Tests for intermediate model assembly and output serialization."""
 
 import json
 from pathlib import Path
 
 import pandas as pd
 
-from finance_agent.intermediate import (
+from finance_agent.understanding.intermediate import (
     build_financial_document_model,
     save_intermediate_outputs,
 )

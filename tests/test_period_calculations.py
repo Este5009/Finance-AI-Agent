@@ -1,16 +1,16 @@
-"""Tests for monthly, annual, custom-period, and trend calculations."""
+﻿"""Tests for monthly, annual, custom-period, and trend calculations."""
 
 from datetime import date
 from typing import Any
 
 import pandas as pd
 
-from finance_agent.calculation_loader import (
+from finance_agent.calculations.calculation_loader import (
     LoadedIntermediateModel,
     LoadedIntermediateTable,
 )
-from finance_agent.finance_engine import run_finance_calculations
-from finance_agent.periods import PeriodScope, filter_table_for_period
+from finance_agent.calculations.finance_engine import run_finance_calculations
+from finance_agent.calculations.periods import PeriodScope, filter_table_for_period
 
 
 def _table(

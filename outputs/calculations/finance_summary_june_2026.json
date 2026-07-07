@@ -7,7 +7,7 @@
     "end_date": "2026-06-30"
   },
   "source_workbook": "monthly_financial_report_june_2026.xlsx",
-  "intermediate_model": "C:\\Users\\esteb\\OneDrive\\Desktop\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\financial_document_model.json",
+  "intermediate_model": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\financial_document_model.json",
   "finance_summary": {
     "total_revenue": 1877724.0,
     "total_expenses": 2206870.0,

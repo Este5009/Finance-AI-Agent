@@ -1,4 +1,4 @@
-"""Tests for loading and selecting intermediate calculation inputs."""
+﻿"""Tests for loading and selecting intermediate calculation inputs."""
 
 import json
 from pathlib import Path
@@ -6,11 +6,11 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from finance_agent.calculation_loader import (
+from finance_agent.calculations.calculation_loader import (
     IntermediateModelLoadError,
     load_intermediate_model,
 )
-from finance_agent.table_selection import find_tables_by_type
+from finance_agent.calculations.table_selection import find_tables_by_type
 
 
 def _write_model_fixture(

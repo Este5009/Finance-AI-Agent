@@ -1,4 +1,4 @@
-"""Tests for Step 8 retrieval execution and evidence packaging."""
+﻿"""Tests for Step 8 retrieval execution and evidence packaging."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from finance_agent.retrieval_engine import (
+from finance_agent.retrieval.retrieval_engine import (
     RetrievalContext,
     build_retrieval_summary,
     execute_retrieval_queue,
@@ -15,8 +15,8 @@ from finance_agent.retrieval_engine import (
     retrieve_department_history,
     save_json_artifact,
 )
-from finance_agent.retrieval_models import RetrievalResult
-from finance_agent.retrieval_registry import RetrievalRegistry, create_default_registry
+from finance_agent.retrieval.retrieval_models import RetrievalResult
+from finance_agent.retrieval.retrieval_registry import RetrievalRegistry, create_default_registry
 
 
 def _write_json(path: Path, data: dict[str, Any]) -> None:
