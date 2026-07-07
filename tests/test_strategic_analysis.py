@@ -311,6 +311,42 @@ def test_unavailable_ollama_rejects_without_generation() -> None:
     assert client.generate_calls == 0
 
 
+def test_supported_payroll_missing_information_is_removed() -> None:
+    """Verify false missing payroll/headcount claims are removed after validation."""
+
+    payload = _valid_analysis()
+    payload["missing_information"] = [
+        "Actual headcount changes during June",
+        "Reason for overtime spike",
+    ]
+    evidence = _evidence_package()
+    evidence["evidence_packages"][0]["retrieved_evidence"]["data"][
+        "payroll_breakdown"
+    ] = [
+        {
+            "period": "2026-06-01",
+            "department": "Engineering",
+            "headcount_fte": "76",
+            "payroll_amount": "278696",
+        }
+    ]
+    client = FakeAnalysisClient(True, json.dumps(payload))
+
+    result = create_strategic_analysis(
+        client=client,
+        evidence_package=evidence,
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="june_2026",
+    )
+
+    assert result.accepted is True
+    assert result.analysis_document["analysis"]["missing_information"] == [
+        "Reason for overtime spike"
+    ]
+
+
 def test_prompt_is_compact_and_omits_full_evidence_rows() -> None:
     """Verify prompt includes summaries but not full row payloads."""
 
@@ -325,5 +361,5 @@ def test_prompt_is_compact_and_omits_full_evidence_rows() -> None:
     assert "STRATEGIC_ANALYSIS_CONTEXT" in prompt
     assert "Never" not in prompt
     assert "MUST_NOT_APPEAR" not in prompt
-    assert "records" not in prompt
+    assert "secret_row" not in prompt
     assert "net_operating_result" in prompt

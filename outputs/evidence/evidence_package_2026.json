@@ -11,7 +11,7 @@
     "tasks_executed": 6,
     "successful_retrievals": 6,
     "failed_retrievals": 0,
-    "unavailable_evidence": 3
+    "unavailable_evidence": 1
   },
   "evidence_packages": [
     {
@@ -321,7 +321,7 @@
         "retrieval_name": "financial_report",
         "success": true,
         "data": {
-          "summary": "Retrieved processed monthly trend row for 2026-07.",
+          "summary": "Retrieved processed monthly trend and 93 normalized monthly evidence row(s) for 2026-07.",
           "monthly_trend": {
             "period": "2026-07",
             "month": "July",
@@ -350,27 +350,1003 @@
             "operating_outflows": "1890424",
             "net_cash_flow": "-418245",
             "ending_cash": "4321117"
+          },
+          "record_count": 93,
+          "records": [
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Engineering",
+              "revenue_category": "Tuition",
+              "budget_revenue": "425040",
+              "actual_revenue": "401663",
+              "variance": "-23377",
+              "variance_pct": "-0.0549995294560512",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Engineering",
+              "revenue_category": "Research Grants",
+              "budget_revenue": "161000",
+              "actual_revenue": "157297",
+              "variance": "-3703",
+              "variance_pct": "-0.023",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Engineering",
+              "revenue_category": "Other Revenue",
+              "budget_revenue": "57960",
+              "actual_revenue": "55468",
+              "variance": "-2492",
+              "variance_pct": "-0.0429951690821256",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Business",
+              "revenue_category": "Tuition",
+              "budget_revenue": "389270",
+              "actual_revenue": "367860",
+              "variance": "-21410",
+              "variance_pct": "-0.05500038533665579",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Business",
+              "revenue_category": "Research Grants",
+              "budget_revenue": "32830",
+              "actual_revenue": "32075",
+              "variance": "-755",
+              "variance_pct": "-0.02299725860493451",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Business",
+              "revenue_category": "Other Revenue",
+              "budget_revenue": "46900",
+              "actual_revenue": "44883",
+              "variance": "-2017",
+              "variance_pct": "-0.04300639658848614",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Health Sciences",
+              "revenue_category": "Tuition",
+              "budget_revenue": "396900",
+              "actual_revenue": "375070",
+              "variance": "-21830",
+              "variance_pct": "-0.05500125976316453",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Health Sciences",
+              "revenue_category": "Research Grants",
+              "budget_revenue": "124740",
+              "actual_revenue": "121871",
+              "variance": "-2869",
+              "variance_pct": "-0.02299983966650633",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Health Sciences",
+              "revenue_category": "Other Revenue",
+              "budget_revenue": "45360",
+              "actual_revenue": "43410",
+              "variance": "-1950",
+              "variance_pct": "-0.04298941798941799",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Administration",
+              "revenue_category": "Service Fees",
+              "budget_revenue": "77000",
+              "actual_revenue": "73689",
+              "variance": "-3311",
+              "variance_pct": "-0.043",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Administration",
+              "revenue_category": "Donations",
+              "budget_revenue": "35000",
+              "actual_revenue": "34195",
+              "variance": "-805",
+              "variance_pct": "-0.023",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Administration",
+              "revenue_category": "Other Revenue",
+              "budget_revenue": "28000",
+              "actual_revenue": "26796",
+              "variance": "-1204",
+              "variance_pct": "-0.043",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Engineering",
+              "expense_category": "Payroll",
+              "budget_expense": "260348",
+              "actual_expense": "260869",
+              "variance": "521",
+              "variance_pct": "0.002001167667890669",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Engineering",
+              "expense_category": "Facilities",
+              "budget_expense": "94672",
+              "actual_expense": "94861",
+              "variance": "189",
+              "variance_pct": "0.001996366401892851",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Engineering",
+              "expense_category": "Equipment",
+              "budget_expense": "94672",
+              "actual_expense": "94861",
+              "variance": "189",
+              "variance_pct": "0.001996366401892851",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Engineering",
+              "expense_category": "Technology",
+              "budget_expense": "59170",
+              "actual_expense": "59288",
+              "variance": "118",
+              "variance_pct": "0.001994253844853811",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Engineering",
+              "expense_category": "Supplies",
+              "budget_expense": "47336",
+              "actual_expense": "47431",
+              "variance": "95",
+              "variance_pct": "0.002006929187088051",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Engineering",
+              "expense_category": "Services",
+              "budget_expense": "35502",
+              "actual_expense": "35573",
+              "variance": "71",
+              "variance_pct": "0.001999887330291251",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Business",
+              "expense_category": "Payroll",
+              "budget_expense": "182942",
+              "actual_expense": "183308",
+              "variance": "366",
+              "variance_pct": "0.002000634080746903",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Business",
+              "expense_category": "Facilities",
+              "budget_expense": "71586",
+              "actual_expense": "71729",
+              "variance": "143",
+              "variance_pct": "0.001997597295560585",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Business",
+              "expense_category": "Equipment",
+              "budget_expense": "31816",
+              "actual_expense": "31880",
+              "variance": "64",
+              "variance_pct": "0.002011566507417652",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Business",
+              "expense_category": "Technology",
+              "budget_expense": "39770",
+              "actual_expense": "39850",
+              "variance": "80",
+              "variance_pct": "0.002011566507417652",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Business",
+              "expense_category": "Supplies",
+              "budget_expense": "27839",
+              "actual_expense": "27895",
+              "variance": "56",
+              "variance_pct": "0.002011566507417652",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Business",
+              "expense_category": "Services",
+              "budget_expense": "43747",
+              "actual_expense": "43834",
+              "variance": "87",
+              "variance_pct": "0.001988707797106087",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Health Sciences",
+              "expense_category": "Payroll",
+              "budget_expense": "242258",
+              "actual_expense": "242743",
+              "variance": "485",
+              "variance_pct": "0.00200199787003938",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Health Sciences",
+              "expense_category": "Facilities",
+              "budget_expense": "96903",
+              "actual_expense": "97097",
+              "variance": "194",
+              "variance_pct": "0.002002002002002002",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Health Sciences",
+              "expense_category": "Equipment",
+              "budget_expense": "75369",
+              "actual_expense": "75520",
+              "variance": "151",
+              "variance_pct": "0.002003476230280354",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Health Sciences",
+              "expense_category": "Technology",
+              "budget_expense": "32301",
+              "actual_expense": "32366",
+              "variance": "65",
+              "variance_pct": "0.002012321599950466",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Health Sciences",
+              "expense_category": "Supplies",
+              "budget_expense": "64602",
+              "actual_expense": "64731",
+              "variance": "129",
+              "variance_pct": "0.00199684220302777",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Health Sciences",
+              "expense_category": "Services",
+              "budget_expense": "26917",
+              "actual_expense": "26971",
+              "variance": "54",
+              "variance_pct": "0.002006167106289705",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Administration",
+              "expense_category": "Payroll",
+              "budget_expense": "168683",
+              "actual_expense": "169020",
+              "variance": "337",
+              "variance_pct": "0.001997830249639857",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Administration",
+              "expense_category": "Facilities",
+              "budget_expense": "86136",
+              "actual_expense": "86308",
+              "variance": "172",
+              "variance_pct": "0.00199684220302777",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Administration",
+              "expense_category": "Equipment",
+              "budget_expense": "14356",
+              "actual_expense": "14385",
+              "variance": "29",
+              "variance_pct": "0.002020061298411814",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Administration",
+              "expense_category": "Technology",
+              "budget_expense": "28712",
+              "actual_expense": "28769",
+              "variance": "57",
+              "variance_pct": "0.001985232655335748",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Administration",
+              "expense_category": "Supplies",
+              "budget_expense": "17945",
+              "actual_expense": "17981",
+              "variance": "36",
+              "variance_pct": "0.002006129841181388",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Administration",
+              "expense_category": "Services",
+              "budget_expense": "43068",
+              "actual_expense": "43154",
+              "variance": "86",
+              "variance_pct": "0.00199684220302777",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Administration",
+              "budget_revenue": "140000",
+              "actual_revenue": "134680",
+              "budget_expense": "358900",
+              "actual_expense": "359617",
+              "_source_table": "budget_vs_actual"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Business",
+              "budget_revenue": "469000",
+              "actual_revenue": "444818",
+              "budget_expense": "397700",
+              "actual_expense": "398496",
+              "_source_table": "budget_vs_actual"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Engineering",
+              "budget_revenue": "644000",
+              "actual_revenue": "614428",
+              "budget_expense": "591700",
+              "actual_expense": "592883",
+              "_source_table": "budget_vs_actual"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Health Sciences",
+              "budget_revenue": "567000",
+              "actual_revenue": "540351",
+              "budget_expense": "538350",
+              "actual_expense": "539428",
+              "_source_table": "budget_vs_actual"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Engineering",
+              "total_payroll": "260869",
+              "payroll_budget": "260348",
+              "variance": "521",
+              "variance_pct": "0.002001167667890669",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Business",
+              "total_payroll": "183308",
+              "payroll_budget": "182942",
+              "variance": "366",
+              "variance_pct": "0.002000634080746903",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Health Sciences",
+              "total_payroll": "242743",
+              "payroll_budget": "242258",
+              "variance": "485",
+              "variance_pct": "0.00200199787003938",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Administration",
+              "total_payroll": "169020",
+              "payroll_budget": "168683",
+              "variance": "337",
+              "variance_pct": "0.001997830249639857",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "_source_table": "cash_flow"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Engineering",
+              "amount_due": "23100",
+              "amount_paid": "23100",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Engineering",
+              "amount_due": "24948",
+              "amount_paid": "24948",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Engineering",
+              "amount_due": "26796",
+              "amount_paid": "26796",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Engineering",
+              "amount_due": "28644",
+              "amount_paid": "28644",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Engineering",
+              "amount_due": "30492",
+              "amount_paid": "30492",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Engineering",
+              "amount_due": "23100",
+              "amount_paid": "23100",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Engineering",
+              "amount_due": "24948",
+              "amount_paid": "24948",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Engineering",
+              "amount_due": "26796",
+              "amount_paid": "26796",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Engineering",
+              "amount_due": "28644",
+              "amount_paid": "28644",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Engineering",
+              "amount_due": "30492",
+              "amount_paid": "30492",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Engineering",
+              "amount_due": "23100",
+              "amount_paid": "23100",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Engineering",
+              "amount_due": "24948",
+              "amount_paid": "24948",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Engineering",
+              "amount_due": "26796",
+              "amount_paid": "26796",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Engineering",
+              "amount_due": "28644",
+              "amount_paid": "28644",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Engineering",
+              "amount_due": "30492",
+              "amount_paid": "30492",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Engineering",
+              "amount_due": "23100",
+              "amount_paid": "23100",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Business",
+              "amount_due": "21156",
+              "amount_paid": "21156",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Business",
+              "amount_due": "22849",
+              "amount_paid": "22849",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Business",
+              "amount_due": "24541",
+              "amount_paid": "24541",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Business",
+              "amount_due": "26233",
+              "amount_paid": "26233",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Business",
+              "amount_due": "27926",
+              "amount_paid": "27926",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Business",
+              "amount_due": "21156",
+              "amount_paid": "21156",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Business",
+              "amount_due": "22849",
+              "amount_paid": "22849",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Business",
+              "amount_due": "24541",
+              "amount_paid": "24541",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Business",
+              "amount_due": "26233",
+              "amount_paid": "26233",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Business",
+              "amount_due": "27926",
+              "amount_paid": "27926",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Business",
+              "amount_due": "21156",
+              "amount_paid": "21156",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Business",
+              "amount_due": "22848",
+              "amount_paid": "22848",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Business",
+              "amount_due": "24541",
+              "amount_paid": "24541",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Business",
+              "amount_due": "26233",
+              "amount_paid": "26233",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Business",
+              "amount_due": "27926",
+              "amount_paid": "27926",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Business",
+              "amount_due": "21156",
+              "amount_paid": "21156",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Health Sciences",
+              "amount_due": "21571",
+              "amount_paid": "21571",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Health Sciences",
+              "amount_due": "23296",
+              "amount_paid": "23296",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Health Sciences",
+              "amount_due": "25022",
+              "amount_paid": "25022",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Health Sciences",
+              "amount_due": "26748",
+              "amount_paid": "26748",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Health Sciences",
+              "amount_due": "28473",
+              "amount_paid": "28473",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Health Sciences",
+              "amount_due": "21571",
+              "amount_paid": "21571",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Health Sciences",
+              "amount_due": "23296",
+              "amount_paid": "23296",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Health Sciences",
+              "amount_due": "25022",
+              "amount_paid": "25022",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Health Sciences",
+              "amount_due": "26748",
+              "amount_paid": "26748",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Health Sciences",
+              "amount_due": "28473",
+              "amount_paid": "28473",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Health Sciences",
+              "amount_due": "21571",
+              "amount_paid": "21571",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-11",
+              "department": "Health Sciences",
+              "amount_due": "23296",
+              "amount_paid": "23296",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Health Sciences",
+              "amount_due": "25022",
+              "amount_paid": "25022",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Health Sciences",
+              "amount_due": "26747",
+              "amount_paid": "26747",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Health Sciences",
+              "amount_due": "28473",
+              "amount_paid": "28473",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-07-01",
+              "payment_date": "2026-07-15",
+              "department": "Health Sciences",
+              "amount_due": "21571",
+              "amount_paid": "21571",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            }
+          ],
+          "matched_tables": [
+            "budget_vs_actual",
+            "cash_flow",
+            "expenses",
+            "payroll",
+            "revenue",
+            "student_payments"
+          ],
+          "counts_by_source": {
+            "revenue": 12,
+            "expenses": 24,
+            "budget_vs_actual": 4,
+            "payroll": 4,
+            "cash_flow": 1,
+            "student_payments": 48
           }
         },
         "source_references": [
-          "outputs/calculations/monthly_trends_2026.csv"
+          "outputs/calculations/monthly_trends_2026.csv",
+          "outputs/intermediate/normalized_tables/annual_financial_report_2026__*.csv"
         ],
-        "warnings": [
-          "Detailed monthly finance summary is unavailable for this period."
-        ],
-        "unavailable_data": [
-          "detailed_finance_summary:2026-07"
-        ],
-        "confidence": 0.7
+        "warnings": [],
+        "unavailable_data": [],
+        "confidence": 0.9
       },
-      "evidence_summary": "Retrieved processed monthly trend row for 2026-07. Unavailable: detailed_finance_summary:2026-07.",
+      "evidence_summary": "Retrieved processed monthly trend and 93 normalized monthly evidence row(s) for 2026-07.",
       "source_references": [
-        "outputs/calculations/monthly_trends_2026.csv"
+        "outputs/calculations/monthly_trends_2026.csv",
+        "outputs/intermediate/normalized_tables/annual_financial_report_2026__*.csv"
       ],
-      "retrieval_warnings": [
-        "Detailed monthly finance summary is unavailable for this period."
-      ],
-      "confidence": 0.7
+      "retrieval_warnings": [],
+      "confidence": 0.9
     },
     {
       "task_id": "STEP-003",
@@ -382,7 +1358,7 @@
         "retrieval_name": "financial_report",
         "success": true,
         "data": {
-          "summary": "Retrieved processed monthly trend row for 2026-08.",
+          "summary": "Retrieved processed monthly trend and 93 normalized monthly evidence row(s) for 2026-08.",
           "monthly_trend": {
             "period": "2026-08",
             "month": "August",
@@ -411,27 +1387,1003 @@
             "operating_outflows": "1917538",
             "net_cash_flow": "-415102",
             "ending_cash": "3906015"
+          },
+          "record_count": 93,
+          "records": [
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Engineering",
+              "revenue_category": "Tuition",
+              "budget_revenue": "431112",
+              "actual_revenue": "409125",
+              "variance": "-21987",
+              "variance_pct": "-0.05100066803985971",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Engineering",
+              "revenue_category": "Research Grants",
+              "budget_revenue": "163300",
+              "actual_revenue": "160197",
+              "variance": "-3103",
+              "variance_pct": "-0.01900183710961421",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Engineering",
+              "revenue_category": "Other Revenue",
+              "budget_revenue": "58788",
+              "actual_revenue": "56495",
+              "variance": "-2293",
+              "variance_pct": "-0.03900455875348711",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Business",
+              "revenue_category": "Tuition",
+              "budget_revenue": "394831",
+              "actual_revenue": "374695",
+              "variance": "-20136",
+              "variance_pct": "-0.05099903503017747",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Business",
+              "revenue_category": "Research Grants",
+              "budget_revenue": "33299",
+              "actual_revenue": "32666",
+              "variance": "-633",
+              "variance_pct": "-0.01900957986726328",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Business",
+              "revenue_category": "Other Revenue",
+              "budget_revenue": "47570",
+              "actual_revenue": "45715",
+              "variance": "-1855",
+              "variance_pct": "-0.03899516501997057",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Health Sciences",
+              "revenue_category": "Tuition",
+              "budget_revenue": "402570",
+              "actual_revenue": "382039",
+              "variance": "-20531",
+              "variance_pct": "-0.05099982611719701",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Health Sciences",
+              "revenue_category": "Research Grants",
+              "budget_revenue": "126522",
+              "actual_revenue": "124118",
+              "variance": "-2404",
+              "variance_pct": "-0.01900064810862933",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Health Sciences",
+              "revenue_category": "Other Revenue",
+              "budget_revenue": "46008",
+              "actual_revenue": "44214",
+              "variance": "-1794",
+              "variance_pct": "-0.03899321857068336",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Administration",
+              "revenue_category": "Service Fees",
+              "budget_revenue": "78100",
+              "actual_revenue": "75054",
+              "variance": "-3046",
+              "variance_pct": "-0.03900128040973112",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Administration",
+              "revenue_category": "Donations",
+              "budget_revenue": "35500",
+              "actual_revenue": "34826",
+              "variance": "-674",
+              "variance_pct": "-0.01898591549295775",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Administration",
+              "revenue_category": "Other Revenue",
+              "budget_revenue": "28400",
+              "actual_revenue": "27292",
+              "variance": "-1108",
+              "variance_pct": "-0.03901408450704225",
+              "_source_table": "revenue"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Engineering",
+              "expense_category": "Payroll",
+              "budget_expense": "263032",
+              "actual_expense": "264610",
+              "variance": "1578",
+              "variance_pct": "0.005999270050792299",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Engineering",
+              "expense_category": "Facilities",
+              "budget_expense": "95648",
+              "actual_expense": "96222",
+              "variance": "574",
+              "variance_pct": "0.006001170960187353",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Engineering",
+              "expense_category": "Equipment",
+              "budget_expense": "95648",
+              "actual_expense": "96222",
+              "variance": "574",
+              "variance_pct": "0.006001170960187353",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Engineering",
+              "expense_category": "Technology",
+              "budget_expense": "59780",
+              "actual_expense": "60139",
+              "variance": "359",
+              "variance_pct": "0.006005352960856474",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Engineering",
+              "expense_category": "Supplies",
+              "budget_expense": "47824",
+              "actual_expense": "48111",
+              "variance": "287",
+              "variance_pct": "0.006001170960187353",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Engineering",
+              "expense_category": "Services",
+              "budget_expense": "35868",
+              "actual_expense": "36083",
+              "variance": "215",
+              "variance_pct": "0.005994200959072153",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Business",
+              "expense_category": "Payroll",
+              "budget_expense": "184828",
+              "actual_expense": "185937",
+              "variance": "1109",
+              "variance_pct": "0.006000173133940745",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Business",
+              "expense_category": "Facilities",
+              "budget_expense": "72324",
+              "actual_expense": "72758",
+              "variance": "434",
+              "variance_pct": "0.006000774293457221",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Business",
+              "expense_category": "Equipment",
+              "budget_expense": "32144",
+              "actual_expense": "32337",
+              "variance": "193",
+              "variance_pct": "0.006004230960676954",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Business",
+              "expense_category": "Technology",
+              "budget_expense": "40180",
+              "actual_expense": "40421",
+              "variance": "241",
+              "variance_pct": "0.005998008959681433",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Business",
+              "expense_category": "Supplies",
+              "budget_expense": "28126",
+              "actual_expense": "28295",
+              "variance": "169",
+              "variance_pct": "0.006008675247102325",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Business",
+              "expense_category": "Services",
+              "budget_expense": "44198",
+              "actual_expense": "44463",
+              "variance": "265",
+              "variance_pct": "0.00599574641386488",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Health Sciences",
+              "expense_category": "Payroll",
+              "budget_expense": "244755",
+              "actual_expense": "246224",
+              "variance": "1469",
+              "variance_pct": "0.006001920287634573",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Health Sciences",
+              "expense_category": "Facilities",
+              "budget_expense": "97902",
+              "actual_expense": "98489",
+              "variance": "587",
+              "variance_pct": "0.005995791710077424",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Health Sciences",
+              "expense_category": "Equipment",
+              "budget_expense": "76146",
+              "actual_expense": "76603",
+              "variance": "457",
+              "variance_pct": "0.006001628450608042",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Health Sciences",
+              "expense_category": "Technology",
+              "budget_expense": "32634",
+              "actual_expense": "32830",
+              "variance": "196",
+              "variance_pct": "0.006006006006006006",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Health Sciences",
+              "expense_category": "Supplies",
+              "budget_expense": "65268",
+              "actual_expense": "65660",
+              "variance": "392",
+              "variance_pct": "0.006006006006006006",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Health Sciences",
+              "expense_category": "Services",
+              "budget_expense": "27195",
+              "actual_expense": "27358",
+              "variance": "163",
+              "variance_pct": "0.005993748850891708",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Administration",
+              "expense_category": "Payroll",
+              "budget_expense": "170422",
+              "actual_expense": "171445",
+              "variance": "1023",
+              "variance_pct": "0.006002746124326671",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Administration",
+              "expense_category": "Facilities",
+              "budget_expense": "87024",
+              "actual_expense": "87546",
+              "variance": "522",
+              "variance_pct": "0.00599834528405957",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Administration",
+              "expense_category": "Equipment",
+              "budget_expense": "14504",
+              "actual_expense": "14591",
+              "variance": "87",
+              "variance_pct": "0.00599834528405957",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Administration",
+              "expense_category": "Technology",
+              "budget_expense": "29008",
+              "actual_expense": "29182",
+              "variance": "174",
+              "variance_pct": "0.00599834528405957",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Administration",
+              "expense_category": "Supplies",
+              "budget_expense": "18130",
+              "actual_expense": "18239",
+              "variance": "109",
+              "variance_pct": "0.006012134583563155",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Administration",
+              "expense_category": "Services",
+              "budget_expense": "43512",
+              "actual_expense": "43773",
+              "variance": "261",
+              "variance_pct": "0.00599834528405957",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Administration",
+              "budget_revenue": "142000",
+              "actual_revenue": "137172",
+              "budget_expense": "362600",
+              "actual_expense": "364776",
+              "_source_table": "budget_vs_actual"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Business",
+              "budget_revenue": "475700",
+              "actual_revenue": "453076",
+              "budget_expense": "401800",
+              "actual_expense": "404211",
+              "_source_table": "budget_vs_actual"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Engineering",
+              "budget_revenue": "653200",
+              "actual_revenue": "625817",
+              "budget_expense": "597800",
+              "actual_expense": "601387",
+              "_source_table": "budget_vs_actual"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Health Sciences",
+              "budget_revenue": "575100",
+              "actual_revenue": "550371",
+              "budget_expense": "543900",
+              "actual_expense": "547164",
+              "_source_table": "budget_vs_actual"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Engineering",
+              "total_payroll": "264610",
+              "payroll_budget": "263032",
+              "variance": "1578",
+              "variance_pct": "0.005999270050792299",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Business",
+              "total_payroll": "185937",
+              "payroll_budget": "184828",
+              "variance": "1109",
+              "variance_pct": "0.006000173133940745",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Health Sciences",
+              "total_payroll": "246224",
+              "payroll_budget": "244755",
+              "variance": "1469",
+              "variance_pct": "0.006001920287634573",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Administration",
+              "total_payroll": "171445",
+              "payroll_budget": "170422",
+              "variance": "1023",
+              "variance_pct": "0.006002746124326671",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "_source_table": "cash_flow"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Engineering",
+              "amount_due": "23430",
+              "amount_paid": "23430",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Engineering",
+              "amount_due": "25304",
+              "amount_paid": "25304",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Engineering",
+              "amount_due": "27179",
+              "amount_paid": "27179",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Engineering",
+              "amount_due": "29053",
+              "amount_paid": "29053",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Engineering",
+              "amount_due": "30928",
+              "amount_paid": "30928",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Engineering",
+              "amount_due": "23430",
+              "amount_paid": "23430",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Engineering",
+              "amount_due": "25304",
+              "amount_paid": "25304",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Engineering",
+              "amount_due": "27179",
+              "amount_paid": "27179",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Engineering",
+              "amount_due": "29053",
+              "amount_paid": "29053",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Engineering",
+              "amount_due": "30928",
+              "amount_paid": "30928",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Engineering",
+              "amount_due": "23430",
+              "amount_paid": "23430",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Engineering",
+              "amount_due": "25304",
+              "amount_paid": "25304",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Engineering",
+              "amount_due": "27179",
+              "amount_paid": "27179",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Engineering",
+              "amount_due": "29053",
+              "amount_paid": "29053",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Engineering",
+              "amount_due": "30928",
+              "amount_paid": "30928",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Engineering",
+              "amount_due": "23430",
+              "amount_paid": "23430",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Business",
+              "amount_due": "21458",
+              "amount_paid": "21458",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Business",
+              "amount_due": "23175",
+              "amount_paid": "23175",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Business",
+              "amount_due": "24892",
+              "amount_paid": "24892",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Business",
+              "amount_due": "26608",
+              "amount_paid": "26608",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Business",
+              "amount_due": "28325",
+              "amount_paid": "28325",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Business",
+              "amount_due": "21458",
+              "amount_paid": "21458",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Business",
+              "amount_due": "23175",
+              "amount_paid": "23175",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Business",
+              "amount_due": "24892",
+              "amount_paid": "24892",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Business",
+              "amount_due": "26608",
+              "amount_paid": "26608",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Business",
+              "amount_due": "28325",
+              "amount_paid": "28325",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Business",
+              "amount_due": "21458",
+              "amount_paid": "21458",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Business",
+              "amount_due": "23175",
+              "amount_paid": "23175",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Business",
+              "amount_due": "24891",
+              "amount_paid": "24891",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Business",
+              "amount_due": "26608",
+              "amount_paid": "26608",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Business",
+              "amount_due": "28325",
+              "amount_paid": "28325",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Business",
+              "amount_due": "21458",
+              "amount_paid": "21458",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Health Sciences",
+              "amount_due": "21879",
+              "amount_paid": "21879",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Health Sciences",
+              "amount_due": "23629",
+              "amount_paid": "23629",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Health Sciences",
+              "amount_due": "25379",
+              "amount_paid": "25379",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Health Sciences",
+              "amount_due": "27130",
+              "amount_paid": "27130",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Health Sciences",
+              "amount_due": "28880",
+              "amount_paid": "28880",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Health Sciences",
+              "amount_due": "21879",
+              "amount_paid": "21879",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Health Sciences",
+              "amount_due": "23629",
+              "amount_paid": "23629",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Health Sciences",
+              "amount_due": "25379",
+              "amount_paid": "25379",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Health Sciences",
+              "amount_due": "27130",
+              "amount_paid": "27130",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Health Sciences",
+              "amount_due": "28880",
+              "amount_paid": "28880",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Health Sciences",
+              "amount_due": "21879",
+              "amount_paid": "21879",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-11",
+              "department": "Health Sciences",
+              "amount_due": "23629",
+              "amount_paid": "23629",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Health Sciences",
+              "amount_due": "25379",
+              "amount_paid": "25379",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Health Sciences",
+              "amount_due": "27130",
+              "amount_paid": "27130",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Health Sciences",
+              "amount_due": "28880",
+              "amount_paid": "28880",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            },
+            {
+              "billing_period": "2026-08-01",
+              "payment_date": "2026-08-15",
+              "department": "Health Sciences",
+              "amount_due": "21879",
+              "amount_paid": "21879",
+              "outstanding": "0",
+              "status": "Paid",
+              "_source_table": "student_payments"
+            }
+          ],
+          "matched_tables": [
+            "budget_vs_actual",
+            "cash_flow",
+            "expenses",
+            "payroll",
+            "revenue",
+            "student_payments"
+          ],
+          "counts_by_source": {
+            "revenue": 12,
+            "expenses": 24,
+            "budget_vs_actual": 4,
+            "payroll": 4,
+            "cash_flow": 1,
+            "student_payments": 48
           }
         },
         "source_references": [
-          "outputs/calculations/monthly_trends_2026.csv"
+          "outputs/calculations/monthly_trends_2026.csv",
+          "outputs/intermediate/normalized_tables/annual_financial_report_2026__*.csv"
         ],
-        "warnings": [
-          "Detailed monthly finance summary is unavailable for this period."
-        ],
-        "unavailable_data": [
-          "detailed_finance_summary:2026-08"
-        ],
-        "confidence": 0.7
+        "warnings": [],
+        "unavailable_data": [],
+        "confidence": 0.9
       },
-      "evidence_summary": "Retrieved processed monthly trend row for 2026-08. Unavailable: detailed_finance_summary:2026-08.",
+      "evidence_summary": "Retrieved processed monthly trend and 93 normalized monthly evidence row(s) for 2026-08.",
       "source_references": [
-        "outputs/calculations/monthly_trends_2026.csv"
+        "outputs/calculations/monthly_trends_2026.csv",
+        "outputs/intermediate/normalized_tables/annual_financial_report_2026__*.csv"
       ],
-      "retrieval_warnings": [
-        "Detailed monthly finance summary is unavailable for this period."
-      ],
-      "confidence": 0.7
+      "retrieval_warnings": [],
+      "confidence": 0.9
     },
     {
       "task_id": "STEP-004",
@@ -443,8 +2395,8 @@
         "retrieval_name": "payroll_history",
         "success": true,
         "data": {
-          "summary": "Retrieved 4 processed payroll history record(s).",
-          "record_count": 4,
+          "summary": "Retrieved 12 processed payroll history record(s).",
+          "record_count": 12,
           "records": [
             {
               "period": "2026-06-01",
@@ -457,7 +2409,36 @@
               "total_payroll": "278696",
               "payroll_budget": "273768",
               "variance": "4928",
-              "variance_pct": "0.01800064288010286"
+              "variance_pct": "0.01800064288010286",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Engineering",
+              "headcount_fte": "76",
+              "base_salary": "209217",
+              "benefits": "46956",
+              "overtime": "4696",
+              "total_payroll": "260869",
+              "payroll_budget": "260348",
+              "variance": "521",
+              "variance_pct": "0.002001167667890669",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Engineering",
+              "headcount_fte": "76",
+              "base_salary": "212217",
+              "benefits": "47630",
+              "overtime": "4763",
+              "total_payroll": "264610",
+              "payroll_budget": "263032",
+              "variance": "1578",
+              "variance_pct": "0.005999270050792299",
+              "_source_table": "payroll"
             },
             {
               "period": "2026-06-01",
@@ -470,7 +2451,36 @@
               "total_payroll": "195835",
               "payroll_budget": "192372",
               "variance": "3463",
-              "variance_pct": "0.01800158027155719"
+              "variance_pct": "0.01800158027155719",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Business",
+              "headcount_fte": "51",
+              "base_salary": "147013",
+              "benefits": "32995",
+              "overtime": "3300",
+              "total_payroll": "183308",
+              "payroll_budget": "182942",
+              "variance": "366",
+              "variance_pct": "0.002000634080746903",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Business",
+              "headcount_fte": "51",
+              "base_salary": "149121",
+              "benefits": "33469",
+              "overtime": "3347",
+              "total_payroll": "185937",
+              "payroll_budget": "184828",
+              "variance": "1109",
+              "variance_pct": "0.006000173133940745",
+              "_source_table": "payroll"
             },
             {
               "period": "2026-06-01",
@@ -483,7 +2493,36 @@
               "total_payroll": "342000",
               "payroll_budget": "254745",
               "variance": "87255",
-              "variance_pct": "0.3425189895778131"
+              "variance_pct": "0.3425189895778131",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Health Sciences",
+              "headcount_fte": "68",
+              "base_salary": "194680",
+              "benefits": "43694",
+              "overtime": "4369",
+              "total_payroll": "242743",
+              "payroll_budget": "242258",
+              "variance": "485",
+              "variance_pct": "0.00200199787003938",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Health Sciences",
+              "headcount_fte": "68",
+              "base_salary": "197472",
+              "benefits": "44320",
+              "overtime": "4432",
+              "total_payroll": "246224",
+              "payroll_budget": "244755",
+              "variance": "1469",
+              "variance_pct": "0.006001920287634573",
+              "_source_table": "payroll"
             },
             {
               "period": "2026-06-01",
@@ -496,20 +2535,211 @@
               "total_payroll": "180571",
               "payroll_budget": "177378",
               "variance": "3193",
-              "variance_pct": "0.01800110498483465"
+              "variance_pct": "0.01800110498483465",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Administration",
+              "headcount_fte": "48",
+              "base_salary": "135554",
+              "benefits": "30424",
+              "overtime": "3042",
+              "total_payroll": "169020",
+              "payroll_budget": "168683",
+              "variance": "337",
+              "variance_pct": "0.001997830249639857",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Administration",
+              "headcount_fte": "48",
+              "base_salary": "137499",
+              "benefits": "30860",
+              "overtime": "3086",
+              "total_payroll": "171445",
+              "payroll_budget": "170422",
+              "variance": "1023",
+              "variance_pct": "0.006002746124326671",
+              "_source_table": "payroll"
             }
+          ],
+          "department": "all",
+          "payroll_breakdown": [
+            {
+              "period": "2026-06-01",
+              "month": "June",
+              "department": "Engineering",
+              "headcount_fte": "76",
+              "base_salary": "223514",
+              "benefits": "50165",
+              "overtime": "5017",
+              "payroll_amount": "278696",
+              "payroll_budget": "273768",
+              "variance": "4928",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Engineering",
+              "headcount_fte": "76",
+              "base_salary": "209217",
+              "benefits": "46956",
+              "overtime": "4696",
+              "payroll_amount": "260869",
+              "payroll_budget": "260348",
+              "variance": "521",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Engineering",
+              "headcount_fte": "76",
+              "base_salary": "212217",
+              "benefits": "47630",
+              "overtime": "4763",
+              "payroll_amount": "264610",
+              "payroll_budget": "263032",
+              "variance": "1578",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-06-01",
+              "month": "June",
+              "department": "Business",
+              "headcount_fte": "51",
+              "base_salary": "157060",
+              "benefits": "35250",
+              "overtime": "3525",
+              "payroll_amount": "195835",
+              "payroll_budget": "192372",
+              "variance": "3463",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Business",
+              "headcount_fte": "51",
+              "base_salary": "147013",
+              "benefits": "32995",
+              "overtime": "3300",
+              "payroll_amount": "183308",
+              "payroll_budget": "182942",
+              "variance": "366",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Business",
+              "headcount_fte": "51",
+              "base_salary": "149121",
+              "benefits": "33469",
+              "overtime": "3347",
+              "payroll_amount": "185937",
+              "payroll_budget": "184828",
+              "variance": "1109",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-06-01",
+              "month": "June",
+              "department": "Health Sciences",
+              "headcount_fte": "68",
+              "base_salary": "261630",
+              "benefits": "61560",
+              "overtime": "18810",
+              "payroll_amount": "342000",
+              "payroll_budget": "254745",
+              "variance": "87255",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Health Sciences",
+              "headcount_fte": "68",
+              "base_salary": "194680",
+              "benefits": "43694",
+              "overtime": "4369",
+              "payroll_amount": "242743",
+              "payroll_budget": "242258",
+              "variance": "485",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Health Sciences",
+              "headcount_fte": "68",
+              "base_salary": "197472",
+              "benefits": "44320",
+              "overtime": "4432",
+              "payroll_amount": "246224",
+              "payroll_budget": "244755",
+              "variance": "1469",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-06-01",
+              "month": "June",
+              "department": "Administration",
+              "headcount_fte": "48",
+              "base_salary": "144818",
+              "benefits": "32503",
+              "overtime": "3250",
+              "payroll_amount": "180571",
+              "payroll_budget": "177378",
+              "variance": "3193",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-07-01",
+              "month": "July",
+              "department": "Administration",
+              "headcount_fte": "48",
+              "base_salary": "135554",
+              "benefits": "30424",
+              "overtime": "3042",
+              "payroll_amount": "169020",
+              "payroll_budget": "168683",
+              "variance": "337",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Administration",
+              "headcount_fte": "48",
+              "base_salary": "137499",
+              "benefits": "30860",
+              "overtime": "3086",
+              "payroll_amount": "171445",
+              "payroll_budget": "170422",
+              "variance": "1023",
+              "source_table": "payroll"
+            }
+          ],
+          "source_tables": [
+            "payroll"
           ]
         },
         "source_references": [
-          "normalized_tables/monthly_financial_report_june_2026__payroll__table_01.csv"
+          "normalized_tables/annual_financial_report_2026__payroll__table_01.csv"
         ],
         "warnings": [],
         "unavailable_data": [],
         "confidence": 0.95
       },
-      "evidence_summary": "Retrieved 4 processed payroll history record(s).",
+      "evidence_summary": "Retrieved 12 processed payroll history record(s).",
       "source_references": [
-        "normalized_tables/monthly_financial_report_june_2026__payroll__table_01.csv"
+        "normalized_tables/annual_financial_report_2026__payroll__table_01.csv"
       ],
       "retrieval_warnings": [],
       "confidence": 0.95
@@ -1206,7 +3436,10 @@
           },
           "matched_tables": [
             "student_payments"
-          ]
+          ],
+          "counts_by_source": {
+            "student_payments": 48
+          }
         },
         "source_references": [
           "normalized_tables/monthly_financial_report_june_2026__transaction_tables"

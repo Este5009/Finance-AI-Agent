@@ -3,22 +3,22 @@
   "analyses_requested": 2,
   "analyses_generated": 2,
   "analyses_rejected": 0,
-  "average_confidence": 0.85,
-  "recommendations_generated": 6,
+  "average_confidence": 0.775,
+  "recommendations_generated": 5,
   "scopes": [
     {
       "analysis_id": "STRATEGIC-ANALYSIS-JUNE-2026",
       "period_slug": "june_2026",
       "validation_status": "accepted",
-      "confidence": 0.85,
+      "confidence": 0.8,
       "recommendation_count": 3
     },
     {
       "analysis_id": "STRATEGIC-ANALYSIS-2026",
       "period_slug": "2026",
       "validation_status": "accepted",
-      "confidence": 0.85,
-      "recommendation_count": 3
+      "confidence": 0.75,
+      "recommendation_count": 2
     }
   ]
 }

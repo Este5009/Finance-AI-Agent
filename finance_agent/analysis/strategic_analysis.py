@@ -227,6 +227,65 @@ def validate_strategic_analysis_response(response_text: str) -> AnalysisValidati
     return AnalysisValidationResult(True, cleaned, ())
 
 
+def _evidence_supports_payroll_field(
+    evidence_package: dict[str, Any],
+    field_name: str,
+) -> bool:
+    """Check whether Step 8 evidence contains a payroll field.
+
+    Inputs: evidence package and payroll field name.
+    Outputs: True when a retrieved payroll breakdown includes the field.
+    Assumptions: this is used only to remove false missing-evidence claims.
+    """
+
+    for package in evidence_package.get("evidence_packages", []):
+        if not isinstance(package, dict):
+            continue
+        evidence = package.get("retrieved_evidence", {})
+        evidence = evidence if isinstance(evidence, dict) else {}
+        data = evidence.get("data", {})
+        data = data if isinstance(data, dict) else {}
+        breakdown = data.get("payroll_breakdown", [])
+        if not isinstance(breakdown, list):
+            continue
+        for row in breakdown:
+            if isinstance(row, dict) and row.get(field_name) not in {None, ""}:
+                return True
+    return False
+
+
+def _remove_false_missing_information(
+    analysis: dict[str, Any],
+    evidence_package: dict[str, Any],
+) -> dict[str, Any]:
+    """Remove missing-information items contradicted by retrieved evidence.
+
+    Inputs: validated analysis and Step 8 evidence package.
+    Outputs: cleaned analysis preserving all other model-authored content.
+    Assumptions: only objective availability claims are filtered, never reasoning.
+    """
+
+    missing = analysis.get("missing_information", [])
+    if not isinstance(missing, list):
+        return analysis
+    has_headcount = _evidence_supports_payroll_field(evidence_package, "headcount_fte")
+    has_payroll_amount = _evidence_supports_payroll_field(
+        evidence_package,
+        "payroll_amount",
+    )
+    cleaned_missing: list[str] = []
+    for item in missing:
+        lowered = str(item).casefold()
+        if has_headcount and "headcount" in lowered:
+            continue
+        if has_payroll_amount and "payroll breakdown" in lowered:
+            continue
+        if has_payroll_amount and "payroll amount" in lowered:
+            continue
+        cleaned_missing.append(item)
+    return {**analysis, "missing_information": cleaned_missing}
+
+
 def _compact_finance_summary(finance_document: dict[str, Any]) -> dict[str, Any]:
     """Select authoritative calculated values for analysis context.
 
@@ -336,6 +395,44 @@ def _compact_evidence_package(evidence_package: dict[str, Any]) -> dict[str, Any
         evidence = evidence if isinstance(evidence, dict) else {}
         data = evidence.get("data", {})
         data = data if isinstance(data, dict) else {}
+        # Include bounded structured evidence, not just counts. This prevents the
+        # analysis model from reporting payroll/department breakdowns as missing
+        # when the retrieval layer has already provided them.
+        records = data.get("records", [])
+        records = records if isinstance(records, list) else []
+        recent_records = records[-12:]
+        compact_records = [
+            {
+                key: value
+                for key, value in record.items()
+                if key
+                in {
+                    "period",
+                    "billing_period",
+                    "payment_date",
+                    "month",
+                    "department",
+                    "expense_category",
+                    "vendor",
+                    "headcount_fte",
+                    "base_salary",
+                    "benefits",
+                    "overtime",
+                    "total_payroll",
+                    "payroll_budget",
+                    "variance",
+                    "actual_expense",
+                    "budget_expense",
+                    "amount",
+                    "status",
+                    "_source_table",
+                }
+            }
+            for record in recent_records
+            if isinstance(record, dict)
+        ]
+        payroll_breakdown = data.get("payroll_breakdown")
+        payroll_breakdown = payroll_breakdown if isinstance(payroll_breakdown, list) else []
         compact_items.append(
             {
                 "task_id": package.get("task_id"),
@@ -346,6 +443,10 @@ def _compact_evidence_package(evidence_package: dict[str, Any]) -> dict[str, Any
                 "evidence_summary": str(package.get("evidence_summary", ""))[:260],
                 "record_count": data.get("record_count"),
                 "matched_tables": data.get("matched_tables"),
+                "source_tables": data.get("source_tables"),
+                "counts_by_source": data.get("counts_by_source"),
+                "payroll_breakdown": payroll_breakdown[-12:],
+                "sample_records": compact_records,
                 "warnings": evidence.get("warnings", [])[:3],
                 "unavailable_data": evidence.get("unavailable_data", [])[:3],
                 "confidence": evidence.get("confidence"),
@@ -411,7 +512,10 @@ def build_strategic_analysis_prompt(
         "or draft a report. Explain the most important financial issues, likely "
         "root causes, annual-goal implications, prioritized risks, concrete "
         "actions, missing evidence, and confidence. Use cautious language when "
-        "evidence is incomplete. Return STRICT JSON only, with exactly the fields "
+        "evidence is incomplete. Do not list payroll amount, budget, variance, "
+        "headcount, salary, benefits, overtime, department, or source-table "
+        "breakdowns as missing when they appear in payroll_breakdown or "
+        "sample_records. Return STRICT JSON only, with exactly the fields "
         "shown below. Keep every string under 1200 characters. Use no more than "
         f"{MAX_LIST_ITEMS} items in each list and no more than "
         f"{MAX_RECOMMENDATIONS} recommendations. Recommendation priority must be "
@@ -512,6 +616,8 @@ def create_strategic_analysis(
 
     accepted = validation is not None and validation.is_valid
     analysis = validation.analysis if accepted and validation else _empty_rejected_analysis()
+    if accepted:
+        analysis = _remove_false_missing_information(analysis, evidence_package)
     document = _build_analysis_document(
         period_slug=period_slug,
         report_period=report_period,
