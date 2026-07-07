@@ -3,11 +3,11 @@
   "report_period": "June 2026",
   "period_slug": "june_2026",
   "planner_source": "deterministic_fallback",
-  "ollama_available": true,
-  "validation_status": "rejected",
+  "ollama_available": false,
+  "validation_status": "unavailable",
   "fallback_used": true,
   "validation_errors": [
-    "investigation_steps[4].filters.include_aging must be boolean"
+    "Ollama is unavailable."
   ],
   "deduplicated_tool_calls": 0,
   "repaired_text_fields": 0,

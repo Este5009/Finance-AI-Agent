@@ -2,106 +2,419 @@
   "queue_id": "QUEUE-2026",
   "period_slug": "2026",
   "source_plan_id": "OLLAMA-PLAN-2026",
-  "planner_source": "ollama",
+  "planner_source": "deterministic_fallback",
   "status": "pending",
   "tools_executed": false,
-  "total_items": 6,
+  "total_items": 24,
   "items": [
     {
       "queue_position": 1,
       "execution_id": "EXEC-2026-001",
-      "step_id": "STEP-001",
+      "step_id": "FALLBACK-001",
       "anomaly_id": "ANOM-2026-005",
       "priority": "critical",
-      "question": "What caused the operating deficit in 2026-06?",
+      "question": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-06?",
       "tool_name": "get_full_report",
       "arguments": {
         "period": "2026-06"
       },
-      "reasoning": "Critical anomaly requiring detailed report for root cause analysis.",
-      "expected_output": "Revenue and expense drivers for the deficit.",
+      "reasoning": "Deterministic baseline selected this task: Monthly operating result is $-329,146.",
+      "expected_output": "Operating-result bridge by major revenue and expense driver.",
       "status": "queued",
       "dependencies": []
     },
     {
       "queue_position": 2,
       "execution_id": "EXEC-2026-002",
-      "step_id": "STEP-002",
-      "anomaly_id": "ANOM-2026-006",
+      "step_id": "FALLBACK-002",
+      "anomaly_id": "ANOM-2026-002",
       "priority": "critical",
-      "question": "What caused the operating deficit in 2026-07?",
+      "question": "Which operating, scholarship, or capital outflows caused cash-flow risk in 2026?",
       "tool_name": "get_full_report",
       "arguments": {
-        "period": "2026-07"
+        "period": "2026"
       },
-      "reasoning": "Critical anomaly requiring detailed report for root cause analysis.",
-      "expected_output": "Revenue and expense drivers for the deficit.",
+      "reasoning": "Deterministic baseline selected this task: Net cash flow is $-1,899,352; ending cash is $3,950,648.",
+      "expected_output": "Cash-flow bridge showing the dominant negative drivers.",
       "status": "queued",
       "dependencies": []
     },
     {
       "queue_position": 3,
       "execution_id": "EXEC-2026-003",
-      "step_id": "STEP-003",
-      "anomaly_id": "ANOM-2026-007",
+      "step_id": "FALLBACK-003",
+      "anomaly_id": "ANOM-2026-006",
       "priority": "critical",
-      "question": "What caused the operating deficit in 2026-08?",
+      "question": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-07?",
       "tool_name": "get_full_report",
       "arguments": {
-        "period": "2026-08"
+        "period": "2026-07"
       },
-      "reasoning": "Critical anomaly requiring detailed report for root cause analysis.",
-      "expected_output": "Revenue and expense drivers for the deficit.",
+      "reasoning": "Deterministic baseline selected this task: Monthly operating result is $-156,147.",
+      "expected_output": "Operating-result bridge by major revenue and expense driver.",
       "status": "queued",
       "dependencies": []
     },
     {
       "queue_position": 4,
       "execution_id": "EXEC-2026-004",
-      "step_id": "STEP-004",
-      "anomaly_id": null,
+      "step_id": "FALLBACK-004",
+      "anomaly_id": "ANOM-2026-007",
       "priority": "critical",
-      "question": "What payroll components caused the payroll risk in 2026-06? | What payroll components caused the payroll risk in 2026-07? | What payroll components caused the payroll risk in 2026-08?",
-      "tool_name": "get_payroll_history",
+      "question": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-08?",
+      "tool_name": "get_full_report",
       "arguments": {
-        "department": "all",
-        "months": 1
+        "period": "2026-08"
       },
-      "reasoning": "High payroll ratio requires institution-wide payroll analysis.",
-      "expected_output": "Payroll breakdown by department and component.",
+      "reasoning": "Deterministic baseline selected this task: Monthly operating result is $-151,102.",
+      "expected_output": "Operating-result bridge by major revenue and expense driver.",
       "status": "queued",
       "dependencies": []
     },
     {
       "queue_position": 5,
       "execution_id": "EXEC-2026-005",
-      "step_id": "STEP-007",
-      "anomaly_id": "ANOM-2026-014",
+      "step_id": "FALLBACK-005",
+      "anomaly_id": "ANOM-2026-010",
       "priority": "critical",
-      "question": "Why did the student collection rate miss its target in 2026-06?",
-      "tool_name": "get_transactions",
+      "question": "What payroll components and departments caused the payroll risk in 2026-06?",
+      "tool_name": "get_payroll_history",
       "arguments": {
-        "filters": {
-          "period": "2026-06",
-          "type": "student_payment"
-        }
+        "department": "all",
+        "months": 6
       },
-      "reasoning": "Critical anomaly requiring transaction-level analysis.",
-      "expected_output": "Transaction patterns affecting collection rate.",
+      "reasoning": "Deterministic baseline selected this task: Monthly payroll/revenue is 53.10% versus 42.00% maximum.",
+      "expected_output": "Payroll driver breakdown by department, overtime, benefits, and headcount.",
       "status": "queued",
       "dependencies": []
     },
     {
       "queue_position": 6,
       "execution_id": "EXEC-2026-006",
-      "step_id": "STEP-008",
-      "anomaly_id": null,
+      "step_id": "FALLBACK-006",
+      "anomaly_id": "ANOM-2026-011",
+      "priority": "critical",
+      "question": "What payroll components and departments caused the payroll risk in 2026-07?",
+      "tool_name": "get_payroll_history",
+      "arguments": {
+        "department": "all",
+        "months": 6
+      },
+      "reasoning": "Deterministic baseline selected this task: Monthly payroll/revenue is 49.35% versus 42.00% maximum.",
+      "expected_output": "Payroll driver breakdown by department, overtime, benefits, and headcount.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 7,
+      "execution_id": "EXEC-2026-007",
+      "step_id": "FALLBACK-007",
+      "anomaly_id": "ANOM-2026-012",
+      "priority": "critical",
+      "question": "What payroll components and departments caused the payroll risk in 2026-08?",
+      "tool_name": "get_payroll_history",
+      "arguments": {
+        "department": "all",
+        "months": 6
+      },
+      "reasoning": "Deterministic baseline selected this task: Monthly payroll/revenue is 49.15% versus 42.00% maximum.",
+      "expected_output": "Payroll driver breakdown by department, overtime, benefits, and headcount.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 8,
+      "execution_id": "EXEC-2026-008",
+      "step_id": "FALLBACK-008",
+      "anomaly_id": "ANOM-2026-014",
+      "priority": "critical",
+      "question": "Why did the student collection rate miss its target in 2026-06?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "type": "student_receivable",
+          "period": "2026-06",
+          "include_aging": true
+        }
+      },
+      "reasoning": "Deterministic baseline selected this task: Monthly collection rate is 84.45% versus 94.00% minimum.",
+      "expected_output": "Receivables aging and collection shortfall breakdown.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 9,
+      "execution_id": "EXEC-2026-009",
+      "step_id": "FALLBACK-009",
+      "anomaly_id": "ANOM-2026-003",
       "priority": "high",
-      "question": "What data quality issues require human review?",
-      "tool_name": "get_previous_cycle_memory",
-      "arguments": {},
-      "reasoning": "Data quality summary requires historical context for resolution.",
-      "expected_output": "Historical data quality patterns and unresolved table details.",
+      "question": "Does the flagged vendor payment in 2026 have valid invoice, approval, and duplicate evidence?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "type": "vendor_payment",
+          "period": "2026",
+          "minimum_amount": 50000.0
+        }
+      },
+      "reasoning": "Deterministic baseline selected this task: Maximum payment is $96,000 versus a $50,000 threshold.",
+      "expected_output": "Payment control review with invoice, approval, duplicate, and vendor-history evidence.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 10,
+      "execution_id": "EXEC-2026-010",
+      "step_id": "FALLBACK-010",
+      "anomaly_id": "ANOM-2026-019",
+      "priority": "high",
+      "question": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-06?",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026-06"
+      },
+      "reasoning": "Deterministic baseline selected this task: Raw value -329146; mean 126041; standard deviation 225810; z-score -2.016.",
+      "expected_output": "Operating-result bridge by major revenue and expense driver.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 11,
+      "execution_id": "EXEC-2026-011",
+      "step_id": "FALLBACK-011",
+      "anomaly_id": "ANOM-2026-001",
+      "priority": "high",
+      "question": "What payroll components and departments caused the payroll risk in 2026?",
+      "tool_name": "get_payroll_history",
+      "arguments": {
+        "department": "all",
+        "months": 6
+      },
+      "reasoning": "Deterministic baseline selected this task: Calculated payroll/revenue is 42.55% versus a 42.00% maximum.",
+      "expected_output": "Payroll driver breakdown by department, overtime, benefits, and headcount.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 12,
+      "execution_id": "EXEC-2026-012",
+      "step_id": "FALLBACK-012",
+      "anomaly_id": "ANOM-2026-008",
+      "priority": "high",
+      "question": "What payroll components and departments caused the payroll risk in 2026-01?",
+      "tool_name": "get_payroll_history",
+      "arguments": {
+        "department": "all",
+        "months": 6
+      },
+      "reasoning": "Deterministic baseline selected this task: Monthly payroll/revenue is 43.10% versus 42.00% maximum.",
+      "expected_output": "Payroll driver breakdown by department, overtime, benefits, and headcount.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 13,
+      "execution_id": "EXEC-2026-013",
+      "step_id": "FALLBACK-013",
+      "anomaly_id": "ANOM-2026-009",
+      "priority": "high",
+      "question": "What payroll components and departments caused the payroll risk in 2026-05?",
+      "tool_name": "get_payroll_history",
+      "arguments": {
+        "department": "all",
+        "months": 6
+      },
+      "reasoning": "Deterministic baseline selected this task: Monthly payroll/revenue is 43.19% versus 42.00% maximum.",
+      "expected_output": "Payroll driver breakdown by department, overtime, benefits, and headcount.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 14,
+      "execution_id": "EXEC-2026-014",
+      "step_id": "FALLBACK-014",
+      "anomaly_id": "ANOM-2026-013",
+      "priority": "high",
+      "question": "Why did the student collection rate miss its target in 2026-03?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "type": "student_receivable",
+          "period": "2026-03",
+          "include_aging": true
+        }
+      },
+      "reasoning": "Deterministic baseline selected this task: Monthly collection rate is 93.26% versus 94.00% minimum.",
+      "expected_output": "Receivables aging and collection shortfall breakdown.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 15,
+      "execution_id": "EXEC-2026-015",
+      "step_id": "FALLBACK-015",
+      "anomaly_id": "ANOM-2026-015",
+      "priority": "high",
+      "question": "Why did the student collection rate miss its target in 2026-09?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "type": "student_receivable",
+          "period": "2026-09",
+          "include_aging": true
+        }
+      },
+      "reasoning": "Deterministic baseline selected this task: Monthly collection rate is 93.26% versus 94.00% minimum.",
+      "expected_output": "Receivables aging and collection shortfall breakdown.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 16,
+      "execution_id": "EXEC-2026-016",
+      "step_id": "FALLBACK-016",
+      "anomaly_id": "ANOM-2026-017",
+      "priority": "high",
+      "question": "What payroll components and departments caused the payroll risk in 2026-06?",
+      "tool_name": "get_payroll_history",
+      "arguments": {
+        "department": "all",
+        "months": 6
+      },
+      "reasoning": "Deterministic baseline selected this task: Raw value 0.531016; mean 0.430155; standard deviation 0.0479405; z-score 2.104.",
+      "expected_output": "Payroll driver breakdown by department, overtime, benefits, and headcount.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 17,
+      "execution_id": "EXEC-2026-017",
+      "step_id": "FALLBACK-017",
+      "anomaly_id": "ANOM-2026-018",
+      "priority": "high",
+      "question": "Why did the student collection rate miss its target in 2026-06?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "type": "student_receivable",
+          "period": "2026-06",
+          "include_aging": true
+        }
+      },
+      "reasoning": "Deterministic baseline selected this task: Raw value 0.844456; mean 0.975806; standard deviation 0.0467733; z-score -2.808.",
+      "expected_output": "Receivables aging and collection shortfall breakdown.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 18,
+      "execution_id": "EXEC-2026-018",
+      "step_id": "FALLBACK-018",
+      "anomaly_id": "DATA-TABLE-annual_financial_report_2026__anomalies_embedded__table_01",
+      "priority": "high",
+      "question": "What is the correct structure and business meaning of table 'annual_financial_report_2026__anomalies_embedded__table_01'?",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026"
+      },
+      "reasoning": "Deterministic baseline selected this task: Enriched model requires human review; final type is Unknown with confidence 0.3.",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 19,
+      "execution_id": "EXEC-2026-019",
+      "step_id": "FALLBACK-019",
+      "anomaly_id": "ANOM-2026-004",
+      "priority": "medium",
+      "question": "What caused the unusual expense increase in 2026-06?",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026-06"
+      },
+      "reasoning": "Deterministic baseline selected this task: Expenses changed from $1,984,094 to $2,206,870, a 11.23% increase.",
+      "expected_output": "Month-over-month expense driver comparison.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 20,
+      "execution_id": "EXEC-2026-020",
+      "step_id": "FALLBACK-020",
+      "anomaly_id": "ANOM-2026-016",
+      "priority": "medium",
+      "question": "What evidence explains the detected risk 'Statistical outlier: Monthly expenses' in 2026-06?",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026-06"
+      },
+      "reasoning": "Deterministic baseline selected this task: Raw value 2.20687e+06; mean 1.97158e+06; standard deviation 95520.6; z-score 2.463.",
+      "expected_output": "Evidence-backed explanation of the observed anomaly.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 21,
+      "execution_id": "EXEC-2026-021",
+      "step_id": "FALLBACK-021",
+      "anomaly_id": "DATA-TABLE-annual_financial_report_2026__cash_flow__table_01",
+      "priority": "medium",
+      "question": "What is the correct structure and business meaning of table 'annual_financial_report_2026__cash_flow__table_01'?",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026"
+      },
+      "reasoning": "Deterministic baseline selected this task: Enriched model requires human review; final type is Cash_Flow with confidence 0.7833.",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 22,
+      "execution_id": "EXEC-2026-022",
+      "step_id": "FALLBACK-022",
+      "anomaly_id": "DATA-TABLE-annual_financial_report_2026__department_summary__table_01",
+      "priority": "medium",
+      "question": "What is the correct structure and business meaning of table 'annual_financial_report_2026__department_summary__table_01'?",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026"
+      },
+      "reasoning": "Deterministic baseline selected this task: Enriched model requires human review; final type is Department_Summary with confidence 0.87.",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 23,
+      "execution_id": "EXEC-2026-023",
+      "step_id": "FALLBACK-023",
+      "anomaly_id": "DATA-TABLE-annual_financial_report_2026__scholarships__table_01",
+      "priority": "medium",
+      "question": "What is the correct structure and business meaning of table 'annual_financial_report_2026__scholarships__table_01'?",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026"
+      },
+      "reasoning": "Deterministic baseline selected this task: Enriched model requires human review; final type is Scholarships with confidence 0.99.",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 24,
+      "execution_id": "EXEC-2026-024",
+      "step_id": "FALLBACK-024",
+      "anomaly_id": "DATA-TABLE-annual_financial_report_2026__vendor_payments__table_01",
+      "priority": "medium",
+      "question": "What is the correct structure and business meaning of table 'annual_financial_report_2026__vendor_payments__table_01'?",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026"
+      },
+      "reasoning": "Deterministic baseline selected this task: Enriched model requires human review; final type is Vendor_Payments with confidence 0.99.",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
       "status": "queued",
       "dependencies": []
     }

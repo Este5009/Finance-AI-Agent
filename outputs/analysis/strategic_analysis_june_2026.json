@@ -9,54 +9,56 @@
   "validation_errors": [],
   "recommendation_count": 3,
   "analysis": {
-    "executive_summary": "The June 2026 payroll data shows significant variance in Health Sciences department, with a $87,255 over-budget amount. Engineering and Business departments show moderate variances, while Administration shows minimal variance. The data indicates potential budgeting inaccuracies or unexpected staffing costs in Health Sciences.",
+    "executive_summary": "The June 2026 payroll data shows significant variance in Health Sciences department, with a $87,255 over-budget amount. Engineering and Business departments show moderate variances, while Administration shows minimal variance. The data indicates potential budgeting or staffing issues in Health Sciences.",
     "key_findings": [
       "Health Sciences department payroll variance is $87,255 above budget, representing a 34.2% overage compared to budget ($254,745 budget vs $342,000 actual).",
-      "Engineering department shows consistent monthly variance growth (April: $1,342, May: $2,711, June: $4,928).",
-      "Business department variance is stable at $3,463 in June, with a 1.8% overage relative to budget.",
-      "Administration department variance is minimal ($3,193) with a 1.8% overage relative to budget."
+      "Engineering department shows consistent monthly variance growth from April ($1,342) to June ($4,928), indicating a trend.",
+      "Business department variance is stable at $3,463 in June, but shows a pattern of increasing variance from April ($943) to May ($1,905) to June ($3,463).",
+      "Administration department variance is minimal ($3,193 in June) and shows a consistent pattern of small variances."
     ],
     "root_causes": [
-      "Health Sciences department may have unexpected overtime costs or staffing changes not reflected in budget planning.",
-      "Engineering department's increasing variance suggests possible cumulative budgeting errors or rising labor costs.",
-      "Business department's stable variance indicates consistent budgeting accuracy but potential for future overages if trends continue."
+      "Health Sciences department may have unexpected overtime or staffing increases not reflected in budget.",
+      "Engineering department's increasing variance suggests possible unaccounted overtime or salary adjustments.",
+      "Business department's consistent variance growth may indicate a need for revised budgeting or staffing planning.",
+      "Administration department's minimal variance suggests effective budget management."
     ],
     "recommendations": [
       {
         "priority": "high",
-        "action": "Conduct immediate audit of Health Sciences department payroll expenses",
+        "action": "Conduct a detailed review of Health Sciences department payroll for June 2026",
         "rationale": "The $87,255 variance is significantly higher than other departments and represents a major financial risk.",
         "supporting_evidence": "Health Sciences payroll variance: $87,255 (34.2% over budget)",
-        "expected_impact": "Identify specific cost drivers and prevent future overages",
+        "expected_impact": "Identify root cause of overage and implement corrective measures to prevent recurrence.",
         "confidence": 0.85
       },
       {
         "priority": "high",
-        "action": "Review Engineering department's budgeting methodology",
-        "rationale": "The consistent monthly increase in variance suggests a systemic issue in budget planning.",
+        "action": "Analyze Engineering department's monthly variance trend",
+        "rationale": "The increasing variance from April to June indicates a growing issue that could impact annual budget.",
         "supporting_evidence": "Engineering variance: April $1,342 → May $2,711 → June $4,928",
-        "expected_impact": "Improve budget accuracy and reduce future variances",
+        "expected_impact": "Determine if trend is sustainable and adjust budgeting processes accordingly.",
         "confidence": 0.75
       },
       {
         "priority": "medium",
-        "action": "Analyze Business department's overtime patterns",
-        "rationale": "Stable variance may mask underlying overtime trends that could increase in future months.",
-        "supporting_evidence": "Business department overtime: $3,525 in June",
-        "expected_impact": "Optimize staffing to reduce unnecessary overtime costs",
-        "confidence": 0.65
+        "action": "Review Business department's budgeting process",
+        "rationale": "The consistent increase in variance suggests potential underestimation of costs.",
+        "supporting_evidence": "Business variance: April $943 → May $1,905 → June $3,463",
+        "expected_impact": "Improve budget accuracy for future periods.",
+        "confidence": 0.7
       }
     ],
     "strategic_priorities": [
       "Address Health Sciences department overage immediately",
-      "Improve budgeting accuracy for Engineering department",
-      "Monitor Business department overtime trends"
+      "Monitor Engineering department variance trend",
+      "Refine budgeting process for Business department"
     ],
     "missing_information": [
-      "Reason for Health Sciences department's unusually high overtime ($18,810)",
+      "Details on Health Sciences department's overtime breakdown",
+      "Reason for sudden increase in Health Sciences overtime (from April/May to June)",
       "Budgeting methodology used for Health Sciences department"
     ],
     "confidence": 0.8,
-    "reasoning_summary": "The evidence shows significant variance in Health Sciences department, with a 34.2% overage compared to budget. Engineering department shows a consistent upward trend in variance, suggesting a systemic issue. Business department variance is stable but may indicate underlying overtime patterns. Administration department shows minimal variance, indicating good budget adherence."
+    "reasoning_summary": "The evidence shows significant variance in Health Sciences department, with a 34.2% overage. Engineering shows a consistent upward trend in variance, while Business shows a steady increase. Administration shows minimal variance, indicating effective budget management. The recommendations focus on addressing the largest variance first, analyzing trends, and improving budgeting processes."
   }
 }
