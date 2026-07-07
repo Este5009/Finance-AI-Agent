@@ -66,6 +66,23 @@ from finance_agent.planner_validation import (
     PlanValidationResult,
     validate_ollama_plan_response,
 )
+from finance_agent.retrieval_engine import (
+    RetrievalInputError,
+    build_retrieval_summary,
+    execute_retrieval_queue,
+    load_execution_queue,
+    load_retrieval_context,
+)
+from finance_agent.retrieval_models import (
+    EvidencePackage,
+    RetrievalRequest,
+    RetrievalResult,
+    RetrievalRunSummary,
+)
+from finance_agent.retrieval_registry import (
+    RetrievalRegistry,
+    create_default_registry,
+)
 from finance_agent.structure_fallback import (
     FallbackSummary,
     detect_low_confidence_items,
@@ -96,10 +113,19 @@ __all__ = [
     "PlanValidationResult",
     "PriorityLevel",
     "PdfIngestionError",
+    "EvidencePackage",
+    "RetrievalInputError",
+    "RetrievalRegistry",
+    "RetrievalRequest",
+    "RetrievalResult",
+    "RetrievalRunSummary",
     "WorkbookIngestionError",
     "WorkbookIngestionResult",
+    "build_retrieval_summary",
     "clean_column_name",
+    "create_default_registry",
     "extract_goals_pdf",
+    "execute_retrieval_queue",
     "inspect_sheet",
     "inspect_workbook",
     "load_excel_workbook",
@@ -127,6 +153,8 @@ __all__ = [
     "save_risk_summary",
     "filter_table_for_period",
     "load_planner_inputs",
+    "load_execution_queue",
+    "load_retrieval_context",
     "validate_ollama_plan_response",
     "EvidenceRequest",
 ]

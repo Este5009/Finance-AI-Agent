@@ -1,0 +1,26 @@
+{
+  "summary_id": "RETRIEVAL-SUMMARY-2026",
+  "total_scopes": 2,
+  "tasks_executed": 13,
+  "successful_retrievals": 12,
+  "failed_retrievals": 1,
+  "unavailable_evidence": 4,
+  "scopes": [
+    {
+      "package_id": "EVIDENCE-JUNE-2026",
+      "period_slug": "june_2026",
+      "tasks_executed": 7,
+      "successful_retrievals": 6,
+      "failed_retrievals": 1,
+      "unavailable_evidence": 1
+    },
+    {
+      "package_id": "EVIDENCE-2026",
+      "period_slug": "2026",
+      "tasks_executed": 6,
+      "successful_retrievals": 6,
+      "failed_retrievals": 0,
+      "unavailable_evidence": 3
+    }
+  ]
+}
