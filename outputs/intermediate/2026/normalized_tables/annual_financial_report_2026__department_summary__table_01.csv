@@ -1,0 +1,5 @@
+department,budget_revenue,actual_revenue,budget_expense,actual_expense,net_contribution,expense_variance,expense_variance_pct,status
+Administration,2000000,1954468,4440000,4468847,-2514379,28847,0.006497072072072072,Within Threshold
+Business,6700000,6456616,4920000,4947764,1508852,27764,0.005643089430894309,Within Threshold
+Engineering,9200000,8917688,7320000,7462110,1455578,142110,0.01941393442622951,Within Threshold
+Health Sciences,8100000,7842696,6660000,6780250,1062446,120250,0.01805555555555555,Within Threshold

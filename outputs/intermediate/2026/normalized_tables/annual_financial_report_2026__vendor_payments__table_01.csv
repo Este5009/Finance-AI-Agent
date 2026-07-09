@@ -1,0 +1,481 @@
+payment_id,payment_date,month,department,vendor,invoice_number,expense_category,amount,payment_method,approval_status,potential_duplicate,high_value_flag
+PAY-00001,2026-01-08,January,Engineering,Northstar Facilities Group,FAC-01-ENG-01,Facilities,53529,ACH,Approved,No,Yes
+PAY-00002,2026-01-15,January,Engineering,Northstar Facilities Group,FAC-01-ENG-02,Facilities,38762,ACH,Approved,No,No
+PAY-00003,2026-01-08,January,Engineering,Academic Equipment Partners,EQP-01-ENG-01,Equipment,53529,ACH,Approved,No,Yes
+PAY-00004,2026-01-15,January,Engineering,Academic Equipment Partners,EQP-01-ENG-02,Equipment,38762,ACH,Approved,No,No
+PAY-00005,2026-01-08,January,Engineering,Campus Technology Systems,TEC-01-ENG-01,Technology,33456,ACH,Approved,No,No
+PAY-00006,2026-01-15,January,Engineering,Campus Technology Systems,TEC-01-ENG-02,Technology,24226,ACH,Approved,No,No
+PAY-00007,2026-01-08,January,Engineering,University Supply Cooperative,SUP-01-ENG-01,Supplies,26764,ACH,Approved,No,No
+PAY-00008,2026-01-15,January,Engineering,University Supply Cooperative,SUP-01-ENG-02,Supplies,19381,ACH,Approved,No,No
+PAY-00009,2026-01-08,January,Engineering,Professional Services Network,SRV-01-ENG-01,Services,20073,ACH,Approved,No,No
+PAY-00010,2026-01-15,January,Engineering,Professional Services Network,SRV-01-ENG-02,Services,14536,ACH,Approved,No,No
+PAY-00011,2026-02-08,February,Engineering,Northstar Facilities Group,FAC-02-ENG-01,Facilities,54360,ACH,Approved,No,Yes
+PAY-00012,2026-02-15,February,Engineering,Northstar Facilities Group,FAC-02-ENG-02,Facilities,39365,ACH,Approved,No,No
+PAY-00013,2026-02-08,February,Engineering,Academic Equipment Partners,EQP-02-ENG-01,Equipment,54360,ACH,Approved,No,Yes
+PAY-00014,2026-02-15,February,Engineering,Academic Equipment Partners,EQP-02-ENG-02,Equipment,39365,ACH,Approved,No,No
+PAY-00015,2026-02-08,February,Engineering,Campus Technology Systems,TEC-02-ENG-01,Technology,33975,ACH,Approved,No,No
+PAY-00016,2026-02-15,February,Engineering,Campus Technology Systems,TEC-02-ENG-02,Technology,24603,ACH,Approved,No,No
+PAY-00017,2026-02-08,February,Engineering,University Supply Cooperative,SUP-02-ENG-01,Supplies,27181,ACH,Approved,No,No
+PAY-00018,2026-02-15,February,Engineering,University Supply Cooperative,SUP-02-ENG-02,Supplies,19682,ACH,Approved,No,No
+PAY-00019,2026-02-08,February,Engineering,Professional Services Network,SRV-02-ENG-01,Services,20385,ACH,Approved,No,No
+PAY-00020,2026-02-15,February,Engineering,Professional Services Network,SRV-02-ENG-02,Services,14762,ACH,Approved,No,No
+PAY-00021,2026-03-08,March,Engineering,Northstar Facilities Group,FAC-03-ENG-01,Facilities,55818,ACH,Approved,No,Yes
+PAY-00022,2026-03-15,March,Engineering,Northstar Facilities Group,FAC-03-ENG-02,Facilities,40420,ACH,Approved,No,No
+PAY-00023,2026-03-08,March,Engineering,Academic Equipment Partners,EQP-03-ENG-01,Equipment,55818,ACH,Approved,No,Yes
+PAY-00024,2026-03-15,March,Engineering,Academic Equipment Partners,EQP-03-ENG-02,Equipment,40420,ACH,Approved,No,No
+PAY-00025,2026-03-08,March,Engineering,Campus Technology Systems,TEC-03-ENG-01,Technology,34886,ACH,Approved,No,No
+PAY-00026,2026-03-15,March,Engineering,Campus Technology Systems,TEC-03-ENG-02,Technology,25262,ACH,Approved,No,No
+PAY-00027,2026-03-08,March,Engineering,University Supply Cooperative,SUP-03-ENG-01,Supplies,27909,ACH,Approved,No,No
+PAY-00028,2026-03-15,March,Engineering,University Supply Cooperative,SUP-03-ENG-02,Supplies,20210,ACH,Approved,No,No
+PAY-00029,2026-03-08,March,Engineering,Professional Services Network,SRV-03-ENG-01,Services,20932,ACH,Approved,No,No
+PAY-00030,2026-03-15,March,Engineering,Professional Services Network,SRV-03-ENG-02,Services,15157,ACH,Approved,No,No
+PAY-00031,2026-04-08,April,Engineering,Northstar Facilities Group,FAC-04-ENG-01,Facilities,56891,ACH,Approved,No,Yes
+PAY-00032,2026-04-15,April,Engineering,Northstar Facilities Group,FAC-04-ENG-02,Facilities,41197,ACH,Approved,No,No
+PAY-00033,2026-04-08,April,Engineering,Academic Equipment Partners,EQP-04-ENG-01,Equipment,56891,ACH,Approved,No,Yes
+PAY-00034,2026-04-15,April,Engineering,Academic Equipment Partners,EQP-04-ENG-02,Equipment,41197,ACH,Approved,No,No
+PAY-00035,2026-04-08,April,Engineering,Campus Technology Systems,TEC-04-ENG-01,Technology,35557,ACH,Approved,No,No
+PAY-00036,2026-04-15,April,Engineering,Campus Technology Systems,TEC-04-ENG-02,Technology,25748,ACH,Approved,No,No
+PAY-00037,2026-04-08,April,Engineering,University Supply Cooperative,SUP-04-ENG-01,Supplies,28446,ACH,Approved,No,No
+PAY-00038,2026-04-15,April,Engineering,University Supply Cooperative,SUP-04-ENG-02,Supplies,20598,ACH,Approved,No,No
+PAY-00039,2026-04-08,April,Engineering,Professional Services Network,SRV-04-ENG-01,Services,21334,ACH,Approved,No,No
+PAY-00040,2026-04-15,April,Engineering,Professional Services Network,SRV-04-ENG-02,Services,15449,ACH,Approved,No,No
+PAY-00041,2026-05-08,May,Engineering,Northstar Facilities Group,FAC-05-ENG-01,Facilities,57746,ACH,Approved,No,Yes
+PAY-00042,2026-05-15,May,Engineering,Northstar Facilities Group,FAC-05-ENG-02,Facilities,41816,ACH,Approved,No,No
+PAY-00043,2026-05-08,May,Engineering,Academic Equipment Partners,EQP-05-ENG-01,Equipment,57746,ACH,Approved,No,Yes
+PAY-00044,2026-05-15,May,Engineering,Academic Equipment Partners,EQP-05-ENG-02,Equipment,41816,ACH,Approved,No,No
+PAY-00045,2026-05-08,May,Engineering,Campus Technology Systems,TEC-05-ENG-01,Technology,36091,ACH,Approved,No,No
+PAY-00046,2026-05-15,May,Engineering,Campus Technology Systems,TEC-05-ENG-02,Technology,26135,ACH,Approved,No,No
+PAY-00047,2026-05-08,May,Engineering,University Supply Cooperative,SUP-05-ENG-01,Supplies,28873,ACH,Approved,No,No
+PAY-00048,2026-05-15,May,Engineering,University Supply Cooperative,SUP-05-ENG-02,Supplies,20908,ACH,Approved,No,No
+PAY-00049,2026-05-08,May,Engineering,Professional Services Network,SRV-05-ENG-01,Services,21655,ACH,Approved,No,No
+PAY-00050,2026-05-15,May,Engineering,Professional Services Network,SRV-05-ENG-02,Services,15681,ACH,Approved,No,No
+PAY-00051,2026-06-08,June,Engineering,Northstar Facilities Group,FAC-06-ENG-01,Facilities,76217,ACH,Approved,No,Yes
+PAY-00052,2026-06-15,June,Engineering,Northstar Facilities Group,FAC-06-ENG-02,Facilities,55192,ACH,Approved,No,Yes
+PAY-00053,2026-06-08,June,Engineering,Academic Equipment Partners,EQP-0626-ENG-4471,Equipment,54750,ACH,Approved,Yes,Yes
+PAY-00054,2026-06-15,June,Engineering,Academic Equipment Partners,EQP-0626-ENG-4471,Equipment,54750,ACH,Approved,Yes,Yes
+PAY-00055,2026-06-22,June,Engineering,Academic Equipment Partners,EQP-06-ENG-03,Equipment,37837,ACH,Approved,No,No
+PAY-00056,2026-06-08,June,Engineering,Campus Technology Systems,TEC-06-ENG-01,Technology,42584,ACH,Approved,No,No
+PAY-00057,2026-06-15,June,Engineering,Campus Technology Systems,TEC-06-ENG-02,Technology,30836,ACH,Approved,No,No
+PAY-00058,2026-06-08,June,Engineering,University Supply Cooperative,SUP-06-ENG-01,Supplies,33489,ACH,Approved,No,No
+PAY-00059,2026-06-15,June,Engineering,University Supply Cooperative,SUP-06-ENG-02,Supplies,24251,ACH,Approved,No,No
+PAY-00060,2026-06-08,June,Engineering,Professional Services Network,SRV-06-ENG-01,Services,26445,ACH,Approved,No,No
+PAY-00061,2026-06-15,June,Engineering,Professional Services Network,SRV-06-ENG-02,Services,19149,ACH,Approved,No,No
+PAY-00062,2026-07-08,July,Engineering,Northstar Facilities Group,FAC-07-ENG-01,Facilities,55019,ACH,Approved,No,Yes
+PAY-00063,2026-07-15,July,Engineering,Northstar Facilities Group,FAC-07-ENG-02,Facilities,39842,ACH,Approved,No,No
+PAY-00064,2026-07-08,July,Engineering,Academic Equipment Partners,EQP-07-ENG-01,Equipment,55019,ACH,Approved,No,Yes
+PAY-00065,2026-07-15,July,Engineering,Academic Equipment Partners,EQP-07-ENG-02,Equipment,39842,ACH,Approved,No,No
+PAY-00066,2026-07-08,July,Engineering,Campus Technology Systems,TEC-07-ENG-01,Technology,34387,ACH,Approved,No,No
+PAY-00067,2026-07-15,July,Engineering,Campus Technology Systems,TEC-07-ENG-02,Technology,24901,ACH,Approved,No,No
+PAY-00068,2026-07-08,July,Engineering,University Supply Cooperative,SUP-07-ENG-01,Supplies,27510,ACH,Approved,No,No
+PAY-00069,2026-07-15,July,Engineering,University Supply Cooperative,SUP-07-ENG-02,Supplies,19921,ACH,Approved,No,No
+PAY-00070,2026-07-08,July,Engineering,Professional Services Network,SRV-07-ENG-01,Services,20632,ACH,Approved,No,No
+PAY-00071,2026-07-15,July,Engineering,Professional Services Network,SRV-07-ENG-02,Services,14941,ACH,Approved,No,No
+PAY-00072,2026-08-08,August,Engineering,Northstar Facilities Group,FAC-08-ENG-01,Facilities,55809,ACH,Approved,No,Yes
+PAY-00073,2026-08-15,August,Engineering,Northstar Facilities Group,FAC-08-ENG-02,Facilities,40413,ACH,Approved,No,No
+PAY-00074,2026-08-08,August,Engineering,Academic Equipment Partners,EQP-08-ENG-01,Equipment,55809,ACH,Approved,No,Yes
+PAY-00075,2026-08-15,August,Engineering,Academic Equipment Partners,EQP-08-ENG-02,Equipment,40413,ACH,Approved,No,No
+PAY-00076,2026-08-08,August,Engineering,Campus Technology Systems,TEC-08-ENG-01,Technology,34881,ACH,Approved,No,No
+PAY-00077,2026-08-15,August,Engineering,Campus Technology Systems,TEC-08-ENG-02,Technology,25258,ACH,Approved,No,No
+PAY-00078,2026-08-08,August,Engineering,University Supply Cooperative,SUP-08-ENG-01,Supplies,27904,ACH,Approved,No,No
+PAY-00079,2026-08-15,August,Engineering,University Supply Cooperative,SUP-08-ENG-02,Supplies,20207,ACH,Approved,No,No
+PAY-00080,2026-08-08,August,Engineering,Professional Services Network,SRV-08-ENG-01,Services,20928,ACH,Approved,No,No
+PAY-00081,2026-08-15,August,Engineering,Professional Services Network,SRV-08-ENG-02,Services,15155,ACH,Approved,No,No
+PAY-00082,2026-09-08,September,Engineering,Northstar Facilities Group,FAC-09-ENG-01,Facilities,59122,ACH,Approved,No,Yes
+PAY-00083,2026-09-15,September,Engineering,Northstar Facilities Group,FAC-09-ENG-02,Facilities,42813,ACH,Approved,No,No
+PAY-00084,2026-09-08,September,Engineering,Academic Equipment Partners,EQP-09-ENG-01,Equipment,59122,ACH,Approved,No,Yes
+PAY-00085,2026-09-15,September,Engineering,Academic Equipment Partners,EQP-09-ENG-02,Equipment,42813,ACH,Approved,No,No
+PAY-00086,2026-09-08,September,Engineering,Campus Technology Systems,TEC-09-ENG-01,Technology,36952,ACH,Approved,No,No
+PAY-00087,2026-09-15,September,Engineering,Campus Technology Systems,TEC-09-ENG-02,Technology,26758,ACH,Approved,No,No
+PAY-00088,2026-09-08,September,Engineering,University Supply Cooperative,SUP-09-ENG-01,Supplies,29561,ACH,Approved,No,No
+PAY-00089,2026-09-15,September,Engineering,University Supply Cooperative,SUP-09-ENG-02,Supplies,21407,ACH,Approved,No,No
+PAY-00090,2026-09-08,September,Engineering,Professional Services Network,SRV-09-ENG-01,Services,22171,ACH,Approved,No,No
+PAY-00091,2026-09-15,September,Engineering,Professional Services Network,SRV-09-ENG-02,Services,16055,ACH,Approved,No,No
+PAY-00092,2026-10-08,October,Engineering,Northstar Facilities Group,FAC-10-ENG-01,Facilities,59991,ACH,Approved,No,Yes
+PAY-00093,2026-10-15,October,Engineering,Northstar Facilities Group,FAC-10-ENG-02,Facilities,43442,ACH,Approved,No,No
+PAY-00094,2026-10-08,October,Engineering,Academic Equipment Partners,EQP-10-ENG-01,Equipment,59991,ACH,Approved,No,Yes
+PAY-00095,2026-10-15,October,Engineering,Academic Equipment Partners,EQP-10-ENG-02,Equipment,43442,ACH,Approved,No,No
+PAY-00096,2026-10-08,October,Engineering,Campus Technology Systems,TEC-10-ENG-01,Technology,37494,ACH,Approved,No,No
+PAY-00097,2026-10-15,October,Engineering,Campus Technology Systems,TEC-10-ENG-02,Technology,27151,ACH,Approved,No,No
+PAY-00098,2026-10-08,October,Engineering,University Supply Cooperative,SUP-10-ENG-01,Supplies,29995,ACH,Approved,No,No
+PAY-00099,2026-10-15,October,Engineering,University Supply Cooperative,SUP-10-ENG-02,Supplies,21721,ACH,Approved,No,No
+PAY-00100,2026-10-08,October,Engineering,Professional Services Network,SRV-10-ENG-01,Services,22496,ACH,Approved,No,No
+PAY-00101,2026-10-15,October,Engineering,Professional Services Network,SRV-10-ENG-02,Services,16291,ACH,Approved,No,No
+PAY-00102,2026-11-08,November,Engineering,Northstar Facilities Group,FAC-11-ENG-01,Facilities,58433,ACH,Approved,No,Yes
+PAY-00103,2026-11-15,November,Engineering,Northstar Facilities Group,FAC-11-ENG-02,Facilities,42314,ACH,Approved,No,No
+PAY-00104,2026-11-08,November,Engineering,Academic Equipment Partners,EQP-11-ENG-01,Equipment,58433,ACH,Approved,No,Yes
+PAY-00105,2026-11-15,November,Engineering,Academic Equipment Partners,EQP-11-ENG-02,Equipment,42314,ACH,Approved,No,No
+PAY-00106,2026-11-08,November,Engineering,Campus Technology Systems,TEC-11-ENG-01,Technology,36521,ACH,Approved,No,No
+PAY-00107,2026-11-15,November,Engineering,Campus Technology Systems,TEC-11-ENG-02,Technology,26446,ACH,Approved,No,No
+PAY-00108,2026-11-08,November,Engineering,University Supply Cooperative,SUP-11-ENG-01,Supplies,29216,ACH,Approved,No,No
+PAY-00109,2026-11-15,November,Engineering,University Supply Cooperative,SUP-11-ENG-02,Supplies,21157,ACH,Approved,No,No
+PAY-00110,2026-11-08,November,Engineering,Professional Services Network,SRV-11-ENG-01,Services,21912,ACH,Approved,No,No
+PAY-00111,2026-11-15,November,Engineering,Professional Services Network,SRV-11-ENG-02,Services,15868,ACH,Approved,No,No
+PAY-00112,2026-12-08,December,Engineering,Northstar Facilities Group,FAC-12-ENG-01,Facilities,57632,ACH,Approved,No,Yes
+PAY-00113,2026-12-15,December,Engineering,Northstar Facilities Group,FAC-12-ENG-02,Facilities,41733,ACH,Approved,No,No
+PAY-00114,2026-12-08,December,Engineering,Academic Equipment Partners,EQP-12-ENG-01,Equipment,57632,ACH,Approved,No,Yes
+PAY-00115,2026-12-15,December,Engineering,Academic Equipment Partners,EQP-12-ENG-02,Equipment,41733,ACH,Approved,No,No
+PAY-00116,2026-12-08,December,Engineering,Campus Technology Systems,TEC-12-ENG-01,Technology,36020,ACH,Approved,No,No
+PAY-00117,2026-12-15,December,Engineering,Campus Technology Systems,TEC-12-ENG-02,Technology,26083,ACH,Approved,No,No
+PAY-00118,2026-12-08,December,Engineering,University Supply Cooperative,SUP-12-ENG-01,Supplies,28816,ACH,Approved,No,No
+PAY-00119,2026-12-15,December,Engineering,University Supply Cooperative,SUP-12-ENG-02,Supplies,20866,ACH,Approved,No,No
+PAY-00120,2026-12-08,December,Engineering,Professional Services Network,SRV-12-ENG-01,Services,21612,ACH,Approved,No,No
+PAY-00121,2026-12-15,December,Engineering,Professional Services Network,SRV-12-ENG-02,Services,15650,ACH,Approved,No,No
+PAY-00122,2026-01-08,January,Business,Northstar Facilities Group,FAC-01-BUS-01,Facilities,40475,ACH,Approved,No,No
+PAY-00123,2026-01-15,January,Business,Northstar Facilities Group,FAC-01-BUS-02,Facilities,29310,ACH,Approved,No,No
+PAY-00124,2026-01-08,January,Business,Academic Equipment Partners,EQP-01-BUS-01,Equipment,17989,ACH,Approved,No,No
+PAY-00125,2026-01-15,January,Business,Academic Equipment Partners,EQP-01-BUS-02,Equipment,13027,ACH,Approved,No,No
+PAY-00126,2026-01-08,January,Business,Campus Technology Systems,TEC-01-BUS-01,Technology,22487,ACH,Approved,No,No
+PAY-00127,2026-01-15,January,Business,Campus Technology Systems,TEC-01-BUS-02,Technology,16283,ACH,Approved,No,No
+PAY-00128,2026-01-08,January,Business,University Supply Cooperative,SUP-01-BUS-01,Supplies,15741,ACH,Approved,No,No
+PAY-00129,2026-01-15,January,Business,University Supply Cooperative,SUP-01-BUS-02,Supplies,11398,ACH,Approved,No,No
+PAY-00130,2026-01-08,January,Business,Professional Services Network,SRV-01-BUS-01,Services,24735,ACH,Approved,No,No
+PAY-00131,2026-01-15,January,Business,Professional Services Network,SRV-01-BUS-02,Services,17912,ACH,Approved,No,No
+PAY-00132,2026-02-08,February,Business,Northstar Facilities Group,FAC-02-BUS-01,Facilities,41105,ACH,Approved,No,No
+PAY-00133,2026-02-15,February,Business,Northstar Facilities Group,FAC-02-BUS-02,Facilities,29765,ACH,Approved,No,No
+PAY-00134,2026-02-08,February,Business,Academic Equipment Partners,EQP-02-BUS-01,Equipment,18269,ACH,Approved,No,No
+PAY-00135,2026-02-15,February,Business,Academic Equipment Partners,EQP-02-BUS-02,Equipment,13229,ACH,Approved,No,No
+PAY-00136,2026-02-08,February,Business,Campus Technology Systems,TEC-02-BUS-01,Technology,22836,ACH,Approved,No,No
+PAY-00137,2026-02-15,February,Business,Campus Technology Systems,TEC-02-BUS-02,Technology,16536,ACH,Approved,No,No
+PAY-00138,2026-02-08,February,Business,University Supply Cooperative,SUP-02-BUS-01,Supplies,15985,ACH,Approved,No,No
+PAY-00139,2026-02-15,February,Business,University Supply Cooperative,SUP-02-BUS-02,Supplies,11576,ACH,Approved,No,No
+PAY-00140,2026-02-08,February,Business,Professional Services Network,SRV-02-BUS-01,Services,25120,ACH,Approved,No,No
+PAY-00141,2026-02-15,February,Business,Professional Services Network,SRV-02-BUS-02,Services,18190,ACH,Approved,No,No
+PAY-00142,2026-03-08,March,Business,Northstar Facilities Group,FAC-03-BUS-01,Facilities,42207,ACH,Approved,No,No
+PAY-00143,2026-03-15,March,Business,Northstar Facilities Group,FAC-03-BUS-02,Facilities,30563,ACH,Approved,No,No
+PAY-00144,2026-03-08,March,Business,Academic Equipment Partners,EQP-03-BUS-01,Equipment,18758,ACH,Approved,No,No
+PAY-00145,2026-03-15,March,Business,Academic Equipment Partners,EQP-03-BUS-02,Equipment,13584,ACH,Approved,No,No
+PAY-00146,2026-03-08,March,Business,Campus Technology Systems,TEC-03-BUS-01,Technology,23448,ACH,Approved,No,No
+PAY-00147,2026-03-15,March,Business,Campus Technology Systems,TEC-03-BUS-02,Technology,16980,ACH,Approved,No,No
+PAY-00148,2026-03-08,March,Business,University Supply Cooperative,SUP-03-BUS-01,Supplies,16413,ACH,Approved,No,No
+PAY-00149,2026-03-15,March,Business,University Supply Cooperative,SUP-03-BUS-02,Supplies,11886,ACH,Approved,No,No
+PAY-00150,2026-03-08,March,Business,Professional Services Network,SRV-03-BUS-01,Services,25793,ACH,Approved,No,No
+PAY-00151,2026-03-15,March,Business,Professional Services Network,SRV-03-BUS-02,Services,18677,ACH,Approved,No,No
+PAY-00152,2026-04-08,April,Business,Northstar Facilities Group,FAC-04-BUS-01,Facilities,43018,ACH,Approved,No,No
+PAY-00153,2026-04-15,April,Business,Northstar Facilities Group,FAC-04-BUS-02,Facilities,31151,ACH,Approved,No,No
+PAY-00154,2026-04-08,April,Business,Academic Equipment Partners,EQP-04-BUS-01,Equipment,19119,ACH,Approved,No,No
+PAY-00155,2026-04-15,April,Business,Academic Equipment Partners,EQP-04-BUS-02,Equipment,13845,ACH,Approved,No,No
+PAY-00156,2026-04-08,April,Business,Campus Technology Systems,TEC-04-BUS-01,Technology,23899,ACH,Approved,No,No
+PAY-00157,2026-04-15,April,Business,Campus Technology Systems,TEC-04-BUS-02,Technology,17306,ACH,Approved,No,No
+PAY-00158,2026-04-08,April,Business,University Supply Cooperative,SUP-04-BUS-01,Supplies,16729,ACH,Approved,No,No
+PAY-00159,2026-04-15,April,Business,University Supply Cooperative,SUP-04-BUS-02,Supplies,12114,ACH,Approved,No,No
+PAY-00160,2026-04-08,April,Business,Professional Services Network,SRV-04-BUS-01,Services,26289,ACH,Approved,No,No
+PAY-00161,2026-04-15,April,Business,Professional Services Network,SRV-04-BUS-02,Services,19036,ACH,Approved,No,No
+PAY-00162,2026-05-08,May,Business,Northstar Facilities Group,FAC-05-BUS-01,Facilities,43664,ACH,Approved,No,No
+PAY-00163,2026-05-15,May,Business,Northstar Facilities Group,FAC-05-BUS-02,Facilities,31619,ACH,Approved,No,No
+PAY-00164,2026-05-08,May,Business,Academic Equipment Partners,EQP-05-BUS-01,Equipment,19406,ACH,Approved,No,No
+PAY-00165,2026-05-15,May,Business,Academic Equipment Partners,EQP-05-BUS-02,Equipment,14053,ACH,Approved,No,No
+PAY-00166,2026-05-08,May,Business,Campus Technology Systems,TEC-05-BUS-01,Technology,24258,ACH,Approved,No,No
+PAY-00167,2026-05-15,May,Business,Campus Technology Systems,TEC-05-BUS-02,Technology,17566,ACH,Approved,No,No
+PAY-00168,2026-05-08,May,Business,University Supply Cooperative,SUP-05-BUS-01,Supplies,16981,ACH,Approved,No,No
+PAY-00169,2026-05-15,May,Business,University Supply Cooperative,SUP-05-BUS-02,Supplies,12296,ACH,Approved,No,No
+PAY-00170,2026-05-08,May,Business,Professional Services Network,SRV-05-BUS-01,Services,26684,ACH,Approved,No,No
+PAY-00171,2026-05-15,May,Business,Professional Services Network,SRV-05-BUS-02,Services,19323,ACH,Approved,No,No
+PAY-00172,2026-06-08,June,Business,Northstar Facilities Group,FAC-06-BUS-01,Facilities,44446,ACH,Approved,No,No
+PAY-00173,2026-06-15,June,Business,Northstar Facilities Group,FAC-06-BUS-02,Facilities,32185,ACH,Approved,No,No
+PAY-00174,2026-06-08,June,Business,Academic Equipment Partners,EQP-06-BUS-01,Equipment,19754,ACH,Approved,No,No
+PAY-00175,2026-06-15,June,Business,Academic Equipment Partners,EQP-06-BUS-02,Equipment,14304,ACH,Approved,No,No
+PAY-00176,2026-06-08,June,Business,Campus Technology Systems,TEC-06-BUS-01,Technology,24692,ACH,Approved,No,No
+PAY-00177,2026-06-15,June,Business,Campus Technology Systems,TEC-06-BUS-02,Technology,17881,ACH,Approved,No,No
+PAY-00178,2026-06-08,June,Business,University Supply Cooperative,SUP-06-BUS-01,Supplies,17285,ACH,Approved,No,No
+PAY-00179,2026-06-15,June,Business,University Supply Cooperative,SUP-06-BUS-02,Supplies,12516,ACH,Approved,No,No
+PAY-00180,2026-06-08,June,Business,Professional Services Network,SRV-06-BUS-01,Services,27161,ACH,Approved,No,No
+PAY-00181,2026-06-15,June,Business,Professional Services Network,SRV-06-BUS-02,Services,19669,ACH,Approved,No,No
+PAY-00182,2026-07-08,July,Business,Northstar Facilities Group,FAC-07-BUS-01,Facilities,41603,ACH,Approved,No,No
+PAY-00183,2026-07-15,July,Business,Northstar Facilities Group,FAC-07-BUS-02,Facilities,30126,ACH,Approved,No,No
+PAY-00184,2026-07-08,July,Business,Academic Equipment Partners,EQP-07-BUS-01,Equipment,18490,ACH,Approved,No,No
+PAY-00185,2026-07-15,July,Business,Academic Equipment Partners,EQP-07-BUS-02,Equipment,13390,ACH,Approved,No,No
+PAY-00186,2026-07-08,July,Business,Campus Technology Systems,TEC-07-BUS-01,Technology,23113,ACH,Approved,No,No
+PAY-00187,2026-07-15,July,Business,Campus Technology Systems,TEC-07-BUS-02,Technology,16737,ACH,Approved,No,No
+PAY-00188,2026-07-08,July,Business,University Supply Cooperative,SUP-07-BUS-01,Supplies,16179,ACH,Approved,No,No
+PAY-00189,2026-07-15,July,Business,University Supply Cooperative,SUP-07-BUS-02,Supplies,11716,ACH,Approved,No,No
+PAY-00190,2026-07-08,July,Business,Professional Services Network,SRV-07-BUS-01,Services,25424,ACH,Approved,No,No
+PAY-00191,2026-07-15,July,Business,Professional Services Network,SRV-07-BUS-02,Services,18410,ACH,Approved,No,No
+PAY-00192,2026-08-08,August,Business,Northstar Facilities Group,FAC-08-BUS-01,Facilities,42200,ACH,Approved,No,No
+PAY-00193,2026-08-15,August,Business,Northstar Facilities Group,FAC-08-BUS-02,Facilities,30558,ACH,Approved,No,No
+PAY-00194,2026-08-08,August,Business,Academic Equipment Partners,EQP-08-BUS-01,Equipment,18755,ACH,Approved,No,No
+PAY-00195,2026-08-15,August,Business,Academic Equipment Partners,EQP-08-BUS-02,Equipment,13582,ACH,Approved,No,No
+PAY-00196,2026-08-08,August,Business,Campus Technology Systems,TEC-08-BUS-01,Technology,23444,ACH,Approved,No,No
+PAY-00197,2026-08-15,August,Business,Campus Technology Systems,TEC-08-BUS-02,Technology,16977,ACH,Approved,No,No
+PAY-00198,2026-08-08,August,Business,University Supply Cooperative,SUP-08-BUS-01,Supplies,16411,ACH,Approved,No,No
+PAY-00199,2026-08-15,August,Business,University Supply Cooperative,SUP-08-BUS-02,Supplies,11884,ACH,Approved,No,No
+PAY-00200,2026-08-08,August,Business,Professional Services Network,SRV-08-BUS-01,Services,25789,ACH,Approved,No,No
+PAY-00201,2026-08-15,August,Business,Professional Services Network,SRV-08-BUS-02,Services,18674,ACH,Approved,No,No
+PAY-00202,2026-09-08,September,Business,Northstar Facilities Group,FAC-09-BUS-01,Facilities,44705,ACH,Approved,No,No
+PAY-00203,2026-09-15,September,Business,Northstar Facilities Group,FAC-09-BUS-02,Facilities,32373,ACH,Approved,No,No
+PAY-00204,2026-09-08,September,Business,Academic Equipment Partners,EQP-09-BUS-01,Equipment,19869,ACH,Approved,No,No
+PAY-00205,2026-09-15,September,Business,Academic Equipment Partners,EQP-09-BUS-02,Equipment,14388,ACH,Approved,No,No
+PAY-00206,2026-09-08,September,Business,Campus Technology Systems,TEC-09-BUS-01,Technology,24836,ACH,Approved,No,No
+PAY-00207,2026-09-15,September,Business,Campus Technology Systems,TEC-09-BUS-02,Technology,17985,ACH,Approved,No,No
+PAY-00208,2026-09-08,September,Business,University Supply Cooperative,SUP-09-BUS-01,Supplies,17386,ACH,Approved,No,No
+PAY-00209,2026-09-15,September,Business,University Supply Cooperative,SUP-09-BUS-02,Supplies,12589,ACH,Approved,No,No
+PAY-00210,2026-09-08,September,Business,Professional Services Network,SRV-09-BUS-01,Services,27320,ACH,Approved,No,No
+PAY-00211,2026-09-15,September,Business,Professional Services Network,SRV-09-BUS-02,Services,19783,ACH,Approved,No,No
+PAY-00212,2026-10-08,October,Business,Northstar Facilities Group,FAC-10-BUS-01,Facilities,45362,ACH,Approved,No,No
+PAY-00213,2026-10-15,October,Business,Northstar Facilities Group,FAC-10-BUS-02,Facilities,32848,ACH,Approved,No,No
+PAY-00214,2026-10-08,October,Business,Academic Equipment Partners,EQP-10-BUS-01,Equipment,20161,ACH,Approved,No,No
+PAY-00215,2026-10-15,October,Business,Academic Equipment Partners,EQP-10-BUS-02,Equipment,14599,ACH,Approved,No,No
+PAY-00216,2026-10-08,October,Business,Campus Technology Systems,TEC-10-BUS-01,Technology,25201,ACH,Approved,No,No
+PAY-00217,2026-10-15,October,Business,Campus Technology Systems,TEC-10-BUS-02,Technology,18249,ACH,Approved,No,No
+PAY-00218,2026-10-08,October,Business,University Supply Cooperative,SUP-10-BUS-01,Supplies,17641,ACH,Approved,No,No
+PAY-00219,2026-10-15,October,Business,University Supply Cooperative,SUP-10-BUS-02,Supplies,12774,ACH,Approved,No,No
+PAY-00220,2026-10-08,October,Business,Professional Services Network,SRV-10-BUS-01,Services,27721,ACH,Approved,No,No
+PAY-00221,2026-10-15,October,Business,Professional Services Network,SRV-10-BUS-02,Services,20074,ACH,Approved,No,No
+PAY-00222,2026-11-08,November,Business,Northstar Facilities Group,FAC-11-BUS-01,Facilities,44184,ACH,Approved,No,No
+PAY-00223,2026-11-15,November,Business,Northstar Facilities Group,FAC-11-BUS-02,Facilities,31995,ACH,Approved,No,No
+PAY-00224,2026-11-08,November,Business,Academic Equipment Partners,EQP-11-BUS-01,Equipment,19637,ACH,Approved,No,No
+PAY-00225,2026-11-15,November,Business,Academic Equipment Partners,EQP-11-BUS-02,Equipment,14220,ACH,Approved,No,No
+PAY-00226,2026-11-08,November,Business,Campus Technology Systems,TEC-11-BUS-01,Technology,24547,ACH,Approved,No,No
+PAY-00227,2026-11-15,November,Business,Campus Technology Systems,TEC-11-BUS-02,Technology,17775,ACH,Approved,No,No
+PAY-00228,2026-11-08,November,Business,University Supply Cooperative,SUP-11-BUS-01,Supplies,17183,ACH,Approved,No,No
+PAY-00229,2026-11-15,November,Business,University Supply Cooperative,SUP-11-BUS-02,Supplies,12442,ACH,Approved,No,No
+PAY-00230,2026-11-08,November,Business,Professional Services Network,SRV-11-BUS-01,Services,27001,ACH,Approved,No,No
+PAY-00231,2026-11-15,November,Business,Professional Services Network,SRV-11-BUS-02,Services,19553,ACH,Approved,No,No
+PAY-00232,2026-12-08,December,Business,Northstar Facilities Group,FAC-12-BUS-01,Facilities,43578,ACH,Approved,No,No
+PAY-00233,2026-12-15,December,Business,Northstar Facilities Group,FAC-12-BUS-02,Facilities,31556,ACH,Approved,No,No
+PAY-00234,2026-12-08,December,Business,Academic Equipment Partners,EQP-12-BUS-01,Equipment,19368,ACH,Approved,No,No
+PAY-00235,2026-12-15,December,Business,Academic Equipment Partners,EQP-12-BUS-02,Equipment,14025,ACH,Approved,No,No
+PAY-00236,2026-12-08,December,Business,Campus Technology Systems,TEC-12-BUS-01,Technology,24210,ACH,Approved,No,No
+PAY-00237,2026-12-15,December,Business,Campus Technology Systems,TEC-12-BUS-02,Technology,17531,ACH,Approved,No,No
+PAY-00238,2026-12-08,December,Business,University Supply Cooperative,SUP-12-BUS-01,Supplies,16947,ACH,Approved,No,No
+PAY-00239,2026-12-15,December,Business,University Supply Cooperative,SUP-12-BUS-02,Supplies,12272,ACH,Approved,No,No
+PAY-00240,2026-12-08,December,Business,Professional Services Network,SRV-12-BUS-01,Services,26631,ACH,Approved,No,No
+PAY-00241,2026-12-15,December,Business,Professional Services Network,SRV-12-BUS-02,Services,19284,ACH,Approved,No,No
+PAY-00242,2026-01-08,January,Health Sciences,Northstar Facilities Group,FAC-01-HEA-01,Facilities,54790,ACH,Approved,No,Yes
+PAY-00243,2026-01-15,January,Health Sciences,Northstar Facilities Group,FAC-01-HEA-02,Facilities,39675,ACH,Approved,No,No
+PAY-00244,2026-01-08,January,Health Sciences,Academic Equipment Partners,EQP-01-HEA-01,Equipment,42614,ACH,Approved,No,No
+PAY-00245,2026-01-15,January,Health Sciences,Academic Equipment Partners,EQP-01-HEA-02,Equipment,30859,ACH,Approved,No,No
+PAY-00246,2026-01-08,January,Health Sciences,Campus Technology Systems,TEC-01-HEA-01,Technology,18263,ACH,Approved,No,No
+PAY-00247,2026-01-15,January,Health Sciences,Campus Technology Systems,TEC-01-HEA-02,Technology,13225,ACH,Approved,No,No
+PAY-00248,2026-01-08,January,Health Sciences,University Supply Cooperative,SUP-01-HEA-01,Supplies,36527,ACH,Approved,No,No
+PAY-00249,2026-01-15,January,Health Sciences,University Supply Cooperative,SUP-01-HEA-02,Supplies,26450,ACH,Approved,No,No
+PAY-00250,2026-01-08,January,Health Sciences,Professional Services Network,SRV-01-HEA-01,Services,15219,ACH,Approved,No,No
+PAY-00251,2026-01-15,January,Health Sciences,Professional Services Network,SRV-01-HEA-02,Services,11021,ACH,Approved,No,No
+PAY-00252,2026-02-08,February,Health Sciences,Northstar Facilities Group,FAC-02-HEA-01,Facilities,55642,ACH,Approved,No,Yes
+PAY-00253,2026-02-15,February,Health Sciences,Northstar Facilities Group,FAC-02-HEA-02,Facilities,40292,ACH,Approved,No,No
+PAY-00254,2026-02-08,February,Health Sciences,Academic Equipment Partners,EQP-02-HEA-01,Equipment,43277,ACH,Approved,No,No
+PAY-00255,2026-02-15,February,Health Sciences,Academic Equipment Partners,EQP-02-HEA-02,Equipment,31338,ACH,Approved,No,No
+PAY-00256,2026-02-08,February,Health Sciences,Campus Technology Systems,TEC-02-HEA-01,Technology,18547,ACH,Approved,No,No
+PAY-00257,2026-02-15,February,Health Sciences,Campus Technology Systems,TEC-02-HEA-02,Technology,13431,ACH,Approved,No,No
+PAY-00258,2026-02-08,February,Health Sciences,University Supply Cooperative,SUP-02-HEA-01,Supplies,37094,ACH,Approved,No,No
+PAY-00259,2026-02-15,February,Health Sciences,University Supply Cooperative,SUP-02-HEA-02,Supplies,26862,ACH,Approved,No,No
+PAY-00260,2026-02-08,February,Health Sciences,Professional Services Network,SRV-02-HEA-01,Services,15456,ACH,Approved,No,No
+PAY-00261,2026-02-15,February,Health Sciences,Professional Services Network,SRV-02-HEA-02,Services,11192,ACH,Approved,No,No
+PAY-00262,2026-03-08,March,Health Sciences,Northstar Facilities Group,FAC-03-HEA-01,Facilities,57133,ACH,Approved,No,Yes
+PAY-00263,2026-03-15,March,Health Sciences,Northstar Facilities Group,FAC-03-HEA-02,Facilities,41372,ACH,Approved,No,No
+PAY-00264,2026-03-08,March,Health Sciences,Academic Equipment Partners,EQP-03-HEA-01,Equipment,44437,ACH,Approved,No,No
+PAY-00265,2026-03-15,March,Health Sciences,Academic Equipment Partners,EQP-03-HEA-02,Equipment,32178,ACH,Approved,No,No
+PAY-00266,2026-03-08,March,Health Sciences,Campus Technology Systems,TEC-03-HEA-01,Technology,19044,ACH,Approved,No,No
+PAY-00267,2026-03-15,March,Health Sciences,Campus Technology Systems,TEC-03-HEA-02,Technology,13791,ACH,Approved,No,No
+PAY-00268,2026-03-08,March,Health Sciences,University Supply Cooperative,SUP-03-HEA-01,Supplies,38089,ACH,Approved,No,No
+PAY-00269,2026-03-15,March,Health Sciences,University Supply Cooperative,SUP-03-HEA-02,Supplies,27581,ACH,Approved,No,No
+PAY-00270,2026-03-08,March,Health Sciences,Professional Services Network,SRV-03-HEA-01,Services,15870,ACH,Approved,No,No
+PAY-00271,2026-03-15,March,Health Sciences,Professional Services Network,SRV-03-HEA-02,Services,11492,ACH,Approved,No,No
+PAY-00272,2026-04-08,April,Health Sciences,Northstar Facilities Group,FAC-04-HEA-01,Facilities,58231,ACH,Approved,No,Yes
+PAY-00273,2026-04-15,April,Health Sciences,Northstar Facilities Group,FAC-04-HEA-02,Facilities,42168,ACH,Approved,No,No
+PAY-00274,2026-04-08,April,Health Sciences,Academic Equipment Partners,EQP-04-HEA-01,Equipment,45291,ACH,Approved,No,No
+PAY-00275,2026-04-15,April,Health Sciences,Academic Equipment Partners,EQP-04-HEA-02,Equipment,32797,ACH,Approved,No,No
+PAY-00276,2026-04-08,April,Health Sciences,Campus Technology Systems,TEC-04-HEA-01,Technology,19410,ACH,Approved,No,No
+PAY-00277,2026-04-15,April,Health Sciences,Campus Technology Systems,TEC-04-HEA-02,Technology,14056,ACH,Approved,No,No
+PAY-00278,2026-04-08,April,Health Sciences,University Supply Cooperative,SUP-04-HEA-01,Supplies,38821,ACH,Approved,No,No
+PAY-00279,2026-04-15,April,Health Sciences,University Supply Cooperative,SUP-04-HEA-02,Supplies,28112,ACH,Approved,No,No
+PAY-00280,2026-04-08,April,Health Sciences,Professional Services Network,SRV-04-HEA-01,Services,16176,ACH,Approved,No,No
+PAY-00281,2026-04-15,April,Health Sciences,Professional Services Network,SRV-04-HEA-02,Services,11713,ACH,Approved,No,No
+PAY-00282,2026-05-08,May,Health Sciences,Northstar Facilities Group,FAC-05-HEA-01,Facilities,59107,ACH,Approved,No,Yes
+PAY-00283,2026-05-15,May,Health Sciences,Northstar Facilities Group,FAC-05-HEA-02,Facilities,42801,ACH,Approved,No,No
+PAY-00284,2026-05-08,May,Health Sciences,Academic Equipment Partners,EQP-05-HEA-01,Equipment,45972,ACH,Approved,No,No
+PAY-00285,2026-05-15,May,Health Sciences,Academic Equipment Partners,EQP-05-HEA-02,Equipment,33290,ACH,Approved,No,No
+PAY-00286,2026-05-08,May,Health Sciences,Campus Technology Systems,TEC-05-HEA-01,Technology,19702,ACH,Approved,No,No
+PAY-00287,2026-05-15,May,Health Sciences,Campus Technology Systems,TEC-05-HEA-02,Technology,14267,ACH,Approved,No,No
+PAY-00288,2026-05-08,May,Health Sciences,University Supply Cooperative,SUP-05-HEA-01,Supplies,39405,ACH,Approved,No,No
+PAY-00289,2026-05-15,May,Health Sciences,University Supply Cooperative,SUP-05-HEA-02,Supplies,28534,ACH,Approved,No,No
+PAY-00290,2026-05-08,May,Health Sciences,Professional Services Network,SRV-05-HEA-01,Services,16418,ACH,Approved,No,No
+PAY-00291,2026-05-15,May,Health Sciences,Professional Services Network,SRV-05-HEA-02,Services,11889,ACH,Approved,No,No
+PAY-00292,2026-06-08,June,Health Sciences,Northstar Facilities Group,FAC-06-HEA-01,Facilities,60165,ACH,Approved,No,Yes
+PAY-00293,2026-06-15,June,Health Sciences,Northstar Facilities Group,FAC-06-HEA-02,Facilities,43567,ACH,Approved,No,No
+PAY-00294,2026-06-08,June,Health Sciences,Academic Equipment Partners,EQP-06-HEA-01,Equipment,46795,ACH,Approved,No,No
+PAY-00295,2026-06-15,June,Health Sciences,Academic Equipment Partners,EQP-06-HEA-02,Equipment,33886,ACH,Approved,No,No
+PAY-00296,2026-06-08,June,Health Sciences,Campus Technology Systems,TEC-06-HEA-01,Technology,20055,ACH,Approved,No,No
+PAY-00297,2026-06-15,June,Health Sciences,Campus Technology Systems,TEC-06-HEA-02,Technology,14522,ACH,Approved,No,No
+PAY-00298,2026-06-08,June,Health Sciences,University Supply Cooperative,SUP-06-HEA-01,Supplies,40110,ACH,Approved,No,No
+PAY-00299,2026-06-15,June,Health Sciences,University Supply Cooperative,SUP-06-HEA-02,Supplies,29045,ACH,Approved,No,No
+PAY-00300,2026-06-08,June,Health Sciences,Professional Services Network,SRV-06-HEA-01,Services,16712,ACH,Approved,No,No
+PAY-00301,2026-06-15,June,Health Sciences,Professional Services Network,SRV-06-HEA-02,Services,12102,ACH,Approved,No,No
+PAY-00302,2026-07-08,July,Health Sciences,Northstar Facilities Group,FAC-07-HEA-01,Facilities,56316,ACH,Approved,No,Yes
+PAY-00303,2026-07-15,July,Health Sciences,Northstar Facilities Group,FAC-07-HEA-02,Facilities,40781,ACH,Approved,No,No
+PAY-00304,2026-07-08,July,Health Sciences,Academic Equipment Partners,EQP-07-HEA-01,Equipment,43802,ACH,Approved,No,No
+PAY-00305,2026-07-15,July,Health Sciences,Academic Equipment Partners,EQP-07-HEA-02,Equipment,31718,ACH,Approved,No,No
+PAY-00306,2026-07-08,July,Health Sciences,Campus Technology Systems,TEC-07-HEA-01,Technology,18772,ACH,Approved,No,No
+PAY-00307,2026-07-15,July,Health Sciences,Campus Technology Systems,TEC-07-HEA-02,Technology,13594,ACH,Approved,No,No
+PAY-00308,2026-07-08,July,Health Sciences,University Supply Cooperative,SUP-07-HEA-01,Supplies,37544,ACH,Approved,No,No
+PAY-00309,2026-07-15,July,Health Sciences,University Supply Cooperative,SUP-07-HEA-02,Supplies,27187,ACH,Approved,No,No
+PAY-00310,2026-07-08,July,Health Sciences,Professional Services Network,SRV-07-HEA-01,Services,15643,ACH,Approved,No,No
+PAY-00311,2026-07-15,July,Health Sciences,Professional Services Network,SRV-07-HEA-02,Services,11328,ACH,Approved,No,No
+PAY-00312,2026-08-08,August,Health Sciences,Northstar Facilities Group,FAC-08-HEA-01,Facilities,57124,ACH,Approved,No,Yes
+PAY-00313,2026-08-15,August,Health Sciences,Northstar Facilities Group,FAC-08-HEA-02,Facilities,41365,ACH,Approved,No,No
+PAY-00314,2026-08-08,August,Health Sciences,Academic Equipment Partners,EQP-08-HEA-01,Equipment,44430,ACH,Approved,No,No
+PAY-00315,2026-08-15,August,Health Sciences,Academic Equipment Partners,EQP-08-HEA-02,Equipment,32173,ACH,Approved,No,No
+PAY-00316,2026-08-08,August,Health Sciences,Campus Technology Systems,TEC-08-HEA-01,Technology,19041,ACH,Approved,No,No
+PAY-00317,2026-08-15,August,Health Sciences,Campus Technology Systems,TEC-08-HEA-02,Technology,13789,ACH,Approved,No,No
+PAY-00318,2026-08-08,August,Health Sciences,University Supply Cooperative,SUP-08-HEA-01,Supplies,38083,ACH,Approved,No,No
+PAY-00319,2026-08-15,August,Health Sciences,University Supply Cooperative,SUP-08-HEA-02,Supplies,27577,ACH,Approved,No,No
+PAY-00320,2026-08-08,August,Health Sciences,Professional Services Network,SRV-08-HEA-01,Services,15868,ACH,Approved,No,No
+PAY-00321,2026-08-15,August,Health Sciences,Professional Services Network,SRV-08-HEA-02,Services,11490,ACH,Approved,No,No
+PAY-00322,2026-09-08,September,Health Sciences,Northstar Facilities Group,FAC-09-HEA-01,Facilities,60516,ACH,Approved,No,Yes
+PAY-00323,2026-09-15,September,Health Sciences,Northstar Facilities Group,FAC-09-HEA-02,Facilities,43822,ACH,Approved,No,No
+PAY-00324,2026-09-08,September,Health Sciences,Academic Equipment Partners,EQP-09-HEA-01,Equipment,47068,ACH,Approved,No,No
+PAY-00325,2026-09-15,September,Health Sciences,Academic Equipment Partners,EQP-09-HEA-02,Equipment,34083,ACH,Approved,No,No
+PAY-00326,2026-09-08,September,Health Sciences,Campus Technology Systems,TEC-09-HEA-01,Technology,20172,ACH,Approved,No,No
+PAY-00327,2026-09-15,September,Health Sciences,Campus Technology Systems,TEC-09-HEA-02,Technology,14607,ACH,Approved,No,No
+PAY-00328,2026-09-08,September,Health Sciences,University Supply Cooperative,SUP-09-HEA-01,Supplies,40344,ACH,Approved,No,No
+PAY-00329,2026-09-15,September,Health Sciences,University Supply Cooperative,SUP-09-HEA-02,Supplies,29214,ACH,Approved,No,No
+PAY-00330,2026-09-08,September,Health Sciences,Professional Services Network,SRV-09-HEA-01,Services,16810,ACH,Approved,No,No
+PAY-00331,2026-09-15,September,Health Sciences,Professional Services Network,SRV-09-HEA-02,Services,12172,ACH,Approved,No,No
+PAY-00332,2026-10-08,October,Health Sciences,Northstar Facilities Group,FAC-10-HEA-01,Facilities,61405,ACH,Approved,No,Yes
+PAY-00333,2026-10-15,October,Health Sciences,Northstar Facilities Group,FAC-10-HEA-02,Facilities,44465,ACH,Approved,No,No
+PAY-00334,2026-10-08,October,Health Sciences,Academic Equipment Partners,EQP-10-HEA-01,Equipment,47759,ACH,Approved,No,No
+PAY-00335,2026-10-15,October,Health Sciences,Academic Equipment Partners,EQP-10-HEA-02,Equipment,34584,ACH,Approved,No,No
+PAY-00336,2026-10-08,October,Health Sciences,Campus Technology Systems,TEC-10-HEA-01,Technology,20468,ACH,Approved,No,No
+PAY-00337,2026-10-15,October,Health Sciences,Campus Technology Systems,TEC-10-HEA-02,Technology,14822,ACH,Approved,No,No
+PAY-00338,2026-10-08,October,Health Sciences,University Supply Cooperative,SUP-10-HEA-01,Supplies,40936,ACH,Approved,No,No
+PAY-00339,2026-10-15,October,Health Sciences,University Supply Cooperative,SUP-10-HEA-02,Supplies,29644,ACH,Approved,No,No
+PAY-00340,2026-10-08,October,Health Sciences,Professional Services Network,SRV-10-HEA-01,Services,17057,ACH,Approved,No,No
+PAY-00341,2026-10-15,October,Health Sciences,Professional Services Network,SRV-10-HEA-02,Services,12351,ACH,Approved,No,No
+PAY-00342,2026-11-08,November,Health Sciences,Northstar Facilities Group,FAC-11-HEA-01,Facilities,59810,ACH,Approved,No,Yes
+PAY-00343,2026-11-15,November,Health Sciences,Northstar Facilities Group,FAC-11-HEA-02,Facilities,43311,ACH,Approved,No,No
+PAY-00344,2026-11-08,November,Health Sciences,Academic Equipment Partners,EQP-11-HEA-01,Equipment,46519,ACH,Approved,No,No
+PAY-00345,2026-11-15,November,Health Sciences,Academic Equipment Partners,EQP-11-HEA-02,Equipment,33686,ACH,Approved,No,No
+PAY-00346,2026-11-08,November,Health Sciences,Campus Technology Systems,TEC-11-HEA-01,Technology,19937,ACH,Approved,No,No
+PAY-00347,2026-11-15,November,Health Sciences,Campus Technology Systems,TEC-11-HEA-02,Technology,14437,ACH,Approved,No,No
+PAY-00348,2026-11-08,November,Health Sciences,University Supply Cooperative,SUP-11-HEA-01,Supplies,39873,ACH,Approved,No,No
+PAY-00349,2026-11-15,November,Health Sciences,University Supply Cooperative,SUP-11-HEA-02,Supplies,28874,ACH,Approved,No,No
+PAY-00350,2026-11-08,November,Health Sciences,Professional Services Network,SRV-11-HEA-01,Services,16614,ACH,Approved,No,No
+PAY-00351,2026-11-15,November,Health Sciences,Professional Services Network,SRV-11-HEA-02,Services,12031,ACH,Approved,No,No
+PAY-00352,2026-12-08,December,Health Sciences,Northstar Facilities Group,FAC-12-HEA-01,Facilities,58989,ACH,Approved,No,Yes
+PAY-00353,2026-12-15,December,Health Sciences,Northstar Facilities Group,FAC-12-HEA-02,Facilities,42717,ACH,Approved,No,No
+PAY-00354,2026-12-08,December,Health Sciences,Academic Equipment Partners,EQP-12-HEA-01,Equipment,45881,ACH,Approved,No,No
+PAY-00355,2026-12-15,December,Health Sciences,Academic Equipment Partners,EQP-12-HEA-02,Equipment,33224,ACH,Approved,No,No
+PAY-00356,2026-12-08,December,Health Sciences,Campus Technology Systems,TEC-12-HEA-01,Technology,19663,ACH,Approved,No,No
+PAY-00357,2026-12-15,December,Health Sciences,Campus Technology Systems,TEC-12-HEA-02,Technology,14239,ACH,Approved,No,No
+PAY-00358,2026-12-08,December,Health Sciences,University Supply Cooperative,SUP-12-HEA-01,Supplies,39326,ACH,Approved,No,No
+PAY-00359,2026-12-15,December,Health Sciences,University Supply Cooperative,SUP-12-HEA-02,Supplies,28478,ACH,Approved,No,No
+PAY-00360,2026-12-08,December,Health Sciences,Professional Services Network,SRV-12-HEA-01,Services,16386,ACH,Approved,No,No
+PAY-00361,2026-12-15,December,Health Sciences,Professional Services Network,SRV-12-HEA-02,Services,11865,ACH,Approved,No,No
+PAY-00362,2026-01-08,January,Administration,Northstar Facilities Group,FAC-01-ADM-01,Facilities,48702,ACH,Approved,No,No
+PAY-00363,2026-01-15,January,Administration,Northstar Facilities Group,FAC-01-ADM-02,Facilities,35267,ACH,Approved,No,No
+PAY-00364,2026-01-08,January,Administration,Academic Equipment Partners,EQP-01-ADM-01,Equipment,8117,ACH,Approved,No,No
+PAY-00365,2026-01-15,January,Administration,Academic Equipment Partners,EQP-01-ADM-02,Equipment,5878,ACH,Approved,No,No
+PAY-00366,2026-01-08,January,Administration,Campus Technology Systems,TEC-01-ADM-01,Technology,16234,ACH,Approved,No,No
+PAY-00367,2026-01-15,January,Administration,Campus Technology Systems,TEC-01-ADM-02,Technology,11756,ACH,Approved,No,No
+PAY-00368,2026-01-08,January,Administration,University Supply Cooperative,SUP-01-ADM-01,Supplies,10147,ACH,Approved,No,No
+PAY-00369,2026-01-15,January,Administration,University Supply Cooperative,SUP-01-ADM-02,Supplies,7347,ACH,Approved,No,No
+PAY-00370,2026-01-08,January,Administration,Professional Services Network,SRV-01-ADM-01,Services,24351,ACH,Approved,No,No
+PAY-00371,2026-01-15,January,Administration,Professional Services Network,SRV-01-ADM-02,Services,17634,ACH,Approved,No,No
+PAY-00372,2026-02-08,February,Administration,Northstar Facilities Group,FAC-02-ADM-01,Facilities,49460,ACH,Approved,No,No
+PAY-00373,2026-02-15,February,Administration,Northstar Facilities Group,FAC-02-ADM-02,Facilities,35815,ACH,Approved,No,No
+PAY-00374,2026-02-08,February,Administration,Academic Equipment Partners,EQP-02-ADM-01,Equipment,8243,ACH,Approved,No,No
+PAY-00375,2026-02-15,February,Administration,Academic Equipment Partners,EQP-02-ADM-02,Equipment,5969,ACH,Approved,No,No
+PAY-00376,2026-02-08,February,Administration,Campus Technology Systems,TEC-02-ADM-01,Technology,16487,ACH,Approved,No,No
+PAY-00377,2026-02-15,February,Administration,Campus Technology Systems,TEC-02-ADM-02,Technology,11938,ACH,Approved,No,No
+PAY-00378,2026-02-08,February,Administration,University Supply Cooperative,SUP-02-ADM-01,Supplies,10304,ACH,Approved,No,No
+PAY-00379,2026-02-15,February,Administration,University Supply Cooperative,SUP-02-ADM-02,Supplies,7462,ACH,Approved,No,No
+PAY-00380,2026-02-08,February,Administration,Professional Services Network,SRV-02-ADM-01,Services,24729,ACH,Approved,No,No
+PAY-00381,2026-02-15,February,Administration,Professional Services Network,SRV-02-ADM-02,Services,17908,ACH,Approved,No,No
+PAY-00382,2026-03-08,March,Administration,Northstar Facilities Group,FAC-03-ADM-01,Facilities,50785,ACH,Approved,No,Yes
+PAY-00383,2026-03-15,March,Administration,Northstar Facilities Group,FAC-03-ADM-02,Facilities,36775,ACH,Approved,No,No
+PAY-00384,2026-03-08,March,Administration,Academic Equipment Partners,EQP-03-ADM-01,Equipment,8464,ACH,Approved,No,No
+PAY-00385,2026-03-15,March,Administration,Academic Equipment Partners,EQP-03-ADM-02,Equipment,6129,ACH,Approved,No,No
+PAY-00386,2026-03-08,March,Administration,Campus Technology Systems,TEC-03-ADM-01,Technology,16928,ACH,Approved,No,No
+PAY-00387,2026-03-15,March,Administration,Campus Technology Systems,TEC-03-ADM-02,Technology,12259,ACH,Approved,No,No
+PAY-00388,2026-03-08,March,Administration,University Supply Cooperative,SUP-03-ADM-01,Supplies,10580,ACH,Approved,No,No
+PAY-00389,2026-03-15,March,Administration,University Supply Cooperative,SUP-03-ADM-02,Supplies,7662,ACH,Approved,No,No
+PAY-00390,2026-03-08,March,Administration,Professional Services Network,SRV-03-ADM-01,Services,25392,ACH,Approved,No,No
+PAY-00391,2026-03-15,March,Administration,Professional Services Network,SRV-03-ADM-02,Services,18388,ACH,Approved,No,No
+PAY-00392,2026-04-08,April,Administration,Northstar Facilities Group,FAC-04-ADM-01,Facilities,51762,ACH,Approved,No,Yes
+PAY-00393,2026-04-15,April,Administration,Northstar Facilities Group,FAC-04-ADM-02,Facilities,37482,ACH,Approved,No,No
+PAY-00394,2026-04-08,April,Administration,Academic Equipment Partners,EQP-04-ADM-01,Equipment,8627,ACH,Approved,No,No
+PAY-00395,2026-04-15,April,Administration,Academic Equipment Partners,EQP-04-ADM-02,Equipment,6247,ACH,Approved,No,No
+PAY-00396,2026-04-08,April,Administration,Campus Technology Systems,TEC-04-ADM-01,Technology,17254,ACH,Approved,No,No
+PAY-00397,2026-04-15,April,Administration,Campus Technology Systems,TEC-04-ADM-02,Technology,12494,ACH,Approved,No,No
+PAY-00398,2026-04-08,April,Administration,University Supply Cooperative,SUP-04-ADM-01,Supplies,10783,ACH,Approved,No,No
+PAY-00399,2026-04-15,April,Administration,University Supply Cooperative,SUP-04-ADM-02,Supplies,7809,ACH,Approved,No,No
+PAY-00400,2026-04-08,April,Administration,Professional Services Network,SRV-04-ADM-01,Services,25881,ACH,Approved,No,No
+PAY-00401,2026-04-15,April,Administration,Professional Services Network,SRV-04-ADM-02,Services,18741,ACH,Approved,No,No
+PAY-00402,2026-05-08,May,Administration,Northstar Facilities Group,FAC-05-ADM-01,Facilities,52539,ACH,Approved,No,Yes
+PAY-00403,2026-05-15,May,Administration,Northstar Facilities Group,FAC-05-ADM-02,Facilities,38046,ACH,Approved,No,No
+PAY-00404,2026-05-08,May,Administration,Academic Equipment Partners,EQP-05-ADM-01,Equipment,8756,ACH,Approved,No,No
+PAY-00405,2026-05-15,May,Administration,Academic Equipment Partners,EQP-05-ADM-02,Equipment,6341,ACH,Approved,No,No
+PAY-00406,2026-05-08,May,Administration,Campus Technology Systems,TEC-05-ADM-01,Technology,17513,ACH,Approved,No,No
+PAY-00407,2026-05-15,May,Administration,Campus Technology Systems,TEC-05-ADM-02,Technology,12682,ACH,Approved,No,No
+PAY-00408,2026-05-08,May,Administration,University Supply Cooperative,SUP-05-ADM-01,Supplies,10946,ACH,Approved,No,No
+PAY-00409,2026-05-15,May,Administration,University Supply Cooperative,SUP-05-ADM-02,Supplies,7926,ACH,Approved,No,No
+PAY-00410,2026-05-08,May,Administration,Professional Services Network,SRV-05-ADM-01,Services,26269,ACH,Approved,No,No
+PAY-00411,2026-05-15,May,Administration,Professional Services Network,SRV-05-ADM-02,Services,19023,ACH,Approved,No,No
+PAY-00412,2026-06-08,June,Administration,Northstar Facilities Group,FAC-06-ADM-01,Facilities,96000,ACH,Approved,No,Yes
+PAY-00413,2026-06-08,June,Administration,Academic Equipment Partners,EQP-06-ADM-01,Equipment,8913,ACH,Approved,No,No
+PAY-00414,2026-06-15,June,Administration,Academic Equipment Partners,EQP-06-ADM-02,Equipment,6455,ACH,Approved,No,No
+PAY-00415,2026-06-08,June,Administration,Campus Technology Systems,TEC-06-ADM-01,Technology,17826,ACH,Approved,No,No
+PAY-00416,2026-06-15,June,Administration,Campus Technology Systems,TEC-06-ADM-02,Technology,12909,ACH,Approved,No,No
+PAY-00417,2026-06-08,June,Administration,University Supply Cooperative,SUP-06-ADM-01,Supplies,11142,ACH,Approved,No,No
+PAY-00418,2026-06-15,June,Administration,University Supply Cooperative,SUP-06-ADM-02,Supplies,8068,ACH,Approved,No,No
+PAY-00419,2026-06-08,June,Administration,Professional Services Network,SRV-06-ADM-01,Services,26740,ACH,Approved,No,No
+PAY-00420,2026-06-15,June,Administration,Professional Services Network,SRV-06-ADM-02,Services,19363,ACH,Approved,No,No
+PAY-00421,2026-07-08,July,Administration,Northstar Facilities Group,FAC-07-ADM-01,Facilities,50059,ACH,Approved,No,Yes
+PAY-00422,2026-07-15,July,Administration,Northstar Facilities Group,FAC-07-ADM-02,Facilities,36249,ACH,Approved,No,No
+PAY-00423,2026-07-08,July,Administration,Academic Equipment Partners,EQP-07-ADM-01,Equipment,8343,ACH,Approved,No,No
+PAY-00424,2026-07-15,July,Administration,Academic Equipment Partners,EQP-07-ADM-02,Equipment,6042,ACH,Approved,No,No
+PAY-00425,2026-07-08,July,Administration,Campus Technology Systems,TEC-07-ADM-01,Technology,16686,ACH,Approved,No,No
+PAY-00426,2026-07-15,July,Administration,Campus Technology Systems,TEC-07-ADM-02,Technology,12083,ACH,Approved,No,No
+PAY-00427,2026-07-08,July,Administration,University Supply Cooperative,SUP-07-ADM-01,Supplies,10429,ACH,Approved,No,No
+PAY-00428,2026-07-15,July,Administration,University Supply Cooperative,SUP-07-ADM-02,Supplies,7552,ACH,Approved,No,No
+PAY-00429,2026-07-08,July,Administration,Professional Services Network,SRV-07-ADM-01,Services,25029,ACH,Approved,No,No
+PAY-00430,2026-07-15,July,Administration,Professional Services Network,SRV-07-ADM-02,Services,18125,ACH,Approved,No,No
+PAY-00431,2026-08-08,August,Administration,Northstar Facilities Group,FAC-08-ADM-01,Facilities,50777,ACH,Approved,No,Yes
+PAY-00432,2026-08-15,August,Administration,Northstar Facilities Group,FAC-08-ADM-02,Facilities,36769,ACH,Approved,No,No
+PAY-00433,2026-08-08,August,Administration,Academic Equipment Partners,EQP-08-ADM-01,Equipment,8463,ACH,Approved,No,No
+PAY-00434,2026-08-15,August,Administration,Academic Equipment Partners,EQP-08-ADM-02,Equipment,6128,ACH,Approved,No,No
+PAY-00435,2026-08-08,August,Administration,Campus Technology Systems,TEC-08-ADM-01,Technology,16926,ACH,Approved,No,No
+PAY-00436,2026-08-15,August,Administration,Campus Technology Systems,TEC-08-ADM-02,Technology,12256,ACH,Approved,No,No
+PAY-00437,2026-08-08,August,Administration,University Supply Cooperative,SUP-08-ADM-01,Supplies,10579,ACH,Approved,No,No
+PAY-00438,2026-08-15,August,Administration,University Supply Cooperative,SUP-08-ADM-02,Supplies,7660,ACH,Approved,No,No
+PAY-00439,2026-08-08,August,Administration,Professional Services Network,SRV-08-ADM-01,Services,25388,ACH,Approved,No,No
+PAY-00440,2026-08-15,August,Administration,Professional Services Network,SRV-08-ADM-02,Services,18385,ACH,Approved,No,No
+PAY-00441,2026-09-08,September,Administration,Northstar Facilities Group,FAC-09-ADM-01,Facilities,53792,ACH,Approved,No,Yes
+PAY-00442,2026-09-15,September,Administration,Northstar Facilities Group,FAC-09-ADM-02,Facilities,38952,ACH,Approved,No,No
+PAY-00443,2026-09-08,September,Administration,Academic Equipment Partners,EQP-09-ADM-01,Equipment,8965,ACH,Approved,No,No
+PAY-00444,2026-09-15,September,Administration,Academic Equipment Partners,EQP-09-ADM-02,Equipment,6492,ACH,Approved,No,No
+PAY-00445,2026-09-08,September,Administration,Campus Technology Systems,TEC-09-ADM-01,Technology,17931,ACH,Approved,No,No
+PAY-00446,2026-09-15,September,Administration,Campus Technology Systems,TEC-09-ADM-02,Technology,12984,ACH,Approved,No,No
+PAY-00447,2026-09-08,September,Administration,University Supply Cooperative,SUP-09-ADM-01,Supplies,11207,ACH,Approved,No,No
+PAY-00448,2026-09-15,September,Administration,University Supply Cooperative,SUP-09-ADM-02,Supplies,8115,ACH,Approved,No,No
+PAY-00449,2026-09-08,September,Administration,Professional Services Network,SRV-09-ADM-01,Services,26896,ACH,Approved,No,No
+PAY-00450,2026-09-15,September,Administration,Professional Services Network,SRV-09-ADM-02,Services,19476,ACH,Approved,No,No
+PAY-00451,2026-10-08,October,Administration,Northstar Facilities Group,FAC-10-ADM-01,Facilities,54582,ACH,Approved,No,Yes
+PAY-00452,2026-10-15,October,Administration,Northstar Facilities Group,FAC-10-ADM-02,Facilities,39525,ACH,Approved,No,No
+PAY-00453,2026-10-08,October,Administration,Academic Equipment Partners,EQP-10-ADM-01,Equipment,9097,ACH,Approved,No,No
+PAY-00454,2026-10-15,October,Administration,Academic Equipment Partners,EQP-10-ADM-02,Equipment,6587,ACH,Approved,No,No
+PAY-00455,2026-10-08,October,Administration,Campus Technology Systems,TEC-10-ADM-01,Technology,18194,ACH,Approved,No,No
+PAY-00456,2026-10-15,October,Administration,Campus Technology Systems,TEC-10-ADM-02,Technology,13175,ACH,Approved,No,No
+PAY-00457,2026-10-08,October,Administration,University Supply Cooperative,SUP-10-ADM-01,Supplies,11371,ACH,Approved,No,No
+PAY-00458,2026-10-15,October,Administration,University Supply Cooperative,SUP-10-ADM-02,Supplies,8235,ACH,Approved,No,No
+PAY-00459,2026-10-08,October,Administration,Professional Services Network,SRV-10-ADM-01,Services,27291,ACH,Approved,No,No
+PAY-00460,2026-10-15,October,Administration,Professional Services Network,SRV-10-ADM-02,Services,19762,ACH,Approved,No,No
+PAY-00461,2026-11-08,November,Administration,Northstar Facilities Group,FAC-11-ADM-01,Facilities,53165,ACH,Approved,No,Yes
+PAY-00462,2026-11-15,November,Administration,Northstar Facilities Group,FAC-11-ADM-02,Facilities,38498,ACH,Approved,No,No
+PAY-00463,2026-11-08,November,Administration,Academic Equipment Partners,EQP-11-ADM-01,Equipment,8861,ACH,Approved,No,No
+PAY-00464,2026-11-15,November,Administration,Academic Equipment Partners,EQP-11-ADM-02,Equipment,6416,ACH,Approved,No,No
+PAY-00465,2026-11-08,November,Administration,Campus Technology Systems,TEC-11-ADM-01,Technology,17721,ACH,Approved,No,No
+PAY-00466,2026-11-15,November,Administration,Campus Technology Systems,TEC-11-ADM-02,Technology,12833,ACH,Approved,No,No
+PAY-00467,2026-11-08,November,Administration,University Supply Cooperative,SUP-11-ADM-01,Supplies,11076,ACH,Approved,No,No
+PAY-00468,2026-11-15,November,Administration,University Supply Cooperative,SUP-11-ADM-02,Supplies,8020,ACH,Approved,No,No
+PAY-00469,2026-11-08,November,Administration,Professional Services Network,SRV-11-ADM-01,Services,26582,ACH,Approved,No,No
+PAY-00470,2026-11-15,November,Administration,Professional Services Network,SRV-11-ADM-02,Services,19249,ACH,Approved,No,No
+PAY-00471,2026-12-08,December,Administration,Northstar Facilities Group,FAC-12-ADM-01,Facilities,52435,ACH,Approved,No,Yes
+PAY-00472,2026-12-15,December,Administration,Northstar Facilities Group,FAC-12-ADM-02,Facilities,37971,ACH,Approved,No,No
+PAY-00473,2026-12-08,December,Administration,Academic Equipment Partners,EQP-12-ADM-01,Equipment,8739,ACH,Approved,No,No
+PAY-00474,2026-12-15,December,Administration,Academic Equipment Partners,EQP-12-ADM-02,Equipment,6329,ACH,Approved,No,No
+PAY-00475,2026-12-08,December,Administration,Campus Technology Systems,TEC-12-ADM-01,Technology,17478,ACH,Approved,No,No
+PAY-00476,2026-12-15,December,Administration,Campus Technology Systems,TEC-12-ADM-02,Technology,12657,ACH,Approved,No,No
+PAY-00477,2026-12-08,December,Administration,University Supply Cooperative,SUP-12-ADM-01,Supplies,10924,ACH,Approved,No,No
+PAY-00478,2026-12-15,December,Administration,University Supply Cooperative,SUP-12-ADM-02,Supplies,7910,ACH,Approved,No,No
+PAY-00479,2026-12-08,December,Administration,Professional Services Network,SRV-12-ADM-01,Services,26218,ACH,Approved,No,No
+PAY-00480,2026-12-15,December,Administration,Professional Services Network,SRV-12-ADM-02,Services,18985,ACH,Approved,No,No

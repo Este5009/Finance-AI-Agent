@@ -6,8 +6,8 @@
     "start_date": "2026-01-01",
     "end_date": "2026-12-31"
   },
-  "source_workbook": "annual_financial_report_2026.xlsx",
-  "intermediate_model": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\financial_document_model.json",
+  "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\ui_uploads\\20260709_144224\\annual_financial_report_2026.xlsx",
+  "intermediate_model": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026\\financial_document_model.json",
   "finance_summary": {
     "total_revenue": 25171468.0,
     "total_expenses": 23658971.0,

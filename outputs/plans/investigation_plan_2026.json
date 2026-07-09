@@ -3,19 +3,13 @@
   "report_period": "2026",
   "period_slug": "2026",
   "source_files": [
-    "finance_summary_june_2026.json",
-    "finance_summary_2026.json",
-    "monthly_trends_2026.csv",
-    "anomaly_report_june_2026.json",
-    "anomaly_report_2026.json",
-    "risk_summary_2026.json",
-    "financial_document_model_enriched.json"
+    "annual_financial_report_2026.xlsx"
   ],
-  "total_tasks": 24,
+  "total_tasks": 22,
   "tasks_by_priority": {
     "critical": 8,
     "high": 10,
-    "medium": 6,
+    "medium": 4,
     "low": 0
   },
   "tasks": [
@@ -779,74 +773,6 @@
       "prioritization_factors": [
         "missing_or_uncertain_data",
         "final_table_type:Department_Summary"
-      ]
-    },
-    {
-      "task_id": "INV-2026-023",
-      "anomaly_id": "DATA-TABLE-annual_financial_report_2026__scholarships__table_01",
-      "priority": "medium",
-      "priority_score": 50,
-      "question_to_answer": "What is the correct structure and business meaning of table 'annual_financial_report_2026__scholarships__table_01'?",
-      "reason": "Enriched model requires human review; final type is Scholarships with confidence 0.99.",
-      "required_evidence": [
-        {
-          "request_id": "INV-2026-023-E01",
-          "tool_name": "get_full_report",
-          "parameters": {
-            "period": "2026"
-          },
-          "purpose": "Review the table in the context of its processed report."
-        },
-        {
-          "request_id": "INV-2026-023-E02",
-          "tool_name": "get_transactions",
-          "parameters": {
-            "table_id": "annual_financial_report_2026__scholarships__table_01",
-            "limit": 100
-          },
-          "purpose": "Inspect representative processed records before schema approval."
-        }
-      ],
-      "suggested_tool": "get_full_report",
-      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
-      "status": "planned",
-      "prioritization_factors": [
-        "missing_or_uncertain_data",
-        "final_table_type:Scholarships"
-      ]
-    },
-    {
-      "task_id": "INV-2026-024",
-      "anomaly_id": "DATA-TABLE-annual_financial_report_2026__vendor_payments__table_01",
-      "priority": "medium",
-      "priority_score": 50,
-      "question_to_answer": "What is the correct structure and business meaning of table 'annual_financial_report_2026__vendor_payments__table_01'?",
-      "reason": "Enriched model requires human review; final type is Vendor_Payments with confidence 0.99.",
-      "required_evidence": [
-        {
-          "request_id": "INV-2026-024-E01",
-          "tool_name": "get_full_report",
-          "parameters": {
-            "period": "2026"
-          },
-          "purpose": "Review the table in the context of its processed report."
-        },
-        {
-          "request_id": "INV-2026-024-E02",
-          "tool_name": "get_transactions",
-          "parameters": {
-            "table_id": "annual_financial_report_2026__vendor_payments__table_01",
-            "limit": 100
-          },
-          "purpose": "Inspect representative processed records before schema approval."
-        }
-      ],
-      "suggested_tool": "get_full_report",
-      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
-      "status": "planned",
-      "prioritization_factors": [
-        "missing_or_uncertain_data",
-        "final_table_type:Vendor_Payments"
       ]
     }
   ]

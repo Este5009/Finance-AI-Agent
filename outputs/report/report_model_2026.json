@@ -12,7 +12,7 @@
         "title": "Finance AI Agent Report",
         "report_period": "2026",
         "period_slug": "2026",
-        "source_workbook": "annual_financial_report_2026.xlsx",
+        "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\ui_uploads\\20260709_144224\\annual_financial_report_2026.xlsx",
         "renderer_note": "Renderer-agnostic report model; no layout applied."
       },
       "source_references": [
@@ -24,17 +24,20 @@
       "section_id": "executive_summary",
       "title": "Executive Summary",
       "content": {
-        "summary": "The payroll data for Q4 2026 shows consistent variance between actual payroll amounts and budgets across departments, with Health Sciences and Engineering exhibiting the highest variances. While variances remain within acceptable thresholds, the trend suggests potential budgeting inefficiencies that could impact annual financial goals.",
+        "summary": "The financial report for 2026 shows payroll variances exceeding budget across multiple departments, with the highest variance in October (STR4764) at $4,935. Student payment collections missed targets in June due to overdue payments, and unresolved data quality issues require human review. These issues impact annual financial goals and require immediate attention to prevent further budget deviations.",
         "key_findings": [
-          "Health Sciences department consistently shows higher payroll variances (November: $3,057; December: $2,018) compared to other departments.",
-          "Engineering department payroll variances decreased from October ($5,304) to December ($2,169), indicating improved budget adherence.",
-          "Administration department shows the smallest variances across all months, suggesting strong budget management.",
-          "Total payroll amounts are consistently above budget, with the largest gap in October for Engineering ($5,304)."
+          "Payroll variance in October (STR4764) exceeded budget by $4,935, the largest variance in the dataset.",
+          "Student payments for June 2026 show multiple overdue statuses, contributing to collection rate misses.",
+          "Data quality issues identified in Step 008 require human review due to unavailable historical memory database.",
+          "Payroll variances across departments (Engineering, Business, Health Sciences, Administration) consistently exceed budget by $1,500-$3,500 monthly.",
+          "Student payment collections in June 2026 had 2 overdue payments out of 12 total records, indicating collection process inefficiencies."
         ],
         "root_causes": [
-          "Potential underestimation of headcount FTE requirements in budget planning for Health Sciences and Engineering departments.",
-          "Inconsistent overtime allocation across departments, particularly in Health Sciences where overtime is 2.2% of payroll (vs. 1.8% in Engineering).",
-          "Possible lack of real-time budget monitoring tools leading to delayed adjustments in payroll planning."
+          "Unplanned overtime or benefit costs likely drove the October payroll variance (STR4764).",
+          "Delayed student payments due to insufficient collection follow-up processes caused June's collection rate miss.",
+          "Data quality issues stem from incomplete historical data integration, requiring manual review.",
+          "Consistent payroll variances suggest budgeting inaccuracies or unanticipated headcount changes.",
+          "Inconsistent payment processing timelines contributed to overdue student payments in June."
         ],
         "confidence": 0.75,
         "analysis_status": "accepted"
@@ -68,105 +71,105 @@
         "kpis": [
           {
             "metric": "total_revenue",
-            "value": "25171468.0",
+            "value": 25171468.0,
             "unit": "USD",
             "availability": "available",
             "source": "Revenue"
           },
           {
             "metric": "total_expenses",
-            "value": "23658971.0",
+            "value": 23658971.0,
             "unit": "USD",
             "availability": "available",
             "source": "Expenses"
           },
           {
             "metric": "net_operating_result",
-            "value": "1512497.0",
+            "value": 1512497.0,
             "unit": "USD",
             "availability": "available",
             "source": "Revenue - Expenses"
           },
           {
             "metric": "revenue_budget_variance",
-            "value": "-828532.0",
+            "value": -828532.0,
             "unit": "USD",
             "availability": "available",
             "source": "Budget_vs_Actual"
           },
           {
             "metric": "revenue_budget_variance_pct",
-            "value": "-0.03186661538461538",
+            "value": -0.0318666154,
             "unit": "ratio",
             "availability": "available",
             "source": "Budget_vs_Actual"
           },
           {
             "metric": "expense_budget_variance",
-            "value": "318971.0",
+            "value": 318971.0,
             "unit": "USD",
             "availability": "available",
             "source": "Budget_vs_Actual"
           },
           {
             "metric": "expense_budget_variance_pct",
-            "value": "0.013666281062553557",
+            "value": 0.0136662811,
             "unit": "ratio",
             "availability": "available",
             "source": "Budget_vs_Actual"
           },
           {
             "metric": "payroll_total",
-            "value": "10710112.0",
+            "value": 10710112.0,
             "unit": "USD",
             "availability": "available",
             "source": "Payroll"
           },
           {
             "metric": "payroll_percentage_of_revenue",
-            "value": "0.4254861893632902",
+            "value": 0.4254861894,
             "unit": "ratio",
             "availability": "available",
             "source": "Payroll / Revenue"
           },
           {
             "metric": "student_payment_collection_rate",
-            "value": "0.9750632260301682",
+            "value": 0.975063226,
             "unit": "ratio",
             "availability": "available",
             "source": "Student_Payments"
           },
           {
             "metric": "overdue_payment_percentage",
-            "value": "0.026041666666666668",
+            "value": 0.0260416667,
             "unit": "ratio",
             "availability": "available",
             "source": "Student_Payments"
           },
           {
             "metric": "vendor_payment_total",
-            "value": "12948859.0",
+            "value": 12948859.0,
             "unit": "USD",
             "availability": "available",
             "source": "Vendor_Payments"
           },
           {
             "metric": "scholarship_awarded_total",
-            "value": "2207799.0",
+            "value": 2207799.0,
             "unit": "USD",
             "availability": "available",
             "source": "Scholarships"
           },
           {
             "metric": "net_cash_flow",
-            "value": "-1899352.0",
+            "value": -1899352.0,
             "unit": "USD",
             "availability": "available",
             "source": "Cash_Flow"
           },
           {
             "metric": "ending_cash",
-            "value": "3950648.0",
+            "value": 3950648.0,
             "unit": "USD",
             "availability": "available",
             "source": "Cash_Flow"
@@ -545,99 +548,68 @@
         "retrieval_summary": {
           "package_id": "EVIDENCE-2026",
           "period_slug": "2026",
-          "tasks_executed": 24,
-          "successful_retrievals": 24,
+          "tasks_executed": 6,
+          "successful_retrievals": 6,
           "failed_retrievals": 0,
-          "unavailable_evidence": 0
+          "unavailable_evidence": 1
         },
         "evidence_items": [
           {
-            "task_id": "FALLBACK-001",
+            "task_id": "STEP-001",
             "priority": "critical",
-            "question": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-06?",
+            "question": "What revenue shortfalls and expense drivers caused the operating deficit in 2026-06?",
             "retrieval_name": "financial_report",
             "success": true,
             "record_count": null,
             "matched_tables": null,
-            "evidence_summary": "Retrieved processed June 2026 finance summary.",
+            "evidence_summary": "Retrieved processed 2026 finance summary.",
             "source_references": [
-              "outputs/calculations/finance_summary_june_2026.json"
+              "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026.json"
             ],
             "warnings": [],
             "unavailable_data": []
           },
           {
-            "task_id": "FALLBACK-002",
+            "task_id": "STEP-002",
             "priority": "critical",
-            "question": "Which operating, scholarship, or capital outflows caused cash-flow risk in 2026?",
+            "question": "What revenue shortfalls and expense drivers caused the operating deficit in 2026-07?",
             "retrieval_name": "financial_report",
             "success": true,
             "record_count": null,
             "matched_tables": null,
-            "evidence_summary": "Retrieved processed annual 2026 finance summary.",
+            "evidence_summary": "Retrieved processed 2026 finance summary.",
             "source_references": [
-              "outputs/calculations/finance_summary_2026.json"
+              "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026.json"
             ],
             "warnings": [],
             "unavailable_data": []
           },
           {
-            "task_id": "FALLBACK-003",
+            "task_id": "STEP-003",
             "priority": "critical",
-            "question": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-07?",
+            "question": "What revenue shortfalls and expense drivers caused the operating deficit in 2026-08?",
             "retrieval_name": "financial_report",
             "success": true,
-            "record_count": 93,
-            "matched_tables": [
-              "budget_vs_actual",
-              "cash_flow",
-              "expenses",
-              "payroll",
-              "revenue",
-              "student_payments"
-            ],
-            "evidence_summary": "Retrieved processed monthly trend and 93 normalized monthly evidence row(s) for 2026-07.",
+            "record_count": null,
+            "matched_tables": null,
+            "evidence_summary": "Retrieved processed 2026 finance summary.",
             "source_references": [
-              "outputs/calculations/monthly_trends_2026.csv",
-              "outputs/intermediate/normalized_tables/annual_financial_report_2026__*.csv"
+              "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026.json"
             ],
             "warnings": [],
             "unavailable_data": []
           },
           {
-            "task_id": "FALLBACK-004",
+            "task_id": "STEP-004",
             "priority": "critical",
-            "question": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-08?",
-            "retrieval_name": "financial_report",
-            "success": true,
-            "record_count": 93,
-            "matched_tables": [
-              "budget_vs_actual",
-              "cash_flow",
-              "expenses",
-              "payroll",
-              "revenue",
-              "student_payments"
-            ],
-            "evidence_summary": "Retrieved processed monthly trend and 93 normalized monthly evidence row(s) for 2026-08.",
-            "source_references": [
-              "outputs/calculations/monthly_trends_2026.csv",
-              "outputs/intermediate/normalized_tables/annual_financial_report_2026__*.csv"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-005",
-            "priority": "critical",
-            "question": "What payroll components and departments caused the payroll risk in 2026-06?",
+            "question": "What payroll components and departments caused the payroll risk in 2026-06? | What payroll components and departments caused the payroll risk in 2026-07? | What payroll components and departments caused the payroll risk in 2026-08?",
             "retrieval_name": "payroll_history",
             "success": true,
-            "record_count": 24,
+            "record_count": 12,
             "matched_tables": [
               "payroll"
             ],
-            "evidence_summary": "Retrieved 24 processed payroll history record(s).",
+            "evidence_summary": "Retrieved 12 processed payroll history record(s).",
             "source_references": [
               "normalized_tables/annual_financial_report_2026__payroll__table_01.csv"
             ],
@@ -645,41 +617,7 @@
             "unavailable_data": []
           },
           {
-            "task_id": "FALLBACK-006",
-            "priority": "critical",
-            "question": "What payroll components and departments caused the payroll risk in 2026-07?",
-            "retrieval_name": "payroll_history",
-            "success": true,
-            "record_count": 24,
-            "matched_tables": [
-              "payroll"
-            ],
-            "evidence_summary": "Retrieved 24 processed payroll history record(s).",
-            "source_references": [
-              "normalized_tables/annual_financial_report_2026__payroll__table_01.csv"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-007",
-            "priority": "critical",
-            "question": "What payroll components and departments caused the payroll risk in 2026-08?",
-            "retrieval_name": "payroll_history",
-            "success": true,
-            "record_count": 24,
-            "matched_tables": [
-              "payroll"
-            ],
-            "evidence_summary": "Retrieved 24 processed payroll history record(s).",
-            "source_references": [
-              "normalized_tables/annual_financial_report_2026__payroll__table_01.csv"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-008",
+            "task_id": "STEP-007",
             "priority": "critical",
             "question": "Why did the student collection rate miss its target in 2026-06?",
             "retrieval_name": "transactions",
@@ -696,200 +634,23 @@
             "unavailable_data": []
           },
           {
-            "task_id": "FALLBACK-009",
+            "task_id": "STEP-008",
             "priority": "high",
-            "question": "Does the flagged vendor payment in 2026 have valid invoice, approval, and duplicate evidence?",
-            "retrieval_name": "transactions",
-            "success": true,
-            "record_count": 48,
-            "matched_tables": [
-              "vendor_payments"
-            ],
-            "evidence_summary": "Retrieved 48 processed transaction record(s).",
-            "source_references": [
-              "normalized_tables/annual_financial_report_2026__transaction_tables"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-010",
-            "priority": "high",
-            "question": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-06?",
-            "retrieval_name": "financial_report",
+            "question": "What unresolved data quality issues require human review?",
+            "retrieval_name": "previous_cycle_memory",
             "success": true,
             "record_count": null,
             "matched_tables": null,
-            "evidence_summary": "Retrieved processed June 2026 finance summary.",
+            "evidence_summary": "Previous-cycle memory database is not implemented; returned current unresolved data-quality notes instead. Unavailable: previous_cycle_memory_database.",
             "source_references": [
-              "outputs/calculations/finance_summary_june_2026.json"
+              "outputs/intermediate/financial_document_model_enriched.json"
             ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-011",
-            "priority": "high",
-            "question": "What payroll components and departments caused the payroll risk in 2026?",
-            "retrieval_name": "payroll_history",
-            "success": true,
-            "record_count": 24,
-            "matched_tables": [
-              "payroll"
+            "warnings": [
+              "Historical memory database is not available in Step 8."
             ],
-            "evidence_summary": "Retrieved 24 processed payroll history record(s).",
-            "source_references": [
-              "normalized_tables/annual_financial_report_2026__payroll__table_01.csv"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-012",
-            "priority": "high",
-            "question": "What payroll components and departments caused the payroll risk in 2026-01?",
-            "retrieval_name": "payroll_history",
-            "success": true,
-            "record_count": 24,
-            "matched_tables": [
-              "payroll"
-            ],
-            "evidence_summary": "Retrieved 24 processed payroll history record(s).",
-            "source_references": [
-              "normalized_tables/annual_financial_report_2026__payroll__table_01.csv"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-013",
-            "priority": "high",
-            "question": "What payroll components and departments caused the payroll risk in 2026-05?",
-            "retrieval_name": "payroll_history",
-            "success": true,
-            "record_count": 24,
-            "matched_tables": [
-              "payroll"
-            ],
-            "evidence_summary": "Retrieved 24 processed payroll history record(s).",
-            "source_references": [
-              "normalized_tables/annual_financial_report_2026__payroll__table_01.csv"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-014",
-            "priority": "high",
-            "question": "Why did the student collection rate miss its target in 2026-03?",
-            "retrieval_name": "transactions",
-            "success": true,
-            "record_count": 48,
-            "matched_tables": [
-              "student_payments"
-            ],
-            "evidence_summary": "Retrieved 48 processed transaction record(s).",
-            "source_references": [
-              "normalized_tables/annual_financial_report_2026__transaction_tables"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-015",
-            "priority": "high",
-            "question": "Why did the student collection rate miss its target in 2026-09?",
-            "retrieval_name": "transactions",
-            "success": true,
-            "record_count": 48,
-            "matched_tables": [
-              "student_payments"
-            ],
-            "evidence_summary": "Retrieved 48 processed transaction record(s).",
-            "source_references": [
-              "normalized_tables/annual_financial_report_2026__transaction_tables"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-016",
-            "priority": "high",
-            "question": "What payroll components and departments caused the payroll risk in 2026-06?",
-            "retrieval_name": "payroll_history",
-            "success": true,
-            "record_count": 24,
-            "matched_tables": [
-              "payroll"
-            ],
-            "evidence_summary": "Retrieved 24 processed payroll history record(s).",
-            "source_references": [
-              "normalized_tables/annual_financial_report_2026__payroll__table_01.csv"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-017",
-            "priority": "high",
-            "question": "Why did the student collection rate miss its target in 2026-06?",
-            "retrieval_name": "transactions",
-            "success": true,
-            "record_count": 48,
-            "matched_tables": [
-              "student_payments"
-            ],
-            "evidence_summary": "Retrieved 48 processed transaction record(s).",
-            "source_references": [
-              "normalized_tables/annual_financial_report_2026__transaction_tables"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-018",
-            "priority": "high",
-            "question": "What is the correct structure and business meaning of table 'annual_financial_report_2026__anomalies_embedded__table_01'?",
-            "retrieval_name": "financial_report",
-            "success": true,
-            "record_count": null,
-            "matched_tables": null,
-            "evidence_summary": "Retrieved processed annual 2026 finance summary.",
-            "source_references": [
-              "outputs/calculations/finance_summary_2026.json"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-019",
-            "priority": "medium",
-            "question": "What caused the unusual expense increase in 2026-06?",
-            "retrieval_name": "financial_report",
-            "success": true,
-            "record_count": null,
-            "matched_tables": null,
-            "evidence_summary": "Retrieved processed June 2026 finance summary.",
-            "source_references": [
-              "outputs/calculations/finance_summary_june_2026.json"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-020",
-            "priority": "medium",
-            "question": "What evidence explains the detected risk 'Statistical outlier: Monthly expenses' in 2026-06?",
-            "retrieval_name": "financial_report",
-            "success": true,
-            "record_count": null,
-            "matched_tables": null,
-            "evidence_summary": "Retrieved processed June 2026 finance summary.",
-            "source_references": [
-              "outputs/calculations/finance_summary_june_2026.json"
-            ],
-            "warnings": [],
-            "unavailable_data": []
+            "unavailable_data": [
+              "previous_cycle_memory_database"
+            ]
           }
         ]
       },
@@ -904,32 +665,43 @@
       "content": {
         "recommendations": [
           {
-            "priority": "high",
-            "action": "Implement department-level budget variance tracking with monthly review cycles.",
-            "rationale": "Current data shows consistent variances that could accumulate to significant annual deviations if unaddressed.",
-            "supporting_evidence": "Health Sciences variance trend ($3,057 → $2,018) and Engineering's improvement ($5,304 → $2,169) demonstrate the value of monitoring.",
-            "expected_impact": "Reduce annual payroll variance by 25% through proactive adjustments.",
-            "confidence": 0.8
+            "priority": "critical",
+            "action": "Conduct immediate payroll variance analysis for October STR4764 to identify overtime/benefit drivers.",
+            "rationale": "The largest variance ($4,935) requires urgent investigation to prevent recurrence.",
+            "supporting_evidence": "Payroll variance STR4764: $4,935",
+            "expected_impact": "Reduce future payroll variances by addressing root causes.",
+            "confidence": 0.85
           },
           {
-            "priority": "medium",
-            "action": "Conduct headcount FTE validation for Health Sciences and Engineering departments.",
-            "rationale": "Higher variances correlate with department headcount FTEs, suggesting potential budgeting inaccuracies.",
-            "supporting_evidence": "Health Sciences headcount FTE (68) and Engineering headcount FTE (76) show higher variances than Administration (48).",
-            "expected_impact": "Align budgeted headcount with actual requirements, reducing variance by 15-20%.",
-            "confidence": 0.7
+            "priority": "high",
+            "action": "Implement automated payment follow-up system for overdue student payments.",
+            "rationale": "Overdue payments in June indicate process inefficiencies needing automation.",
+            "supporting_evidence": "June student payments: 2 overdue out of 12 records",
+            "expected_impact": "Improve student collection rate by 15-20% within 3 months.",
+            "confidence": 0.75
+          },
+          {
+            "priority": "high",
+            "action": "Review historical data integration process to resolve data quality issues.",
+            "rationale": "Unresolved data quality issues require human review due to unavailable historical memory database.",
+            "supporting_evidence": "Step 008: 'Historical memory database not available'",
+            "expected_impact": "Ensure data accuracy for future financial reporting.",
+            "confidence": 0.65
           }
         ],
         "root_causes": [
-          "Potential underestimation of headcount FTE requirements in budget planning for Health Sciences and Engineering departments.",
-          "Inconsistent overtime allocation across departments, particularly in Health Sciences where overtime is 2.2% of payroll (vs. 1.8% in Engineering).",
-          "Possible lack of real-time budget monitoring tools leading to delayed adjustments in payroll planning."
+          "Unplanned overtime or benefit costs likely drove the October payroll variance (STR4764).",
+          "Delayed student payments due to insufficient collection follow-up processes caused June's collection rate miss.",
+          "Data quality issues stem from incomplete historical data integration, requiring manual review.",
+          "Consistent payroll variances suggest budgeting inaccuracies or unanticipated headcount changes.",
+          "Inconsistent payment processing timelines contributed to overdue student payments in June."
         ],
         "strategic_priorities": [
-          "Maintain budget adherence for high-variance departments to meet annual financial targets.",
-          "Improve real-time payroll monitoring capabilities to prevent cumulative variances."
+          "Address payroll variances to maintain budget adherence.",
+          "Improve student payment collection processes to meet annual targets.",
+          "Resolve data quality issues to enhance reporting reliability."
         ],
-        "reasoning_summary": "The data shows consistent payroll variances across departments, with Health Sciences and Engineering requiring attention. The trend in Engineering's decreasing variance suggests that monitoring and adjustments can effectively reduce deviations. The recommendations focus on addressing the root causes identified in the data."
+        "reasoning_summary": "Payroll variances and student payment delays are supported by the evidence. The largest payroll variance (STR4764) and overdue student payments in June directly impact financial goals. Data quality issues require human review, but historical data is missing for deeper analysis. Confidence is moderate due to incomplete evidence on root causes."
       },
       "source_references": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026.json"
@@ -941,11 +713,15 @@
       "title": "Missing Information",
       "content": {
         "missing_information": [
-          "Historical variance trends beyond Q4 2026 to confirm if current pattern is consistent.",
-          "Department-specific overtime policies that might explain the 2.2% overtime rate in Health Sciences."
+          "Historical payroll data for comparison to identify recurring variance patterns.",
+          "Complete student payment history for June 2026 to assess collection rate trends."
         ],
-        "evidence_warnings": [],
-        "unavailable_evidence": []
+        "evidence_warnings": [
+          "Historical memory database is not available in Step 8."
+        ],
+        "unavailable_evidence": [
+          "previous_cycle_memory_database"
+        ]
       },
       "source_references": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026.json",
