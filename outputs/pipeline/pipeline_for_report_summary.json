@@ -1,0 +1,246 @@
+{
+  "success": true,
+  "stages": [
+    {
+      "stage_name": "ingestion",
+      "display_name": "Document ingestion",
+      "critical": true,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\inspection\\workbook_inspection_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\inspection\\goals_text_2026_06.txt"
+      ],
+      "warnings": [],
+      "error": null,
+      "runtime_seconds": 0.05617390014231205,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "document_understanding",
+      "display_name": "Document understanding",
+      "critical": true,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_06\\financial_document_model.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_06\\feature_summary.json"
+      ],
+      "warnings": [],
+      "error": null,
+      "runtime_seconds": 0.17495869984850287,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "ollama_structure_fallback",
+      "display_name": "Ollama structure fallback",
+      "critical": false,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_06\\financial_document_model_enriched.json"
+      ],
+      "warnings": [
+        "Ollama unavailable; deterministic structure was preserved."
+      ],
+      "error": null,
+      "runtime_seconds": 2.0560450998600572,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "finance_calculations",
+      "display_name": "Finance calculations",
+      "critical": true,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\kpi_summary_2026_06.csv",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\department_summary_2026_06.csv",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\category_summary_2026_06.csv"
+      ],
+      "warnings": [],
+      "error": null,
+      "runtime_seconds": 0.03382169990800321,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "anomaly_detection",
+      "display_name": "Anomaly detection",
+      "critical": true,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_06.csv",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\risk_summary_2026_06.json"
+      ],
+      "warnings": [],
+      "error": null,
+      "runtime_seconds": 0.01096560014411807,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "ollama_investigation_planner",
+      "display_name": "Ollama investigation planner",
+      "critical": true,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\investigation_plan_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\ollama_plan_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\execution_queue_2026_06.json"
+      ],
+      "warnings": [
+        "Ollama is unavailable."
+      ],
+      "error": null,
+      "runtime_seconds": 2.030465800082311,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "retrieval_layer",
+      "display_name": "Retrieval layer",
+      "critical": true,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\retrieval_summary_2026_06.json"
+      ],
+      "warnings": [],
+      "error": null,
+      "runtime_seconds": 0.015963600017130375,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "strategic_analysis",
+      "display_name": "Strategic analysis",
+      "critical": false,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
+      ],
+      "warnings": [
+        "Ollama is unavailable."
+      ],
+      "error": null,
+      "runtime_seconds": 2.01440680003725,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "report_generation",
+      "display_name": "Report model and renderers",
+      "critical": false,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\report_model_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\financial_report_2026_06.html",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\financial_report_2026_06.pdf"
+      ],
+      "warnings": [
+        "Strategic analysis was unavailable; report rendered as draft."
+      ],
+      "error": null,
+      "runtime_seconds": 0.03675820003263652,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    }
+  ],
+  "output_files": [
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\inspection\\workbook_inspection_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\inspection\\goals_text_2026_06.txt",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_06\\financial_document_model.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_06\\feature_summary.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_06\\financial_document_model_enriched.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\kpi_summary_2026_06.csv",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\department_summary_2026_06.csv",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\category_summary_2026_06.csv",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_06.csv",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\risk_summary_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\investigation_plan_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\ollama_plan_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\execution_queue_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\retrieval_summary_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\report_model_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\financial_report_2026_06.html",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\financial_report_2026_06.pdf"
+  ],
+  "warnings": [
+    "Ollama unavailable; deterministic structure was preserved.",
+    "Ollama is unavailable.",
+    "Ollama is unavailable.",
+    "Strategic analysis was unavailable; report rendered as draft."
+  ],
+  "runtime_summary": {
+    "total_runtime_seconds": 6.429841700010002,
+    "stages_requested": 9,
+    "stages_run": 9,
+    "stages_succeeded": 9,
+    "stages_failed": 0,
+    "stages_skipped": 0
+  },
+  "config": {
+    "project_root": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent",
+    "python_executable": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\.venv\\Scripts\\python.exe",
+    "data_directory": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic",
+    "output_directory": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs",
+    "monthly_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+    "annual_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
+    "goals_pdf": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\financial_goals_2026.pdf",
+    "ollama_endpoint": "http://localhost:9",
+    "ollama_model": "qwen3:30b-a3b",
+    "ollama_timeout_seconds": 1.0,
+    "stage_timeout_seconds": 180.0,
+    "input_model": {
+      "financial_report_path": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "goals_document_path": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\financial_goals_2026.pdf",
+      "detected_period": {
+        "period_type": "monthly",
+        "label": "2026-06",
+        "confidence": 0.83,
+        "evidence": [
+          "filename: month and year",
+          "workbook: month and year",
+          "goals: annual keyword and year",
+          "Conflicting lower-weight period candidate found."
+        ],
+        "year": 2026,
+        "month": 6,
+        "quarter": null,
+        "semester": null,
+        "start_date": null,
+        "end_date": null,
+        "requires_override": false
+      },
+      "period_type": "monthly",
+      "period_override": null,
+      "requires_period_override": false,
+      "effective_period_label": "2026-06",
+      "report_language": "es"
+    }
+  }
+}

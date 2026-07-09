@@ -37,6 +37,7 @@ class RetrievalContext:
     monthly_trends: tuple[dict[str, Any], ...]
     enriched_model: dict[str, Any]
     normalized_table_dir: Path
+    scope_prefix_by_period: dict[str, str] | None = None
 
     def normalized_records(self, table_type: str, period_slug: str) -> tuple[dict[str, Any], ...]:
         """Read normalized processed rows for one table type and reporting scope.
@@ -46,7 +47,11 @@ class RetrievalContext:
         Assumptions: CSV names retain workbook scope and table type.
         """
 
-        prefix = _scope_prefix(period_slug)
+        prefix = (
+            self.scope_prefix_by_period.get(period_slug)
+            if self.scope_prefix_by_period
+            else None
+        ) or _scope_prefix(period_slug)
         return _read_matching_normalized_csv(
             self.normalized_table_dir,
             prefix,
@@ -183,6 +188,9 @@ def _period_slug_from_arguments(arguments: dict[str, Any], default: str = "2026"
 
     filters = arguments.get("filters", {})
     filters = filters if isinstance(filters, dict) else {}
+    queue_period = arguments.get("_queue_period_slug")
+    if queue_period:
+        return str(queue_period)
     period = str(arguments.get("period") or filters.get("period") or default)
     if period in {"june_2026", "2026-06", "June 2026"}:
         return "june_2026"

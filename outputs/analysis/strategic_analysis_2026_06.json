@@ -1,0 +1,23 @@
+{
+  "analysis_id": "STRATEGIC-ANALYSIS-2026-06",
+  "period_slug": "2026_06",
+  "report_period": "2026-06",
+  "analysis_source": "ollama",
+  "ollama_available": false,
+  "validation_status": "unavailable",
+  "analysis_generated": false,
+  "validation_errors": [
+    "Ollama is unavailable."
+  ],
+  "recommendation_count": 0,
+  "analysis": {
+    "executive_summary": "",
+    "key_findings": [],
+    "root_causes": [],
+    "recommendations": [],
+    "strategic_priorities": [],
+    "missing_information": [],
+    "confidence": null,
+    "reasoning_summary": ""
+  }
+}

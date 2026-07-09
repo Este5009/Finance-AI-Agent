@@ -1,0 +1,560 @@
+{
+  "plan_id": "PLAN-2026-06",
+  "report_period": "2026-06",
+  "period_slug": "2026_06",
+  "source_files": [
+    "monthly_financial_report_june_2026.xlsx"
+  ],
+  "total_tasks": 16,
+  "tasks_by_priority": {
+    "critical": 3,
+    "high": 7,
+    "medium": 6,
+    "low": 0
+  },
+  "tasks": [
+    {
+      "task_id": "INV-2026-06-001",
+      "anomaly_id": "ANOM-2026-06-005",
+      "priority": "critical",
+      "priority_score": 125,
+      "question_to_answer": "Which operating, scholarship, or capital outflows caused cash-flow risk in 2026-06?",
+      "reason": "Net cash flow is $-685,996; ending cash is $4,739,362.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-001-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-06"
+          },
+          "purpose": "Compare revenue, expense, and cash-flow components for the period."
+        },
+        {
+          "request_id": "INV-2026-06-001-E02",
+          "tool_name": "get_previous_cycle_memory",
+          "parameters": {},
+          "purpose": "Check whether prior analysis already identified this issue and actions."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Cash-flow bridge showing the dominant negative drivers.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:critical",
+        "financial_impact:685996.00",
+        "goal_or_threshold_violation",
+        "operational_importance:10",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-002",
+      "anomaly_id": "ANOM-2026-06-004",
+      "priority": "critical",
+      "priority_score": 123,
+      "question_to_answer": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-06?",
+      "reason": "Net operating result is $-329,146 on $1,877,724 of revenue.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-002-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-06"
+          },
+          "purpose": "Compare revenue, expense, and cash-flow components for the period."
+        },
+        {
+          "request_id": "INV-2026-06-002-E02",
+          "tool_name": "get_previous_cycle_memory",
+          "parameters": {},
+          "purpose": "Check whether prior analysis already identified this issue and actions."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Operating-result bridge by major revenue and expense driver.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:critical",
+        "financial_impact:329146.00",
+        "goal_or_threshold_violation",
+        "operational_importance:10",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-003",
+      "anomaly_id": "ANOM-2026-06-006",
+      "priority": "critical",
+      "priority_score": 90,
+      "question_to_answer": "Does the flagged vendor payment in 2026-06 have valid invoice, approval, and duplicate evidence?",
+      "reason": "Maximum payment is $96,000 versus a $50,000 threshold.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-003-E01",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "type": "vendor_payment",
+            "period": "2026-06",
+            "minimum_amount": 50000.0
+          },
+          "purpose": "Locate flagged invoices, approvals, and possible duplicates."
+        },
+        {
+          "request_id": "INV-2026-06-003-E02",
+          "tool_name": "get_vendor_history",
+          "parameters": {
+            "vendor": "$flagged_transaction.vendor",
+            "months": 12
+          },
+          "purpose": "Review the selected vendor's payment pattern after identification."
+        }
+      ],
+      "suggested_tool": "get_transactions",
+      "expected_output": "Payment control review with invoice, approval, duplicate, and vendor-history evidence.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "financial_impact:96000.00",
+        "goal_or_threshold_violation",
+        "operational_importance:6",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-004",
+      "anomaly_id": "ANOM-2026-06-001",
+      "priority": "high",
+      "priority_score": 84,
+      "question_to_answer": "What payroll components and departments caused the payroll risk in 2026-06?",
+      "reason": "Calculated payroll/revenue is 53.10% versus a 42.00% maximum.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-004-E01",
+          "tool_name": "get_payroll_history",
+          "parameters": {
+            "department": "all",
+            "months": 6
+          },
+          "purpose": "Compare payroll, overtime, benefits, and headcount over time."
+        },
+        {
+          "request_id": "INV-2026-06-004-E02",
+          "tool_name": "get_previous_cycle_memory",
+          "parameters": {},
+          "purpose": "Check whether prior analysis already identified this issue and actions."
+        }
+      ],
+      "suggested_tool": "get_payroll_history",
+      "expected_output": "Payroll driver breakdown by department, overtime, benefits, and headcount.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "goal_or_threshold_violation",
+        "operational_importance:8",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-005",
+      "anomaly_id": "ANOM-2026-06-002",
+      "priority": "high",
+      "priority_score": 84,
+      "question_to_answer": "Why did the student collection rate miss its target in 2026-06?",
+      "reason": "Collection rate is 84.45% from $1,139,707 paid against $1,349,634 due.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-005-E01",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "type": "student_receivable",
+            "period": "2026-06",
+            "include_aging": true
+          },
+          "purpose": "Inspect overdue invoices, aging, and payment-plan status."
+        },
+        {
+          "request_id": "INV-2026-06-005-E02",
+          "tool_name": "get_previous_cycle_memory",
+          "parameters": {},
+          "purpose": "Check whether prior analysis already identified this issue and actions."
+        }
+      ],
+      "suggested_tool": "get_transactions",
+      "expected_output": "Receivables aging and collection shortfall breakdown.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "goal_or_threshold_violation",
+        "operational_importance:8",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-006",
+      "anomaly_id": "ANOM-2026-06-003",
+      "priority": "high",
+      "priority_score": 84,
+      "question_to_answer": "Which invoices and aging buckets caused overdue payments in 2026-06?",
+      "reason": "9 of 48 invoices are overdue (18.75%).",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-006-E01",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "type": "student_receivable",
+            "period": "2026-06",
+            "include_aging": true
+          },
+          "purpose": "Inspect overdue invoices, aging, and payment-plan status."
+        },
+        {
+          "request_id": "INV-2026-06-006-E02",
+          "tool_name": "get_previous_cycle_memory",
+          "parameters": {},
+          "purpose": "Check whether prior analysis already identified this issue and actions."
+        }
+      ],
+      "suggested_tool": "get_transactions",
+      "expected_output": "Overdue invoice list grouped by aging, department, and payment status.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "goal_or_threshold_violation",
+        "operational_importance:8",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-007",
+      "anomaly_id": "ANOM-2026-06-007",
+      "priority": "high",
+      "priority_score": 82,
+      "question_to_answer": "Which expense categories, payroll items, or vendors caused Engineering overspending exceeds flag threshold?",
+      "reason": "Engineering spent $734,196 against $622,200 budget (18.00% variance).",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-007-E01",
+          "tool_name": "get_department_history",
+          "parameters": {
+            "department": "Engineering",
+            "months": 6
+          },
+          "purpose": "Compare department budget and actual expense history."
+        },
+        {
+          "request_id": "INV-2026-06-007-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "department": "Engineering",
+            "period": "2026-06"
+          },
+          "purpose": "Identify expense categories, vendors, and transactions driving variance."
+        }
+      ],
+      "suggested_tool": "get_department_history",
+      "expected_output": "Department variance bridge with the largest contributing transactions.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "goal_or_threshold_violation",
+        "operational_importance:6",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-008",
+      "anomaly_id": "ANOM-2026-06-008",
+      "priority": "high",
+      "priority_score": 82,
+      "question_to_answer": "Which expense categories, payroll items, or vendors caused Health Sciences overspending exceeds flag threshold?",
+      "reason": "Health Sciences spent $658,959 against $566,100 budget (16.40% variance).",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-008-E01",
+          "tool_name": "get_department_history",
+          "parameters": {
+            "department": "Health Sciences",
+            "months": 6
+          },
+          "purpose": "Compare department budget and actual expense history."
+        },
+        {
+          "request_id": "INV-2026-06-008-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "department": "Health Sciences",
+            "period": "2026-06"
+          },
+          "purpose": "Identify expense categories, vendors, and transactions driving variance."
+        }
+      ],
+      "suggested_tool": "get_department_history",
+      "expected_output": "Department variance bridge with the largest contributing transactions.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "goal_or_threshold_violation",
+        "operational_importance:6",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-009",
+      "anomaly_id": "ANOM-2026-06-009",
+      "priority": "high",
+      "priority_score": 80,
+      "question_to_answer": "Which transactions caused Equipment category overspending?",
+      "reason": "Equipment actual $277,444 versus budget $227,358; variance 22.03%.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-009-E01",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "expense_category": "Equipment",
+            "period": "2026-06"
+          },
+          "purpose": "Identify transactions and vendors behind category overspending."
+        }
+      ],
+      "suggested_tool": "get_transactions",
+      "expected_output": "Category variance breakdown with top transactions and vendors.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "goal_or_threshold_violation",
+        "operational_importance:4",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-010",
+      "anomaly_id": "DATA-TABLE-monthly_financial_report_june_2026__anomalies_embedded__table_01",
+      "priority": "high",
+      "priority_score": 75,
+      "question_to_answer": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__anomalies_embedded__table_01'?",
+      "reason": "Enriched model requires human review; final type is Unknown with confidence 0.3.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-010-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-06"
+          },
+          "purpose": "Review the table in the context of its processed report."
+        },
+        {
+          "request_id": "INV-2026-06-010-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "table_id": "monthly_financial_report_june_2026__anomalies_embedded__table_01",
+            "limit": 100
+          },
+          "purpose": "Inspect representative processed records before schema approval."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "planned",
+      "prioritization_factors": [
+        "missing_or_uncertain_data",
+        "final_table_type:Unknown"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-011",
+      "anomaly_id": "ANOM-2026-06-011",
+      "priority": "medium",
+      "priority_score": 51,
+      "question_to_answer": "What payroll components and departments caused the payroll risk in 2026-06?",
+      "reason": "Payroll actual $997,102 versus budget $898,263; variance 11.00%.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-011-E01",
+          "tool_name": "get_payroll_history",
+          "parameters": {
+            "department": "all",
+            "months": 6
+          },
+          "purpose": "Compare payroll, overtime, benefits, and headcount over time."
+        },
+        {
+          "request_id": "INV-2026-06-011-E02",
+          "tool_name": "get_previous_cycle_memory",
+          "parameters": {},
+          "purpose": "Check whether prior analysis already identified this issue and actions."
+        }
+      ],
+      "suggested_tool": "get_payroll_history",
+      "expected_output": "Payroll driver breakdown by department, overtime, benefits, and headcount.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:medium",
+        "operational_importance:8",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-012",
+      "anomaly_id": "DATA-TABLE-monthly_financial_report_june_2026__cash_flow__table_01",
+      "priority": "medium",
+      "priority_score": 50,
+      "question_to_answer": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__cash_flow__table_01'?",
+      "reason": "Enriched model requires human review; final type is Cash_Flow with confidence 0.7833.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-012-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-06"
+          },
+          "purpose": "Review the table in the context of its processed report."
+        },
+        {
+          "request_id": "INV-2026-06-012-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "table_id": "monthly_financial_report_june_2026__cash_flow__table_01",
+            "limit": 100
+          },
+          "purpose": "Inspect representative processed records before schema approval."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "planned",
+      "prioritization_factors": [
+        "missing_or_uncertain_data",
+        "final_table_type:Cash_Flow"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-013",
+      "anomaly_id": "DATA-TABLE-monthly_financial_report_june_2026__department_summary__table_01",
+      "priority": "medium",
+      "priority_score": 50,
+      "question_to_answer": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__department_summary__table_01'?",
+      "reason": "Enriched model requires human review; final type is Department_Summary with confidence 0.87.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-013-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-06"
+          },
+          "purpose": "Review the table in the context of its processed report."
+        },
+        {
+          "request_id": "INV-2026-06-013-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "table_id": "monthly_financial_report_june_2026__department_summary__table_01",
+            "limit": 100
+          },
+          "purpose": "Inspect representative processed records before schema approval."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "planned",
+      "prioritization_factors": [
+        "missing_or_uncertain_data",
+        "final_table_type:Department_Summary"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-014",
+      "anomaly_id": "DATA-TABLE-monthly_financial_report_june_2026__scholarships__table_01",
+      "priority": "medium",
+      "priority_score": 50,
+      "question_to_answer": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__scholarships__table_01'?",
+      "reason": "Enriched model requires human review; final type is Scholarships with confidence 0.99.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-014-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-06"
+          },
+          "purpose": "Review the table in the context of its processed report."
+        },
+        {
+          "request_id": "INV-2026-06-014-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "table_id": "monthly_financial_report_june_2026__scholarships__table_01",
+            "limit": 100
+          },
+          "purpose": "Inspect representative processed records before schema approval."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "planned",
+      "prioritization_factors": [
+        "missing_or_uncertain_data",
+        "final_table_type:Scholarships"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-015",
+      "anomaly_id": "DATA-TABLE-monthly_financial_report_june_2026__vendor_payments__table_01",
+      "priority": "medium",
+      "priority_score": 50,
+      "question_to_answer": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__vendor_payments__table_01'?",
+      "reason": "Enriched model requires human review; final type is Vendor_Payments with confidence 0.99.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-015-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-06"
+          },
+          "purpose": "Review the table in the context of its processed report."
+        },
+        {
+          "request_id": "INV-2026-06-015-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "table_id": "monthly_financial_report_june_2026__vendor_payments__table_01",
+            "limit": 100
+          },
+          "purpose": "Inspect representative processed records before schema approval."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "planned",
+      "prioritization_factors": [
+        "missing_or_uncertain_data",
+        "final_table_type:Vendor_Payments"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-016",
+      "anomaly_id": "ANOM-2026-06-010",
+      "priority": "medium",
+      "priority_score": 47,
+      "question_to_answer": "Which transactions caused Facilities category outside budget target?",
+      "reason": "Facilities actual $407,772 versus budget $367,302; variance 11.02%.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-016-E01",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "expense_category": "unknown",
+            "period": "2026-06"
+          },
+          "purpose": "Identify transactions and vendors behind category overspending."
+        }
+      ],
+      "suggested_tool": "get_transactions",
+      "expected_output": "Category variance breakdown with top transactions and vendors.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:medium",
+        "operational_importance:4",
+        "listed_in_annual_top_risks"
+      ]
+    }
+  ]
+}

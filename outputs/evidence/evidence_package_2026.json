@@ -5779,7 +5779,7 @@
           }
         },
         "source_references": [
-          "normalized_tables/monthly_financial_report_june_2026__transaction_tables"
+          "normalized_tables/annual_financial_report_2026__transaction_tables"
         ],
         "warnings": [],
         "unavailable_data": [],
@@ -5787,7 +5787,7 @@
       },
       "evidence_summary": "Retrieved 48 processed transaction record(s).",
       "source_references": [
-        "normalized_tables/monthly_financial_report_june_2026__transaction_tables"
+        "normalized_tables/annual_financial_report_2026__transaction_tables"
       ],
       "retrieval_warnings": [],
       "confidence": 0.95
@@ -11704,7 +11704,7 @@
           }
         },
         "source_references": [
-          "normalized_tables/monthly_financial_report_june_2026__transaction_tables"
+          "normalized_tables/annual_financial_report_2026__transaction_tables"
         ],
         "warnings": [],
         "unavailable_data": [],
@@ -11712,7 +11712,7 @@
       },
       "evidence_summary": "Retrieved 48 processed transaction record(s).",
       "source_references": [
-        "normalized_tables/monthly_financial_report_june_2026__transaction_tables"
+        "normalized_tables/annual_financial_report_2026__transaction_tables"
       ],
       "retrieval_warnings": [],
       "confidence": 0.95

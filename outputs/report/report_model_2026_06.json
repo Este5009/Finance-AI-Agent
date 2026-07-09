@@ -1,0 +1,933 @@
+{
+  "report_id": "REPORT-MODEL-2026-06",
+  "period_slug": "2026_06",
+  "report_period": "2026-06",
+  "renderer_contract_version": "1.0",
+  "section_count": 12,
+  "sections": [
+    {
+      "section_id": "cover",
+      "title": "Cover",
+      "content": {
+        "title": "Finance AI Agent Report",
+        "report_period": "2026-06",
+        "period_slug": "2026_06",
+        "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+        "renderer_note": "Renderer-agnostic report model; no layout applied."
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "executive_summary",
+      "title": "Executive Summary",
+      "content": {
+        "summary": "Strategic analysis was unavailable; use processed metrics and anomalies.",
+        "key_findings": [],
+        "root_causes": [],
+        "confidence": null,
+        "analysis_status": "unavailable"
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
+      ],
+      "warnings": [
+        "Strategic analysis is not accepted; status=unavailable.",
+        "Ollama is unavailable."
+      ]
+    },
+    {
+      "section_id": "financial_health_overview",
+      "title": "Financial Health Overview",
+      "content": {
+        "total_revenue": 1877724.0,
+        "total_expenses": 2206870.0,
+        "net_operating_result": -329146.0,
+        "net_cash_flow": -685996.0,
+        "ending_cash": 4739362.0,
+        "payroll_percentage_of_revenue": 0.5310162728920758,
+        "collection_rate": 0.8444563489064443
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "kpi_overview",
+      "title": "KPI Overview",
+      "content": {
+        "kpis": [
+          {
+            "metric": "total_revenue",
+            "value": 1877724.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Revenue"
+          },
+          {
+            "metric": "total_expenses",
+            "value": 2206870.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Expenses"
+          },
+          {
+            "metric": "net_operating_result",
+            "value": -329146.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Revenue - Expenses"
+          },
+          {
+            "metric": "revenue_budget_variance",
+            "value": -150276.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Budget_vs_Actual"
+          },
+          {
+            "metric": "revenue_budget_variance_pct",
+            "value": -0.0741005917,
+            "unit": "ratio",
+            "availability": "available",
+            "source": "Budget_vs_Actual"
+          },
+          {
+            "metric": "expense_budget_variance",
+            "value": 222970.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Budget_vs_Actual"
+          },
+          {
+            "metric": "expense_budget_variance_pct",
+            "value": 0.1123897374,
+            "unit": "ratio",
+            "availability": "available",
+            "source": "Budget_vs_Actual"
+          },
+          {
+            "metric": "payroll_total",
+            "value": 997102.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Payroll"
+          },
+          {
+            "metric": "payroll_percentage_of_revenue",
+            "value": 0.5310162729,
+            "unit": "ratio",
+            "availability": "available",
+            "source": "Payroll / Revenue"
+          },
+          {
+            "metric": "student_payment_collection_rate",
+            "value": 0.8444563489,
+            "unit": "ratio",
+            "availability": "available",
+            "source": "Student_Payments"
+          },
+          {
+            "metric": "overdue_payment_percentage",
+            "value": 0.1875,
+            "unit": "ratio",
+            "availability": "available",
+            "source": "Student_Payments"
+          },
+          {
+            "metric": "vendor_payment_total",
+            "value": 1209768.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Vendor_Payments"
+          },
+          {
+            "metric": "scholarship_awarded_total",
+            "value": 188100.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Scholarships"
+          },
+          {
+            "metric": "net_cash_flow",
+            "value": -685996.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Cash_Flow"
+          },
+          {
+            "metric": "ending_cash",
+            "value": 4739362.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Cash_Flow"
+          }
+        ]
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\kpi_summary_2026_06.csv"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "revenue_analysis",
+      "title": "Revenue Analysis",
+      "content": {
+        "total_revenue": 1877724.0,
+        "revenue_budget": 2028000.0,
+        "revenue_variance": -150276.0,
+        "revenue_variance_pct": -0.07410059171597633,
+        "department_summary": [
+          {
+            "department": "Administration",
+            "budget_revenue": 156000,
+            "actual_revenue": 145860,
+            "revenue_variance": -10140,
+            "revenue_variance_pct": -0.065,
+            "budget_expenses": 377400,
+            "actual_expenses": 387987,
+            "expense_variance": 10587,
+            "expense_variance_pct": 0.0280524642,
+            "net_operating_result": -242127
+          },
+          {
+            "department": "Business",
+            "budget_revenue": 522600,
+            "actual_revenue": 481545,
+            "revenue_variance": -41055,
+            "revenue_variance_pct": -0.0785591274,
+            "budget_expenses": 418200,
+            "actual_expenses": 425728,
+            "expense_variance": 7528,
+            "expense_variance_pct": 0.0180009565,
+            "net_operating_result": 55817
+          },
+          {
+            "department": "Engineering",
+            "budget_revenue": 717600,
+            "actual_revenue": 665272,
+            "revenue_variance": -52328,
+            "revenue_variance_pct": -0.0729208473,
+            "budget_expenses": 622200,
+            "actual_expenses": 734196,
+            "expense_variance": 111996,
+            "expense_variance_pct": 0.18,
+            "net_operating_result": -68924
+          },
+          {
+            "department": "Health Sciences",
+            "budget_revenue": 631800,
+            "actual_revenue": 585047,
+            "revenue_variance": -46753,
+            "revenue_variance_pct": -0.0739996834,
+            "budget_expenses": 566100,
+            "actual_expenses": 658959,
+            "expense_variance": 92859,
+            "expense_variance_pct": 0.1640328564,
+            "net_operating_result": -73912
+          }
+        ]
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "expense_analysis",
+      "title": "Expense Analysis",
+      "content": {
+        "total_expenses": 2206870.0,
+        "expense_budget": 1983900.0,
+        "expense_variance": 222970.0,
+        "expense_variance_pct": 0.11238973738595695,
+        "payroll_total": 997102.0,
+        "category_summary": [
+          {
+            "category_type": "expense",
+            "category": "Equipment",
+            "budget_amount": 227358,
+            "actual_amount": 277444,
+            "variance": 50086,
+            "variance_pct": 0.220295745
+          },
+          {
+            "category_type": "expense",
+            "category": "Facilities",
+            "budget_amount": 367302,
+            "actual_amount": 407772,
+            "variance": 40470,
+            "variance_pct": 0.1101818122
+          },
+          {
+            "category_type": "expense",
+            "category": "Payroll",
+            "budget_amount": 898263,
+            "actual_amount": 997102,
+            "variance": 98839,
+            "variance_pct": 0.1100334757
+          },
+          {
+            "category_type": "expense",
+            "category": "Services",
+            "budget_amount": 156927,
+            "actual_amount": 167341,
+            "variance": 10414,
+            "variance_pct": 0.0663620664
+          },
+          {
+            "category_type": "expense",
+            "category": "Supplies",
+            "budget_amount": 165852,
+            "actual_amount": 175906,
+            "variance": 10054,
+            "variance_pct": 0.0606203121
+          },
+          {
+            "category_type": "expense",
+            "category": "Technology",
+            "budget_amount": 168198,
+            "actual_amount": 181305,
+            "variance": 13107,
+            "variance_pct": 0.0779260158
+          }
+        ]
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "department_analysis",
+      "title": "Department Analysis",
+      "content": {
+        "department_summary": [
+          {
+            "department": "Administration",
+            "budget_revenue": 156000,
+            "actual_revenue": 145860,
+            "revenue_variance": -10140,
+            "revenue_variance_pct": -0.065,
+            "budget_expenses": 377400,
+            "actual_expenses": 387987,
+            "expense_variance": 10587,
+            "expense_variance_pct": 0.0280524642,
+            "net_operating_result": -242127
+          },
+          {
+            "department": "Business",
+            "budget_revenue": 522600,
+            "actual_revenue": 481545,
+            "revenue_variance": -41055,
+            "revenue_variance_pct": -0.0785591274,
+            "budget_expenses": 418200,
+            "actual_expenses": 425728,
+            "expense_variance": 7528,
+            "expense_variance_pct": 0.0180009565,
+            "net_operating_result": 55817
+          },
+          {
+            "department": "Engineering",
+            "budget_revenue": 717600,
+            "actual_revenue": 665272,
+            "revenue_variance": -52328,
+            "revenue_variance_pct": -0.0729208473,
+            "budget_expenses": 622200,
+            "actual_expenses": 734196,
+            "expense_variance": 111996,
+            "expense_variance_pct": 0.18,
+            "net_operating_result": -68924
+          },
+          {
+            "department": "Health Sciences",
+            "budget_revenue": 631800,
+            "actual_revenue": 585047,
+            "revenue_variance": -46753,
+            "revenue_variance_pct": -0.0739996834,
+            "budget_expenses": 566100,
+            "actual_expenses": 658959,
+            "expense_variance": 92859,
+            "expense_variance_pct": 0.1640328564,
+            "net_operating_result": -73912
+          }
+        ],
+        "department_evidence": [
+          {
+            "task_id": "FALLBACK-007",
+            "priority": "high",
+            "question": "Which expense categories, payroll items, or vendors caused Engineering overspending exceeds flag threshold?",
+            "retrieval_name": "department_history",
+            "success": true,
+            "record_count": 20,
+            "matched_tables": [
+              "budget_vs_actual",
+              "department_summary",
+              "expenses",
+              "payroll",
+              "vendor_payments"
+            ],
+            "evidence_summary": "Retrieved 20 processed department history record(s).",
+            "source_references": [
+              "normalized_tables/monthly_financial_report_june_2026__department_sources"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-008",
+            "priority": "high",
+            "question": "Which expense categories, payroll items, or vendors caused Health Sciences overspending exceeds flag threshold?",
+            "retrieval_name": "department_history",
+            "success": true,
+            "record_count": 19,
+            "matched_tables": [
+              "budget_vs_actual",
+              "department_summary",
+              "expenses",
+              "payroll",
+              "vendor_payments"
+            ],
+            "evidence_summary": "Retrieved 19 processed department history record(s).",
+            "source_references": [
+              "normalized_tables/monthly_financial_report_june_2026__department_sources"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          }
+        ]
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_06.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "anomaly_summary",
+      "title": "Anomaly Summary",
+      "content": {
+        "total_anomalies": 11,
+        "anomalies_by_severity": {
+          "critical": 2,
+          "high": 7,
+          "medium": 2,
+          "low": 0
+        },
+        "top_anomalies": [
+          {
+            "anomaly_id": "ANOM-2026-06-004",
+            "title": "Negative or zero operating result",
+            "description": "Operating expenses meet or exceed operating revenue.",
+            "metric": "net_operating_result",
+            "observed_value": -329146.0,
+            "threshold_value": 0,
+            "severity": "critical",
+            "period": "2026-06",
+            "source_file": "finance_summary_2026_06.json",
+            "evidence": "Net operating result is $-329,146 on $1,877,724 of revenue.",
+            "recommended_next_check": "Review revenue shortfalls and expense drivers by department.",
+            "detection_method": "rule_based",
+            "rule_id": "OPERATING_RESULT_MIN"
+          },
+          {
+            "anomaly_id": "ANOM-2026-06-005",
+            "title": "Negative or low cash flow",
+            "description": "Net cash flow is at or below the configured minimum.",
+            "metric": "net_cash_flow",
+            "observed_value": -685996.0,
+            "threshold_value": 0.0,
+            "severity": "critical",
+            "period": "2026-06",
+            "source_file": "finance_summary_2026_06.json",
+            "evidence": "Net cash flow is $-685,996; ending cash is $4,739,362.",
+            "recommended_next_check": "Review operating, scholarship, and capital cash outflows.",
+            "detection_method": "rule_based",
+            "rule_id": "NET_CASH_FLOW_MIN"
+          },
+          {
+            "anomaly_id": "ANOM-2026-06-001",
+            "title": "Payroll exceeds revenue threshold",
+            "description": "Payroll cost is above the configured maximum share of revenue.",
+            "metric": "payroll_percentage_of_revenue",
+            "observed_value": 53.10162728920758,
+            "threshold_value": 42.0,
+            "severity": "high",
+            "period": "2026-06",
+            "source_file": "finance_summary_2026_06.json",
+            "evidence": "Calculated payroll/revenue is 53.10% versus a 42.00% maximum.",
+            "recommended_next_check": "Review payroll by department, overtime, benefits, and headcount.",
+            "detection_method": "rule_based",
+            "rule_id": "PAYROLL_RATIO_MAX"
+          },
+          {
+            "anomaly_id": "ANOM-2026-06-002",
+            "title": "Tuition collection below target",
+            "description": "Student payment collections are below the configured minimum.",
+            "metric": "student_payment_collection_rate",
+            "observed_value": 84.44563489064443,
+            "threshold_value": 94.0,
+            "severity": "high",
+            "period": "2026-06",
+            "source_file": "finance_summary_2026_06.json",
+            "evidence": "Collection rate is 84.45% from $1,139,707 paid against $1,349,634 due.",
+            "recommended_next_check": "Inspect overdue invoices, aging buckets, and payment plans.",
+            "detection_method": "rule_based",
+            "rule_id": "TUITION_COLLECTION_MIN"
+          },
+          {
+            "anomaly_id": "ANOM-2026-06-003",
+            "title": "Overdue student payments above limit",
+            "description": "The share of overdue student invoices exceeds policy.",
+            "metric": "overdue_payment_percentage",
+            "observed_value": 18.75,
+            "threshold_value": 6.0,
+            "severity": "high",
+            "period": "2026-06",
+            "source_file": "finance_summary_2026_06.json",
+            "evidence": "9 of 48 invoices are overdue (18.75%).",
+            "recommended_next_check": "Review student receivables by aging and department.",
+            "detection_method": "rule_based",
+            "rule_id": "OVERDUE_PAYMENT_MAX"
+          },
+          {
+            "anomaly_id": "ANOM-2026-06-006",
+            "title": "Vendor payment exceeds review threshold",
+            "description": "At least one vendor payment exceeds the configured review value.",
+            "metric": "maximum_vendor_payment",
+            "observed_value": 96000.0,
+            "threshold_value": 50000.0,
+            "severity": "high",
+            "period": "2026-06",
+            "source_file": "finance_summary_2026_06.json",
+            "evidence": "Maximum payment is $96,000 versus a $50,000 threshold.",
+            "recommended_next_check": "Inspect the underlying vendor invoice, approval, and duplicate checks.",
+            "detection_method": "rule_based",
+            "rule_id": "VENDOR_PAYMENT_REVIEW"
+          },
+          {
+            "anomaly_id": "ANOM-2026-06-007",
+            "title": "Engineering overspending exceeds flag threshold",
+            "description": "Department actual expenses materially exceed budget.",
+            "metric": "department_expense_variance_pct",
+            "observed_value": 18.0,
+            "threshold_value": 12.0,
+            "severity": "high",
+            "period": "2026-06",
+            "source_file": "department_summary_2026_06.csv",
+            "evidence": "Engineering spent $734,196 against $622,200 budget (18.00% variance).",
+            "recommended_next_check": "Inspect department expense categories, payroll, and vendors.",
+            "detection_method": "rule_based",
+            "rule_id": "DEPARTMENT_OVERSPEND_FLAG"
+          },
+          {
+            "anomaly_id": "ANOM-2026-06-008",
+            "title": "Health Sciences overspending exceeds flag threshold",
+            "description": "Department actual expenses materially exceed budget.",
+            "metric": "department_expense_variance_pct",
+            "observed_value": 16.403285638579757,
+            "threshold_value": 12.0,
+            "severity": "high",
+            "period": "2026-06",
+            "source_file": "department_summary_2026_06.csv",
+            "evidence": "Health Sciences spent $658,959 against $566,100 budget (16.40% variance).",
+            "recommended_next_check": "Inspect department expense categories, payroll, and vendors.",
+            "detection_method": "rule_based",
+            "rule_id": "DEPARTMENT_OVERSPEND_FLAG"
+          },
+          {
+            "anomaly_id": "ANOM-2026-06-009",
+            "title": "Equipment category overspending",
+            "description": "Expense category actual value exceeds its budget range.",
+            "metric": "category_expense_variance_pct",
+            "observed_value": 22.02957450364623,
+            "threshold_value": 12.0,
+            "severity": "high",
+            "period": "2026-06",
+            "source_file": "category_summary_2026_06.csv",
+            "evidence": "Equipment actual $277,444 versus budget $227,358; variance 22.03%.",
+            "recommended_next_check": "Review the category by department and underlying transactions.",
+            "detection_method": "rule_based",
+            "rule_id": "CATEGORY_OVERSPEND_FLAG"
+          },
+          {
+            "anomaly_id": "ANOM-2026-06-010",
+            "title": "Facilities category outside budget target",
+            "description": "Expense category actual value exceeds its budget range.",
+            "metric": "category_expense_variance_pct",
+            "observed_value": 11.018181224169757,
+            "threshold_value": 8.0,
+            "severity": "medium",
+            "period": "2026-06",
+            "source_file": "category_summary_2026_06.csv",
+            "evidence": "Facilities actual $407,772 versus budget $367,302; variance 11.02%.",
+            "recommended_next_check": "Review the category by department and underlying transactions.",
+            "detection_method": "rule_based",
+            "rule_id": "CATEGORY_BUDGET_RANGE"
+          }
+        ]
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_06.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "investigation_evidence",
+      "title": "Investigation Evidence",
+      "content": {
+        "retrieval_summary": {
+          "package_id": "EVIDENCE-2026-06",
+          "period_slug": "2026_06",
+          "tasks_executed": 16,
+          "successful_retrievals": 16,
+          "failed_retrievals": 0,
+          "unavailable_evidence": 0
+        },
+        "evidence_items": [
+          {
+            "task_id": "FALLBACK-001",
+            "priority": "critical",
+            "question": "Which operating, scholarship, or capital outflows caused cash-flow risk in 2026-06?",
+            "retrieval_name": "financial_report",
+            "success": true,
+            "record_count": null,
+            "matched_tables": null,
+            "evidence_summary": "Retrieved processed June 2026 finance summary.",
+            "source_references": [
+              "outputs/calculations/finance_summary_june_2026.json"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-002",
+            "priority": "critical",
+            "question": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-06?",
+            "retrieval_name": "financial_report",
+            "success": true,
+            "record_count": null,
+            "matched_tables": null,
+            "evidence_summary": "Retrieved processed June 2026 finance summary.",
+            "source_references": [
+              "outputs/calculations/finance_summary_june_2026.json"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-003",
+            "priority": "critical",
+            "question": "Does the flagged vendor payment in 2026-06 have valid invoice, approval, and duplicate evidence?",
+            "retrieval_name": "transactions",
+            "success": true,
+            "record_count": 6,
+            "matched_tables": [
+              "vendor_payments"
+            ],
+            "evidence_summary": "Retrieved 6 processed transaction record(s).",
+            "source_references": [
+              "normalized_tables/monthly_financial_report_june_2026__transaction_tables"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-004",
+            "priority": "high",
+            "question": "What payroll components and departments caused the payroll risk in 2026-06?",
+            "retrieval_name": "payroll_history",
+            "success": true,
+            "record_count": 4,
+            "matched_tables": [
+              "payroll"
+            ],
+            "evidence_summary": "Retrieved 4 processed payroll history record(s).",
+            "source_references": [
+              "normalized_tables/monthly_financial_report_june_2026__payroll__table_01.csv"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-005",
+            "priority": "high",
+            "question": "Why did the student collection rate miss its target in 2026-06?",
+            "retrieval_name": "transactions",
+            "success": true,
+            "record_count": 48,
+            "matched_tables": [
+              "student_payments"
+            ],
+            "evidence_summary": "Retrieved 48 processed transaction record(s).",
+            "source_references": [
+              "normalized_tables/monthly_financial_report_june_2026__transaction_tables"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-006",
+            "priority": "high",
+            "question": "Which invoices and aging buckets caused overdue payments in 2026-06?",
+            "retrieval_name": "transactions",
+            "success": true,
+            "record_count": 48,
+            "matched_tables": [
+              "student_payments"
+            ],
+            "evidence_summary": "Retrieved 48 processed transaction record(s).",
+            "source_references": [
+              "normalized_tables/monthly_financial_report_june_2026__transaction_tables"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-007",
+            "priority": "high",
+            "question": "Which expense categories, payroll items, or vendors caused Engineering overspending exceeds flag threshold?",
+            "retrieval_name": "department_history",
+            "success": true,
+            "record_count": 20,
+            "matched_tables": [
+              "budget_vs_actual",
+              "department_summary",
+              "expenses",
+              "payroll",
+              "vendor_payments"
+            ],
+            "evidence_summary": "Retrieved 20 processed department history record(s).",
+            "source_references": [
+              "normalized_tables/monthly_financial_report_june_2026__department_sources"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-008",
+            "priority": "high",
+            "question": "Which expense categories, payroll items, or vendors caused Health Sciences overspending exceeds flag threshold?",
+            "retrieval_name": "department_history",
+            "success": true,
+            "record_count": 19,
+            "matched_tables": [
+              "budget_vs_actual",
+              "department_summary",
+              "expenses",
+              "payroll",
+              "vendor_payments"
+            ],
+            "evidence_summary": "Retrieved 19 processed department history record(s).",
+            "source_references": [
+              "normalized_tables/monthly_financial_report_june_2026__department_sources"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-009",
+            "priority": "high",
+            "question": "Which transactions caused Equipment category overspending?",
+            "retrieval_name": "transactions",
+            "success": true,
+            "record_count": 13,
+            "matched_tables": [
+              "expenses",
+              "vendor_payments"
+            ],
+            "evidence_summary": "Retrieved 13 processed transaction record(s).",
+            "source_references": [
+              "normalized_tables/monthly_financial_report_june_2026__transaction_tables"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-010",
+            "priority": "high",
+            "question": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__anomalies_embedded__table_01'?",
+            "retrieval_name": "financial_report",
+            "success": true,
+            "record_count": null,
+            "matched_tables": null,
+            "evidence_summary": "Retrieved processed June 2026 finance summary.",
+            "source_references": [
+              "outputs/calculations/finance_summary_june_2026.json"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-011",
+            "priority": "medium",
+            "question": "What payroll components and departments caused the payroll risk in 2026-06?",
+            "retrieval_name": "payroll_history",
+            "success": true,
+            "record_count": 4,
+            "matched_tables": [
+              "payroll"
+            ],
+            "evidence_summary": "Retrieved 4 processed payroll history record(s).",
+            "source_references": [
+              "normalized_tables/monthly_financial_report_june_2026__payroll__table_01.csv"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-012",
+            "priority": "medium",
+            "question": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__cash_flow__table_01'?",
+            "retrieval_name": "financial_report",
+            "success": true,
+            "record_count": null,
+            "matched_tables": null,
+            "evidence_summary": "Retrieved processed June 2026 finance summary.",
+            "source_references": [
+              "outputs/calculations/finance_summary_june_2026.json"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-013",
+            "priority": "medium",
+            "question": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__department_summary__table_01'?",
+            "retrieval_name": "financial_report",
+            "success": true,
+            "record_count": null,
+            "matched_tables": null,
+            "evidence_summary": "Retrieved processed June 2026 finance summary.",
+            "source_references": [
+              "outputs/calculations/finance_summary_june_2026.json"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-014",
+            "priority": "medium",
+            "question": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__scholarships__table_01'?",
+            "retrieval_name": "financial_report",
+            "success": true,
+            "record_count": null,
+            "matched_tables": null,
+            "evidence_summary": "Retrieved processed June 2026 finance summary.",
+            "source_references": [
+              "outputs/calculations/finance_summary_june_2026.json"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-015",
+            "priority": "medium",
+            "question": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__vendor_payments__table_01'?",
+            "retrieval_name": "financial_report",
+            "success": true,
+            "record_count": null,
+            "matched_tables": null,
+            "evidence_summary": "Retrieved processed June 2026 finance summary.",
+            "source_references": [
+              "outputs/calculations/finance_summary_june_2026.json"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          },
+          {
+            "task_id": "FALLBACK-016",
+            "priority": "medium",
+            "question": "Which transactions caused Facilities category outside budget target?",
+            "retrieval_name": "transactions",
+            "success": true,
+            "record_count": 64,
+            "matched_tables": [
+              "expenses",
+              "vendor_payments"
+            ],
+            "evidence_summary": "Retrieved 64 processed transaction record(s).",
+            "source_references": [
+              "normalized_tables/monthly_financial_report_june_2026__transaction_tables"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          }
+        ]
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_06.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "strategic_recommendations",
+      "title": "Strategic Recommendations",
+      "content": {
+        "recommendations": [],
+        "root_causes": [],
+        "strategic_priorities": [],
+        "reasoning_summary": ""
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
+      ],
+      "warnings": [
+        "Strategic analysis is not accepted; status=unavailable.",
+        "Ollama is unavailable."
+      ]
+    },
+    {
+      "section_id": "missing_information",
+      "title": "Missing Information",
+      "content": {
+        "missing_information": [],
+        "evidence_warnings": [],
+        "unavailable_evidence": []
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
+      ],
+      "warnings": [
+        "Strategic analysis is not accepted; status=unavailable.",
+        "Ollama is unavailable."
+      ]
+    },
+    {
+      "section_id": "appendix",
+      "title": "Appendix",
+      "content": {
+        "source_files": [
+          "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json",
+          "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\kpi_summary_2026_06.csv",
+          "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_06.json",
+          "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_06.json",
+          "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
+        ],
+        "calculation_warnings": [],
+        "analysis_validation_errors": [
+          "Ollama is unavailable."
+        ]
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\kpi_summary_2026_06.csv",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
+      ],
+      "warnings": []
+    }
+  ],
+  "source_references": [
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\kpi_summary_2026_06.csv",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_06.json"
+  ]
+}

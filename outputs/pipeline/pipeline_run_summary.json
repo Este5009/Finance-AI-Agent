@@ -14,7 +14,7 @@
       ],
       "warnings": [],
       "error": null,
-      "runtime_seconds": 0.7334674999583513,
+      "runtime_seconds": 0.7734984999988228,
       "return_code": 0,
       "stdout_tail": "Payroll_Budget, Variance, Variance_Pct\n  - Student_Payments: 576 rows x 11 columns\n    Columns: Invoice_ID, Student_ID, Department, Billing_Period, Due_Date, Payment_Date, Amount_Due, Amount_Paid, Outstanding, Status, Days_Overdue\n  - Cash_Flow: 12 rows x 16 columns\n    Columns: Period, Month, Beginning_Cash, Budget_Cash_Inflows, Actual_Cash_Inflows, Budget_Operating_Outflows, Actual_Operating_Outflows, Budget_Scholarships, Actual_Scholarships, Budget_Capital_Outflows, Actual_Capital_Outflows, Budget_Net_Cash_Flow, Actual_Net_Cash_Flow, Budget_Ending_Cash, Actual_Ending_Cash, Ending_Cash_Variance\n  - Scholarships: 108 rows x 9 columns\n    Columns: Period, Month, Department, Scholarship_Type, Allocated, Awarded, Remaining, Recipients, Utilization_Pct\n  - Vendor_Payments: 480 rows x 12 columns\n    Columns: Payment_ID, Payment_Date, Month, Department, Vendor, Invoice_Number, Expense_Category, Amount, Payment_Method, Approval_Status, Potential_Duplicate, High_Value_Flag\n  - Anomalies_Embedded: 7 rows x 9 columns\n    Columns: Anomaly_ID, Detected_Period, Department, Anomaly_Type, Severity, Description, Observed_Value, Threshold, Source_Sheet\n\nGoals PDF\n  Path: C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\financial_goals_2026.pdf\n  Pages: 3\n  Extracted characters: 5,317\n\nInspection outputs saved:\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\inspection\\monthly_workbook_inspection.json\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\inspection\\annual_workbook_inspection.json\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\inspection\\goals_text_2026.txt\n",
       "stderr_tail": "incorrect startxref pointer(1)\nparsing for Object Streams\n"
@@ -31,7 +31,7 @@
       ],
       "warnings": [],
       "error": null,
-      "runtime_seconds": 1.0258406000211835,
+      "runtime_seconds": 1.07077130000107,
       "return_code": 0,
       "stdout_tail": "cial_report_june_2026__anomalies_embedded__table_01: Unknown (confidence=0.30, review, rows=7)\n  - annual_financial_report_2026__executive_summary__table_01: Executive_Summary (confidence=0.99, automatic, rows=9)\n  - annual_financial_report_2026__revenue__table_01: Revenue (confidence=0.99, automatic, rows=144)\n  - annual_financial_report_2026__expenses__table_01: Expenses (confidence=0.84, automatic, rows=288)\n  - annual_financial_report_2026__budget_vs_actual__table_01: Budget_vs_Actual (confidence=0.84, automatic, rows=48)\n  - annual_financial_report_2026__department_summary__table_01: Department_Summary (confidence=0.87, automatic, rows=4)\n  - annual_financial_report_2026__payroll__table_01: Payroll (confidence=0.99, automatic, rows=48)\n  - annual_financial_report_2026__student_payments__table_01: Student_Payments (confidence=0.99, automatic, rows=576)\n  - annual_financial_report_2026__cash_flow__table_01: Cash_Flow (confidence=0.78, automatic, rows=12)\n  - annual_financial_report_2026__scholarships__table_01: Scholarships (confidence=0.99, automatic, rows=108)\n  - annual_financial_report_2026__vendor_payments__table_01: Vendor_Payments (confidence=0.99, automatic, rows=480)\n  - annual_financial_report_2026__anomalies_embedded__table_01: Unknown (confidence=0.30, review, rows=7)\n\nIntermediate outputs saved:\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\financial_document_model.json\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\feature_summary.json\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\normalized_tables\n",
       "stderr_tail": ""
@@ -49,7 +49,7 @@
       ],
       "warnings": [],
       "error": null,
-      "runtime_seconds": 0.6639503000769764,
+      "runtime_seconds": 0.7101953998208046,
       "return_code": 0,
       "stdout_tail": "Finance AI Agent - Step 3 Deterministic Finance Calculations\n\nReporting period: June 2026\nSource scope: monthly_financial_report_june_2026.xlsx\nTotal revenue: $1,877,724\nTotal expenses: $2,206,870\nNet operating result: $-329,146\nPayroll as % of revenue: 53.1%\nStudent collection rate: 84.4%\nCalculation warnings: 0\nCalculation outputs saved:\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_june_2026.json\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\kpi_summary_june_2026.csv\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\department_summary_june_2026.csv\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\category_summary_june_2026.csv\n\nReporting period: 2026\nSource scope: annual_financial_report_2026.xlsx\nTotal revenue: $25,171,468\nTotal expenses: $23,658,971\nNet operating result: $1,512,497\nPayroll as % of revenue: 42.5%\nStudent collection rate: 97.5%\nCalculation warnings: 0\nCalculation outputs saved:\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026.json\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\kpi_summary_2026.csv\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\department_summary_2026.csv\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\category_summary_2026.csv\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\monthly_trends_2026.csv\n",
       "stderr_tail": ""
@@ -67,7 +67,7 @@
       ],
       "warnings": [],
       "error": null,
-      "runtime_seconds": 0.5709567000158131,
+      "runtime_seconds": 0.6239285001065582,
       "return_code": 0,
       "stdout_tail": "Finance AI Agent - Step 4 Deterministic Anomaly Detection\n\nReporting period: June 2026\nTotal anomalies: 11\n  Critical: 2\n  High: 7\n  Medium: 2\n  Low: 0\n\nReporting period: 2026\nTotal anomalies: 19\n  Critical: 1\n  High: 8\n  Medium: 10\n  Low: 0\n\nAnomaly outputs saved:\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_june_2026.json\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_june_2026.csv\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026.json\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026.csv\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\risk_summary_2026.json\n",
       "stderr_tail": ""
@@ -85,7 +85,7 @@
         "Ollama unavailable; stage used its fail-safe behavior."
       ],
       "error": null,
-      "runtime_seconds": 2.602722999989055,
+      "runtime_seconds": 2.663024599896744,
       "return_code": 0,
       "stdout_tail": "Finance AI Agent - Step 5 Ollama Structure Fallback\nOllama available: no\nItems reviewed: 0\nUncertain columns detected: 26\nSuggestions accepted: 0\nSuggestions rejected: 0\nItems requiring human review: 10\nEnriched model saved: C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\financial_document_model_enriched.json\n",
       "stderr_tail": ""
@@ -106,7 +106,7 @@
         "Ollama unavailable; stage used its fail-safe behavior."
       ],
       "error": null,
-      "runtime_seconds": 4.624313800013624,
+      "runtime_seconds": 4.702810100046918,
       "return_code": 0,
       "stdout_tail": "Finance AI Agent - Step 7 Ollama Investigation Planner\nAccepted Ollama plans: 0\nRejected/unavailable Ollama plans: 2\n\nJune 2026\n  Ollama available: no\n  Validation status: unavailable\n  Plan accepted: no\n  Deterministic fallback used: yes\n  Investigation steps: 16\n  Safely deduplicated calls: 0\n  Repaired text fields: 0\n  Validation error: Ollama is unavailable.\n\nAnnual 2026\n  Ollama available: no\n  Validation status: unavailable\n  Plan accepted: no\n  Deterministic fallback used: yes\n  Investigation steps: 24\n  Safely deduplicated calls: 0\n  Repaired text fields: 0\n  Validation error: Ollama is unavailable.\n\nOutputs saved:\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\ollama_plan_june_2026.json\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\ollama_plan_2026.json\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\execution_queue_june_2026.json\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\execution_queue_2026.json\n",
       "stderr_tail": ""
@@ -124,7 +124,7 @@
       ],
       "warnings": [],
       "error": null,
-      "runtime_seconds": 0.599217800074257,
+      "runtime_seconds": 0.6613675002008677,
       "return_code": 0,
       "stdout_tail": "Finance AI Agent - Step 8 Retrieval Layer\nTasks executed: 40\nSuccessful retrievals: 40\nFailed retrievals: 0\nUnavailable evidence: 0\n\nJune 2026\n  Tasks executed: 16\n  Successful retrievals: 16\n  Failed retrievals: 0\n  Unavailable evidence: 0\n\nAnnual 2026\n  Tasks executed: 24\n  Successful retrievals: 24\n  Failed retrievals: 0\n  Unavailable evidence: 0\n\nOutputs saved:\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_june_2026.json\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026.json\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\retrieval_summary_2026.json\n",
       "stderr_tail": ""
@@ -144,7 +144,7 @@
         "Ollama unavailable; stage used its fail-safe behavior."
       ],
       "error": null,
-      "runtime_seconds": 4.631372899981216,
+      "runtime_seconds": 4.697320099920034,
       "return_code": 0,
       "stdout_tail": "Finance AI Agent - Step 9 Ollama Strategic Analysis\nOllama availability: no\nAnalyses generated: 0\nAnalyses rejected/unavailable: 2\n\nJune 2026\n  Ollama available: no\n  Validation status: unavailable\n  Analysis generated: no\n  Confidence score: None\n  Recommendations generated: 0\n  Validation error: Ollama is unavailable.\n\nAnnual 2026\n  Ollama available: no\n  Validation status: unavailable\n  Analysis generated: no\n  Confidence score: None\n  Recommendations generated: 0\n  Validation error: Ollama is unavailable.\n\nOutputs saved:\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_june_2026.json\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026.json\n  - C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\analysis_summary_2026.json\n",
       "stderr_tail": ""
@@ -180,7 +180,7 @@
     "Ollama unavailable; stage used its fail-safe behavior."
   ],
   "runtime_summary": {
-    "total_runtime_seconds": 15.452878099982627,
+    "total_runtime_seconds": 15.903920599957928,
     "stages_requested": 8,
     "stages_run": 8,
     "stages_succeeded": 8,
@@ -198,6 +198,7 @@
     "ollama_endpoint": "http://localhost:9",
     "ollama_model": "qwen3:30b-a3b",
     "ollama_timeout_seconds": 1.0,
-    "stage_timeout_seconds": 120.0
+    "stage_timeout_seconds": 180.0,
+    "input_model": null
   }
 }
