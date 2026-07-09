@@ -15,6 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from finance_agent.reporting import (  # noqa: E402
     load_report_model,
     report_strategy_warnings,
+    require_report_quality,
     render_report_pdf,
     save_report_html,
     validate_strategy_available,
@@ -59,7 +60,8 @@ def _render_one(
 
     model_name = "report_model_june_2026.json" if period_slug == "june_2026" else "report_model_2026.json"
     output_stem = "financial_report_june_2026" if period_slug == "june_2026" else "financial_report_2026"
-    report_model = load_report_model(report_dir / model_name)
+    model_path = report_dir / model_name
+    report_model = load_report_model(model_path)
     warnings = tuple(report_strategy_warnings(report_model))
     if warnings:
         print(f"WARNING: {period_slug} report model is missing accepted strategic analysis:")
@@ -74,6 +76,7 @@ def _render_one(
     # business logic and no financial values are recalculated here.
     html_path = save_report_html(report_model, report_dir / f"{output_stem}.html")
     pdf_path = render_report_pdf(report_model, report_dir / f"{output_stem}.pdf")
+    require_report_quality(model_path, html_path=html_path, pdf_path=pdf_path)
     return html_path, pdf_path, warnings
 
 

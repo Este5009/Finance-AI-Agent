@@ -5,11 +5,11 @@
   "source_files": [
     "monthly_financial_report_june_2026.xlsx"
   ],
-  "total_tasks": 16,
+  "total_tasks": 14,
   "tasks_by_priority": {
     "critical": 3,
     "high": 7,
-    "medium": 6,
+    "medium": 4,
     "low": 0
   },
   "tasks": [
@@ -463,74 +463,6 @@
     },
     {
       "task_id": "INV-2026-06-014",
-      "anomaly_id": "DATA-TABLE-monthly_financial_report_june_2026__scholarships__table_01",
-      "priority": "medium",
-      "priority_score": 50,
-      "question_to_answer": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__scholarships__table_01'?",
-      "reason": "Enriched model requires human review; final type is Scholarships with confidence 0.99.",
-      "required_evidence": [
-        {
-          "request_id": "INV-2026-06-014-E01",
-          "tool_name": "get_full_report",
-          "parameters": {
-            "period": "2026-06"
-          },
-          "purpose": "Review the table in the context of its processed report."
-        },
-        {
-          "request_id": "INV-2026-06-014-E02",
-          "tool_name": "get_transactions",
-          "parameters": {
-            "table_id": "monthly_financial_report_june_2026__scholarships__table_01",
-            "limit": 100
-          },
-          "purpose": "Inspect representative processed records before schema approval."
-        }
-      ],
-      "suggested_tool": "get_full_report",
-      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
-      "status": "planned",
-      "prioritization_factors": [
-        "missing_or_uncertain_data",
-        "final_table_type:Scholarships"
-      ]
-    },
-    {
-      "task_id": "INV-2026-06-015",
-      "anomaly_id": "DATA-TABLE-monthly_financial_report_june_2026__vendor_payments__table_01",
-      "priority": "medium",
-      "priority_score": 50,
-      "question_to_answer": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__vendor_payments__table_01'?",
-      "reason": "Enriched model requires human review; final type is Vendor_Payments with confidence 0.99.",
-      "required_evidence": [
-        {
-          "request_id": "INV-2026-06-015-E01",
-          "tool_name": "get_full_report",
-          "parameters": {
-            "period": "2026-06"
-          },
-          "purpose": "Review the table in the context of its processed report."
-        },
-        {
-          "request_id": "INV-2026-06-015-E02",
-          "tool_name": "get_transactions",
-          "parameters": {
-            "table_id": "monthly_financial_report_june_2026__vendor_payments__table_01",
-            "limit": 100
-          },
-          "purpose": "Inspect representative processed records before schema approval."
-        }
-      ],
-      "suggested_tool": "get_full_report",
-      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
-      "status": "planned",
-      "prioritization_factors": [
-        "missing_or_uncertain_data",
-        "final_table_type:Vendor_Payments"
-      ]
-    },
-    {
-      "task_id": "INV-2026-06-016",
       "anomaly_id": "ANOM-2026-06-010",
       "priority": "medium",
       "priority_score": 47,
@@ -538,7 +470,7 @@
       "reason": "Facilities actual $407,772 versus budget $367,302; variance 11.02%.",
       "required_evidence": [
         {
-          "request_id": "INV-2026-06-016-E01",
+          "request_id": "INV-2026-06-014-E01",
           "tool_name": "get_transactions",
           "parameters": {
             "expense_category": "unknown",

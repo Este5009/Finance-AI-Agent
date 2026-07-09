@@ -347,6 +347,50 @@ def test_supported_payroll_missing_information_is_removed() -> None:
     ]
 
 
+def test_processed_anomaly_cashflow_and_payroll_missing_claims_are_removed() -> None:
+    """Verify generic-period analysis cannot claim available evidence is missing."""
+
+    payload = _valid_analysis()
+    payload["missing_information"] = [
+        "Cash flow data validation for June 2026",
+        "Anomalies data for June 2026",
+        "Detailed breakdown of Health Sciences overtime and benefits",
+        "Board approval minutes for flagged purchases",
+    ]
+    evidence = _evidence_package()
+    evidence["period_slug"] = "2026_06"
+    evidence["evidence_packages"][0]["source_references"] = [
+        "outputs/calculations/finance_summary_2026_06.json",
+        "outputs/anomalies/anomaly_report_2026_06.json",
+    ]
+    evidence["evidence_packages"][0]["retrieved_evidence"]["data"][
+        "payroll_breakdown"
+    ] = [
+        {
+            "period": "2026-06-01",
+            "department": "Health Sciences",
+            "benefits": "61560",
+            "overtime": "18810",
+            "payroll_amount": "342000",
+        }
+    ]
+    client = FakeAnalysisClient(True, json.dumps(payload))
+
+    result = create_strategic_analysis(
+        client=client,
+        evidence_package=evidence,
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="2026_06",
+    )
+
+    assert result.accepted is True
+    assert result.analysis_document["analysis"]["missing_information"] == [
+        "Board approval minutes for flagged purchases"
+    ]
+
+
 def test_prompt_is_compact_and_omits_full_evidence_rows() -> None:
     """Verify prompt includes summaries but not full row payloads."""
 

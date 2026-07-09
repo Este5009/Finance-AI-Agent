@@ -10,6 +10,11 @@ from finance_agent.reporting.renderers import (
     render_report_pdf,
     save_report_html,
 )
+from finance_agent.reporting.report_quality import (
+    require_report_quality,
+    validate_report_artifacts,
+    validate_report_model_quality,
+)
 from finance_agent.reporting.report_models import REQUIRED_SECTION_IDS
 
 
@@ -210,6 +215,34 @@ def test_html_generation_renders_strategic_analysis_fields() -> None:
     assert "No hay recomendaciones estratégicas generadas." not in html
 
 
+def test_report_model_quality_accepts_strategy_backed_model() -> None:
+    """Verify quality validation accepts current strategy-backed report models."""
+
+    result = validate_report_model_quality(_sample_report_model())
+
+    assert result.is_valid is True
+    assert result.recommendation_count == 1
+
+
+def test_report_model_quality_rejects_missing_strategy() -> None:
+    """Verify missing strategy and recommendations are blocking errors."""
+
+    model = _sample_report_model()
+    sections = model["sections"]  # type: ignore[assignment]
+    for section in sections:  # type: ignore[union-attr]
+        if section["section_id"] == "executive_summary":
+            section["content"]["analysis_status"] = "unavailable"
+            section["content"]["summary"] = "Strategic analysis was unavailable; use processed metrics."
+        if section["section_id"] == "strategic_recommendations":
+            section["content"]["recommendations"] = []
+
+    result = validate_report_model_quality(model)
+
+    assert result.is_valid is False
+    assert any("not accepted" in error for error in result.errors)
+    assert any("placeholder" in error for error in result.errors)
+
+
 def test_save_html_writes_document(tmp_path: Path) -> None:
     """Verify HTML output is written as a complete document."""
 
@@ -278,3 +311,39 @@ def test_load_report_model_rejects_non_object_json(tmp_path: Path) -> None:
         assert "root must be an object" in str(exc)
     else:
         raise AssertionError("Expected ValueError for non-object report model")
+
+
+def test_report_artifact_quality_detects_html_placeholder(tmp_path: Path) -> None:
+    """Verify rendered artifact validation catches missing-strategy placeholders."""
+
+    model_path = tmp_path / "report_model.json"
+    model_path.write_text(__import__("json").dumps(_sample_report_model()), encoding="utf-8")
+    html_path = tmp_path / "report.html"
+    html_path.write_text("Strategic analysis was unavailable", encoding="utf-8")
+
+    result = validate_report_artifacts(model_path, html_path=html_path)
+
+    assert result.is_valid is False
+    assert any("HTML contains" in error for error in result.errors)
+
+
+def test_require_report_quality_detects_stale_artifact(tmp_path: Path) -> None:
+    """Verify quality validation rejects artifacts older than the report model."""
+
+    import os
+    import time
+    import json
+
+    html_path = tmp_path / "report.html"
+    html_path.write_text(render_report_html(_sample_report_model()), encoding="utf-8")
+    old_time = time.time() - 20
+    os.utime(html_path, (old_time, old_time))
+    model_path = tmp_path / "report_model.json"
+    model_path.write_text(json.dumps(_sample_report_model()), encoding="utf-8")
+
+    try:
+        require_report_quality(model_path, html_path=html_path)
+    except ValueError as exc:
+        assert "older than report model" in str(exc)
+    else:
+        raise AssertionError("Expected ValueError for stale artifact")

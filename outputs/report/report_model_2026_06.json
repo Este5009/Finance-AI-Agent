@@ -24,19 +24,25 @@
       "section_id": "executive_summary",
       "title": "Executive Summary",
       "content": {
-        "summary": "Strategic analysis was unavailable; use processed metrics and anomalies.",
-        "key_findings": [],
-        "root_causes": [],
-        "confidence": null,
-        "analysis_status": "unavailable"
+        "summary": "The June 2026 financial report shows significant payroll variances, particularly in Health Sciences with an $87,255 overage against budget. Equipment expenses are concentrated in Engineering and Health Sciences, while Business and Administration show moderate spending. The report indicates strong confidence in the data but lacks detailed cash flow analysis for risk assessment.",
+        "key_findings": [
+          "Health Sciences payroll variance is 34% above budget ($87,255 vs $254,745 budget).",
+          "Engineering and Health Sciences account for 78% of total equipment expenses ($92,587 of $118,427).",
+          "Business and Administration show consistent equipment spending patterns across multiple payments.",
+          "Payroll variances across departments are within 2-3% of budget except Health Sciences."
+        ],
+        "root_causes": [
+          "Health Sciences payroll budget may be underestimated due to unaccounted overtime or benefits.",
+          "Equipment procurement may be concentrated in specific departments without proper budget reallocation.",
+          "Lack of cash flow analysis in the report prevents full risk assessment of payment timing."
+        ],
+        "confidence": 0.82,
+        "analysis_status": "accepted"
       },
       "source_references": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
       ],
-      "warnings": [
-        "Strategic analysis is not accepted; status=unavailable.",
-        "Ollama is unavailable."
-      ]
+      "warnings": []
     },
     {
       "section_id": "financial_health_overview",
@@ -582,8 +588,8 @@
         "retrieval_summary": {
           "package_id": "EVIDENCE-2026-06",
           "period_slug": "2026_06",
-          "tasks_executed": 16,
-          "successful_retrievals": 16,
+          "tasks_executed": 14,
+          "successful_retrievals": 14,
           "failed_retrievals": 0,
           "unavailable_evidence": 0
         },
@@ -596,9 +602,9 @@
             "success": true,
             "record_count": null,
             "matched_tables": null,
-            "evidence_summary": "Retrieved processed June 2026 finance summary.",
+            "evidence_summary": "Retrieved processed 2026_06 finance summary.",
             "source_references": [
-              "outputs/calculations/finance_summary_june_2026.json"
+              "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json"
             ],
             "warnings": [],
             "unavailable_data": []
@@ -611,9 +617,9 @@
             "success": true,
             "record_count": null,
             "matched_tables": null,
-            "evidence_summary": "Retrieved processed June 2026 finance summary.",
+            "evidence_summary": "Retrieved processed 2026_06 finance summary.",
             "source_references": [
-              "outputs/calculations/finance_summary_june_2026.json"
+              "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json"
             ],
             "warnings": [],
             "unavailable_data": []
@@ -754,9 +760,9 @@
             "success": true,
             "record_count": null,
             "matched_tables": null,
-            "evidence_summary": "Retrieved processed June 2026 finance summary.",
+            "evidence_summary": "Retrieved processed 2026_06 finance summary.",
             "source_references": [
-              "outputs/calculations/finance_summary_june_2026.json"
+              "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json"
             ],
             "warnings": [],
             "unavailable_data": []
@@ -786,9 +792,9 @@
             "success": true,
             "record_count": null,
             "matched_tables": null,
-            "evidence_summary": "Retrieved processed June 2026 finance summary.",
+            "evidence_summary": "Retrieved processed 2026_06 finance summary.",
             "source_references": [
-              "outputs/calculations/finance_summary_june_2026.json"
+              "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json"
             ],
             "warnings": [],
             "unavailable_data": []
@@ -801,45 +807,15 @@
             "success": true,
             "record_count": null,
             "matched_tables": null,
-            "evidence_summary": "Retrieved processed June 2026 finance summary.",
+            "evidence_summary": "Retrieved processed 2026_06 finance summary.",
             "source_references": [
-              "outputs/calculations/finance_summary_june_2026.json"
+              "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json"
             ],
             "warnings": [],
             "unavailable_data": []
           },
           {
             "task_id": "FALLBACK-014",
-            "priority": "medium",
-            "question": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__scholarships__table_01'?",
-            "retrieval_name": "financial_report",
-            "success": true,
-            "record_count": null,
-            "matched_tables": null,
-            "evidence_summary": "Retrieved processed June 2026 finance summary.",
-            "source_references": [
-              "outputs/calculations/finance_summary_june_2026.json"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-015",
-            "priority": "medium",
-            "question": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__vendor_payments__table_01'?",
-            "retrieval_name": "financial_report",
-            "success": true,
-            "record_count": null,
-            "matched_tables": null,
-            "evidence_summary": "Retrieved processed June 2026 finance summary.",
-            "source_references": [
-              "outputs/calculations/finance_summary_june_2026.json"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-016",
             "priority": "medium",
             "question": "Which transactions caused Facilities category outside budget target?",
             "retrieval_name": "transactions",
@@ -867,18 +843,47 @@
       "section_id": "strategic_recommendations",
       "title": "Strategic Recommendations",
       "content": {
-        "recommendations": [],
-        "root_causes": [],
-        "strategic_priorities": [],
-        "reasoning_summary": ""
+        "recommendations": [
+          {
+            "priority": "high",
+            "action": "Review Health Sciences payroll budget allocation with HR.",
+            "rationale": "Health Sciences payroll variance is 34% above budget, indicating potential budgeting error or unanticipated staffing needs.",
+            "supporting_evidence": "Health Sciences payroll variance: $87,255",
+            "expected_impact": "Reduce payroll variance by 30% in next reporting cycle.",
+            "confidence": 0.85
+          },
+          {
+            "priority": "high",
+            "action": "Conduct equipment budget reallocation analysis between departments.",
+            "rationale": "Engineering and Health Sciences account for 78% of equipment expenses, suggesting possible misalignment with strategic priorities.",
+            "supporting_evidence": "Engineering and Health Sciences equipment expenses: $92,587",
+            "expected_impact": "Optimize equipment spending to align with departmental strategic goals.",
+            "confidence": 0.8
+          },
+          {
+            "priority": "medium",
+            "action": "Request cash flow analysis for June 2026 payments.",
+            "rationale": "Lack of cash flow analysis prevents assessment of payment timing risks and liquidity impact.",
+            "supporting_evidence": "No cash flow data in report",
+            "expected_impact": "Improve cash flow forecasting accuracy by 25%.",
+            "confidence": 0.7
+          }
+        ],
+        "root_causes": [
+          "Health Sciences payroll budget may be underestimated due to unaccounted overtime or benefits.",
+          "Equipment procurement may be concentrated in specific departments without proper budget reallocation.",
+          "Lack of cash flow analysis in the report prevents full risk assessment of payment timing."
+        ],
+        "strategic_priorities": [
+          "Address Health Sciences payroll variance to prevent budget overrun.",
+          "Optimize equipment spending to align with strategic priorities."
+        ],
+        "reasoning_summary": "Health Sciences payroll variance is the most significant outlier, requiring immediate attention. Equipment spending concentration indicates potential budget misalignment. Cash flow analysis is missing, which is critical for risk assessment."
       },
       "source_references": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
       ],
-      "warnings": [
-        "Strategic analysis is not accepted; status=unavailable.",
-        "Ollama is unavailable."
-      ]
+      "warnings": []
     },
     {
       "section_id": "missing_information",
@@ -892,10 +897,7 @@
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_06.json",
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
       ],
-      "warnings": [
-        "Strategic analysis is not accepted; status=unavailable.",
-        "Ollama is unavailable."
-      ]
+      "warnings": []
     },
     {
       "section_id": "appendix",
@@ -909,9 +911,7 @@
           "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
         ],
         "calculation_warnings": [],
-        "analysis_validation_errors": [
-          "Ollama is unavailable."
-        ]
+        "analysis_validation_errors": []
       },
       "source_references": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json",

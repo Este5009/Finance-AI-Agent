@@ -177,6 +177,32 @@ def test_strategic_analysis_fields_are_preserved_for_renderers() -> None:
     assert missing["missing_information"] == ["Vendor invoice notes."]
 
 
+def test_generic_period_source_files_are_preserved() -> None:
+    """Verify period-slugged artifacts flow into the report model references."""
+
+    bundle = _bundle()
+    generic_bundle = ReportInputBundle(
+        period_slug="2026_06",
+        finance_summary={**bundle.finance_summary, "report_period": "2026-06"},
+        kpi_summary=bundle.kpi_summary,
+        anomaly_report=bundle.anomaly_report,
+        evidence_package=bundle.evidence_package,
+        strategic_analysis=bundle.strategic_analysis,
+        source_files=(
+            "outputs/calculations/finance_summary_2026_06.json",
+            "outputs/calculations/kpi_summary_2026_06.csv",
+            "outputs/anomalies/anomaly_report_2026_06.json",
+            "outputs/evidence/evidence_package_2026_06.json",
+            "outputs/analysis/strategic_analysis_2026_06.json",
+        ),
+    )
+
+    model = build_report_model(generic_bundle).to_dict()
+
+    assert "outputs/anomalies/anomaly_report_2026_06.json" in model["source_references"]
+    assert "outputs/analysis/strategic_analysis_2026_06.json" in model["source_references"]
+
+
 def test_json_schema_validation_and_save(tmp_path: Path) -> None:
     """Verify saved report model JSON keeps the expected schema."""
 

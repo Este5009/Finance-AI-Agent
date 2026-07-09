@@ -3,17 +3,17 @@
   "report_period": "2026-06",
   "period_slug": "2026_06",
   "planner_source": "deterministic_fallback",
-  "ollama_available": false,
-  "validation_status": "unavailable",
+  "ollama_available": true,
+  "validation_status": "rejected",
   "fallback_used": true,
   "validation_errors": [
-    "Ollama is unavailable."
+    "investigation_steps[5].filters.include_aging must be boolean"
   ],
   "deduplicated_tool_calls": 0,
   "repaired_text_fields": 0,
   "maximum_ollama_plan_steps": 8,
-  "deterministic_baseline_task_count": 16,
-  "total_steps": 16,
+  "deterministic_baseline_task_count": 14,
+  "total_steps": 14,
   "investigation_steps": [
     {
       "step_id": "FALLBACK-001",
@@ -192,30 +192,6 @@
     },
     {
       "step_id": "FALLBACK-014",
-      "anomaly_id": "DATA-TABLE-monthly_financial_report_june_2026__scholarships__table_01",
-      "priority": "medium",
-      "question": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__scholarships__table_01'?",
-      "tool_name": "get_full_report",
-      "arguments": {
-        "period": "2026-06"
-      },
-      "reasoning": "Deterministic baseline selected this task: Enriched model requires human review; final type is Scholarships with confidence 0.99.",
-      "expected_output": "Confirmed table type, canonical column mappings, and review decision."
-    },
-    {
-      "step_id": "FALLBACK-015",
-      "anomaly_id": "DATA-TABLE-monthly_financial_report_june_2026__vendor_payments__table_01",
-      "priority": "medium",
-      "question": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__vendor_payments__table_01'?",
-      "tool_name": "get_full_report",
-      "arguments": {
-        "period": "2026-06"
-      },
-      "reasoning": "Deterministic baseline selected this task: Enriched model requires human review; final type is Vendor_Payments with confidence 0.99.",
-      "expected_output": "Confirmed table type, canonical column mappings, and review decision."
-    },
-    {
-      "step_id": "FALLBACK-016",
       "anomaly_id": "ANOM-2026-06-010",
       "priority": "medium",
       "question": "Which transactions caused Facilities category outside budget target?",

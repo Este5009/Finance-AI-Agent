@@ -13,7 +13,7 @@
       ],
       "warnings": [],
       "error": null,
-      "runtime_seconds": 0.05617390014231205,
+      "runtime_seconds": 0.05238920007832348,
       "return_code": 0,
       "stdout_tail": "",
       "stderr_tail": ""
@@ -30,7 +30,7 @@
       ],
       "warnings": [],
       "error": null,
-      "runtime_seconds": 0.17495869984850287,
+      "runtime_seconds": 0.16660319990478456,
       "return_code": 0,
       "stdout_tail": "",
       "stderr_tail": ""
@@ -44,11 +44,9 @@
       "output_files": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_06\\financial_document_model_enriched.json"
       ],
-      "warnings": [
-        "Ollama unavailable; deterministic structure was preserved."
-      ],
+      "warnings": [],
       "error": null,
-      "runtime_seconds": 2.0560450998600572,
+      "runtime_seconds": 165.97791760019027,
       "return_code": 0,
       "stdout_tail": "",
       "stderr_tail": ""
@@ -67,7 +65,7 @@
       ],
       "warnings": [],
       "error": null,
-      "runtime_seconds": 0.03382169990800321,
+      "runtime_seconds": 0.05278800008818507,
       "return_code": 0,
       "stdout_tail": "",
       "stderr_tail": ""
@@ -85,7 +83,7 @@
       ],
       "warnings": [],
       "error": null,
-      "runtime_seconds": 0.01096560014411807,
+      "runtime_seconds": 0.011408499907702208,
       "return_code": 0,
       "stdout_tail": "",
       "stderr_tail": ""
@@ -102,10 +100,10 @@
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\execution_queue_2026_06.json"
       ],
       "warnings": [
-        "Ollama is unavailable."
+        "investigation_steps[5].filters.include_aging must be boolean"
       ],
       "error": null,
-      "runtime_seconds": 2.030465800082311,
+      "runtime_seconds": 103.53798040002584,
       "return_code": 0,
       "stdout_tail": "",
       "stderr_tail": ""
@@ -122,7 +120,7 @@
       ],
       "warnings": [],
       "error": null,
-      "runtime_seconds": 0.015963600017130375,
+      "runtime_seconds": 0.022181399865075946,
       "return_code": 0,
       "stdout_tail": "",
       "stderr_tail": ""
@@ -136,11 +134,9 @@
       "output_files": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
       ],
-      "warnings": [
-        "Ollama is unavailable."
-      ],
+      "warnings": [],
       "error": null,
-      "runtime_seconds": 2.01440680003725,
+      "runtime_seconds": 66.84272229997441,
       "return_code": 0,
       "stdout_tail": "",
       "stderr_tail": ""
@@ -156,11 +152,9 @@
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\financial_report_2026_06.html",
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\financial_report_2026_06.pdf"
       ],
-      "warnings": [
-        "Strategic analysis was unavailable; report rendered as draft."
-      ],
+      "warnings": [],
       "error": null,
-      "runtime_seconds": 0.03675820003263652,
+      "runtime_seconds": 0.07117539993487298,
       "return_code": 0,
       "stdout_tail": "",
       "stderr_tail": ""
@@ -190,13 +184,10 @@
     "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\financial_report_2026_06.pdf"
   ],
   "warnings": [
-    "Ollama unavailable; deterministic structure was preserved.",
-    "Ollama is unavailable.",
-    "Ollama is unavailable.",
-    "Strategic analysis was unavailable; report rendered as draft."
+    "investigation_steps[5].filters.include_aging must be boolean"
   ],
   "runtime_summary": {
-    "total_runtime_seconds": 6.429841700010002,
+    "total_runtime_seconds": 336.7354578000959,
     "stages_requested": 9,
     "stages_run": 9,
     "stages_succeeded": 9,
@@ -211,10 +202,10 @@
     "monthly_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
     "annual_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\annual_financial_report_2026.xlsx",
     "goals_pdf": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\financial_goals_2026.pdf",
-    "ollama_endpoint": "http://localhost:9",
+    "ollama_endpoint": "http://localhost:11434",
     "ollama_model": "qwen3:30b-a3b",
-    "ollama_timeout_seconds": 1.0,
-    "stage_timeout_seconds": 180.0,
+    "ollama_timeout_seconds": 180.0,
+    "stage_timeout_seconds": 420.0,
     "input_model": {
       "financial_report_path": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
       "goals_document_path": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\financial_goals_2026.pdf",
@@ -236,8 +227,8 @@
         "end_date": null,
         "requires_override": false
       },
-      "period_type": "monthly",
-      "period_override": null,
+      "period_type": "unknown",
+      "period_override": "2026-06",
       "requires_period_override": false,
       "effective_period_label": "2026-06",
       "report_language": "es"

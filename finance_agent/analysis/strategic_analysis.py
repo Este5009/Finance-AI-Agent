@@ -254,13 +254,72 @@ def _evidence_supports_payroll_field(
     return False
 
 
+def _processed_anomaly_data_exists(anomaly_report: dict[str, Any]) -> bool:
+    """Check whether a processed anomaly artifact is present for the period.
+
+    Inputs: Step 4 anomaly report document.
+    Outputs: True when anomaly data exists, even if the count is zero.
+    Assumptions: the presence of processed anomaly fields is authoritative enough
+    to reject a model claim that anomaly data itself is missing.
+    """
+
+    return any(
+        key in anomaly_report
+        for key in ("total_anomalies", "anomalies", "anomalies_by_severity")
+    )
+
+
+def _processed_cash_flow_data_exists(finance_summary: dict[str, Any]) -> bool:
+    """Check whether processed cash-flow values exist in the finance summary.
+
+    Inputs: Step 3 finance summary document.
+    Outputs: True when the cash-flow section contains at least one populated value.
+    Assumptions: Python-calculated cash-flow fields are evidence, not LLM output.
+    """
+
+    finance = finance_summary.get("finance_summary", {})
+    finance = finance if isinstance(finance, dict) else {}
+    cash_flow = finance.get("cash_flow", {})
+    if not isinstance(cash_flow, dict):
+        return False
+    return any(value not in {None, ""} for value in cash_flow.values())
+
+
+def _evidence_has_source_keyword(
+    evidence_package: dict[str, Any],
+    keyword: str,
+) -> bool:
+    """Search source references for one processed-evidence keyword.
+
+    Inputs: Step 8 evidence package and a lowercase keyword.
+    Outputs: True when any source reference contains the keyword.
+    Assumptions: source references are lightweight provenance, not business logic.
+    """
+
+    lowered_keyword = keyword.casefold()
+    for package in evidence_package.get("evidence_packages", []):
+        if not isinstance(package, dict):
+            continue
+        for source in package.get("source_references", []):
+            if lowered_keyword in str(source).casefold():
+                return True
+        evidence = package.get("retrieved_evidence", {})
+        evidence = evidence if isinstance(evidence, dict) else {}
+        for source in evidence.get("source_references", []):
+            if lowered_keyword in str(source).casefold():
+                return True
+    return False
+
+
 def _remove_false_missing_information(
     analysis: dict[str, Any],
     evidence_package: dict[str, Any],
+    finance_summary: dict[str, Any],
+    anomaly_report: dict[str, Any],
 ) -> dict[str, Any]:
     """Remove missing-information items contradicted by retrieved evidence.
 
-    Inputs: validated analysis and Step 8 evidence package.
+    Inputs: validated analysis, Step 8 evidence, and processed finance/anomaly artifacts.
     Outputs: cleaned analysis preserving all other model-authored content.
     Assumptions: only objective availability claims are filtered, never reasoning.
     """
@@ -273,14 +332,34 @@ def _remove_false_missing_information(
         evidence_package,
         "payroll_amount",
     )
+    has_overtime = _evidence_supports_payroll_field(evidence_package, "overtime")
+    has_benefits = _evidence_supports_payroll_field(evidence_package, "benefits")
+    has_anomaly_data = _processed_anomaly_data_exists(
+        anomaly_report
+    ) or _evidence_has_source_keyword(evidence_package, "anomaly")
+    has_cash_flow = _processed_cash_flow_data_exists(
+        finance_summary
+    ) or _evidence_has_source_keyword(evidence_package, "cash_flow")
     cleaned_missing: list[str] = []
     for item in missing:
         lowered = str(item).casefold()
+        # Ollama can overstate "missing data" even when Python already supplied
+        # authoritative processed artifacts. These guards only remove objective
+        # availability claims; they do not edit findings or recommendations.
+        if has_anomaly_data and "anomal" in lowered:
+            continue
+        cash_flow_terms = ("cash flow", "cash-flow", "cashflow")
+        if has_cash_flow and any(term in lowered for term in cash_flow_terms):
+            continue
         if has_headcount and "headcount" in lowered:
             continue
         if has_payroll_amount and "payroll breakdown" in lowered:
             continue
         if has_payroll_amount and "payroll amount" in lowered:
+            continue
+        if has_overtime and "overtime" in lowered:
+            continue
+        if has_benefits and "benefit" in lowered:
             continue
         cleaned_missing.append(item)
     return {**analysis, "missing_information": cleaned_missing}
@@ -617,7 +696,12 @@ def create_strategic_analysis(
     accepted = validation is not None and validation.is_valid
     analysis = validation.analysis if accepted and validation else _empty_rejected_analysis()
     if accepted:
-        analysis = _remove_false_missing_information(analysis, evidence_package)
+        analysis = _remove_false_missing_information(
+            analysis,
+            evidence_package,
+            finance_summary,
+            anomaly_report,
+        )
     document = _build_analysis_document(
         period_slug=period_slug,
         report_period=report_period,

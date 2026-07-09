@@ -13,6 +13,7 @@ from finance_agent.retrieval.retrieval_engine import (
     execute_retrieval_queue,
     load_retrieval_context,
     retrieve_department_history,
+    retrieve_financial_report,
     retrieve_payroll_history,
     retrieve_transactions,
     retrieve_vendor_history,
@@ -471,3 +472,43 @@ def test_payroll_question_periods_override_latest_annual_month(tmp_path: Path) -
     assert result.success is True
     periods = {row["period"] for row in result.data["payroll_breakdown"]}
     assert periods == {"2026-06-01"}
+
+
+def test_generic_period_financial_report_uses_period_slugged_artifact(
+    tmp_path: Path,
+) -> None:
+    """Verify generic report retrieval preserves the period-slugged summary source."""
+
+    _make_processed_outputs(tmp_path)
+    loaded = load_retrieval_context(tmp_path)
+    context = RetrievalContext(
+        project_root=loaded.project_root,
+        finance_summary_june=loaded.finance_summary_june,
+        finance_summary_annual=loaded.finance_summary_annual,
+        monthly_trends=loaded.monthly_trends,
+        enriched_model=loaded.enriched_model,
+        normalized_table_dir=loaded.normalized_table_dir,
+        scope_prefix_by_period={
+            "2026_06": "monthly_financial_report_june_2026",
+        },
+        finance_summary_by_period={
+            "2026_06": {
+                "report_period": "2026-06",
+                "finance_summary": {"total_revenue": 100},
+            }
+        },
+        finance_summary_source_by_period={
+            "2026_06": "outputs/calculations/finance_summary_2026_06.json",
+        },
+    )
+
+    result = retrieve_financial_report(
+        context,
+        {"period": "2026-06", "_queue_period_slug": "2026_06"},
+    )
+
+    assert result.success is True
+    assert result.data["report"]["report_period"] == "2026-06"
+    assert result.source_references == (
+        "outputs/calculations/finance_summary_2026_06.json",
+    )

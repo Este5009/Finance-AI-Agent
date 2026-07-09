@@ -38,6 +38,45 @@ class RetrievalContext:
     enriched_model: dict[str, Any]
     normalized_table_dir: Path
     scope_prefix_by_period: dict[str, str] | None = None
+    finance_summary_by_period: dict[str, dict[str, Any]] | None = None
+    finance_summary_source_by_period: dict[str, str] | None = None
+
+    def scope_prefix(self, period_slug: str) -> str:
+        """Return the normalized-table filename prefix for a reporting period.
+
+        Inputs: canonical or legacy reporting period slug.
+        Outputs: filename prefix used by normalized processed CSV artifacts.
+        Assumptions: generic single-report runs may map many aliases to one prefix.
+        """
+
+        return (
+            self.scope_prefix_by_period.get(period_slug)
+            if self.scope_prefix_by_period
+            else None
+        ) or _scope_prefix(period_slug)
+
+    def finance_summary_for_period(
+        self,
+        period_slug: str,
+    ) -> tuple[dict[str, Any], str] | None:
+        """Return a period-specific processed finance summary when available.
+
+        Inputs: period slug from a validated execution queue.
+        Outputs: finance summary plus its artifact reference, or None.
+        Assumptions: this keeps generic period runs from falling back to legacy names.
+        """
+
+        if not self.finance_summary_by_period:
+            return None
+        summary = self.finance_summary_by_period.get(period_slug)
+        if summary is None:
+            return None
+        source = (
+            self.finance_summary_source_by_period.get(period_slug)
+            if self.finance_summary_source_by_period
+            else None
+        ) or f"outputs/calculations/finance_summary_{period_slug}.json"
+        return summary, source
 
     def normalized_records(self, table_type: str, period_slug: str) -> tuple[dict[str, Any], ...]:
         """Read normalized processed rows for one table type and reporting scope.
@@ -47,14 +86,9 @@ class RetrievalContext:
         Assumptions: CSV names retain workbook scope and table type.
         """
 
-        prefix = (
-            self.scope_prefix_by_period.get(period_slug)
-            if self.scope_prefix_by_period
-            else None
-        ) or _scope_prefix(period_slug)
         return _read_matching_normalized_csv(
             self.normalized_table_dir,
-            prefix,
+            self.scope_prefix(period_slug),
             table_type,
         )
 
@@ -544,7 +578,7 @@ def retrieve_department_history(
     return _result(
         retrieval_name="department_history",
         rows=compact_rows,
-        source=f"normalized_tables/{_scope_prefix(period_slug)}__department_sources",
+        source=f"normalized_tables/{context.scope_prefix(period_slug)}__department_sources",
         label="department history",
         warnings=tuple(warnings),
         unavailable=unavailable,
@@ -622,7 +656,7 @@ def retrieve_payroll_history(
     return _result(
         retrieval_name="payroll_history",
         rows=compact_rows,
-        source=f"normalized_tables/{_scope_prefix(period_slug)}__payroll__table_01.csv",
+        source=f"normalized_tables/{context.scope_prefix(period_slug)}__payroll__table_01.csv",
         label="payroll history",
         unavailable=unavailable,
         extra_data={
@@ -681,7 +715,7 @@ def retrieve_vendor_history(
     return _result(
         retrieval_name="vendor_history",
         rows=compact_rows,
-        source=f"normalized_tables/{_scope_prefix(period_slug)}__vendor_payments__table_01.csv",
+        source=f"normalized_tables/{context.scope_prefix(period_slug)}__vendor_payments__table_01.csv",
         label="vendor payment history",
         unavailable=unavailable,
         extra_data={
@@ -711,7 +745,7 @@ def retrieve_student_payment_history(
     return _result(
         retrieval_name="student_payment_history",
         rows=rows,
-        source=f"normalized_tables/{_scope_prefix(period_slug)}__student_payments__table_01.csv",
+        source=f"normalized_tables/{context.scope_prefix(period_slug)}__student_payments__table_01.csv",
         label="student payment history",
         unavailable=unavailable,
     )
@@ -734,7 +768,7 @@ def retrieve_cashflow_history(
     return _result(
         retrieval_name="cashflow_history",
         rows=rows,
-        source=f"normalized_tables/{_scope_prefix(period_slug)}__cash_flow__table_01.csv",
+        source=f"normalized_tables/{context.scope_prefix(period_slug)}__cash_flow__table_01.csv",
         label="cash-flow history",
         unavailable=unavailable,
     )
@@ -833,7 +867,7 @@ def retrieve_transactions(
     return _result(
         retrieval_name="transactions",
         rows=flattened,
-        source=f"normalized_tables/{_scope_prefix(period_slug)}__transaction_tables",
+        source=f"normalized_tables/{context.scope_prefix(period_slug)}__transaction_tables",
         label="transaction",
         warnings=tuple(warnings),
         unavailable=unavailable,
@@ -980,6 +1014,22 @@ def retrieve_financial_report(
     """
 
     period = str(arguments.get("period", "2026"))
+    queue_period = str(arguments.get("_queue_period_slug", "") or "")
+    for candidate in tuple(dict.fromkeys(value for value in (queue_period, period) if value)):
+        generic_summary = context.finance_summary_for_period(candidate)
+        if generic_summary is None:
+            continue
+        summary, source = generic_summary
+        return RetrievalResult(
+            retrieval_name="financial_report",
+            success=True,
+            data={
+                "summary": f"Retrieved processed {candidate} finance summary.",
+                "report": summary,
+            },
+            source_references=(source,),
+            confidence=0.98,
+        )
     if period in {"june_2026", "2026-06", "June 2026"}:
         return RetrievalResult(
             retrieval_name="financial_report",

@@ -509,10 +509,11 @@ def _make_retrieval_context(
     normalized_table_dir: Path,
     period_slug: str,
     source_prefix: str,
+    finance_summary_source: str | None = None,
 ) -> RetrievalContext:
     """Build a retrieval context for a generic single-report run.
 
-    Inputs: processed objects, normalized table directory, period slug, and prefix.
+    Inputs: processed objects, normalized table directory, period slug, prefix, and summary artifact.
     Outputs: RetrievalContext compatible with existing retrieval functions.
     Assumptions: single-report runs reuse the same document for monthly/annual slots.
     """
@@ -528,6 +529,13 @@ def _make_retrieval_context(
             period_slug: source_prefix,
             "2026": source_prefix,
             "june_2026": source_prefix,
+        },
+        finance_summary_by_period={
+            period_slug: finance_document,
+        },
+        finance_summary_source_by_period={
+            period_slug: finance_summary_source
+            or f"outputs/calculations/finance_summary_{period_slug}.json",
         },
     )
 
@@ -883,6 +891,7 @@ def run_object_pipeline_for_report(
             normalized_table_dir=Path(intermediate_paths["normalized_tables"]),
             period_slug=period_slug,
             source_prefix=report_prefix,
+            finance_summary_source=str(calculation_paths["finance_summary"]),
         )
         evidence_package = execute_retrieval_queue(
             planner_result.execution_queue,

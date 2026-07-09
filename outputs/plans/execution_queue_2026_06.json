@@ -5,7 +5,7 @@
   "planner_source": "deterministic_fallback",
   "status": "pending",
   "tools_executed": false,
-  "total_items": 16,
+  "total_items": 14,
   "items": [
     {
       "queue_position": 1,
@@ -238,38 +238,6 @@
       "queue_position": 14,
       "execution_id": "EXEC-2026-06-014",
       "step_id": "FALLBACK-014",
-      "anomaly_id": "DATA-TABLE-monthly_financial_report_june_2026__scholarships__table_01",
-      "priority": "medium",
-      "question": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__scholarships__table_01'?",
-      "tool_name": "get_full_report",
-      "arguments": {
-        "period": "2026-06"
-      },
-      "reasoning": "Deterministic baseline selected this task: Enriched model requires human review; final type is Scholarships with confidence 0.99.",
-      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
-      "status": "queued",
-      "dependencies": []
-    },
-    {
-      "queue_position": 15,
-      "execution_id": "EXEC-2026-06-015",
-      "step_id": "FALLBACK-015",
-      "anomaly_id": "DATA-TABLE-monthly_financial_report_june_2026__vendor_payments__table_01",
-      "priority": "medium",
-      "question": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__vendor_payments__table_01'?",
-      "tool_name": "get_full_report",
-      "arguments": {
-        "period": "2026-06"
-      },
-      "reasoning": "Deterministic baseline selected this task: Enriched model requires human review; final type is Vendor_Payments with confidence 0.99.",
-      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
-      "status": "queued",
-      "dependencies": []
-    },
-    {
-      "queue_position": 16,
-      "execution_id": "EXEC-2026-06-016",
-      "step_id": "FALLBACK-016",
       "anomaly_id": "ANOM-2026-06-010",
       "priority": "medium",
       "question": "Which transactions caused Facilities category outside budget target?",

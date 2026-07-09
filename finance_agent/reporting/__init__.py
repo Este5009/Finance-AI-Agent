@@ -12,6 +12,12 @@ from finance_agent.reporting.report_models import (
     ReportModel,
     ReportSection,
 )
+from finance_agent.reporting.report_quality import (
+    ReportQualityResult,
+    require_report_quality,
+    validate_report_artifacts,
+    validate_report_model_quality,
+)
 from finance_agent.reporting.renderers import (
     load_report_model,
     report_strategy_warnings,
@@ -25,6 +31,7 @@ __all__ = [
     "REQUIRED_SECTION_IDS",
     "ReportInputBundle",
     "ReportModel",
+    "ReportQualityResult",
     "ReportSection",
     "build_report_model",
     "load_report_model",
@@ -34,6 +41,9 @@ __all__ = [
     "report_strategy_warnings",
     "save_report_model",
     "save_report_html",
+    "require_report_quality",
+    "validate_report_artifacts",
+    "validate_report_model_quality",
     "validate_strategy_available",
     "validate_report_model",
 ]
