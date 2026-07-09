@@ -24,19 +24,19 @@
       "section_id": "executive_summary",
       "title": "Executive Summary",
       "content": {
-        "summary": "The June 2026 financial report shows significant payroll variances, particularly in Health Sciences with an $87,255 overage against budget. Equipment expenses are concentrated in Engineering and Health Sciences, while Business and Administration show moderate spending. The report indicates strong confidence in the data but lacks detailed cash flow analysis for risk assessment.",
+        "summary": "The June 2026 financial report reveals significant overspending in Engineering and Health Sciences departments, with Engineering exceeding its budget by $111,996 and Health Sciences by $92,859. The primary drivers include vendor payments for supplies and services, particularly from Professional Services Network and University Supply Cooperative, which contributed to the variance.",
         "key_findings": [
-          "Health Sciences payroll variance is 34% above budget ($87,255 vs $254,745 budget).",
-          "Engineering and Health Sciences account for 78% of total equipment expenses ($92,587 of $118,427).",
-          "Business and Administration show consistent equipment spending patterns across multiple payments.",
-          "Payroll variances across departments are within 2-3% of budget except Health Sciences."
+          "Engineering's actual expenses ($734,196) exceeded budget ($622,200) by $111,996, driven by vendor payments for supplies and services.",
+          "Health Sciences' actual expenses ($658,959) exceeded budget ($566,100) by $92,859, with similar vendor payment patterns.",
+          "Payroll variance for Health Sciences was $87,255, significantly higher than other departments, indicating potential misalignment in staffing or compensation planning.",
+          "Student payment collections met targets with 100% paid status for Health Sciences in June 2026, suggesting no revenue shortfall."
         ],
         "root_causes": [
-          "Health Sciences payroll budget may be underestimated due to unaccounted overtime or benefits.",
-          "Equipment procurement may be concentrated in specific departments without proper budget reallocation.",
-          "Lack of cash flow analysis in the report prevents full risk assessment of payment timing."
+          "Unplanned vendor payments for supplies and services, particularly from Professional Services Network, contributed to overspending in both Engineering and Health Sciences.",
+          "Health Sciences' payroll variance of $87,255 may stem from unexpected overtime or benefits costs not aligned with budgeted FTE headcount.",
+          "Lack of real-time monitoring for vendor payment approvals may have allowed overspending to accumulate without early intervention."
         ],
-        "confidence": 0.82,
+        "confidence": 0.8,
         "analysis_status": "accepted"
       },
       "source_references": [
@@ -846,39 +846,39 @@
         "recommendations": [
           {
             "priority": "high",
-            "action": "Review Health Sciences payroll budget allocation with HR.",
-            "rationale": "Health Sciences payroll variance is 34% above budget, indicating potential budgeting error or unanticipated staffing needs.",
-            "supporting_evidence": "Health Sciences payroll variance: $87,255",
-            "expected_impact": "Reduce payroll variance by 30% in next reporting cycle.",
+            "action": "Implement real-time vendor payment approval workflows with budget thresholds.",
+            "rationale": "Current evidence shows repeated overspending through vendor payments without budget checks, risking further financial misalignment.",
+            "supporting_evidence": "Engineering and Health Sciences vendor payments exceeded budget by $111,996 and $92,859 respectively.",
+            "expected_impact": "Reduce vendor-related overspending by 50% within 6 months.",
             "confidence": 0.85
           },
           {
             "priority": "high",
-            "action": "Conduct equipment budget reallocation analysis between departments.",
-            "rationale": "Engineering and Health Sciences account for 78% of equipment expenses, suggesting possible misalignment with strategic priorities.",
-            "supporting_evidence": "Engineering and Health Sciences equipment expenses: $92,587",
-            "expected_impact": "Optimize equipment spending to align with departmental strategic goals.",
+            "action": "Conduct payroll budget vs. actual analysis for Health Sciences to identify FTE or compensation discrepancies.",
+            "rationale": "Health Sciences' payroll variance is significantly higher than other departments, indicating potential misalignment in staffing or compensation planning.",
+            "supporting_evidence": "Health Sciences payroll variance: $87,255 vs. Engineering's $4,928.",
+            "expected_impact": "Align payroll budget with actual FTE and compensation costs within 3 months.",
             "confidence": 0.8
           },
           {
             "priority": "medium",
-            "action": "Request cash flow analysis for June 2026 payments.",
-            "rationale": "Lack of cash flow analysis prevents assessment of payment timing risks and liquidity impact.",
-            "supporting_evidence": "No cash flow data in report",
-            "expected_impact": "Improve cash flow forecasting accuracy by 25%.",
+            "action": "Review and adjust budget thresholds for high-risk departments like Engineering and Health Sciences.",
+            "rationale": "Current budget thresholds do not account for historical overspending patterns in these departments.",
+            "supporting_evidence": "Engineering and Health Sciences consistently exceed budget in vendor payments and payroll.",
+            "expected_impact": "Reduce annual overspending by 20% through proactive budget adjustments.",
             "confidence": 0.7
           }
         ],
         "root_causes": [
-          "Health Sciences payroll budget may be underestimated due to unaccounted overtime or benefits.",
-          "Equipment procurement may be concentrated in specific departments without proper budget reallocation.",
-          "Lack of cash flow analysis in the report prevents full risk assessment of payment timing."
+          "Unplanned vendor payments for supplies and services, particularly from Professional Services Network, contributed to overspending in both Engineering and Health Sciences.",
+          "Health Sciences' payroll variance of $87,255 may stem from unexpected overtime or benefits costs not aligned with budgeted FTE headcount.",
+          "Lack of real-time monitoring for vendor payment approvals may have allowed overspending to accumulate without early intervention."
         ],
         "strategic_priorities": [
-          "Address Health Sciences payroll variance to prevent budget overrun.",
-          "Optimize equipment spending to align with strategic priorities."
+          "Prevent further overspending in Engineering and Health Sciences through vendor payment controls.",
+          "Align payroll budget with actual headcount and compensation costs for Health Sciences."
         ],
-        "reasoning_summary": "Health Sciences payroll variance is the most significant outlier, requiring immediate attention. Equipment spending concentration indicates potential budget misalignment. Cash flow analysis is missing, which is critical for risk assessment."
+        "reasoning_summary": "Evidence shows Engineering and Health Sciences overspending primarily through vendor payments and payroll variance. Recommendations focus on real-time controls, payroll analysis, and budget adjustments based on current data. Missing information includes detailed overtime/benefits breakdown and historical vendor trends."
       },
       "source_references": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
@@ -889,7 +889,9 @@
       "section_id": "missing_information",
       "title": "Missing Information",
       "content": {
-        "missing_information": [],
+        "missing_information": [
+          "Historical trend data for vendor payments to identify recurring patterns."
+        ],
         "evidence_warnings": [],
         "unavailable_evidence": []
       },

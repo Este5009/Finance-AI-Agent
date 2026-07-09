@@ -258,7 +258,17 @@ def _render_stage_results(st: Any, result: PipelineRunResult) -> None:
         for stage in result.stages
     ]
     st.subheader("Pipeline progress")
+    cache_label = "hit" if result.cache_hit else "miss"
+    st.info(f"Pipeline cache: {cache_label}")
     st.dataframe(rows, use_container_width=True, hide_index=True)
+    ollama_rows = [
+        row
+        for row in rows
+        if "Ollama" in row["Stage"] or row["Stage"] == "Strategic analysis"
+    ]
+    if ollama_rows:
+        st.subheader("Ollama stage runtimes")
+        st.dataframe(ollama_rows, use_container_width=True, hide_index=True)
 
 
 def _render_overview_tab(st: Any, report_model: dict[str, Any], result: PipelineRunResult) -> None:

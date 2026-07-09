@@ -28,12 +28,12 @@
         "Status"
       ],
       "inferred_data_types": {
-        "Metric": "str",
+        "Metric": "object",
         "Actual": "float64",
         "Goal_or_Budget": "float64",
         "Variance": "float64",
-        "Format": "str",
-        "Status": "str"
+        "Format": "object",
+        "Status": "object"
       },
       "sample_rows": [
         {
@@ -101,10 +101,10 @@
         "Variance_Pct"
       ],
       "inferred_data_types": {
-        "Period": "datetime64[us]",
-        "Month": "str",
-        "Department": "str",
-        "Revenue_Category": "str",
+        "Period": "datetime64[ns]",
+        "Month": "object",
+        "Department": "object",
+        "Revenue_Category": "object",
         "Budget_Revenue": "int64",
         "Actual_Revenue": "int64",
         "Variance": "int64",
@@ -188,10 +188,10 @@
         "Variance_Pct"
       ],
       "inferred_data_types": {
-        "Period": "datetime64[us]",
-        "Month": "str",
-        "Department": "str",
-        "Expense_Category": "str",
+        "Period": "datetime64[ns]",
+        "Month": "object",
+        "Department": "object",
+        "Expense_Category": "object",
         "Budget_Expense": "int64",
         "Actual_Expense": "int64",
         "Variance": "int64",
@@ -280,9 +280,9 @@
         "Net_Actual"
       ],
       "inferred_data_types": {
-        "Period": "datetime64[us]",
-        "Month": "str",
-        "Department": "str",
+        "Period": "datetime64[ns]",
+        "Month": "object",
+        "Department": "object",
         "Budget_Revenue": "int64",
         "Actual_Revenue": "int64",
         "Budget_Expense": "int64",
@@ -388,7 +388,7 @@
         "Status"
       ],
       "inferred_data_types": {
-        "Department": "str",
+        "Department": "object",
         "Budget_Revenue": "int64",
         "Actual_Revenue": "int64",
         "Budget_Expense": "int64",
@@ -396,7 +396,7 @@
         "Net_Contribution": "int64",
         "Expense_Variance": "int64",
         "Expense_Variance_Pct": "float64",
-        "Status": "str"
+        "Status": "object"
       },
       "sample_rows": [
         {
@@ -474,9 +474,9 @@
         "Variance_Pct"
       ],
       "inferred_data_types": {
-        "Period": "datetime64[us]",
-        "Month": "str",
-        "Department": "str",
+        "Period": "datetime64[ns]",
+        "Month": "object",
+        "Department": "object",
         "Headcount_FTE": "int64",
         "Base_Salary": "int64",
         "Benefits": "int64",
@@ -572,16 +572,16 @@
         "Days_Overdue"
       ],
       "inferred_data_types": {
-        "Invoice_ID": "str",
-        "Student_ID": "str",
-        "Department": "str",
-        "Billing_Period": "datetime64[us]",
-        "Due_Date": "datetime64[us]",
-        "Payment_Date": "datetime64[us]",
+        "Invoice_ID": "object",
+        "Student_ID": "object",
+        "Department": "object",
+        "Billing_Period": "datetime64[ns]",
+        "Due_Date": "datetime64[ns]",
+        "Payment_Date": "datetime64[ns]",
         "Amount_Due": "int64",
         "Amount_Paid": "int64",
         "Outstanding": "int64",
-        "Status": "str",
+        "Status": "object",
         "Days_Overdue": "int64"
       },
       "sample_rows": [
@@ -688,8 +688,8 @@
         "Ending_Cash_Variance"
       ],
       "inferred_data_types": {
-        "Period": "datetime64[us]",
-        "Month": "str",
+        "Period": "datetime64[ns]",
+        "Month": "object",
         "Beginning_Cash": "int64",
         "Budget_Cash_Inflows": "int64",
         "Actual_Cash_Inflows": "int64",
@@ -760,10 +760,10 @@
         "Utilization_Pct"
       ],
       "inferred_data_types": {
-        "Period": "datetime64[us]",
-        "Month": "str",
-        "Department": "str",
-        "Scholarship_Type": "str",
+        "Period": "datetime64[ns]",
+        "Month": "object",
+        "Department": "object",
+        "Scholarship_Type": "object",
         "Allocated": "int64",
         "Awarded": "int64",
         "Remaining": "int64",
@@ -858,18 +858,18 @@
         "High_Value_Flag"
       ],
       "inferred_data_types": {
-        "Payment_ID": "str",
-        "Payment_Date": "datetime64[us]",
-        "Month": "str",
-        "Department": "str",
-        "Vendor": "str",
-        "Invoice_Number": "str",
-        "Expense_Category": "str",
+        "Payment_ID": "object",
+        "Payment_Date": "datetime64[ns]",
+        "Month": "object",
+        "Department": "object",
+        "Vendor": "object",
+        "Invoice_Number": "object",
+        "Expense_Category": "object",
         "Amount": "int64",
-        "Payment_Method": "str",
-        "Approval_Status": "str",
-        "Potential_Duplicate": "str",
-        "High_Value_Flag": "str"
+        "Payment_Method": "object",
+        "Approval_Status": "object",
+        "Potential_Duplicate": "object",
+        "High_Value_Flag": "object"
       },
       "sample_rows": [
         {
@@ -974,15 +974,15 @@
         "Source_Sheet"
       ],
       "inferred_data_types": {
-        "Anomaly_ID": "str",
-        "Detected_Period": "datetime64[us]",
-        "Department": "str",
-        "Anomaly_Type": "str",
-        "Severity": "str",
-        "Description": "str",
+        "Anomaly_ID": "object",
+        "Detected_Period": "datetime64[ns]",
+        "Department": "object",
+        "Anomaly_Type": "object",
+        "Severity": "object",
+        "Description": "object",
         "Observed_Value": "float64",
         "Threshold": "float64",
-        "Source_Sheet": "str"
+        "Source_Sheet": "object"
       },
       "sample_rows": [
         {

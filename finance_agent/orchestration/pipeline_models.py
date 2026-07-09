@@ -179,6 +179,10 @@ class PipelineConfig:
     ollama_timeout_seconds: float = 180.0
     stage_timeout_seconds: float = 420.0
     input_model: PipelineInputModel | None = None
+    structure_fallback_table_threshold: float = 0.75
+    structure_fallback_column_threshold: float = 0.70
+    enable_cache: bool = True
+    allow_draft_report: bool = False
 
     @classmethod
     def from_project_root(
@@ -191,6 +195,10 @@ class PipelineConfig:
         ollama_timeout_seconds: float = 180.0,
         stage_timeout_seconds: float = 420.0,
         input_model: PipelineInputModel | None = None,
+        structure_fallback_table_threshold: float = 0.75,
+        structure_fallback_column_threshold: float = 0.70,
+        enable_cache: bool = True,
+        allow_draft_report: bool = False,
     ) -> "PipelineConfig":
         """Build a default configuration from the repository root.
 
@@ -214,6 +222,10 @@ class PipelineConfig:
             ollama_timeout_seconds=ollama_timeout_seconds,
             stage_timeout_seconds=stage_timeout_seconds,
             input_model=input_model,
+            structure_fallback_table_threshold=structure_fallback_table_threshold,
+            structure_fallback_column_threshold=structure_fallback_column_threshold,
+            enable_cache=enable_cache,
+            allow_draft_report=allow_draft_report,
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -320,6 +332,8 @@ class PipelineRunResult:
     warnings: tuple[str, ...]
     runtime_summary: RuntimeSummary
     config: PipelineConfig = field(repr=False)
+    cache_hit: bool = False
+    cache_key: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize the pipeline result.
@@ -336,4 +350,6 @@ class PipelineRunResult:
             "warnings": list(self.warnings),
             "runtime_summary": self.runtime_summary.to_dict(),
             "config": self.config.to_dict(),
+            "cache_hit": self.cache_hit,
+            "cache_key": self.cache_key,
         }

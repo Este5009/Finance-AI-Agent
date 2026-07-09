@@ -398,19 +398,49 @@ def _base_enrichment(table: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def preserve_deterministic_enrichment(model: dict[str, Any]) -> dict[str, Any]:
+    """Add final deterministic structure fields without calling an LLM.
+
+    Inputs: serialized intermediate model.
+    Outputs: enriched copy with deterministic final mappings and no LLM review.
+    Assumptions: caller already verified no low-confidence structure needs review.
+    """
+
+    enriched = copy.deepcopy(model)
+    for table in enriched.get("tables", []):
+        table.update(_base_enrichment(table))
+    enriched["enrichment"] = {
+        "stage": "ollama_structure_fallback",
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "ollama_available": None,
+        "items_detected": 0,
+        "acceptance_threshold": LLM_ACCEPTANCE_THRESHOLD,
+        "deterministic_fields_preserved": True,
+        "skipped_reason": "deterministic_structure_high_confidence",
+    }
+    return enriched
+
+
 def enrich_intermediate_model(
     model: dict[str, Any],
     interpreter: StructureInterpreter,
+    *,
+    table_threshold: float = TABLE_CONFIDENCE_THRESHOLD,
+    column_threshold: float = COLUMN_CONFIDENCE_THRESHOLD,
 ) -> tuple[dict[str, Any], FallbackSummary]:
     """Apply validated Ollama suggestions only to low-confidence structure.
 
-    Inputs: serialized model and available interpreter/client implementation.
+    Inputs: serialized model, interpreter/client, and confidence thresholds.
     Outputs: enriched deep copy and execution summary.
     Assumptions: the original model object and deterministic fields remain unchanged.
     """
 
     enriched = copy.deepcopy(model)
-    items = detect_low_confidence_items(enriched)
+    items = detect_low_confidence_items(
+        enriched,
+        table_threshold=table_threshold,
+        column_threshold=column_threshold,
+    )
     items_by_id = {item.table_id: item for item in items}
     available = interpreter.is_available()
     accepted = 0

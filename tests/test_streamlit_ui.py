@@ -170,3 +170,68 @@ def test_period_override_auto_returns_none() -> None:
 
     assert streamlit_app._period_override_from_selection("Auto", "2026-06") is None
     assert streamlit_app._period_override_from_selection("Monthly", "2026-06") == "2026-06"
+
+
+def test_ui_stage_results_display_cache_and_skipped_status() -> None:
+    """Verify stage rendering exposes cache state and skipped statuses."""
+
+    class FakeStreamlit:
+        """Capture calls made by the stage renderer."""
+
+        def __init__(self) -> None:
+            """Initialize capture lists."""
+
+            self.info_messages: list[str] = []
+            self.tables: list[list[dict[str, object]]] = []
+
+        def subheader(self, _text: str) -> None:
+            """Accept subheader calls without rendering."""
+
+        def info(self, text: str) -> None:
+            """Capture informational messages."""
+
+            self.info_messages.append(text)
+
+        def dataframe(self, rows: list[dict[str, object]], **_kwargs: object) -> None:
+            """Capture dataframe rows."""
+
+            self.tables.append(rows)
+
+    config = PipelineConfig.from_project_root(
+        Path("."),
+        python_executable="python",
+    )
+    result = PipelineRunResult(
+        success=True,
+        stages=(
+            PipelineStageResult(
+                stage_name="ollama_structure_fallback",
+                display_name="Ollama structure fallback",
+                critical=False,
+                success=True,
+                skipped=True,
+                output_files=(),
+                warnings=("Skipped; deterministic structure was high-confidence.",),
+                error=None,
+                runtime_seconds=0.01,
+            ),
+        ),
+        output_files=(),
+        warnings=(),
+        runtime_summary=RuntimeSummary(
+            total_runtime_seconds=0.01,
+            stages_requested=1,
+            stages_run=0,
+            stages_succeeded=0,
+            stages_failed=0,
+            stages_skipped=1,
+        ),
+        config=config,
+        cache_hit=True,
+    )
+    fake_st = FakeStreamlit()
+
+    streamlit_app._render_stage_results(fake_st, result)
+
+    assert fake_st.info_messages == ["Pipeline cache: hit"]
+    assert fake_st.tables[0][0]["Status"] == "Skipped"

@@ -3,12 +3,26 @@
 from __future__ import annotations
 
 import sys
+import json
 from pathlib import Path
 from typing import Any
 
-from finance_agent.orchestration.pipeline_models import PipelineConfig, PipelineStageResult
+from reportlab.pdfgen import canvas
+
+from finance_agent.orchestration.pipeline_models import (
+    DetectedPeriod,
+    PipelineConfig,
+    PipelineInputModel,
+    PipelineRunResult,
+    PipelineStageResult,
+    RuntimeSummary,
+)
 from finance_agent.orchestration.pipeline_orchestrator import (
     PipelineStage,
+    _cache_manifest_path,
+    _load_valid_cache,
+    _pipeline_cache_key,
+    _structure_fallback_needed,
     build_default_stages,
     run_full_pipeline,
 )
@@ -28,6 +42,109 @@ def _config(project_root: Path) -> PipelineConfig:
         ollama_endpoint="http://localhost:9",
         ollama_timeout_seconds=1.0,
         stage_timeout_seconds=5.0,
+    )
+
+
+def _input_model(tmp_path: Path) -> PipelineInputModel:
+    """Build an execution-ready generic input fixture.
+
+    Inputs: temporary directory.
+    Outputs: PipelineInputModel with existing report and goals paths.
+    Assumptions: file contents are enough for cache-key tests.
+    """
+
+    report = tmp_path / "monthly_financial_report_june_2026.xlsx"
+    goals = tmp_path / "financial_goals_2026.pdf"
+    report.write_bytes(b"report")
+    goals.write_bytes(b"goals")
+    return PipelineInputModel(
+        financial_report_path=report,
+        goals_document_path=goals,
+        detected_period=DetectedPeriod(
+            period_type="monthly",
+            label="2026-06",
+            confidence=0.9,
+            year=2026,
+            month=6,
+        ),
+        period_type="monthly",
+        period_override="2026-06",
+        report_language="es",
+    )
+
+
+def _valid_report_artifacts(config: PipelineConfig, period_slug: str) -> None:
+    """Write minimal strategy-backed report/cache artifacts.
+
+    Inputs: config and period slug.
+    Outputs: valid report model, HTML, PDF, analysis, and cache manifest.
+    Assumptions: cache tests validate orchestration metadata, not renderer layout.
+    """
+
+    report_dir = config.output_directory / "report"
+    analysis_dir = config.output_directory / "analysis"
+    report_dir.mkdir(parents=True, exist_ok=True)
+    analysis_dir.mkdir(parents=True, exist_ok=True)
+    sections = [
+        {
+            "section_id": section_id,
+            "title": section_id,
+            "content": {},
+            "source_references": [],
+            "warnings": [],
+        }
+        for section_id in (
+            "cover",
+            "executive_summary",
+            "financial_health_overview",
+            "kpi_overview",
+            "revenue_analysis",
+            "expense_analysis",
+            "department_analysis",
+            "anomaly_summary",
+            "investigation_evidence",
+            "strategic_recommendations",
+            "missing_information",
+            "appendix",
+        )
+    ]
+    for section in sections:
+        if section["section_id"] == "executive_summary":
+            section["content"] = {
+                "analysis_status": "accepted",
+                "summary": "Accepted strategy summary.",
+            }
+        if section["section_id"] == "strategic_recommendations":
+            section["content"] = {
+                "recommendations": [{"action": "Act."}],
+                "root_causes": [],
+                "strategic_priorities": [],
+            }
+    model = {
+        "report_id": "REPORT-MODEL-TEST",
+        "period_slug": period_slug,
+        "report_period": "2026-06",
+        "generated_at_utc": "2026-07-09T00:00:00+00:00",
+        "language": "es",
+        "section_count": len(sections),
+        "sections": sections,
+        "source_references": [],
+    }
+    (report_dir / f"report_model_{period_slug}.json").write_text(
+        json.dumps(model),
+        encoding="utf-8",
+    )
+    (report_dir / f"financial_report_{period_slug}.html").write_text(
+        "<html>Accepted strategy summary.</html>",
+        encoding="utf-8",
+    )
+    pdf_path = report_dir / f"financial_report_{period_slug}.pdf"
+    pdf = canvas.Canvas(str(pdf_path))
+    pdf.drawString(72, 720, "Accepted strategy summary.")
+    pdf.save()
+    (analysis_dir / f"strategic_analysis_{period_slug}.json").write_text(
+        json.dumps({"validation_status": "accepted"}),
+        encoding="utf-8",
     )
 
 
@@ -171,6 +288,157 @@ def test_output_summary_structure(tmp_path: Path) -> None:
         "warnings",
         "runtime_summary",
         "config",
+        "cache_hit",
+        "cache_key",
     }
     assert data["runtime_summary"]["stages_run"] == 8
     assert data["stages"][0]["stage_name"] == "ingestion"
+
+
+def test_structure_fallback_skipped_when_confidence_high(tmp_path: Path) -> None:
+    """Verify high-confidence deterministic structure does not need Ollama."""
+
+    model = {
+        "tables": [
+            {
+                "table_id": "revenue",
+                "detected_type": "Revenue",
+                "confidence": 0.95,
+                "column_mappings": [
+                    {"original_name": "Revenue", "confidence": 0.99},
+                ],
+                "normalized_columns": ["actual_revenue"],
+                "extracted_dimensions": [{"confidence": 0.9}],
+                "extracted_metrics": [{"confidence": 0.9}],
+            }
+        ]
+    }
+
+    assert _structure_fallback_needed(model, _config(tmp_path)) is False
+
+
+def test_structure_fallback_runs_when_uncertainty_exists(tmp_path: Path) -> None:
+    """Verify Unknown or low-confidence structure still triggers Ollama fallback."""
+
+    model = {
+        "tables": [
+            {
+                "table_id": "unknown",
+                "detected_type": "Unknown",
+                "confidence": 0.2,
+                "column_mappings": [
+                    {"original_name": "Mystery", "confidence": 0.2},
+                ],
+                "normalized_columns": [],
+                "extracted_dimensions": [],
+                "extracted_metrics": [],
+            }
+        ]
+    }
+
+    assert _structure_fallback_needed(model, _config(tmp_path)) is True
+
+
+def test_cache_hit_reuses_valid_outputs(tmp_path: Path) -> None:
+    """Verify a valid cache manifest returns a skipped cache-hit result."""
+
+    config = _config(tmp_path)
+    input_model = _input_model(tmp_path)
+    period_slug = "2026_06"
+    _valid_report_artifacts(config, period_slug)
+    cache_key = _pipeline_cache_key(input_model, config)
+    manifest = _cache_manifest_path(config, cache_key)
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(
+        json.dumps({"cache_key": cache_key, "period_slug": period_slug}),
+        encoding="utf-8",
+    )
+
+    result = _load_valid_cache(
+        input_model=input_model,
+        config=config,
+        period_slug=period_slug,
+        cache_key=cache_key,
+        pipeline_started=0.0,
+    )
+
+    assert result is not None
+    assert result.cache_hit is True
+    assert result.stages[0].skipped is True
+
+
+def test_cache_invalid_if_strategy_unavailable(tmp_path: Path) -> None:
+    """Verify cache is not reused when strategic analysis was not accepted."""
+
+    config = _config(tmp_path)
+    input_model = _input_model(tmp_path)
+    period_slug = "2026_06"
+    _valid_report_artifacts(config, period_slug)
+    analysis_path = config.output_directory / "analysis" / f"strategic_analysis_{period_slug}.json"
+    analysis_path.write_text(
+        json.dumps({"validation_status": "unavailable"}),
+        encoding="utf-8",
+    )
+    cache_key = _pipeline_cache_key(input_model, config)
+    manifest = _cache_manifest_path(config, cache_key)
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(
+        json.dumps({"cache_key": cache_key, "period_slug": period_slug}),
+        encoding="utf-8",
+    )
+
+    result = _load_valid_cache(
+        input_model=input_model,
+        config=config,
+        period_slug=period_slug,
+        cache_key=cache_key,
+        pipeline_started=0.0,
+    )
+
+    assert result is None
+
+
+def test_timeout_style_unavailable_strategy_skips_final_report() -> None:
+    """Verify rejected strategy behavior is represented as a skipped report stage."""
+
+    result = PipelineRunResult(
+        success=True,
+        stages=(
+            PipelineStageResult(
+                stage_name="strategic_analysis",
+                display_name="Strategic analysis",
+                critical=False,
+                success=True,
+                skipped=False,
+                output_files=(),
+                warnings=("Could not reach Ollama before timeout.",),
+                error=None,
+                runtime_seconds=1.0,
+            ),
+            PipelineStageResult(
+                stage_name="report_generation",
+                display_name="Report model and renderers",
+                critical=False,
+                success=True,
+                skipped=True,
+                output_files=(),
+                warnings=("Skipped final report rendering because strategic analysis was unavailable.",),
+                error=None,
+                runtime_seconds=0.0,
+            ),
+        ),
+        output_files=(),
+        warnings=("Could not reach Ollama before timeout.",),
+        runtime_summary=RuntimeSummary(
+            total_runtime_seconds=1.0,
+            stages_requested=2,
+            stages_run=1,
+            stages_succeeded=1,
+            stages_failed=0,
+            stages_skipped=1,
+        ),
+        config=_config(Path(".")),
+    )
+
+    assert result.stages[-1].skipped is True
+    assert "strategic analysis was unavailable" in result.stages[-1].warnings[0]

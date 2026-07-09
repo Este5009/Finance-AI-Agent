@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import subprocess
 import time
 from collections.abc import Callable
@@ -47,6 +48,7 @@ from finance_agent.orchestration.pipeline_models import (
     RuntimeSummary,
 )
 from finance_agent.reporting.report_engine import ReportInputBundle, build_report_model, save_report_model
+from finance_agent.reporting.report_quality import validate_report_artifacts
 from finance_agent.reporting.renderers import render_report_pdf, save_report_html
 from finance_agent.retrieval.retrieval_engine import (
     RetrievalContext,
@@ -55,7 +57,12 @@ from finance_agent.retrieval.retrieval_engine import (
     save_json_artifact as save_retrieval_json_artifact,
 )
 from finance_agent.understanding.intermediate import build_financial_document_model, save_intermediate_outputs
-from finance_agent.understanding.structure_fallback import enrich_intermediate_model, save_enriched_model
+from finance_agent.understanding.structure_fallback import (
+    detect_low_confidence_items,
+    enrich_intermediate_model,
+    preserve_deterministic_enrichment,
+    save_enriched_model,
+)
 
 
 StageExecutor = Callable[["PipelineStage", PipelineConfig], PipelineStageResult]
@@ -387,6 +394,233 @@ def _stage_result(
     )
 
 
+def _skipped_object_stage_result(
+    *,
+    name: str,
+    display: str,
+    critical: bool,
+    started: float,
+    outputs: tuple[Path, ...] = (),
+    warnings: tuple[str, ...] = (),
+) -> PipelineStageResult:
+    """Create a successful skipped result for object-pipeline optimizations.
+
+    Inputs: stage metadata, start time, outputs, and explanatory warnings.
+    Outputs: PipelineStageResult marked skipped and successful.
+    Assumptions: skipped optimization stages preserve valid downstream artifacts.
+    """
+
+    return PipelineStageResult(
+        stage_name=name,
+        display_name=display,
+        critical=critical,
+        success=True,
+        skipped=True,
+        output_files=tuple(str(path) for path in outputs if path.exists()),
+        warnings=warnings,
+        error=None,
+        runtime_seconds=time.perf_counter() - started,
+        return_code=0,
+    )
+
+
+def _hash_file(path: Path) -> str:
+    """Hash one input file in chunks for cache identity.
+
+    Inputs: file path.
+    Outputs: SHA-256 hex digest.
+    Assumptions: cache keys must be content-based, not mtime-based.
+    """
+
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _pipeline_cache_key(input_model: PipelineInputModel, config: PipelineConfig) -> str:
+    """Build a stable cache key from inputs and model/runtime settings.
+
+    Inputs: generic input model and pipeline config.
+    Outputs: SHA-256 cache key.
+    Assumptions: identical file contents plus settings can reuse validated outputs.
+    """
+
+    payload = {
+        "financial_report_sha256": _hash_file(input_model.financial_report_path),
+        "goals_document_sha256": _hash_file(input_model.goals_document_path),
+        "period_override": input_model.period_override,
+        "effective_period_label": input_model.effective_period_label,
+        "report_language": input_model.report_language,
+        "ollama_endpoint": config.ollama_endpoint,
+        "ollama_model": config.ollama_model,
+        "structure_thresholds": {
+            "table": config.structure_fallback_table_threshold,
+            "column": config.structure_fallback_column_threshold,
+        },
+    }
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+
+
+def _cache_manifest_path(config: PipelineConfig, cache_key: str) -> Path:
+    """Return the manifest path for one pipeline cache key.
+
+    Inputs: pipeline config and cache key.
+    Outputs: path under outputs/cache.
+    Assumptions: cache metadata lives with reproducibility artifacts.
+    """
+
+    return config.output_directory / "cache" / f"{cache_key}.json"
+
+
+def _expected_current_artifacts(config: PipelineConfig, period_slug: str) -> dict[str, Path]:
+    """Return quality-critical artifacts expected for one period slug.
+
+    Inputs: pipeline config and period slug.
+    Outputs: named artifact paths.
+    Assumptions: current generic output filenames are period-slugged.
+    """
+
+    outputs = config.output_directory
+    return {
+        "report_model": outputs / "report" / f"report_model_{period_slug}.json",
+        "html": outputs / "report" / f"financial_report_{period_slug}.html",
+        "pdf": outputs / "report" / f"financial_report_{period_slug}.pdf",
+        "strategic_analysis": outputs / "analysis" / f"strategic_analysis_{period_slug}.json",
+    }
+
+
+def _structure_fallback_needed(
+    model: dict[str, Any],
+    config: PipelineConfig,
+) -> bool:
+    """Return whether structure fallback should call Ollama for this model.
+
+    Inputs: intermediate model and pipeline config thresholds.
+    Outputs: True when low-confidence tables/columns need LLM interpretation.
+    Assumptions: no low-confidence items means deterministic structure is sufficient.
+    """
+
+    return bool(
+        detect_low_confidence_items(
+            model,
+            table_threshold=config.structure_fallback_table_threshold,
+            column_threshold=config.structure_fallback_column_threshold,
+        )
+    )
+
+
+def _load_valid_cache(
+    *,
+    input_model: PipelineInputModel,
+    config: PipelineConfig,
+    period_slug: str,
+    cache_key: str,
+    pipeline_started: float,
+) -> PipelineRunResult | None:
+    """Return a cache-hit result when previous outputs are valid and current.
+
+    Inputs: input/config, period slug, cache key, and run start time.
+    Outputs: PipelineRunResult or None for cache miss.
+    Assumptions: cached outputs are reusable only if report quality still passes.
+    """
+
+    del input_model  # The cache key already embeds the execution-relevant input fields.
+    manifest_path = _cache_manifest_path(config, cache_key)
+    artifacts = _expected_current_artifacts(config, period_slug)
+    if not manifest_path.is_file() or not all(path.is_file() for path in artifacts.values()):
+        return None
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        analysis = json.loads(artifacts["strategic_analysis"].read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if manifest.get("cache_key") != cache_key:
+        return None
+    if analysis.get("validation_status") != "accepted":
+        return None
+    quality = validate_report_artifacts(
+        artifacts["report_model"],
+        html_path=artifacts["html"],
+        pdf_path=artifacts["pdf"],
+    )
+    if not quality.is_valid:
+        return None
+    stage = _skipped_object_stage_result(
+        name="pipeline_cache",
+        display="Pipeline cache",
+        critical=False,
+        started=pipeline_started,
+        outputs=tuple(artifacts.values()),
+        warnings=("Cache hit; reused validated artifacts.",),
+    )
+    return PipelineRunResult(
+        success=True,
+        stages=(stage,),
+        output_files=tuple(str(path) for path in artifacts.values()),
+        warnings=stage.warnings,
+        runtime_summary=RuntimeSummary(
+            total_runtime_seconds=time.perf_counter() - pipeline_started,
+            stages_requested=1,
+            stages_run=0,
+            stages_succeeded=0,
+            stages_failed=0,
+            stages_skipped=1,
+        ),
+        config=config,
+        cache_hit=True,
+        cache_key=cache_key,
+    )
+
+
+def _write_cache_manifest(
+    *,
+    result: PipelineRunResult,
+    cache_key: str,
+    period_slug: str,
+) -> None:
+    """Persist a cache manifest for a successful quality-backed run.
+
+    Inputs: completed result, cache key, and period slug.
+    Outputs: manifest JSON written under outputs/cache.
+    Assumptions: invalid strategy/report outputs must not be cached.
+    """
+
+    artifacts = _expected_current_artifacts(result.config, period_slug)
+    if not result.success or not all(path.is_file() for path in artifacts.values()):
+        return
+    try:
+        analysis = json.loads(artifacts["strategic_analysis"].read_text(encoding="utf-8"))
+        quality = validate_report_artifacts(
+            artifacts["report_model"],
+            html_path=artifacts["html"],
+            pdf_path=artifacts["pdf"],
+        )
+    except (OSError, json.JSONDecodeError, ValueError):
+        return
+    if analysis.get("validation_status") != "accepted" or not quality.is_valid:
+        return
+    manifest_path = _cache_manifest_path(result.config, cache_key)
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "cache_key": cache_key,
+                "period_slug": period_slug,
+                "output_files": list(result.output_files),
+                "cached_at_epoch": time.time(),
+            },
+            indent=2,
+            ensure_ascii=False,
+            allow_nan=False,
+        ),
+        encoding="utf-8",
+    )
+
+
 def _safe_period_slug(input_model: PipelineInputModel) -> str:
     """Build a filename-safe slug for one generic report run.
 
@@ -545,6 +779,7 @@ def _finalize_pipeline_result(
     config: PipelineConfig,
     stages: list[PipelineStageResult],
     started: float,
+    cache_key: str | None = None,
 ) -> PipelineRunResult:
     """Build the final structured result for object-based execution.
 
@@ -570,6 +805,8 @@ def _finalize_pipeline_result(
         warnings=warnings,
         runtime_summary=runtime,
         config=config,
+        cache_hit=False,
+        cache_key=cache_key,
     )
 
 
@@ -713,6 +950,17 @@ def run_object_pipeline_for_report(
     stages: list[PipelineStageResult] = []
     outputs = config.output_directory
     period_slug = _safe_period_slug(input_model)
+    cache_key = _pipeline_cache_key(input_model, config) if config.enable_cache else None
+    if cache_key:
+        cached_result = _load_valid_cache(
+            input_model=input_model,
+            config=config,
+            period_slug=period_slug,
+            cache_key=cache_key,
+            pipeline_started=pipeline_started,
+        )
+        if cached_result is not None:
+            return cached_result
     report_label = input_model.effective_period_label
     report_prefix = clean_column_name(input_model.financial_report_path.stem)
     source_workbook = str(input_model.financial_report_path.resolve())
@@ -762,21 +1010,48 @@ def run_object_pipeline_for_report(
         )
 
         started = time.perf_counter()
-        enriched_model, fallback_summary = enrich_intermediate_model(model.to_dict(), client)
+        if _structure_fallback_needed(model.to_dict(), config):
+            enriched_model, fallback_summary = enrich_intermediate_model(
+                model.to_dict(),
+                client,
+                table_threshold=config.structure_fallback_table_threshold,
+                column_threshold=config.structure_fallback_column_threshold,
+            )
+            skipped_structure_fallback = False
+        else:
+            enriched_model = preserve_deterministic_enrichment(model.to_dict())
+            fallback_summary = None
+            skipped_structure_fallback = True
         enriched_path = save_enriched_model(
             enriched_model,
             intermediate_dir / "financial_document_model_enriched.json",
         )
-        stages.append(
-            _stage_result(
-                name="ollama_structure_fallback",
-                display="Ollama structure fallback",
-                critical=False,
-                started=started,
-                outputs=(enriched_path,),
-                warnings=() if fallback_summary.ollama_available else ("Ollama unavailable; deterministic structure was preserved.",),
+        if skipped_structure_fallback:
+            stages.append(
+                _skipped_object_stage_result(
+                    name="ollama_structure_fallback",
+                    display="Ollama structure fallback",
+                    critical=False,
+                    started=started,
+                    outputs=(enriched_path,),
+                    warnings=("Skipped; deterministic structure was high-confidence.",),
+                )
             )
-        )
+        else:
+            stages.append(
+                _stage_result(
+                    name="ollama_structure_fallback",
+                    display="Ollama structure fallback",
+                    critical=False,
+                    started=started,
+                    outputs=(enriched_path,),
+                    warnings=(
+                        ()
+                        if fallback_summary and fallback_summary.ollama_available
+                        else ("Ollama unavailable; deterministic structure was preserved.",)
+                    ),
+                )
+            )
 
         started = time.perf_counter()
         scope, monthly_trend_year = _period_scope_from_detected(
@@ -943,49 +1218,63 @@ def run_object_pipeline_for_report(
         )
 
         started = time.perf_counter()
-        report_inputs = ReportInputBundle(
-            period_slug=period_slug,
-            finance_summary=finance_document,
-            kpi_summary=tuple(json.loads(calculation.kpi_summary.to_json(orient="records"))),
-            anomaly_report=anomaly_document,
-            evidence_package=evidence_package,
-            strategic_analysis=analysis_result.analysis_document,
-            source_files=(
-                str(calculation_paths["finance_summary"]),
-                str(calculation_paths["kpi_summary"]),
-                str(anomaly_paths["json"]),
-                str(evidence_path),
-                str(analysis_path),
-            ),
-        )
-        report_model = build_report_model(report_inputs)
         report_dir = outputs / "report"
-        report_model_path = save_report_model(
-            report_model,
-            report_dir / f"report_model_{period_slug}.json",
-        )
-        html_path = save_report_html(
-            report_model.to_dict(),
-            report_dir / f"financial_report_{period_slug}.html",
-        )
-        pdf_path = render_report_pdf(
-            report_model.to_dict(),
-            report_dir / f"financial_report_{period_slug}.pdf",
-        )
-        stages.append(
-            _stage_result(
-                name="report_generation",
-                display="Report model and renderers",
-                critical=False,
-                started=started,
-                outputs=(report_model_path, html_path, pdf_path),
-                warnings=(
-                    ("Strategic analysis was unavailable; report rendered as draft.",)
-                    if not analysis_result.accepted
-                    else ()
+        if not analysis_result.accepted and not config.allow_draft_report:
+            stages.append(
+                _skipped_object_stage_result(
+                    name="report_generation",
+                    display="Report model and renderers",
+                    critical=False,
+                    started=started,
+                    warnings=(
+                        "Skipped final report rendering because strategic analysis "
+                        "was unavailable and draft reports are disabled.",
+                    ),
+                )
+            )
+        else:
+            report_inputs = ReportInputBundle(
+                period_slug=period_slug,
+                finance_summary=finance_document,
+                kpi_summary=tuple(json.loads(calculation.kpi_summary.to_json(orient="records"))),
+                anomaly_report=anomaly_document,
+                evidence_package=evidence_package,
+                strategic_analysis=analysis_result.analysis_document,
+                source_files=(
+                    str(calculation_paths["finance_summary"]),
+                    str(calculation_paths["kpi_summary"]),
+                    str(anomaly_paths["json"]),
+                    str(evidence_path),
+                    str(analysis_path),
                 ),
             )
-        )
+            report_model = build_report_model(report_inputs)
+            report_model_path = save_report_model(
+                report_model,
+                report_dir / f"report_model_{period_slug}.json",
+            )
+            html_path = save_report_html(
+                report_model.to_dict(),
+                report_dir / f"financial_report_{period_slug}.html",
+            )
+            pdf_path = render_report_pdf(
+                report_model.to_dict(),
+                report_dir / f"financial_report_{period_slug}.pdf",
+            )
+            stages.append(
+                _stage_result(
+                    name="report_generation",
+                    display="Report model and renderers",
+                    critical=False,
+                    started=started,
+                    outputs=(report_model_path, html_path, pdf_path),
+                    warnings=(
+                        ("Strategic analysis was unavailable; report rendered as draft.",)
+                        if not analysis_result.accepted
+                        else ()
+                    ),
+                )
+            )
     except Exception as exc:  # noqa: BLE001 - produce structured failure for UI.
         stages.append(
             _stage_result(
@@ -998,8 +1287,16 @@ def run_object_pipeline_for_report(
             )
         )
 
-    return _finalize_pipeline_result(
+    result = _finalize_pipeline_result(
         config=config,
         stages=stages,
         started=pipeline_started,
+        cache_key=cache_key,
     )
+    if cache_key:
+        _write_cache_manifest(
+            result=result,
+            cache_key=cache_key,
+            period_slug=period_slug,
+        )
+    return result

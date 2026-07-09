@@ -95,7 +95,7 @@ def _compact_finance_summary(finance_document: dict[str, Any]) -> dict[str, Any]
                 "unit": item.get("unit"),
                 "availability": item.get("availability"),
             }
-            for item in finance_document.get("kpi_summary", [])[:20]
+            for item in finance_document.get("kpi_summary", [])[:8]
             if isinstance(item, dict)
         ],
         "calculation_warnings": [
@@ -127,7 +127,7 @@ def _compact_anomaly_report(anomaly_report: dict[str, Any]) -> dict[str, Any]:
                 "threshold_value": anomaly.get("threshold_value"),
                 "severity": anomaly.get("severity"),
                 "period": anomaly.get("period"),
-                "evidence": str(anomaly.get("evidence", ""))[:260],
+                "evidence": str(anomaly.get("evidence", ""))[:160],
                 "rule_id": anomaly.get("rule_id"),
             }
             for anomaly in anomaly_report.get("anomalies", [])[:MAX_PLAN_STEPS]
@@ -156,7 +156,7 @@ def _compact_risk_summary(risk_summary: dict[str, Any]) -> dict[str, Any]:
                 "period": risk.get("period"),
                 "metric": risk.get("metric"),
             }
-            for risk in risk_summary.get("top_risks", [])[:10]
+            for risk in risk_summary.get("top_risks", [])[:6]
             if isinstance(risk, dict)
         ],
     }

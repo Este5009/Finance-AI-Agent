@@ -435,7 +435,7 @@ def _compact_anomalies(anomaly_report: dict[str, Any]) -> dict[str, Any]:
                 "threshold_value": item.get("threshold_value"),
                 "evidence": str(item.get("evidence", ""))[:220],
             }
-            for item in anomaly_report.get("anomalies", [])[:12]
+            for item in anomaly_report.get("anomalies", [])[:8]
             if isinstance(item, dict)
         ],
     }
@@ -453,7 +453,7 @@ def _compact_risk_summary(risk_summary: dict[str, Any]) -> dict[str, Any]:
         "total_anomalies": risk_summary.get("total_anomalies"),
         "high_priority_count": risk_summary.get("high_priority_count"),
         "anomalies_by_severity": risk_summary.get("anomalies_by_severity", {}),
-        "top_risks": risk_summary.get("top_risks", [])[:10],
+        "top_risks": risk_summary.get("top_risks", [])[:6],
         "thresholds": risk_summary.get("thresholds", {}),
     }
 
@@ -467,7 +467,7 @@ def _compact_evidence_package(evidence_package: dict[str, Any]) -> dict[str, Any
     """
 
     compact_items: list[dict[str, Any]] = []
-    for package in evidence_package.get("evidence_packages", [])[:12]:
+    for package in evidence_package.get("evidence_packages", [])[:8]:
         if not isinstance(package, dict):
             continue
         evidence = package.get("retrieved_evidence", {})
@@ -479,7 +479,7 @@ def _compact_evidence_package(evidence_package: dict[str, Any]) -> dict[str, Any
         # when the retrieval layer has already provided them.
         records = data.get("records", [])
         records = records if isinstance(records, list) else []
-        recent_records = records[-12:]
+        recent_records = records[-4:]
         compact_records = [
             {
                 key: value
@@ -524,7 +524,7 @@ def _compact_evidence_package(evidence_package: dict[str, Any]) -> dict[str, Any
                 "matched_tables": data.get("matched_tables"),
                 "source_tables": data.get("source_tables"),
                 "counts_by_source": data.get("counts_by_source"),
-                "payroll_breakdown": payroll_breakdown[-12:],
+                "payroll_breakdown": payroll_breakdown[-4:],
                 "sample_records": compact_records,
                 "warnings": evidence.get("warnings", [])[:3],
                 "unavailable_data": evidence.get("unavailable_data", [])[:3],
