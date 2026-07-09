@@ -22,6 +22,8 @@ from finance_agent.orchestration import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 UPLOAD_ROOT = PROJECT_ROOT / "outputs" / "ui_uploads"
+FINANCIAL_REPORT_UPLOAD_TYPES = ("xlsx", "xls", "csv")
+GOALS_UPLOAD_TYPES = ("pdf", "docx", "xlsx", "xls")
 
 
 class UploadedFileLike(Protocol):
@@ -419,11 +421,11 @@ def main() -> None:
         st.header("Inputs")
         financial_report = st.file_uploader(
             "Financial report",
-            type=("xlsx", "xls", "csv"),
+            type=FINANCIAL_REPORT_UPLOAD_TYPES,
         )
         goals_document = st.file_uploader(
             "Goals document",
-            type=("pdf", "docx", "xlsx"),
+            type=GOALS_UPLOAD_TYPES,
         )
         language = st.selectbox("Report language", options=("es", "en"), index=0)
         override_mode = st.selectbox(

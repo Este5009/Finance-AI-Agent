@@ -88,6 +88,24 @@ def test_uploaded_files_are_saved_safely(tmp_path: Path) -> None:
     assert saved.read_bytes() == b"demo"
 
 
+def test_pdf_goals_upload_keeps_pdf_suffix(tmp_path: Path) -> None:
+    """Verify uploaded PDF goals are saved with a .pdf suffix."""
+
+    upload = FakeUpload("financial goals 2026.pdf", b"%PDF-1.4")
+
+    saved = save_uploaded_file(upload, tmp_path)
+
+    assert saved.suffix == ".pdf"
+    assert saved.name == "financial_goals_2026.pdf"
+    assert saved.read_bytes().startswith(b"%PDF")
+
+
+def test_goals_uploader_accepts_pdf_docx_xlsx_and_xls() -> None:
+    """Verify the Streamlit goals upload contract includes all supported types."""
+
+    assert streamlit_app.GOALS_UPLOAD_TYPES == ("pdf", "docx", "xlsx", "xls")
+
+
 def test_build_input_model_from_uploads_uses_generic_contract(tmp_path: Path) -> None:
     """Verify the UI delegates period detection to the shared input builder."""
 
