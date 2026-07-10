@@ -11,6 +11,9 @@ SUPPORTED_PERIOD_TYPES = frozenset(
     {"monthly", "quarterly", "semester", "annual", "custom", "unknown"}
 )
 
+DEFAULT_FAST_OLLAMA_MODEL = "qwen3:latest"
+DEFAULT_STRATEGIC_OLLAMA_MODEL = "qwen3:30b-a3b"
+
 
 @dataclass(frozen=True)
 class DetectedPeriod:
@@ -175,7 +178,10 @@ class PipelineConfig:
     annual_workbook: Path
     goals_pdf: Path
     ollama_endpoint: str = "http://localhost:11434"
-    ollama_model: str = "qwen3:30b-a3b"
+    ollama_model: str = DEFAULT_STRATEGIC_OLLAMA_MODEL
+    structure_ollama_model: str | None = DEFAULT_FAST_OLLAMA_MODEL
+    planner_ollama_model: str | None = DEFAULT_FAST_OLLAMA_MODEL
+    analysis_ollama_model: str | None = DEFAULT_STRATEGIC_OLLAMA_MODEL
     ollama_timeout_seconds: float = 180.0
     stage_timeout_seconds: float = 420.0
     input_model: PipelineInputModel | None = None
@@ -191,7 +197,10 @@ class PipelineConfig:
         *,
         python_executable: str,
         ollama_endpoint: str = "http://localhost:11434",
-        ollama_model: str = "qwen3:30b-a3b",
+        ollama_model: str = DEFAULT_STRATEGIC_OLLAMA_MODEL,
+        structure_ollama_model: str | None = DEFAULT_FAST_OLLAMA_MODEL,
+        planner_ollama_model: str | None = DEFAULT_FAST_OLLAMA_MODEL,
+        analysis_ollama_model: str | None = DEFAULT_STRATEGIC_OLLAMA_MODEL,
         ollama_timeout_seconds: float = 180.0,
         stage_timeout_seconds: float = 420.0,
         input_model: PipelineInputModel | None = None,
@@ -219,6 +228,9 @@ class PipelineConfig:
             goals_pdf=data_directory / "financial_goals_2026.pdf",
             ollama_endpoint=ollama_endpoint,
             ollama_model=ollama_model,
+            structure_ollama_model=structure_ollama_model,
+            planner_ollama_model=planner_ollama_model,
+            analysis_ollama_model=analysis_ollama_model,
             ollama_timeout_seconds=ollama_timeout_seconds,
             stage_timeout_seconds=stage_timeout_seconds,
             input_model=input_model,
@@ -241,7 +253,41 @@ class PipelineConfig:
             if isinstance(value, Path):
                 data[key] = str(value)
         data["input_model"] = self.input_model.to_dict() if self.input_model else None
+        data["effective_ollama_models"] = self.effective_ollama_models()
         return data
+
+    def model_for_stage(self, stage_name: str) -> str:
+        """Return the configured Ollama model for one pipeline stage.
+
+        Inputs: stage name such as structure, planner, or analysis.
+        Outputs: model name string.
+        Assumptions: when a stage-specific model is unset, the single model is used.
+        """
+
+        stage_models = {
+            "ollama_structure_fallback": self.structure_ollama_model,
+            "structure": self.structure_ollama_model,
+            "ollama_investigation_planner": self.planner_ollama_model,
+            "planner": self.planner_ollama_model,
+            "strategic_analysis": self.analysis_ollama_model,
+            "analysis": self.analysis_ollama_model,
+        }
+        selected = stage_models.get(stage_name)
+        return str(selected or self.ollama_model)
+
+    def effective_ollama_models(self) -> dict[str, str]:
+        """Return effective model routing for all Ollama-dependent stages.
+
+        Inputs: this pipeline config.
+        Outputs: dictionary with structure, planner, and analysis model names.
+        Assumptions: summaries and cache keys should expose resolved values.
+        """
+
+        return {
+            "structure_fallback": self.model_for_stage("structure"),
+            "investigation_planner": self.model_for_stage("planner"),
+            "strategic_analysis": self.model_for_stage("analysis"),
+        }
 
 
 @dataclass(frozen=True)

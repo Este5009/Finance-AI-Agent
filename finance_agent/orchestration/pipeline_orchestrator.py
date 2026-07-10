@@ -224,7 +224,7 @@ def _stage_command(stage: PipelineStage, config: PipelineConfig) -> list[str]:
                 "--endpoint",
                 config.ollama_endpoint,
                 "--model",
-                config.ollama_model,
+                config.model_for_stage(stage.name),
                 "--timeout",
                 str(config.ollama_timeout_seconds),
             ]
@@ -455,6 +455,7 @@ def _pipeline_cache_key(input_model: PipelineInputModel, config: PipelineConfig)
         "report_language": input_model.report_language,
         "ollama_endpoint": config.ollama_endpoint,
         "ollama_model": config.ollama_model,
+        "effective_ollama_models": config.effective_ollama_models(),
         "structure_thresholds": {
             "table": config.structure_fallback_table_threshold,
             "column": config.structure_fallback_column_threshold,
@@ -510,6 +511,21 @@ def _structure_fallback_needed(
             table_threshold=config.structure_fallback_table_threshold,
             column_threshold=config.structure_fallback_column_threshold,
         )
+    )
+
+
+def _ollama_client_for_stage(config: PipelineConfig, stage_name: str) -> OllamaClient:
+    """Create an Ollama client using the configured model for one stage.
+
+    Inputs: pipeline config and Ollama-dependent stage name.
+    Outputs: OllamaClient with shared endpoint/timeout and stage-specific model.
+    Assumptions: all Ollama logic remains inside existing stage modules.
+    """
+
+    return OllamaClient(
+        endpoint=config.ollama_endpoint,
+        model=config.model_for_stage(stage_name),
+        timeout_seconds=config.ollama_timeout_seconds,
     )
 
 
@@ -917,9 +933,16 @@ def run_pipeline_for_report(
         goals_pdf=config.goals_pdf,
         ollama_endpoint=config.ollama_endpoint,
         ollama_model=config.ollama_model,
+        structure_ollama_model=config.structure_ollama_model,
+        planner_ollama_model=config.planner_ollama_model,
+        analysis_ollama_model=config.analysis_ollama_model,
         ollama_timeout_seconds=config.ollama_timeout_seconds,
         stage_timeout_seconds=config.stage_timeout_seconds,
         input_model=input_model,
+        structure_fallback_table_threshold=config.structure_fallback_table_threshold,
+        structure_fallback_column_threshold=config.structure_fallback_column_threshold,
+        enable_cache=config.enable_cache,
+        allow_draft_report=config.allow_draft_report,
     )
     if stages is not None or stage_executor is not run_stage_subprocess:
         # Tests and legacy callers can still exercise the script-backed path with
@@ -964,11 +987,6 @@ def run_object_pipeline_for_report(
     report_label = input_model.effective_period_label
     report_prefix = clean_column_name(input_model.financial_report_path.stem)
     source_workbook = str(input_model.financial_report_path.resolve())
-    client = OllamaClient(
-        endpoint=config.ollama_endpoint,
-        model=config.ollama_model,
-        timeout_seconds=config.ollama_timeout_seconds,
-    )
 
     try:
         started = time.perf_counter()
@@ -1011,9 +1029,13 @@ def run_object_pipeline_for_report(
 
         started = time.perf_counter()
         if _structure_fallback_needed(model.to_dict(), config):
+            structure_client = _ollama_client_for_stage(
+                config,
+                "ollama_structure_fallback",
+            )
             enriched_model, fallback_summary = enrich_intermediate_model(
                 model.to_dict(),
-                client,
+                structure_client,
                 table_threshold=config.structure_fallback_table_threshold,
                 column_threshold=config.structure_fallback_column_threshold,
             )
@@ -1129,8 +1151,12 @@ def run_object_pipeline_for_report(
             baseline_plan,
             plan_dir / f"investigation_plan_{period_slug}.json",
         )
+        planner_client = _ollama_client_for_stage(
+            config,
+            "ollama_investigation_planner",
+        )
         planner_result = create_ollama_investigation_plan(
-            client=client,
+            client=planner_client,
             finance_document=finance_document,
             anomaly_report=anomaly_document,
             risk_summary=risk_summary,
@@ -1193,8 +1219,12 @@ def run_object_pipeline_for_report(
         )
 
         started = time.perf_counter()
+        analysis_client = _ollama_client_for_stage(
+            config,
+            "strategic_analysis",
+        )
         analysis_result = create_strategic_analysis(
-            client=client,
+            client=analysis_client,
             evidence_package=evidence_package,
             finance_summary=finance_document,
             anomaly_report=anomaly_document,

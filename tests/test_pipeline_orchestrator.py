@@ -22,6 +22,8 @@ from finance_agent.orchestration.pipeline_orchestrator import (
     _cache_manifest_path,
     _load_valid_cache,
     _pipeline_cache_key,
+    _ollama_client_for_stage,
+    _stage_command,
     _structure_fallback_needed,
     build_default_stages,
     run_full_pipeline,
@@ -442,3 +444,71 @@ def test_timeout_style_unavailable_strategy_skips_final_report() -> None:
 
     assert result.stages[-1].skipped is True
     assert "strategic analysis was unavailable" in result.stages[-1].warnings[0]
+
+
+def test_stage_specific_model_routing_uses_expected_models(tmp_path: Path) -> None:
+    """Verify each Ollama stage receives its configured model."""
+
+    config = PipelineConfig.from_project_root(
+        tmp_path,
+        python_executable=sys.executable,
+        ollama_model="large",
+        structure_ollama_model="small-structure",
+        planner_ollama_model="small-planner",
+        analysis_ollama_model="large-analysis",
+    )
+
+    assert _ollama_client_for_stage(config, "ollama_structure_fallback").model == "small-structure"
+    assert _ollama_client_for_stage(config, "ollama_investigation_planner").model == "small-planner"
+    assert _ollama_client_for_stage(config, "strategic_analysis").model == "large-analysis"
+
+
+def test_single_model_backward_compatibility_for_stage_routing(tmp_path: Path) -> None:
+    """Verify unset stage-specific models fall back to the legacy single model."""
+
+    config = PipelineConfig.from_project_root(
+        tmp_path,
+        python_executable=sys.executable,
+        ollama_model="one-model",
+        structure_ollama_model=None,
+        planner_ollama_model=None,
+        analysis_ollama_model=None,
+    )
+    stage = PipelineStage(
+        name="ollama_structure_fallback",
+        display_name="Ollama structure fallback",
+        script_name="run_ollama_structure_fallback.py",
+        critical=False,
+        expected_outputs=(),
+        ollama_dependent=True,
+    )
+
+    assert config.effective_ollama_models() == {
+        "structure_fallback": "one-model",
+        "investigation_planner": "one-model",
+        "strategic_analysis": "one-model",
+    }
+    command = _stage_command(stage, config)
+    assert command[command.index("--model") + 1] == "one-model"
+
+
+def test_cache_key_separates_stage_model_combinations(tmp_path: Path) -> None:
+    """Verify changing a stage-specific model changes cache identity."""
+
+    input_model = _input_model(tmp_path)
+    config_a = PipelineConfig.from_project_root(
+        tmp_path,
+        python_executable=sys.executable,
+        structure_ollama_model="small-a",
+        planner_ollama_model="small",
+        analysis_ollama_model="large",
+    )
+    config_b = PipelineConfig.from_project_root(
+        tmp_path,
+        python_executable=sys.executable,
+        structure_ollama_model="small-b",
+        planner_ollama_model="small",
+        analysis_ollama_model="large",
+    )
+
+    assert _pipeline_cache_key(input_model, config_a) != _pipeline_cache_key(input_model, config_b)

@@ -1,6 +1,8 @@
 """Pipeline orchestration entry points for the Finance AI Agent."""
 
 from finance_agent.orchestration.pipeline_models import (
+    DEFAULT_FAST_OLLAMA_MODEL,
+    DEFAULT_STRATEGIC_OLLAMA_MODEL,
     DetectedPeriod,
     PipelineConfig,
     PipelineInputModel,
@@ -21,6 +23,8 @@ from finance_agent.orchestration.period_detection import (
 
 __all__ = [
     "DetectedPeriod",
+    "DEFAULT_FAST_OLLAMA_MODEL",
+    "DEFAULT_STRATEGIC_OLLAMA_MODEL",
     "PipelineConfig",
     "PipelineInputModel",
     "PipelineRunResult",

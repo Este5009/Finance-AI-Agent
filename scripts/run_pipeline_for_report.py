@@ -15,9 +15,10 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from finance_agent.llm.ollama_client import (  # noqa: E402
     DEFAULT_OLLAMA_ENDPOINT,
-    DEFAULT_OLLAMA_MODEL,
 )
 from finance_agent.orchestration import (  # noqa: E402
+    DEFAULT_FAST_OLLAMA_MODEL,
+    DEFAULT_STRATEGIC_OLLAMA_MODEL,
     PipelineConfig,
     build_pipeline_input_model,
     run_pipeline_for_report,
@@ -40,7 +41,14 @@ def build_argument_parser() -> argparse.ArgumentParser:
     parser.add_argument("--period-override", default=None)
     parser.add_argument("--language", default="es")
     parser.add_argument("--endpoint", default=DEFAULT_OLLAMA_ENDPOINT)
-    parser.add_argument("--model", default=DEFAULT_OLLAMA_MODEL)
+    parser.add_argument(
+        "--model",
+        default=None,
+        help="Optional single-model compatibility override for all Ollama stages.",
+    )
+    parser.add_argument("--structure-model", default=None)
+    parser.add_argument("--planner-model", default=None)
+    parser.add_argument("--analysis-model", default=None)
     parser.add_argument("--ollama-timeout", type=float, default=180.0)
     parser.add_argument("--stage-timeout", type=float, default=420.0)
     parser.add_argument(
@@ -87,7 +95,19 @@ def main() -> None:
         PROJECT_ROOT,
         python_executable=sys.executable,
         ollama_endpoint=args.endpoint,
-        ollama_model=args.model,
+        ollama_model=args.model or DEFAULT_STRATEGIC_OLLAMA_MODEL,
+        structure_ollama_model=(
+            args.structure_model
+            or (None if args.model else DEFAULT_FAST_OLLAMA_MODEL)
+        ),
+        planner_ollama_model=(
+            args.planner_model
+            or (None if args.model else DEFAULT_FAST_OLLAMA_MODEL)
+        ),
+        analysis_ollama_model=(
+            args.analysis_model
+            or (None if args.model else DEFAULT_STRATEGIC_OLLAMA_MODEL)
+        ),
         ollama_timeout_seconds=args.ollama_timeout,
         stage_timeout_seconds=args.stage_timeout,
         input_model=input_model,
@@ -101,6 +121,7 @@ def main() -> None:
     print(f"Detection confidence: {input_model.detected_period.confidence:.2f}")
     print(f"Effective period: {input_model.effective_period_label}")
     print(f"Report language: {input_model.report_language}")
+    print(f"Ollama models: {config.effective_ollama_models()}")
     for evidence in input_model.detected_period.evidence:
         print(f"  evidence: {evidence}")
 

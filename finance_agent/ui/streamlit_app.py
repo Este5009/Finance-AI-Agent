@@ -10,8 +10,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Protocol
 
-from finance_agent.llm.ollama_client import DEFAULT_OLLAMA_ENDPOINT, DEFAULT_OLLAMA_MODEL
+from finance_agent.llm.ollama_client import DEFAULT_OLLAMA_ENDPOINT
 from finance_agent.orchestration import (
+    DEFAULT_FAST_OLLAMA_MODEL,
+    DEFAULT_STRATEGIC_OLLAMA_MODEL,
     PipelineConfig,
     PipelineInputModel,
     PipelineRunResult,
@@ -52,7 +54,10 @@ class StreamlitRunSettings:
     report_language: str = "es"
     period_override: str | None = None
     ollama_endpoint: str = DEFAULT_OLLAMA_ENDPOINT
-    ollama_model: str = DEFAULT_OLLAMA_MODEL
+    ollama_model: str | None = None
+    structure_ollama_model: str | None = DEFAULT_FAST_OLLAMA_MODEL
+    planner_ollama_model: str | None = DEFAULT_FAST_OLLAMA_MODEL
+    analysis_ollama_model: str | None = DEFAULT_STRATEGIC_OLLAMA_MODEL
     ollama_timeout_seconds: float = 180.0
     stage_timeout_seconds: float = 420.0
 
@@ -118,11 +123,15 @@ def build_pipeline_config(
     Assumptions: the UI preserves existing output locations under outputs/.
     """
 
+    single_model = settings.ollama_model
     return PipelineConfig.from_project_root(
         PROJECT_ROOT,
         python_executable=sys.executable,
         ollama_endpoint=settings.ollama_endpoint,
-        ollama_model=settings.ollama_model,
+        ollama_model=single_model or DEFAULT_STRATEGIC_OLLAMA_MODEL,
+        structure_ollama_model=None if single_model else settings.structure_ollama_model,
+        planner_ollama_model=None if single_model else settings.planner_ollama_model,
+        analysis_ollama_model=None if single_model else settings.analysis_ollama_model,
         ollama_timeout_seconds=settings.ollama_timeout_seconds,
         stage_timeout_seconds=settings.stage_timeout_seconds,
         input_model=input_model,
@@ -451,7 +460,23 @@ def main() -> None:
             )
         with st.expander("Advanced settings", expanded=False):
             endpoint = st.text_input("Ollama endpoint", value=DEFAULT_OLLAMA_ENDPOINT)
-            model = st.text_input("Ollama model", value=DEFAULT_OLLAMA_MODEL)
+            single_model = st.text_input(
+                "Single model override (optional)",
+                value="",
+                help="If set, uses this model for every Ollama stage.",
+            )
+            structure_model = st.text_input(
+                "Structure fallback model",
+                value=DEFAULT_FAST_OLLAMA_MODEL,
+            )
+            planner_model = st.text_input(
+                "Investigation planner model",
+                value=DEFAULT_FAST_OLLAMA_MODEL,
+            )
+            analysis_model = st.text_input(
+                "Strategic analysis model",
+                value=DEFAULT_STRATEGIC_OLLAMA_MODEL,
+            )
             ollama_timeout = st.number_input(
                 "Ollama timeout seconds",
                 min_value=5.0,
@@ -482,7 +507,16 @@ def main() -> None:
         report_language=language,
         period_override=_period_override_from_selection(override_mode, override_value),
         ollama_endpoint=endpoint,
-        ollama_model=model,
+        ollama_model=single_model.strip() or None,
+        structure_ollama_model=(
+            None if single_model.strip() else structure_model.strip()
+        ),
+        planner_ollama_model=(
+            None if single_model.strip() else planner_model.strip()
+        ),
+        analysis_ollama_model=(
+            None if single_model.strip() else analysis_model.strip()
+        ),
         ollama_timeout_seconds=float(ollama_timeout),
         stage_timeout_seconds=float(stage_timeout),
     )

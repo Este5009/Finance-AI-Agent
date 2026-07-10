@@ -1,0 +1,231 @@
+﻿{
+    "benchmark_id":  "ollama_stage_model_benchmark",
+    "results":  [
+                    {
+                        "label":  "all_large",
+                        "success":  true,
+                        "cache_hit":  false,
+                        "total_runtime_seconds":  332.9820077000186,
+                        "stage_runtimes":  {
+                                               "ingestion":  0.048354400089010596,
+                                               "document_understanding":  0.16339750005863607,
+                                               "ollama_structure_fallback":  164.34816200006753,
+                                               "finance_calculations":  0.05788429989479482,
+                                               "anomaly_detection":  0.010585600044578314,
+                                               "ollama_investigation_planner":  96.71280610002577,
+                                               "retrieval_layer":  0.021241100039333105,
+                                               "strategic_analysis":  71.56180340005085,
+                                               "report_generation":  0.057490000035613775
+                                           },
+                        "stage_status":  {
+                                             "ingestion":  {
+                                                               "success":  true,
+                                                               "skipped":  false,
+                                                               "warnings":  [
+
+                                                                            ]
+                                                           },
+                                             "document_understanding":  {
+                                                                            "success":  true,
+                                                                            "skipped":  false,
+                                                                            "warnings":  [
+
+                                                                                         ]
+                                                                        },
+                                             "ollama_structure_fallback":  {
+                                                                               "success":  true,
+                                                                               "skipped":  false,
+                                                                               "warnings":  [
+
+                                                                                            ]
+                                                                           },
+                                             "finance_calculations":  {
+                                                                          "success":  true,
+                                                                          "skipped":  false,
+                                                                          "warnings":  [
+
+                                                                                       ]
+                                                                      },
+                                             "anomaly_detection":  {
+                                                                       "success":  true,
+                                                                       "skipped":  false,
+                                                                       "warnings":  [
+
+                                                                                    ]
+                                                                   },
+                                             "ollama_investigation_planner":  {
+                                                                                  "success":  true,
+                                                                                  "skipped":  false,
+                                                                                  "warnings":  [
+                                                                                                   "investigation_steps[5].filters.include_aging must be boolean"
+                                                                                               ]
+                                                                              },
+                                             "retrieval_layer":  {
+                                                                     "success":  true,
+                                                                     "skipped":  false,
+                                                                     "warnings":  [
+
+                                                                                  ]
+                                                                 },
+                                             "strategic_analysis":  {
+                                                                        "success":  true,
+                                                                        "skipped":  false,
+                                                                        "warnings":  [
+
+                                                                                     ]
+                                                                    },
+                                             "report_generation":  {
+                                                                       "success":  true,
+                                                                       "skipped":  false,
+                                                                       "warnings":  [
+
+                                                                                    ]
+                                                                   }
+                                         },
+                        "structure":  {
+                                          "items_detected":  5,
+                                          "accepted":  2,
+                                          "rejected_or_review":  3
+                                      },
+                        "planner":  {
+                                        "validation_status":  "rejected",
+                                        "fallback_used":  true,
+                                        "validation_errors":  [
+                                                                  "investigation_steps[5].filters.include_aging must be boolean"
+                                                              ]
+                                    },
+                        "strategic_analysis":  {
+                                                   "validation_status":  "accepted",
+                                                   "confidence":  0.8,
+                                                   "recommendation_count":  3
+                                               },
+                        "report_quality":  {
+                                               "is_valid":  true,
+                                               "errors":  [
+
+                                                          ],
+                                               "recommendation_count":  3
+                                           },
+                        "wall_clock_seconds":  333.02268319996074,
+                        "models":  {
+                                       "structure_fallback":  "qwen3:30b-a3b",
+                                       "investigation_planner":  "qwen3:30b-a3b",
+                                       "strategic_analysis":  "qwen3:30b-a3b"
+                                   }
+                    },
+                    {
+                        "label":  "small_structure_planner_large_analysis",
+                        "success":  true,
+                        "cache_hit":  false,
+                        "total_runtime_seconds":  452.36213019979186,
+                        "stage_runtimes":  {
+                                               "ingestion":  0.05944520002231002,
+                                               "document_understanding":  0.186790999956429,
+                                               "ollama_structure_fallback":  218.55151979997754,
+                                               "finance_calculations":  0.03609369997866452,
+                                               "anomaly_detection":  0.009877099888399243,
+                                               "ollama_investigation_planner":  142.84075360000134,
+                                               "retrieval_layer":  0.01086149993352592,
+                                               "strategic_analysis":  90.61656340002082,
+                                               "report_generation":  0.04999249987304211
+                                           },
+                        "stage_status":  {
+                                             "ingestion":  {
+                                                               "success":  true,
+                                                               "skipped":  false,
+                                                               "warnings":  [
+
+                                                                            ]
+                                                           },
+                                             "document_understanding":  {
+                                                                            "success":  true,
+                                                                            "skipped":  false,
+                                                                            "warnings":  [
+
+                                                                                         ]
+                                                                        },
+                                             "ollama_structure_fallback":  {
+                                                                               "success":  true,
+                                                                               "skipped":  false,
+                                                                               "warnings":  [
+
+                                                                                            ]
+                                                                           },
+                                             "finance_calculations":  {
+                                                                          "success":  true,
+                                                                          "skipped":  false,
+                                                                          "warnings":  [
+
+                                                                                       ]
+                                                                      },
+                                             "anomaly_detection":  {
+                                                                       "success":  true,
+                                                                       "skipped":  false,
+                                                                       "warnings":  [
+
+                                                                                    ]
+                                                                   },
+                                             "ollama_investigation_planner":  {
+                                                                                  "success":  true,
+                                                                                  "skipped":  false,
+                                                                                  "warnings":  [
+
+                                                                                               ]
+                                                                              },
+                                             "retrieval_layer":  {
+                                                                     "success":  true,
+                                                                     "skipped":  false,
+                                                                     "warnings":  [
+
+                                                                                  ]
+                                                                 },
+                                             "strategic_analysis":  {
+                                                                        "success":  true,
+                                                                        "skipped":  false,
+                                                                        "warnings":  [
+
+                                                                                     ]
+                                                                    },
+                                             "report_generation":  {
+                                                                       "success":  true,
+                                                                       "skipped":  false,
+                                                                       "warnings":  [
+
+                                                                                    ]
+                                                                   }
+                                         },
+                        "structure":  {
+                                          "items_detected":  5,
+                                          "accepted":  2,
+                                          "rejected_or_review":  3
+                                      },
+                        "planner":  {
+                                        "validation_status":  "accepted",
+                                        "fallback_used":  false,
+                                        "validation_errors":  [
+
+                                                              ]
+                                    },
+                        "strategic_analysis":  {
+                                                   "validation_status":  "accepted",
+                                                   "confidence":  0.8,
+                                                   "recommendation_count":  3
+                                               },
+                        "report_quality":  {
+                                               "is_valid":  true,
+                                               "errors":  [
+
+                                                          ],
+                                               "recommendation_count":  3
+                                           },
+                        "wall_clock_seconds":  452.40224480000325,
+                        "models":  {
+                                       "structure_fallback":  "qwen3:latest",
+                                       "investigation_planner":  "qwen3:latest",
+                                       "strategic_analysis":  "qwen3:30b-a3b"
+                                   }
+                    }
+                ],
+    "recommended_configuration":  "all_large",
+    "recommendation_reason":  "The mixed setup is recommended only when it is faster and report quality plus strategic validation pass."
+}
