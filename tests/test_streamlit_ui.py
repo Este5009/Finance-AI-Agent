@@ -152,10 +152,7 @@ def test_run_analysis_from_files_invokes_pipeline_runner(tmp_path: Path) -> None
             report_language="es",
             period_override="2026-06",
             ollama_endpoint="http://localhost:11434",
-            ollama_model=None,
-            structure_ollama_model="qwen3:latest",
-            planner_ollama_model="qwen3:latest",
-            analysis_ollama_model="qwen3:30b-a3b",
+            ollama_model="qwen3:30b-a3b",
             ollama_timeout_seconds=12,
             stage_timeout_seconds=34,
         ),
@@ -168,8 +165,8 @@ def test_run_analysis_from_files_invokes_pipeline_runner(tmp_path: Path) -> None
     assert captured["config"].stage_timeout_seconds == 34
     assert captured["config"].input_model is captured["input_model"]
     assert captured["config"].effective_ollama_models() == {
-        "structure_fallback": "qwen3:latest",
-        "investigation_planner": "qwen3:latest",
+        "structure_fallback": "qwen3:30b-a3b",
+        "investigation_planner": "qwen3:30b-a3b",
         "strategic_analysis": "qwen3:30b-a3b",
     }
 
@@ -199,6 +196,38 @@ def test_ui_single_model_setting_routes_all_stages(tmp_path: Path) -> None:
     assert config.effective_ollama_models() == {
         "structure_fallback": "qwen3:30b-a3b",
         "investigation_planner": "qwen3:30b-a3b",
+        "strategic_analysis": "qwen3:30b-a3b",
+    }
+
+
+def test_ui_experimental_stage_models_remain_available(tmp_path: Path) -> None:
+    """Verify explicit experimental stage-specific model settings still route."""
+
+    report = tmp_path / "monthly_financial_report_june_2026.xlsx"
+    goals = tmp_path / "financial_goals_2026.pdf"
+    report.write_bytes(b"placeholder")
+    goals.write_bytes(b"placeholder")
+    input_model = build_input_model_from_uploads(
+        financial_report_path=report,
+        goals_document_path=goals,
+        settings=StreamlitRunSettings(report_language="es", period_override="2026-06"),
+    )
+
+    config = streamlit_app.build_pipeline_config(
+        input_model,
+        StreamlitRunSettings(
+            report_language="es",
+            period_override="2026-06",
+            ollama_model="qwen3:30b-a3b",
+            structure_ollama_model="qwen3:latest",
+            planner_ollama_model="qwen3:latest",
+            analysis_ollama_model="qwen3:30b-a3b",
+        ),
+    )
+
+    assert config.effective_ollama_models() == {
+        "structure_fallback": "qwen3:latest",
+        "investigation_planner": "qwen3:latest",
         "strategic_analysis": "qwen3:30b-a3b",
     }
 

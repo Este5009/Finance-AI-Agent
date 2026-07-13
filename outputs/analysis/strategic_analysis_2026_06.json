@@ -9,54 +9,52 @@
   "validation_errors": [],
   "recommendation_count": 3,
   "analysis": {
-    "executive_summary": "The June 2026 financial report shows significant overspending in Engineering and Health Sciences departments, with Engineering exceeding its budget by $111,996 and Health Sciences by $92,859. The payroll budget variance for Health Sciences is particularly concerning at $87,255, indicating potential mismanagement in salary and benefits allocation.",
+    "executive_summary": "The June 2026 financial report reveals significant overspending in Engineering and Health Sciences departments, with Engineering exceeding its budget by $111,996 and Health Sciences by $92,859. The primary drivers include vendor payments for supplies and services, particularly from Professional Services Network and University Supply Cooperative, which contributed to the variance.",
     "key_findings": [
       "Engineering's actual expenses ($734,196) exceeded budget ($622,200) by $111,996, driven by vendor payments for supplies and services.",
-      "Health Sciences' actual expenses ($658,959) exceeded budget ($566,100) by $92,859, with a $87,255 payroll variance.",
-      "Student payments for Health Sciences were fully paid on time, indicating no collection rate issues.",
-      "No transaction records were retrieved for flagged vendor payments, raising concerns about payment validation."
+      "Health Sciences' actual expenses ($658,959) exceeded budget ($566,100) by $92,859, with similar vendor payment patterns.",
+      "Payroll variance for Health Sciences was $87,255, significantly higher than other departments, indicating potential misalignment in staffing or compensation planning.",
+      "Student payment collections met targets with 100% paid status for Health Sciences in June 2026, suggesting no revenue shortfall."
     ],
     "root_causes": [
-      "Unplanned vendor payments for supplies and services in Engineering departments.",
-      "Excessive payroll allocation in Health Sciences, particularly in base salary and benefits.",
-      "Lack of verification for flagged vendor payments due to missing transaction records.",
-      "Potential misalignment between budgeted and actual expense categories in Health Sciences."
+      "Unplanned vendor payments for supplies and services, particularly from Professional Services Network, contributed to overspending in both Engineering and Health Sciences.",
+      "Health Sciences' payroll variance of $87,255 may stem from unexpected overtime or benefits costs not aligned with budgeted FTE headcount.",
+      "Lack of real-time monitoring for vendor payment approvals may have allowed overspending to accumulate without early intervention."
     ],
     "recommendations": [
       {
         "priority": "high",
-        "action": "Conduct a detailed audit of Health Sciences payroll allocation.",
-        "rationale": "The $87,255 payroll variance indicates possible misallocation of base salary and benefits.",
-        "supporting_evidence": "Health Sciences payroll variance: $87,255",
-        "expected_impact": "Reduce payroll overspending by identifying and correcting misallocated funds.",
+        "action": "Implement real-time vendor payment approval workflows with budget thresholds.",
+        "rationale": "Current evidence shows repeated overspending through vendor payments without budget checks, risking further financial misalignment.",
+        "supporting_evidence": "Engineering and Health Sciences vendor payments exceeded budget by $111,996 and $92,859 respectively.",
+        "expected_impact": "Reduce vendor-related overspending by 50% within 6 months.",
         "confidence": 0.85
       },
       {
         "priority": "high",
-        "action": "Verify flagged vendor payments with supporting documentation.",
-        "rationale": "No transaction records were retrieved for flagged payments, risking duplicate or invalid payments.",
-        "supporting_evidence": "STEP-006: No processed transactions matched filters.",
-        "expected_impact": "Prevent duplicate or invalid payments, reducing financial risk.",
-        "confidence": 0.65
+        "action": "Conduct payroll budget vs. actual analysis for Health Sciences to identify FTE or compensation discrepancies.",
+        "rationale": "Health Sciences' payroll variance is significantly higher than other departments, indicating potential misalignment in staffing or compensation planning.",
+        "supporting_evidence": "Health Sciences payroll variance: $87,255 vs. Engineering's $4,928.",
+        "expected_impact": "Align payroll budget with actual FTE and compensation costs within 3 months.",
+        "confidence": 0.8
       },
       {
         "priority": "medium",
-        "action": "Review Engineering's vendor payment patterns for cost optimization.",
-        "rationale": "Engineering's overspending is driven by vendor payments for supplies and services.",
-        "supporting_evidence": "Engineering vendor payments: $24,251 (Supplies), $26,445 (Services).",
-        "expected_impact": "Identify cost-saving opportunities in vendor contracts.",
-        "confidence": 0.75
+        "action": "Review and adjust budget thresholds for high-risk departments like Engineering and Health Sciences.",
+        "rationale": "Current budget thresholds do not account for historical overspending patterns in these departments.",
+        "supporting_evidence": "Engineering and Health Sciences consistently exceed budget in vendor payments and payroll.",
+        "expected_impact": "Reduce annual overspending by 20% through proactive budget adjustments.",
+        "confidence": 0.7
       }
     ],
     "strategic_priorities": [
-      "Address Health Sciences payroll overspending to align with annual budget goals.",
-      "Resolve vendor payment verification issues to prevent financial discrepancies."
+      "Prevent further overspending in Engineering and Health Sciences through vendor payment controls.",
+      "Align payroll budget with actual headcount and compensation costs for Health Sciences."
     ],
     "missing_information": [
-      "Detailed breakdown of Health Sciences payroll variance components.",
-      "Documentation for flagged vendor payments to validate approval and invoice status."
+      "Historical trend data for vendor payments to identify recurring patterns."
     ],
     "confidence": 0.8,
-    "reasoning_summary": "The evidence shows clear overspending in Engineering and Health Sciences, with Health Sciences' payroll variance being a critical issue. The lack of transaction records for flagged payments raises immediate concerns about payment validation. Recommendations focus on addressing the most significant variances and verifying questionable payments."
+    "reasoning_summary": "Evidence shows Engineering and Health Sciences overspending primarily through vendor payments and payroll variance. Recommendations focus on real-time controls, payroll analysis, and budget adjustments based on current data. Missing information includes detailed overtime/benefits breakdown and historical vendor trends."
   }
 }

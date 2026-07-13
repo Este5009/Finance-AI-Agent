@@ -11,8 +11,8 @@ SUPPORTED_PERIOD_TYPES = frozenset(
     {"monthly", "quarterly", "semester", "annual", "custom", "unknown"}
 )
 
-DEFAULT_FAST_OLLAMA_MODEL = "qwen3:latest"
-DEFAULT_STRATEGIC_OLLAMA_MODEL = "qwen3:30b-a3b"
+EXPERIMENTAL_FAST_OLLAMA_MODEL = "qwen3:latest"
+DEFAULT_OLLAMA_MODEL = "qwen3:30b-a3b"
 
 
 @dataclass(frozen=True)
@@ -178,10 +178,10 @@ class PipelineConfig:
     annual_workbook: Path
     goals_pdf: Path
     ollama_endpoint: str = "http://localhost:11434"
-    ollama_model: str = DEFAULT_STRATEGIC_OLLAMA_MODEL
-    structure_ollama_model: str | None = DEFAULT_FAST_OLLAMA_MODEL
-    planner_ollama_model: str | None = DEFAULT_FAST_OLLAMA_MODEL
-    analysis_ollama_model: str | None = DEFAULT_STRATEGIC_OLLAMA_MODEL
+    ollama_model: str = DEFAULT_OLLAMA_MODEL
+    structure_ollama_model: str | None = None
+    planner_ollama_model: str | None = None
+    analysis_ollama_model: str | None = None
     ollama_timeout_seconds: float = 180.0
     stage_timeout_seconds: float = 420.0
     input_model: PipelineInputModel | None = None
@@ -197,10 +197,10 @@ class PipelineConfig:
         *,
         python_executable: str,
         ollama_endpoint: str = "http://localhost:11434",
-        ollama_model: str = DEFAULT_STRATEGIC_OLLAMA_MODEL,
-        structure_ollama_model: str | None = DEFAULT_FAST_OLLAMA_MODEL,
-        planner_ollama_model: str | None = DEFAULT_FAST_OLLAMA_MODEL,
-        analysis_ollama_model: str | None = DEFAULT_STRATEGIC_OLLAMA_MODEL,
+        ollama_model: str = DEFAULT_OLLAMA_MODEL,
+        structure_ollama_model: str | None = None,
+        planner_ollama_model: str | None = None,
+        analysis_ollama_model: str | None = None,
         ollama_timeout_seconds: float = 180.0,
         stage_timeout_seconds: float = 420.0,
         input_model: PipelineInputModel | None = None,

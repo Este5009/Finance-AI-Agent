@@ -2,43 +2,197 @@
   "success": true,
   "stages": [
     {
-      "stage_name": "pipeline_cache",
-      "display_name": "Pipeline cache",
+      "stage_name": "ingestion",
+      "display_name": "Document ingestion",
+      "critical": true,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\inspection\\workbook_inspection_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\inspection\\goals_text_2026_06.txt"
+      ],
+      "warnings": [],
+      "error": null,
+      "runtime_seconds": 0.050102800130844116,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "document_understanding",
+      "display_name": "Document understanding",
+      "critical": true,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_06\\financial_document_model.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_06\\feature_summary.json"
+      ],
+      "warnings": [],
+      "error": null,
+      "runtime_seconds": 0.16785220010206103,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "ollama_structure_fallback",
+      "display_name": "Ollama structure fallback",
       "critical": false,
       "success": true,
-      "skipped": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_06\\financial_document_model_enriched.json"
+      ],
+      "warnings": [],
+      "error": null,
+      "runtime_seconds": 171.10776149993762,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "finance_calculations",
+      "display_name": "Finance calculations",
+      "critical": true,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\kpi_summary_2026_06.csv",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\department_summary_2026_06.csv",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\category_summary_2026_06.csv"
+      ],
+      "warnings": [],
+      "error": null,
+      "runtime_seconds": 0.06202800013124943,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "anomaly_detection",
+      "display_name": "Anomaly detection",
+      "critical": true,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_06.csv",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\risk_summary_2026_06.json"
+      ],
+      "warnings": [],
+      "error": null,
+      "runtime_seconds": 0.011006999993696809,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "ollama_investigation_planner",
+      "display_name": "Ollama investigation planner",
+      "critical": true,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\investigation_plan_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\ollama_plan_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\execution_queue_2026_06.json"
+      ],
+      "warnings": [
+        "investigation_steps[5].filters.include_aging must be boolean"
+      ],
+      "error": null,
+      "runtime_seconds": 102.25625679991208,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "retrieval_layer",
+      "display_name": "Retrieval layer",
+      "critical": true,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_06.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\retrieval_summary_2026_06.json"
+      ],
+      "warnings": [],
+      "error": null,
+      "runtime_seconds": 0.02418610011227429,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "strategic_analysis",
+      "display_name": "Strategic analysis",
+      "critical": false,
+      "success": true,
+      "skipped": false,
+      "output_files": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
+      ],
+      "warnings": [],
+      "error": null,
+      "runtime_seconds": 85.5614385001827,
+      "return_code": 0,
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "stage_name": "report_generation",
+      "display_name": "Report model and renderers",
+      "critical": false,
+      "success": true,
+      "skipped": false,
       "output_files": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\report_model_2026_06.json",
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\financial_report_2026_06.html",
-        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\financial_report_2026_06.pdf",
-        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\financial_report_2026_06.pdf"
       ],
-      "warnings": [
-        "Cache hit; reused validated artifacts."
-      ],
+      "warnings": [],
       "error": null,
-      "runtime_seconds": 0.02946029999293387,
+      "runtime_seconds": 0.06068940018303692,
       "return_code": 0,
       "stdout_tail": "",
       "stderr_tail": ""
     }
   ],
   "output_files": [
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\inspection\\workbook_inspection_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\inspection\\goals_text_2026_06.txt",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_06\\financial_document_model.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_06\\feature_summary.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_06\\financial_document_model_enriched.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\kpi_summary_2026_06.csv",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\department_summary_2026_06.csv",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\category_summary_2026_06.csv",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_06.csv",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\risk_summary_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\investigation_plan_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\ollama_plan_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\execution_queue_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\retrieval_summary_2026_06.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json",
     "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\report_model_2026_06.json",
     "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\financial_report_2026_06.html",
-    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\financial_report_2026_06.pdf",
-    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\financial_report_2026_06.pdf"
   ],
   "warnings": [
-    "Cache hit; reused validated artifacts."
+    "investigation_steps[5].filters.include_aging must be boolean"
   ],
   "runtime_summary": {
-    "total_runtime_seconds": 0.02946930006146431,
-    "stages_requested": 1,
-    "stages_run": 0,
-    "stages_succeeded": 0,
+    "total_runtime_seconds": 359.30272699985653,
+    "stages_requested": 9,
+    "stages_run": 9,
+    "stages_succeeded": 9,
     "stages_failed": 0,
-    "stages_skipped": 1
+    "stages_skipped": 0
   },
   "config": {
     "project_root": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent",
@@ -50,6 +204,9 @@
     "goals_pdf": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\financial_goals_2026.pdf",
     "ollama_endpoint": "http://localhost:11434",
     "ollama_model": "qwen3:30b-a3b",
+    "structure_ollama_model": null,
+    "planner_ollama_model": null,
+    "analysis_ollama_model": null,
     "ollama_timeout_seconds": 180.0,
     "stage_timeout_seconds": 420.0,
     "input_model": {
@@ -82,8 +239,13 @@
     "structure_fallback_table_threshold": 0.75,
     "structure_fallback_column_threshold": 0.7,
     "enable_cache": true,
-    "allow_draft_report": false
+    "allow_draft_report": false,
+    "effective_ollama_models": {
+      "structure_fallback": "qwen3:30b-a3b",
+      "investigation_planner": "qwen3:30b-a3b",
+      "strategic_analysis": "qwen3:30b-a3b"
+    }
   },
-  "cache_hit": true,
-  "cache_key": "9b222b0db93678115b95e72415dfaf46f4b6e5784f7729b3472df20243b8219c"
+  "cache_hit": false,
+  "cache_key": "f157eeae4c5635fd11b7c7fbaffd548beb84205f151fa480f1bcbceb6dfe19a7"
 }

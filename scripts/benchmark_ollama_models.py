@@ -14,8 +14,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from finance_agent.orchestration import (  # noqa: E402
-    DEFAULT_FAST_OLLAMA_MODEL,
-    DEFAULT_STRATEGIC_OLLAMA_MODEL,
+    DEFAULT_OLLAMA_MODEL,
+    EXPERIMENTAL_FAST_OLLAMA_MODEL,
     PipelineConfig,
     build_pipeline_input_model,
     run_pipeline_for_report,
@@ -159,8 +159,8 @@ def main() -> None:
     Assumptions: Ollama is running with both requested models installed.
     """
 
-    large = DEFAULT_STRATEGIC_OLLAMA_MODEL
-    small = DEFAULT_FAST_OLLAMA_MODEL
+    large = DEFAULT_OLLAMA_MODEL
+    small = EXPERIMENTAL_FAST_OLLAMA_MODEL
     results = [
         _run_config(
             label="all_large",

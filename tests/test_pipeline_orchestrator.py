@@ -463,6 +463,21 @@ def test_stage_specific_model_routing_uses_expected_models(tmp_path: Path) -> No
     assert _ollama_client_for_stage(config, "strategic_analysis").model == "large-analysis"
 
 
+def test_default_model_routing_uses_single_large_model(tmp_path: Path) -> None:
+    """Verify the supported default uses one model for every Ollama stage."""
+
+    config = PipelineConfig.from_project_root(
+        tmp_path,
+        python_executable=sys.executable,
+    )
+
+    assert config.effective_ollama_models() == {
+        "structure_fallback": "qwen3:30b-a3b",
+        "investigation_planner": "qwen3:30b-a3b",
+        "strategic_analysis": "qwen3:30b-a3b",
+    }
+
+
 def test_single_model_backward_compatibility_for_stage_routing(tmp_path: Path) -> None:
     """Verify unset stage-specific models fall back to the legacy single model."""
 
