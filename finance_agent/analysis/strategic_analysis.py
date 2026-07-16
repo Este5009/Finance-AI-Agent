@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -10,6 +11,13 @@ from finance_agent.analysis.analysis_models import (
     AnalysisRunSummary,
     AnalysisValidationResult,
     StrategicAnalysisResult,
+)
+from finance_agent.common.context_optimization import (
+    compact_json_size,
+    deduplicate_dicts,
+    estimate_tokens_from_text,
+    merge_telemetry,
+    rank_anomalies,
 )
 from finance_agent.llm.ollama_client import OllamaError
 
@@ -365,7 +373,11 @@ def _remove_false_missing_information(
     return {**analysis, "missing_information": cleaned_missing}
 
 
-def _compact_finance_summary(finance_document: dict[str, Any]) -> dict[str, Any]:
+def _compact_finance_summary(
+    finance_document: dict[str, Any],
+    *,
+    deduplicate_context: bool = True,
+) -> dict[str, Any]:
     """Select authoritative calculated values for analysis context.
 
     Inputs: processed finance summary JSON.
@@ -378,6 +390,19 @@ def _compact_finance_summary(finance_document: dict[str, Any]) -> dict[str, Any]
     budget = finance.get("budget_vs_actual", {})
     payments = finance.get("student_payments", {})
     cash = finance.get("cash_flow", {})
+    top_departments = finance_document.get("department_summary", [])[:8]
+    top_categories = finance_document.get("category_summary", [])[:10]
+    top_departments = top_departments if isinstance(top_departments, list) else []
+    top_categories = top_categories if isinstance(top_categories, list) else []
+    if deduplicate_context:
+        top_departments = deduplicate_dicts(
+            top_departments,
+            key_fields=("department", "period", "actual_expense", "total_payroll"),
+        )
+        top_categories = deduplicate_dicts(
+            top_categories,
+            key_fields=("expense_category", "category", "amount", "actual_expense"),
+        )
     return {
         "report_period": finance_document.get("report_period"),
         "period_scope": finance_document.get("period_scope"),
@@ -406,13 +431,17 @@ def _compact_finance_summary(finance_document: dict[str, Any]) -> dict[str, Any]
             else None,
             "ending_cash": cash.get("ending_cash") if isinstance(cash, dict) else None,
         },
-        "top_departments": finance_document.get("department_summary", [])[:4],
-        "top_categories": finance_document.get("category_summary", [])[:6],
+        "top_departments": top_departments[:4],
+        "top_categories": top_categories[:6],
         "warnings": finance_document.get("calculation_warnings", [])[:5],
     }
 
 
-def _compact_anomalies(anomaly_report: dict[str, Any]) -> dict[str, Any]:
+def _compact_anomalies(
+    anomaly_report: dict[str, Any],
+    *,
+    max_anomalies: int = 8,
+) -> dict[str, Any]:
     """Select anomaly facts needed for strategic reasoning.
 
     Inputs: processed anomaly report JSON.
@@ -420,10 +449,26 @@ def _compact_anomalies(anomaly_report: dict[str, Any]) -> dict[str, Any]:
     Assumptions: anomaly detector values are authoritative facts.
     """
 
+    anomalies = anomaly_report.get("anomalies", [])
+    anomalies = anomalies if isinstance(anomalies, list) else []
+    ranked = rank_anomalies(
+        anomalies,
+        allowed_severities={"critical", "high"},
+        max_count=max_anomalies,
+    )
+    if not ranked:
+        # Analysis still needs visibility when no high-severity anomalies exist.
+        ranked = rank_anomalies(anomalies, max_count=max_anomalies)
     return {
         "report_period": anomaly_report.get("report_period"),
         "total_anomalies": anomaly_report.get("total_anomalies"),
         "anomalies_by_severity": anomaly_report.get("anomalies_by_severity", {}),
+        "context_policy": {
+            "ranked_anomalies": True,
+            "preferred_severities": ["critical", "high"],
+            "included_count": len(ranked),
+            "available_to_python_count": len(anomalies),
+        },
         "anomalies": [
             {
                 "anomaly_id": item.get("anomaly_id"),
@@ -435,7 +480,7 @@ def _compact_anomalies(anomaly_report: dict[str, Any]) -> dict[str, Any]:
                 "threshold_value": item.get("threshold_value"),
                 "evidence": str(item.get("evidence", ""))[:220],
             }
-            for item in anomaly_report.get("anomalies", [])[:8]
+            for item in ranked
             if isinstance(item, dict)
         ],
     }
@@ -458,7 +503,11 @@ def _compact_risk_summary(risk_summary: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _compact_evidence_package(evidence_package: dict[str, Any]) -> dict[str, Any]:
+def _compact_evidence_package(
+    evidence_package: dict[str, Any],
+    *,
+    deduplicate_context: bool = True,
+) -> dict[str, Any]:
     """Compress evidence packages without copying full reports or row sets.
 
     Inputs: Step 8 evidence package document.
@@ -467,7 +516,9 @@ def _compact_evidence_package(evidence_package: dict[str, Any]) -> dict[str, Any
     """
 
     compact_items: list[dict[str, Any]] = []
-    for package in evidence_package.get("evidence_packages", [])[:8]:
+    source_packages = evidence_package.get("evidence_packages", [])
+    source_packages = source_packages if isinstance(source_packages, list) else []
+    for package in source_packages[:12]:
         if not isinstance(package, dict):
             continue
         evidence = package.get("retrieved_evidence", {})
@@ -532,11 +583,16 @@ def _compact_evidence_package(evidence_package: dict[str, Any]) -> dict[str, Any
                 "source_references": evidence.get("source_references", [])[:3],
             }
         )
+    if deduplicate_context:
+        compact_items = deduplicate_dicts(
+            compact_items,
+            key_fields=("retrieval_name", "question", "evidence_summary"),
+        )
     return {
         "package_id": evidence_package.get("package_id"),
         "period_slug": evidence_package.get("period_slug"),
         "summary": evidence_package.get("summary"),
-        "evidence_items": compact_items,
+        "evidence_items": compact_items[:8],
     }
 
 
@@ -547,6 +603,8 @@ def build_strategic_analysis_prompt(
     anomaly_report: dict[str, Any],
     risk_summary: dict[str, Any],
     period_slug: str,
+    compact_context: bool = True,
+    deduplicate_context: bool = True,
 ) -> str:
     """Build a compact strict-JSON strategic-analysis prompt.
 
@@ -555,12 +613,24 @@ def build_strategic_analysis_prompt(
     Assumptions: no raw Excel/PDF content or full evidence row sets are sent.
     """
 
+    del compact_context  # Strategic prompt always uses compact processed summaries.
     context = {
         "period_slug": period_slug,
-        "finance_summary": _compact_finance_summary(finance_summary),
+        "finance_summary": _compact_finance_summary(
+            finance_summary,
+            deduplicate_context=deduplicate_context,
+        ),
         "anomaly_report": _compact_anomalies(anomaly_report),
         "risk_summary": _compact_risk_summary(risk_summary),
-        "evidence_package": _compact_evidence_package(evidence_package),
+        "evidence_package": _compact_evidence_package(
+            evidence_package,
+            deduplicate_context=deduplicate_context,
+        ),
+        "context_policy": {
+            "compact_context": True,
+            "deduplicate_context": deduplicate_context,
+            "no_raw_reports_or_tables": True,
+        },
     }
     response_shape = {
         "executive_summary": "Two to four concise sentences.",
@@ -664,6 +734,8 @@ def create_strategic_analysis(
     anomaly_report: dict[str, Any],
     risk_summary: dict[str, Any],
     period_slug: str,
+    compact_context: bool = True,
+    deduplicate_context: bool = True,
 ) -> StrategicAnalysisResult:
     """Generate and validate one Ollama strategic financial analysis.
 
@@ -672,10 +744,15 @@ def create_strategic_analysis(
     Assumptions: invalid or unavailable model output is rejected, not repaired.
     """
 
+    stage_started = time.perf_counter()
+    preprocessing_started = time.perf_counter()
     report_period = str(finance_summary.get("report_period", period_slug))
     available = client.is_available()
     errors: tuple[str, ...] = ()
     validation: AnalysisValidationResult | None = None
+    prompt = ""
+    ollama_telemetry: dict[str, Any] = {}
+    validation_time = 0.0
     if available:
         prompt = build_strategic_analysis_prompt(
             evidence_package=evidence_package,
@@ -683,14 +760,25 @@ def create_strategic_analysis(
             anomaly_report=anomaly_report,
             risk_summary=risk_summary,
             period_slug=period_slug,
+            compact_context=compact_context,
+            deduplicate_context=deduplicate_context,
         )
+        preprocessing_time = time.perf_counter() - preprocessing_started
         try:
-            response = client.generate(prompt)
+            if hasattr(client, "generate_with_metadata"):
+                generation = client.generate_with_metadata(prompt)  # type: ignore[attr-defined]
+                response = str(generation["response"])
+                ollama_telemetry = dict(generation.get("telemetry", {}))
+            else:
+                response = client.generate(prompt)
+            validation_started = time.perf_counter()
             validation = validate_strategic_analysis_response(response)
             errors = validation.errors
+            validation_time = time.perf_counter() - validation_started
         except OllamaError as exc:
             errors = (str(exc),)
     else:
+        preprocessing_time = time.perf_counter() - preprocessing_started
         errors = ("Ollama is unavailable.",)
 
     accepted = validation is not None and validation.is_valid
@@ -716,6 +804,31 @@ def create_strategic_analysis(
         analysis_document=document,
         accepted=accepted,
         validation_errors=errors,
+        telemetry=merge_telemetry(
+            {
+                "python_preprocessing_time_seconds": preprocessing_time,
+                "json_validation_time_seconds": validation_time,
+                "total_stage_time_seconds": time.perf_counter() - stage_started,
+                "context_characters": len(prompt),
+                "context_token_estimate": estimate_tokens_from_text(prompt),
+                "compact_context": compact_context,
+                "deduplicate_context": deduplicate_context,
+                "compact_context_json_characters": compact_json_size(
+                    {
+                        "finance_summary": _compact_finance_summary(
+                            finance_summary,
+                            deduplicate_context=deduplicate_context,
+                        ),
+                        "anomaly_report": _compact_anomalies(anomaly_report),
+                        "evidence_package": _compact_evidence_package(
+                            evidence_package,
+                            deduplicate_context=deduplicate_context,
+                        ),
+                    }
+                ),
+            },
+            ollama_telemetry,
+        ),
     )
 
 

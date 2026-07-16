@@ -32,6 +32,7 @@ class StrategicAnalysisResult:
     analysis_document: dict[str, Any]
     accepted: bool
     validation_errors: tuple[str, ...]
+    telemetry: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)

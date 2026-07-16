@@ -1601,7 +1601,7 @@
         "Status": "status"
       },
       "llm_confidence": 0.87,
-      "llm_reasoning_short": "Columns match Budget_vs_Actual pattern with revenue/expense budget vs actual, variance metrics, and status dimension. Low confidence on Net_Contribution due to 0.55 score.",
+      "llm_reasoning_short": "Table compares budget vs actual revenue and expenses per department with variance metrics. 'Net_Contribution' is a metric despite low confidence score. Status is a dimension.",
       "final_table_type": "Department_Summary",
       "final_column_mappings": {
         "Department": "department",
@@ -2755,20 +2755,10 @@
         }
       ],
       "llm_reviewed": true,
-      "llm_suggested_type": "Scholarships",
-      "llm_column_mappings": {
-        "Period": "period",
-        "Month": "month",
-        "Department": "department",
-        "Scholarship_Type": "scholarship_type",
-        "Allocated": "allocated",
-        "Awarded": "awarded",
-        "Remaining": "remaining",
-        "Recipients": "recipients",
-        "Utilization_Pct": "utilization_pct"
-      },
-      "llm_confidence": 0.99,
-      "llm_reasoning_short": "Table title 'Scholarships' matches allowed type. All columns map to canonical fields. 'Utilization_Pct' has low confidence but is a known metric. Dimensions and metrics align with scholarship data.",
+      "llm_suggested_type": null,
+      "llm_column_mappings": {},
+      "llm_confidence": null,
+      "llm_reasoning_short": null,
       "final_table_type": "Scholarships",
       "final_column_mappings": {
         "Period": "period",
@@ -2782,7 +2772,7 @@
         "Utilization_Pct": "utilization_pct"
       },
       "final_confidence": 0.99,
-      "requires_human_review": false
+      "requires_human_review": true
     },
     {
       "table_id": "monthly_financial_report_june_2026__vendor_payments__table_01",
@@ -3094,7 +3084,7 @@
         "High_Value_Flag": "high_value_flag"
       },
       "llm_confidence": 0.99,
-      "llm_reasoning_short": "All columns match canonical fields except 'Potential_Duplicate' and 'High_Value_Flag' which have low confidence but are mapped to known fields. Table type matches source.",
+      "llm_reasoning_short": "All columns map to canonical fields with high confidence except low-confidence fields which are mapped as-is. Table type matches source name.",
       "final_table_type": "Vendor_Payments",
       "final_column_mappings": {
         "Payment_ID": "payment_id",
@@ -3357,7 +3347,7 @@
         "Source_Sheet": "source_sheet"
       },
       "llm_confidence": 0.3,
-      "llm_reasoning_short": "Table contains anomaly detection data with observed values and thresholds. No clear financial metric alignment. Dimensions include anomaly details, metrics are observed_value and threshold. Table type cannot be confidently determined.",
+      "llm_reasoning_short": "Table contains anomaly detection data with observed values vs thresholds. No clear financial metric alignment. All columns mapped to canonical fields except 'unknown' fields. Low confidence due to mismatched context.",
       "final_table_type": "Unknown",
       "final_column_mappings": {
         "Anomaly_ID": "anomaly_id",
@@ -3376,7 +3366,7 @@
   ],
   "enrichment": {
     "stage": "ollama_structure_fallback",
-    "generated_at_utc": "2026-07-10T16:31:55.438628+00:00",
+    "generated_at_utc": "2026-07-16T20:01:15.242335+00:00",
     "ollama_available": true,
     "items_detected": 5,
     "acceptance_threshold": 0.75,

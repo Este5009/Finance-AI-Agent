@@ -189,6 +189,9 @@ class PipelineConfig:
     structure_fallback_column_threshold: float = 0.70
     enable_cache: bool = True
     allow_draft_report: bool = False
+    max_planner_anomalies: int = 5
+    compact_context: bool = True
+    deduplicate_context: bool = True
 
     @classmethod
     def from_project_root(
@@ -208,6 +211,9 @@ class PipelineConfig:
         structure_fallback_column_threshold: float = 0.70,
         enable_cache: bool = True,
         allow_draft_report: bool = False,
+        max_planner_anomalies: int = 5,
+        compact_context: bool = True,
+        deduplicate_context: bool = True,
     ) -> "PipelineConfig":
         """Build a default configuration from the repository root.
 
@@ -238,6 +244,9 @@ class PipelineConfig:
             structure_fallback_column_threshold=structure_fallback_column_threshold,
             enable_cache=enable_cache,
             allow_draft_report=allow_draft_report,
+            max_planner_anomalies=max_planner_anomalies,
+            compact_context=compact_context,
+            deduplicate_context=deduplicate_context,
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -311,6 +320,7 @@ class PipelineStageResult:
     return_code: int | None = None
     stdout_tail: str = ""
     stderr_tail: str = ""
+    telemetry: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize one stage result.
@@ -333,6 +343,7 @@ class PipelineStageResult:
             "return_code": self.return_code,
             "stdout_tail": self.stdout_tail,
             "stderr_tail": self.stderr_tail,
+            "telemetry": self.telemetry,
         }
 
 

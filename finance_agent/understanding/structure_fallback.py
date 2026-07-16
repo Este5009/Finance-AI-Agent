@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -11,6 +12,10 @@ from typing import Any, Protocol
 
 from finance_agent.understanding.classification import CLASSIFICATION_RULES
 from finance_agent.understanding.normalization import COLUMN_CONFIDENCE_THRESHOLD
+from finance_agent.common.context_optimization import (
+    estimate_tokens_from_text,
+    merge_telemetry,
+)
 from finance_agent.llm.ollama_client import OllamaError
 from finance_agent.ingestion.schema import COLUMN_ALIASES
 
@@ -131,6 +136,7 @@ class FallbackSummary:
     rejected: int
     requiring_human_review: int
     uncertain_columns: int
+    telemetry: dict[str, Any] | None = None
 
 
 class StructureResponseError(ValueError):
@@ -435,6 +441,8 @@ def enrich_intermediate_model(
     Assumptions: the original model object and deterministic fields remain unchanged.
     """
 
+    stage_started = time.perf_counter()
+    preprocessing_started = time.perf_counter()
     enriched = copy.deepcopy(model)
     items = detect_low_confidence_items(
         enriched,
@@ -443,8 +451,15 @@ def enrich_intermediate_model(
     )
     items_by_id = {item.table_id: item for item in items}
     available = interpreter.is_available()
+    preprocessing_time = time.perf_counter() - preprocessing_started
     accepted = 0
     rejected = 0
+    telemetry: dict[str, Any] = {
+        "python_preprocessing_time_seconds": preprocessing_time,
+        "json_validation_time_seconds": 0.0,
+        "context_characters": 0,
+        "context_token_estimate": 0,
+    }
 
     for table in enriched.get("tables", []):
         table.update(_base_enrichment(table))
@@ -460,10 +475,25 @@ def enrich_intermediate_model(
 
         table["llm_reviewed"] = True
         try:
-            response_text = interpreter.generate(build_structure_prompt(table, item))
+            prompt = build_structure_prompt(table, item)
+            telemetry["context_characters"] += len(prompt)
+            telemetry["context_token_estimate"] += estimate_tokens_from_text(prompt)
+            if hasattr(interpreter, "generate_with_metadata"):
+                generation = interpreter.generate_with_metadata(prompt)  # type: ignore[attr-defined]
+                response_text = str(generation["response"])
+                telemetry = merge_telemetry(
+                    telemetry,
+                    dict(generation.get("telemetry", {})),
+                )
+            else:
+                response_text = interpreter.generate(prompt)
+            validation_started = time.perf_counter()
             suggestion = parse_and_validate_structure_response(
                 response_text,
                 original_columns=list(table.get("original_columns", [])),
+            )
+            telemetry["json_validation_time_seconds"] += (
+                time.perf_counter() - validation_started
             )
         except (OllamaError, StructureResponseError):
             rejected += 1
@@ -531,6 +561,12 @@ def enrich_intermediate_model(
         rejected=rejected,
         requiring_human_review=human_review_count,
         uncertain_columns=sum(len(item.uncertain_columns) for item in items),
+        telemetry={
+            **telemetry,
+            "total_stage_time_seconds": time.perf_counter() - stage_started,
+            "items_detected": len(items),
+            "items_reviewed": len(items) if available else 0,
+        },
     )
     return enriched, summary
 

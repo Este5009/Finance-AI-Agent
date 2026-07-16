@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from finance_agent.agent.ollama_planner import (
     build_ollama_planner_prompt,
     create_ollama_investigation_plan,
+    rank_anomalies_for_planning,
 )
 from finance_agent.agent.planner_models import (
     EvidenceRequest,
@@ -204,6 +205,9 @@ def test_valid_mocked_ollama_plan_is_accepted_and_queued() -> None:
     assert result.execution_queue["tools_executed"] is False
     assert result.execution_queue["items"][0]["status"] == "queued"
     assert client.generate_calls == 1
+    assert result.telemetry is not None
+    assert result.telemetry["context_characters"] > 0
+    assert result.telemetry["max_planner_anomalies"] == 5
 
 
 def test_unavailable_ollama_uses_deterministic_fallback() -> None:
@@ -402,3 +406,57 @@ def test_prompt_contains_only_compressed_summaries_and_interfaces() -> None:
     assert "MUST_NOT_APPEAR" not in prompt
     assert "sample_rows" not in prompt
     assert "final_column_mappings" not in prompt
+
+
+def test_anomaly_ranking_sends_only_critical_and_high_items() -> None:
+    """Verify planner context excludes lower-severity anomalies before Ollama."""
+
+    report = {
+        "anomalies": [
+            {"anomaly_id": "LOW", "severity": "low", "observed_value": 9999},
+            {"anomaly_id": "HIGH-LOWER", "severity": "high", "observed_value": 10},
+            {"anomaly_id": "CRIT", "severity": "critical", "observed_value": 1},
+            {"anomaly_id": "MED", "severity": "medium", "observed_value": 5000},
+            {"anomaly_id": "HIGH-HIGHER", "severity": "high", "observed_value": 100},
+        ]
+    }
+
+    ranked = rank_anomalies_for_planning(report, max_anomalies=2)
+
+    assert [item["anomaly_id"] for item in ranked] == ["CRIT", "HIGH-HIGHER"]
+
+
+def test_planner_prompt_caps_ranked_anomalies_and_deduplicates_kpis() -> None:
+    """Verify compact planner context keeps one KPI copy and capped anomalies."""
+
+    finance = _finance_document()
+    finance["kpi_summary"] = [
+        {"metric": "collection_rate", "value": 0.8, "unit": "ratio"},
+        {"metric": "collection_rate", "value": 0.8, "unit": "ratio"},
+    ]
+    anomalies = _anomaly_report()
+    anomalies["anomalies"] = [
+        {
+            "anomaly_id": f"ANOM-{index}",
+            "severity": "high",
+            "observed_value": index,
+            "title": f"High {index}",
+        }
+        for index in range(10)
+    ]
+
+    prompt = build_ollama_planner_prompt(
+        finance_document=finance,
+        anomaly_report=anomalies,
+        risk_summary={"top_risks": []},
+        enriched_model={"tables": []},
+        baseline_plan=_baseline_plan(),
+        period_slug="2026",
+        max_anomalies=3,
+        deduplicate_context=True,
+    )
+
+    assert prompt.count('"metric":"collection_rate"') == 1
+    assert '"included_count":3' in prompt
+    assert "ANOM-9" in prompt
+    assert "ANOM-0" not in prompt

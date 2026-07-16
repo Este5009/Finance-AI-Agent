@@ -372,6 +372,7 @@ def _stage_result(
     outputs: tuple[Path, ...],
     warnings: tuple[str, ...] = (),
     error: str | None = None,
+    telemetry: dict[str, Any] | None = None,
 ) -> PipelineStageResult:
     """Create one object-pipeline stage result.
 
@@ -391,6 +392,7 @@ def _stage_result(
         error=error,
         runtime_seconds=time.perf_counter() - started,
         return_code=0 if error is None else 1,
+        telemetry=telemetry or {},
     )
 
 
@@ -402,6 +404,7 @@ def _skipped_object_stage_result(
     started: float,
     outputs: tuple[Path, ...] = (),
     warnings: tuple[str, ...] = (),
+    telemetry: dict[str, Any] | None = None,
 ) -> PipelineStageResult:
     """Create a successful skipped result for object-pipeline optimizations.
 
@@ -421,6 +424,7 @@ def _skipped_object_stage_result(
         error=None,
         runtime_seconds=time.perf_counter() - started,
         return_code=0,
+        telemetry=telemetry or {},
     )
 
 
@@ -460,6 +464,15 @@ def _pipeline_cache_key(input_model: PipelineInputModel, config: PipelineConfig)
             "table": config.structure_fallback_table_threshold,
             "column": config.structure_fallback_column_threshold,
         },
+        "runtime_optimization": {
+            "max_planner_anomalies": config.max_planner_anomalies,
+            "compact_context": config.compact_context,
+            "deduplicate_context": config.deduplicate_context,
+        },
+        "reasoning_enabled_stages": [
+            "ollama_investigation_planner",
+            "strategic_analysis",
+        ],
     }
     return hashlib.sha256(
         json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -526,6 +539,8 @@ def _ollama_client_for_stage(config: PipelineConfig, stage_name: str) -> OllamaC
         endpoint=config.ollama_endpoint,
         model=config.model_for_stage(stage_name),
         timeout_seconds=config.ollama_timeout_seconds,
+        reasoning_enabled=stage_name
+        in {"ollama_investigation_planner", "planner", "strategic_analysis", "analysis"},
     )
 
 
@@ -943,6 +958,9 @@ def run_pipeline_for_report(
         structure_fallback_column_threshold=config.structure_fallback_column_threshold,
         enable_cache=config.enable_cache,
         allow_draft_report=config.allow_draft_report,
+        max_planner_anomalies=config.max_planner_anomalies,
+        compact_context=config.compact_context,
+        deduplicate_context=config.deduplicate_context,
     )
     if stages is not None or stage_executor is not run_stage_subprocess:
         # Tests and legacy callers can still exercise the script-backed path with
@@ -1057,6 +1075,10 @@ def run_object_pipeline_for_report(
                     started=started,
                     outputs=(enriched_path,),
                     warnings=("Skipped; deterministic structure was high-confidence.",),
+                    telemetry={
+                        "python_preprocessing_time_seconds": time.perf_counter() - started,
+                        "skipped_reason": "high_confidence_deterministic_structure",
+                    },
                 )
             )
         else:
@@ -1072,6 +1094,7 @@ def run_object_pipeline_for_report(
                         if fallback_summary and fallback_summary.ollama_available
                         else ("Ollama unavailable; deterministic structure was preserved.",)
                     ),
+                    telemetry=fallback_summary.telemetry if fallback_summary else {},
                 )
             )
 
@@ -1163,6 +1186,9 @@ def run_object_pipeline_for_report(
             enriched_model=enriched_model,
             baseline_plan=baseline_plan,
             period_slug=period_slug,
+            max_anomalies=config.max_planner_anomalies,
+            compact_context=config.compact_context,
+            deduplicate_context=config.deduplicate_context,
         )
         ollama_plan_path = save_plan_json_artifact(
             planner_result.plan_document,
@@ -1180,6 +1206,7 @@ def run_object_pipeline_for_report(
                 started=started,
                 outputs=(baseline_path, ollama_plan_path, queue_path),
                 warnings=tuple(planner_result.validation_errors) if planner_result.fallback_used else (),
+                telemetry=planner_result.telemetry,
             )
         )
 
@@ -1230,6 +1257,8 @@ def run_object_pipeline_for_report(
             anomaly_report=anomaly_document,
             risk_summary=risk_summary,
             period_slug=period_slug,
+            compact_context=config.compact_context,
+            deduplicate_context=config.deduplicate_context,
         )
         analysis_dir = outputs / "analysis"
         analysis_path = save_analysis_json_artifact(
@@ -1244,6 +1273,7 @@ def run_object_pipeline_for_report(
                 started=started,
                 outputs=(analysis_path,),
                 warnings=tuple(analysis_result.validation_errors) if not analysis_result.accepted else (),
+                telemetry=analysis_result.telemetry,
             )
         )
 

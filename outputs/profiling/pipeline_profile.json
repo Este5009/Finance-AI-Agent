@@ -1,0 +1,221 @@
+{
+  "profile_id": "PIPELINE-PROFILE",
+  "success": true,
+  "cache_hit": false,
+  "runtime_summary": {
+    "total_runtime_seconds": 260.037480100058,
+    "stages_requested": 9,
+    "stages_run": 9,
+    "stages_succeeded": 9,
+    "stages_failed": 0,
+    "stages_skipped": 0
+  },
+  "runtime_config": {
+    "max_planner_anomalies": 5,
+    "compact_context": true,
+    "deduplicate_context": true,
+    "effective_ollama_models": {
+      "structure_fallback": "qwen3:30b-a3b",
+      "investigation_planner": "qwen3:30b-a3b",
+      "strategic_analysis": "qwen3:30b-a3b"
+    }
+  },
+  "per_stage": [
+    {
+      "stage_name": "ingestion",
+      "display_name": "Document ingestion",
+      "success": true,
+      "skipped": false,
+      "runtime_seconds": 0.057212800020352006,
+      "context_characters": 0,
+      "token_estimate": 0,
+      "telemetry": {}
+    },
+    {
+      "stage_name": "document_understanding",
+      "display_name": "Document understanding",
+      "success": true,
+      "skipped": false,
+      "runtime_seconds": 0.16910480009391904,
+      "context_characters": 0,
+      "token_estimate": 0,
+      "telemetry": {}
+    },
+    {
+      "stage_name": "ollama_structure_fallback",
+      "display_name": "Ollama structure fallback",
+      "success": true,
+      "skipped": false,
+      "runtime_seconds": 85.71554969996214,
+      "context_characters": 20132,
+      "token_estimate": 5031.0,
+      "telemetry": {
+        "python_preprocessing_time_seconds": 2.061915500089526,
+        "json_validation_time_seconds": 0.00014199991710484028,
+        "context_characters": 20132.0,
+        "context_token_estimate": 5031.0,
+        "model": "qwen3:30b-a3b",
+        "reasoning_enabled": false,
+        "prompt_characters": 20132.0,
+        "prompt_token_estimate": 5031.0,
+        "model_load_time_seconds": 1.0613834999999998,
+        "prompt_evaluation_time_seconds": 0.6619949999999999,
+        "generation_time_seconds": 71.078426,
+        "total_ollama_time_seconds": 73.44516560000001,
+        "prompt_eval_count": 5384.0,
+        "generation_eval_count": 1395.0,
+        "thinking_characters": 0.0,
+        "total_stage_time_seconds": 85.70647919992916,
+        "items_detected": 5,
+        "items_reviewed": 5
+      }
+    },
+    {
+      "stage_name": "finance_calculations",
+      "display_name": "Finance calculations",
+      "success": true,
+      "skipped": false,
+      "runtime_seconds": 0.047108199913054705,
+      "context_characters": 0,
+      "token_estimate": 0,
+      "telemetry": {}
+    },
+    {
+      "stage_name": "anomaly_detection",
+      "display_name": "Anomaly detection",
+      "success": true,
+      "skipped": false,
+      "runtime_seconds": 0.011464699869975448,
+      "context_characters": 0,
+      "token_estimate": 0,
+      "telemetry": {}
+    },
+    {
+      "stage_name": "ollama_investigation_planner",
+      "display_name": "Ollama investigation planner",
+      "success": true,
+      "skipped": false,
+      "runtime_seconds": 88.80113560007885,
+      "context_characters": 10435,
+      "token_estimate": 2608.0,
+      "telemetry": {
+        "python_preprocessing_time_seconds": 2.0253296000882983,
+        "json_validation_time_seconds": 0.00031020003370940685,
+        "total_stage_time_seconds": 88.78872710000724,
+        "context_characters": 10435.0,
+        "context_token_estimate": 2608.0,
+        "compact_context": true,
+        "deduplicate_context": true,
+        "max_planner_anomalies": 5.0,
+        "ranked_planner_anomaly_count": 5.0,
+        "compact_context_json_characters": 2215.0,
+        "model": "qwen3:30b-a3b",
+        "reasoning_enabled": true,
+        "prompt_characters": 10435.0,
+        "prompt_token_estimate": 2608.0,
+        "model_load_time_seconds": 0.2116817,
+        "prompt_evaluation_time_seconds": 31.854981,
+        "generation_time_seconds": 52.41712,
+        "total_ollama_time_seconds": 84.7371457,
+        "prompt_eval_count": 2928.0,
+        "generation_eval_count": 967.0,
+        "thinking_characters": 3870.0
+      }
+    },
+    {
+      "stage_name": "retrieval_layer",
+      "display_name": "Retrieval layer",
+      "success": true,
+      "skipped": false,
+      "runtime_seconds": 0.018042600015178323,
+      "context_characters": 0,
+      "token_estimate": 0,
+      "telemetry": {}
+    },
+    {
+      "stage_name": "strategic_analysis",
+      "display_name": "Strategic analysis",
+      "success": true,
+      "skipped": false,
+      "runtime_seconds": 85.15325889992528,
+      "context_characters": 17210,
+      "token_estimate": 4302.0,
+      "telemetry": {
+        "python_preprocessing_time_seconds": 2.025207499973476,
+        "json_validation_time_seconds": 7.939990609884262e-05,
+        "total_stage_time_seconds": 85.14874370000325,
+        "context_characters": 17210.0,
+        "context_token_estimate": 4302.0,
+        "compact_context": true,
+        "deduplicate_context": true,
+        "compact_context_json_characters": 13425.0,
+        "model": "qwen3:30b-a3b",
+        "reasoning_enabled": true,
+        "prompt_characters": 17210.0,
+        "prompt_token_estimate": 4302.0,
+        "model_load_time_seconds": 0.2118717,
+        "prompt_evaluation_time_seconds": 41.756201,
+        "generation_time_seconds": 38.960083,
+        "total_ollama_time_seconds": 81.0852495,
+        "prompt_eval_count": 2050.0,
+        "generation_eval_count": 747.0,
+        "thinking_characters": 3368.0
+      }
+    },
+    {
+      "stage_name": "report_generation",
+      "display_name": "Report model and renderers",
+      "success": true,
+      "skipped": false,
+      "runtime_seconds": 0.06428239983506501,
+      "context_characters": 0,
+      "token_estimate": 0,
+      "telemetry": {}
+    }
+  ],
+  "total_context_characters": 47777,
+  "total_token_estimate": 11941,
+  "bottleneck_ranking": [
+    {
+      "stage_name": "ollama_investigation_planner",
+      "runtime_seconds": 88.80113560007885
+    },
+    {
+      "stage_name": "ollama_structure_fallback",
+      "runtime_seconds": 85.71554969996214
+    },
+    {
+      "stage_name": "strategic_analysis",
+      "runtime_seconds": 85.15325889992528
+    },
+    {
+      "stage_name": "document_understanding",
+      "runtime_seconds": 0.16910480009391904
+    },
+    {
+      "stage_name": "report_generation",
+      "runtime_seconds": 0.06428239983506501
+    },
+    {
+      "stage_name": "ingestion",
+      "runtime_seconds": 0.057212800020352006
+    },
+    {
+      "stage_name": "finance_calculations",
+      "runtime_seconds": 0.047108199913054705
+    },
+    {
+      "stage_name": "retrieval_layer",
+      "runtime_seconds": 0.018042600015178323
+    },
+    {
+      "stage_name": "anomaly_detection",
+      "runtime_seconds": 0.011464699869975448
+    }
+  ],
+  "optimization_recommendations": [
+    "Focus first on ollama_investigation_planner (88.80s).",
+    "Review context compaction for ollama_structure_fallback; prompt remains large.",
+    "ollama_structure_fallback is generation-bound; preserve reasoning but keep summaries tight."
+  ]
+}

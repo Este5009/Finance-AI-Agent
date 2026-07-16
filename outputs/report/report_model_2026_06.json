@@ -24,17 +24,18 @@
       "section_id": "executive_summary",
       "title": "Executive Summary",
       "content": {
-        "summary": "The June 2026 financial report reveals significant overspending in Engineering and Health Sciences departments, with Engineering exceeding its budget by $111,996 and Health Sciences by $92,859. The primary drivers include vendor payments for supplies and services, particularly from Professional Services Network and University Supply Cooperative, which contributed to the variance.",
+        "summary": "The Health Sciences department significantly overspent on payroll and vendor payments in June 2026, with a $87,255 variance against budget. Engineering also exceeded its budget, while other departments met targets. The student collection rate missed its target, and flagged vendor payments lack evidence.",
         "key_findings": [
-          "Engineering's actual expenses ($734,196) exceeded budget ($622,200) by $111,996, driven by vendor payments for supplies and services.",
-          "Health Sciences' actual expenses ($658,959) exceeded budget ($566,100) by $92,859, with similar vendor payment patterns.",
-          "Payroll variance for Health Sciences was $87,255, significantly higher than other departments, indicating potential misalignment in staffing or compensation planning.",
-          "Student payment collections met targets with 100% paid status for Health Sciences in June 2026, suggesting no revenue shortfall."
+          "Health Sciences payroll variance of $87,255 (actual $342,000 vs. budget $254,745) driven by high benefits ($61,560) and overtime ($18,810).",
+          "Engineering department overspent by $111,996 (actual $734,196 vs. budget $622,200) with vendor payments for supplies and services.",
+          "Student collection rate missed target with no evidence of transaction processing for June 2026.",
+          "Flagged vendor payments have no processed transaction records, indicating potential data gaps."
         ],
         "root_causes": [
-          "Unplanned vendor payments for supplies and services, particularly from Professional Services Network, contributed to overspending in both Engineering and Health Sciences.",
-          "Health Sciences' payroll variance of $87,255 may stem from unexpected overtime or benefits costs not aligned with budgeted FTE headcount.",
-          "Lack of real-time monitoring for vendor payment approvals may have allowed overspending to accumulate without early intervention."
+          "Unplanned overtime and benefits in Health Sciences due to staffing or project demands.",
+          "Unplanned vendor payments in Engineering for supplies and services exceeding budget allocations.",
+          "Incomplete transaction processing for student payments leading to collection rate shortfall.",
+          "Data filtering issues causing missing vendor payment evidence for flagged transactions."
         ],
         "confidence": 0.8,
         "analysis_status": "accepted"
@@ -363,9 +364,9 @@
         ],
         "department_evidence": [
           {
-            "task_id": "FALLBACK-007",
+            "task_id": "STEP-007",
             "priority": "high",
-            "question": "Which expense categories, payroll items, or vendors caused Engineering overspending exceeds flag threshold?",
+            "question": "What is the departmental overspending context?",
             "retrieval_name": "department_history",
             "success": true,
             "record_count": 20,
@@ -384,9 +385,9 @@
             "unavailable_data": []
           },
           {
-            "task_id": "FALLBACK-008",
+            "task_id": "STEP-008",
             "priority": "high",
-            "question": "Which expense categories, payroll items, or vendors caused Health Sciences overspending exceeds flag threshold?",
+            "question": "What is the Health Sciences department overspending context?",
             "retrieval_name": "department_history",
             "success": true,
             "record_count": 19,
@@ -588,16 +589,16 @@
         "retrieval_summary": {
           "package_id": "EVIDENCE-2026-06",
           "period_slug": "2026_06",
-          "tasks_executed": 14,
-          "successful_retrievals": 14,
-          "failed_retrievals": 0,
-          "unavailable_evidence": 0
+          "tasks_executed": 7,
+          "successful_retrievals": 6,
+          "failed_retrievals": 1,
+          "unavailable_evidence": 2
         },
         "evidence_items": [
           {
-            "task_id": "FALLBACK-001",
+            "task_id": "STEP-001",
             "priority": "critical",
-            "question": "Which operating, scholarship, or capital outflows caused cash-flow risk in 2026-06?",
+            "question": "Which operating, scholarship, or capital outflows caused cash-flow risk? | Which revenue shortfalls and expense drivers caused the operating deficit?",
             "retrieval_name": "financial_report",
             "success": true,
             "record_count": null,
@@ -610,41 +611,9 @@
             "unavailable_data": []
           },
           {
-            "task_id": "FALLBACK-002",
-            "priority": "critical",
-            "question": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-06?",
-            "retrieval_name": "financial_report",
-            "success": true,
-            "record_count": null,
-            "matched_tables": null,
-            "evidence_summary": "Retrieved processed 2026_06 finance summary.",
-            "source_references": [
-              "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-003",
-            "priority": "critical",
-            "question": "Does the flagged vendor payment in 2026-06 have valid invoice, approval, and duplicate evidence?",
-            "retrieval_name": "transactions",
-            "success": true,
-            "record_count": 6,
-            "matched_tables": [
-              "vendor_payments"
-            ],
-            "evidence_summary": "Retrieved 6 processed transaction record(s).",
-            "source_references": [
-              "normalized_tables/monthly_financial_report_june_2026__transaction_tables"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-004",
+            "task_id": "STEP-003",
             "priority": "high",
-            "question": "What payroll components and departments caused the payroll risk in 2026-06?",
+            "question": "What payroll components and departments caused payroll risk?",
             "retrieval_name": "payroll_history",
             "success": true,
             "record_count": 4,
@@ -659,9 +628,9 @@
             "unavailable_data": []
           },
           {
-            "task_id": "FALLBACK-005",
+            "task_id": "STEP-004",
             "priority": "high",
-            "question": "Why did the student collection rate miss its target in 2026-06?",
+            "question": "Why did student collection rate miss target?",
             "retrieval_name": "transactions",
             "success": true,
             "record_count": 48,
@@ -676,26 +645,45 @@
             "unavailable_data": []
           },
           {
-            "task_id": "FALLBACK-006",
+            "task_id": "STEP-005",
             "priority": "high",
-            "question": "Which invoices and aging buckets caused overdue payments in 2026-06?",
+            "question": "Does flagged vendor payment have valid evidence?",
             "retrieval_name": "transactions",
-            "success": true,
-            "record_count": 48,
-            "matched_tables": [
-              "student_payments"
-            ],
-            "evidence_summary": "Retrieved 48 processed transaction record(s).",
+            "success": false,
+            "record_count": 0,
+            "matched_tables": null,
+            "evidence_summary": "Retrieved 0 processed transaction record(s). Unavailable: No processed transactions matched the filters..",
             "source_references": [
               "normalized_tables/monthly_financial_report_june_2026__transaction_tables"
             ],
             "warnings": [],
-            "unavailable_data": []
+            "unavailable_data": [
+              "No processed transactions matched the filters."
+            ]
           },
           {
-            "task_id": "FALLBACK-007",
+            "task_id": "STEP-006",
             "priority": "high",
-            "question": "Which expense categories, payroll items, or vendors caused Engineering overspending exceeds flag threshold?",
+            "question": "What is the status of unresolved data tables?",
+            "retrieval_name": "previous_cycle_memory",
+            "success": true,
+            "record_count": null,
+            "matched_tables": null,
+            "evidence_summary": "Previous-cycle memory database is not implemented; returned current unresolved data-quality notes instead. Unavailable: previous_cycle_memory_database.",
+            "source_references": [
+              "outputs/intermediate/financial_document_model_enriched.json"
+            ],
+            "warnings": [
+              "Historical memory database is not available in Step 8."
+            ],
+            "unavailable_data": [
+              "previous_cycle_memory_database"
+            ]
+          },
+          {
+            "task_id": "STEP-007",
+            "priority": "high",
+            "question": "What is the departmental overspending context?",
             "retrieval_name": "department_history",
             "success": true,
             "record_count": 20,
@@ -714,9 +702,9 @@
             "unavailable_data": []
           },
           {
-            "task_id": "FALLBACK-008",
+            "task_id": "STEP-008",
             "priority": "high",
-            "question": "Which expense categories, payroll items, or vendors caused Health Sciences overspending exceeds flag threshold?",
+            "question": "What is the Health Sciences department overspending context?",
             "retrieval_name": "department_history",
             "success": true,
             "record_count": 19,
@@ -730,104 +718,6 @@
             "evidence_summary": "Retrieved 19 processed department history record(s).",
             "source_references": [
               "normalized_tables/monthly_financial_report_june_2026__department_sources"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-009",
-            "priority": "high",
-            "question": "Which transactions caused Equipment category overspending?",
-            "retrieval_name": "transactions",
-            "success": true,
-            "record_count": 13,
-            "matched_tables": [
-              "expenses",
-              "vendor_payments"
-            ],
-            "evidence_summary": "Retrieved 13 processed transaction record(s).",
-            "source_references": [
-              "normalized_tables/monthly_financial_report_june_2026__transaction_tables"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-010",
-            "priority": "high",
-            "question": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__anomalies_embedded__table_01'?",
-            "retrieval_name": "financial_report",
-            "success": true,
-            "record_count": null,
-            "matched_tables": null,
-            "evidence_summary": "Retrieved processed 2026_06 finance summary.",
-            "source_references": [
-              "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-011",
-            "priority": "medium",
-            "question": "What payroll components and departments caused the payroll risk in 2026-06?",
-            "retrieval_name": "payroll_history",
-            "success": true,
-            "record_count": 4,
-            "matched_tables": [
-              "payroll"
-            ],
-            "evidence_summary": "Retrieved 4 processed payroll history record(s).",
-            "source_references": [
-              "normalized_tables/monthly_financial_report_june_2026__payroll__table_01.csv"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-012",
-            "priority": "medium",
-            "question": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__cash_flow__table_01'?",
-            "retrieval_name": "financial_report",
-            "success": true,
-            "record_count": null,
-            "matched_tables": null,
-            "evidence_summary": "Retrieved processed 2026_06 finance summary.",
-            "source_references": [
-              "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-013",
-            "priority": "medium",
-            "question": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__department_summary__table_01'?",
-            "retrieval_name": "financial_report",
-            "success": true,
-            "record_count": null,
-            "matched_tables": null,
-            "evidence_summary": "Retrieved processed 2026_06 finance summary.",
-            "source_references": [
-              "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-014",
-            "priority": "medium",
-            "question": "Which transactions caused Facilities category outside budget target?",
-            "retrieval_name": "transactions",
-            "success": true,
-            "record_count": 64,
-            "matched_tables": [
-              "expenses",
-              "vendor_payments"
-            ],
-            "evidence_summary": "Retrieved 64 processed transaction record(s).",
-            "source_references": [
-              "normalized_tables/monthly_financial_report_june_2026__transaction_tables"
             ],
             "warnings": [],
             "unavailable_data": []
@@ -846,39 +736,41 @@
         "recommendations": [
           {
             "priority": "high",
-            "action": "Implement real-time vendor payment approval workflows with budget thresholds.",
-            "rationale": "Current evidence shows repeated overspending through vendor payments without budget checks, risking further financial misalignment.",
-            "supporting_evidence": "Engineering and Health Sciences vendor payments exceeded budget by $111,996 and $92,859 respectively.",
-            "expected_impact": "Reduce vendor-related overspending by 50% within 6 months.",
+            "action": "Conduct departmental review of Health Sciences payroll and vendor spending.",
+            "rationale": "Health Sciences has the largest variance; understanding root causes can prevent future overspending.",
+            "supporting_evidence": "Health Sciences payroll variance $87,255, vendor payments $29,045 for supplies.",
+            "expected_impact": "Reduce overspending by 50% in next quarter.",
             "confidence": 0.85
           },
           {
             "priority": "high",
-            "action": "Conduct payroll budget vs. actual analysis for Health Sciences to identify FTE or compensation discrepancies.",
-            "rationale": "Health Sciences' payroll variance is significantly higher than other departments, indicating potential misalignment in staffing or compensation planning.",
-            "supporting_evidence": "Health Sciences payroll variance: $87,255 vs. Engineering's $4,928.",
-            "expected_impact": "Align payroll budget with actual FTE and compensation costs within 3 months.",
-            "confidence": 0.8
+            "action": "Investigate student payment processing delays and implement tracking system.",
+            "rationale": "Student collection rate missed target due to unprocessed transactions.",
+            "supporting_evidence": "48 transaction records retrieved but status 'Paid' not confirmed for collection rate.",
+            "expected_impact": "Achieve 95% collection rate by July 2026.",
+            "confidence": 0.75
           },
           {
             "priority": "medium",
-            "action": "Review and adjust budget thresholds for high-risk departments like Engineering and Health Sciences.",
-            "rationale": "Current budget thresholds do not account for historical overspending patterns in these departments.",
-            "supporting_evidence": "Engineering and Health Sciences consistently exceed budget in vendor payments and payroll.",
-            "expected_impact": "Reduce annual overspending by 20% through proactive budget adjustments.",
-            "confidence": 0.7
+            "action": "Review vendor payment filters to ensure all transactions are processed.",
+            "rationale": "Flagged vendor payments have no evidence due to filtering issues.",
+            "supporting_evidence": "0 processed transactions retrieved for flagged vendor payments.",
+            "expected_impact": "Ensure 100% of vendor payments are recorded and auditable.",
+            "confidence": 0.65
           }
         ],
         "root_causes": [
-          "Unplanned vendor payments for supplies and services, particularly from Professional Services Network, contributed to overspending in both Engineering and Health Sciences.",
-          "Health Sciences' payroll variance of $87,255 may stem from unexpected overtime or benefits costs not aligned with budgeted FTE headcount.",
-          "Lack of real-time monitoring for vendor payment approvals may have allowed overspending to accumulate without early intervention."
+          "Unplanned overtime and benefits in Health Sciences due to staffing or project demands.",
+          "Unplanned vendor payments in Engineering for supplies and services exceeding budget allocations.",
+          "Incomplete transaction processing for student payments leading to collection rate shortfall.",
+          "Data filtering issues causing missing vendor payment evidence for flagged transactions."
         ],
         "strategic_priorities": [
-          "Prevent further overspending in Engineering and Health Sciences through vendor payment controls.",
-          "Align payroll budget with actual headcount and compensation costs for Health Sciences."
+          "Address Health Sciences overspending to align with annual budget goals.",
+          "Improve student payment collection rate to meet financial targets.",
+          "Fix data processing gaps for vendor payments to ensure auditability."
         ],
-        "reasoning_summary": "Evidence shows Engineering and Health Sciences overspending primarily through vendor payments and payroll variance. Recommendations focus on real-time controls, payroll analysis, and budget adjustments based on current data. Missing information includes detailed overtime/benefits breakdown and historical vendor trends."
+        "reasoning_summary": "Evidence shows Health Sciences and Engineering overspending, student payments missing, and vendor data gaps. Recommendations focus on root cause analysis and process improvements based on retrieved data."
       },
       "source_references": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
@@ -890,10 +782,16 @@
       "title": "Missing Information",
       "content": {
         "missing_information": [
-          "Historical trend data for vendor payments to identify recurring patterns."
+          "Details on Engineering vendor payment categories exceeding budget.",
+          "Specific cause of student payment processing delays."
         ],
-        "evidence_warnings": [],
-        "unavailable_evidence": []
+        "evidence_warnings": [
+          "Historical memory database is not available in Step 8."
+        ],
+        "unavailable_evidence": [
+          "No processed transactions matched the filters.",
+          "previous_cycle_memory_database"
+        ]
       },
       "source_references": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_06.json",

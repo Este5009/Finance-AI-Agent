@@ -28,6 +28,7 @@ from finance_agent.orchestration.pipeline_orchestrator import (
     build_default_stages,
     run_full_pipeline,
 )
+from finance_agent.orchestration.profiling import build_pipeline_profile
 
 
 def _config(project_root: Path) -> PipelineConfig:
@@ -295,6 +296,10 @@ def test_output_summary_structure(tmp_path: Path) -> None:
     }
     assert data["runtime_summary"]["stages_run"] == 8
     assert data["stages"][0]["stage_name"] == "ingestion"
+    assert "telemetry" in data["stages"][0]
+    assert data["config"]["max_planner_anomalies"] == 5
+    assert data["config"]["compact_context"] is True
+    assert data["config"]["deduplicate_context"] is True
 
 
 def test_structure_fallback_skipped_when_confidence_high(tmp_path: Path) -> None:
@@ -461,6 +466,9 @@ def test_stage_specific_model_routing_uses_expected_models(tmp_path: Path) -> No
     assert _ollama_client_for_stage(config, "ollama_structure_fallback").model == "small-structure"
     assert _ollama_client_for_stage(config, "ollama_investigation_planner").model == "small-planner"
     assert _ollama_client_for_stage(config, "strategic_analysis").model == "large-analysis"
+    assert _ollama_client_for_stage(config, "ollama_structure_fallback").reasoning_enabled is False
+    assert _ollama_client_for_stage(config, "ollama_investigation_planner").reasoning_enabled is True
+    assert _ollama_client_for_stage(config, "strategic_analysis").reasoning_enabled is True
 
 
 def test_default_model_routing_uses_single_large_model(tmp_path: Path) -> None:
@@ -476,6 +484,67 @@ def test_default_model_routing_uses_single_large_model(tmp_path: Path) -> None:
         "investigation_planner": "qwen3:30b-a3b",
         "strategic_analysis": "qwen3:30b-a3b",
     }
+
+
+def test_runtime_optimization_settings_change_cache_key(tmp_path: Path) -> None:
+    """Verify prompt-shaping settings are part of cache identity."""
+
+    input_model = _input_model(tmp_path)
+    default_config = _config(tmp_path)
+    changed_config = PipelineConfig.from_project_root(
+        tmp_path,
+        python_executable=sys.executable,
+        ollama_endpoint="http://localhost:9",
+        max_planner_anomalies=3,
+    )
+
+    assert _pipeline_cache_key(input_model, default_config) != _pipeline_cache_key(
+        input_model,
+        changed_config,
+    )
+
+
+def test_pipeline_profile_summarizes_stage_telemetry(tmp_path: Path) -> None:
+    """Verify profiler output includes stage timings and context telemetry."""
+
+    config = _config(tmp_path)
+    stage = PipelineStageResult(
+        stage_name="strategic_analysis",
+        display_name="Strategic analysis",
+        critical=False,
+        success=True,
+        skipped=False,
+        output_files=(),
+        warnings=(),
+        error=None,
+        runtime_seconds=2.5,
+        telemetry={
+            "context_characters": 1200,
+            "context_token_estimate": 300,
+            "generation_time_seconds": 1.2,
+        },
+    )
+    result = PipelineRunResult(
+        success=True,
+        stages=(stage,),
+        output_files=(),
+        warnings=(),
+        runtime_summary=RuntimeSummary(
+            total_runtime_seconds=2.5,
+            stages_requested=1,
+            stages_run=1,
+            stages_succeeded=1,
+            stages_failed=0,
+            stages_skipped=0,
+        ),
+        config=config,
+    )
+
+    profile = build_pipeline_profile(result)
+
+    assert profile["total_context_characters"] == 1200
+    assert profile["total_token_estimate"] == 300
+    assert profile["bottleneck_ranking"][0]["stage_name"] == "strategic_analysis"
 
 
 def test_single_model_backward_compatibility_for_stage_routing(tmp_path: Path) -> None:

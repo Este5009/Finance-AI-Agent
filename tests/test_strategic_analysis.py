@@ -289,6 +289,9 @@ def test_successful_analysis_generation_uses_mocked_ollama() -> None:
     assert result.analysis_document["recommendation_count"] == 2
     assert result.analysis_document["analysis"]["confidence"] == 0.76
     assert client.generate_calls == 1
+    assert result.telemetry is not None
+    assert result.telemetry["context_characters"] > 0
+    assert result.telemetry["deduplicate_context"] is True
 
 
 def test_unavailable_ollama_rejects_without_generation() -> None:
@@ -407,3 +410,30 @@ def test_prompt_is_compact_and_omits_full_evidence_rows() -> None:
     assert "MUST_NOT_APPEAR" not in prompt
     assert "secret_row" not in prompt
     assert "net_operating_result" in prompt
+
+
+def test_strategy_prompt_deduplicates_evidence_and_ranks_anomalies() -> None:
+    """Verify strategic context avoids repeated evidence/anomaly noise."""
+
+    evidence = _evidence_package()
+    evidence["evidence_packages"].append(dict(evidence["evidence_packages"][0]))
+    anomalies = _anomaly_report()
+    anomalies["anomalies"] = [
+        {"anomaly_id": "LOW", "severity": "low", "observed_value": 10000},
+        {"anomaly_id": "HIGH", "severity": "high", "observed_value": 2},
+        {"anomaly_id": "CRIT", "severity": "critical", "observed_value": 1},
+    ]
+
+    prompt = build_strategic_analysis_prompt(
+        evidence_package=evidence,
+        finance_summary=_finance_summary(),
+        anomaly_report=anomalies,
+        risk_summary=_risk_summary(),
+        period_slug="june_2026",
+        deduplicate_context=True,
+    )
+
+    assert prompt.count("Retrieved 1 processed report.") == 1
+    assert "CRIT" in prompt
+    assert "HIGH" in prompt
+    assert "LOW" not in prompt

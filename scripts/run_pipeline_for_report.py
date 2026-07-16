@@ -62,6 +62,17 @@ def build_argument_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--ollama-timeout", type=float, default=180.0)
     parser.add_argument("--stage-timeout", type=float, default=420.0)
+    parser.add_argument("--max-planner-anomalies", type=int, default=5)
+    parser.add_argument(
+        "--no-compact-context",
+        action="store_true",
+        help="Disable compact context mode for diagnostics.",
+    )
+    parser.add_argument(
+        "--no-deduplicate-context",
+        action="store_true",
+        help="Disable prompt-context deduplication for diagnostics.",
+    )
     parser.add_argument(
         "--summary-output",
         type=Path,
@@ -113,6 +124,9 @@ def main() -> None:
         ollama_timeout_seconds=args.ollama_timeout,
         stage_timeout_seconds=args.stage_timeout,
         input_model=input_model,
+        max_planner_anomalies=args.max_planner_anomalies,
+        compact_context=not args.no_compact_context,
+        deduplicate_context=not args.no_deduplicate_context,
     )
 
     print("Finance AI Agent - Generic Report Pipeline")
@@ -124,6 +138,12 @@ def main() -> None:
     print(f"Effective period: {input_model.effective_period_label}")
     print(f"Report language: {input_model.report_language}")
     print(f"Ollama models: {config.effective_ollama_models()}")
+    print(
+        "Runtime optimization: "
+        f"max_planner_anomalies={config.max_planner_anomalies}, "
+        f"compact_context={config.compact_context}, "
+        f"deduplicate_context={config.deduplicate_context}"
+    )
     for evidence in input_model.detected_period.evidence:
         print(f"  evidence: {evidence}")
 

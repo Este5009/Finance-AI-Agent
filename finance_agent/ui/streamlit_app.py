@@ -60,6 +60,9 @@ class StreamlitRunSettings:
     analysis_ollama_model: str | None = None
     ollama_timeout_seconds: float = 180.0
     stage_timeout_seconds: float = 420.0
+    max_planner_anomalies: int = 5
+    compact_context: bool = True
+    deduplicate_context: bool = True
 
 
 PipelineRunner = Callable[[PipelineInputModel, PipelineConfig], PipelineRunResult]
@@ -133,6 +136,9 @@ def build_pipeline_config(
         analysis_ollama_model=settings.analysis_ollama_model,
         ollama_timeout_seconds=settings.ollama_timeout_seconds,
         stage_timeout_seconds=settings.stage_timeout_seconds,
+        max_planner_anomalies=settings.max_planner_anomalies,
+        compact_context=settings.compact_context,
+        deduplicate_context=settings.deduplicate_context,
         input_model=input_model,
     )
 
@@ -260,6 +266,13 @@ def _render_stage_results(st: Any, result: PipelineRunResult) -> None:
             "Status": "Skipped" if stage.skipped else "OK" if stage.success else "Failed",
             "Critical": "Yes" if stage.critical else "No",
             "Runtime (s)": round(stage.runtime_seconds, 2),
+            "Context chars": stage.telemetry.get("context_characters", ""),
+            "Generation (s)": round(
+                float(stage.telemetry.get("generation_time_seconds", 0.0)),
+                2,
+            )
+            if stage.telemetry
+            else "",
             "Warnings": "; ".join(stage.warnings),
             "Error": stage.error or "",
         }
@@ -277,6 +290,38 @@ def _render_stage_results(st: Any, result: PipelineRunResult) -> None:
     if ollama_rows:
         st.subheader("Ollama stage runtimes")
         st.dataframe(ollama_rows, use_container_width=True, hide_index=True)
+    telemetry_rows = [
+        {
+            "Stage": stage.display_name,
+            "Model load (s)": round(
+                float(stage.telemetry.get("model_load_time_seconds", 0.0)),
+                2,
+            ),
+            "Prompt eval (s)": round(
+                float(stage.telemetry.get("prompt_evaluation_time_seconds", 0.0)),
+                2,
+            ),
+            "Generation (s)": round(
+                float(stage.telemetry.get("generation_time_seconds", 0.0)),
+                2,
+            ),
+            "Validation (s)": round(
+                float(stage.telemetry.get("json_validation_time_seconds", 0.0)),
+                4,
+            ),
+            "Preprocess (s)": round(
+                float(stage.telemetry.get("python_preprocessing_time_seconds", 0.0)),
+                4,
+            ),
+            "Context chars": stage.telemetry.get("context_characters", ""),
+            "Token est.": stage.telemetry.get("context_token_estimate", ""),
+        }
+        for stage in result.stages
+        if stage.telemetry
+    ]
+    if telemetry_rows:
+        st.subheader("Ollama telemetry")
+        st.dataframe(telemetry_rows, use_container_width=True, hide_index=True)
 
 
 def _render_overview_tab(st: Any, report_model: dict[str, Any], result: PipelineRunResult) -> None:
@@ -497,6 +542,16 @@ def main() -> None:
                 value=420.0,
                 step=30.0,
             )
+            max_planner_anomalies = st.number_input(
+                "Max planner anomalies sent to Ollama",
+                min_value=1,
+                max_value=20,
+                value=5,
+                step=1,
+                help="Only ranked Critical/High anomalies are sent by default.",
+            )
+            compact_context = st.checkbox("Compact Ollama context", value=True)
+            deduplicate_context = st.checkbox("Deduplicate Ollama context", value=True)
         run_button = st.button("Run Analysis", type="primary", use_container_width=True)
 
     if not run_button:
@@ -519,6 +574,9 @@ def main() -> None:
         analysis_ollama_model=analysis_model.strip() if analysis_model else None,
         ollama_timeout_seconds=float(ollama_timeout),
         stage_timeout_seconds=float(stage_timeout),
+        max_planner_anomalies=int(max_planner_anomalies),
+        compact_context=bool(compact_context),
+        deduplicate_context=bool(deduplicate_context),
     )
 
     try:

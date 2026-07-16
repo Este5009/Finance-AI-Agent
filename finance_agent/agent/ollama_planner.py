@@ -3,10 +3,18 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
 
+from finance_agent.common.context_optimization import (
+    compact_json_size,
+    deduplicate_dicts,
+    estimate_tokens_from_text,
+    merge_telemetry,
+    rank_anomalies,
+)
 from finance_agent.llm.ollama_client import OllamaError
 from finance_agent.agent.planner_models import InvestigationPlan
 from finance_agent.agent.planner_validation import (
@@ -36,9 +44,35 @@ class OllamaPlannerResult:
     ollama_plan_accepted: bool
     fallback_used: bool
     validation_errors: tuple[str, ...]
+    telemetry: dict[str, Any] | None = None
 
 
-def _compact_finance_summary(finance_document: dict[str, Any]) -> dict[str, Any]:
+def rank_anomalies_for_planning(
+    anomaly_report: dict[str, Any],
+    *,
+    max_anomalies: int = 5,
+) -> list[dict[str, Any]]:
+    """Rank Critical/High anomalies before planner context is built.
+
+    Inputs: processed anomaly report and maximum anomaly count.
+    Outputs: ranked Critical/High anomalies for Ollama context.
+    Assumptions: lower-severity anomalies remain available to Python fallback.
+    """
+
+    anomalies = anomaly_report.get("anomalies", [])
+    anomalies = anomalies if isinstance(anomalies, list) else []
+    return rank_anomalies(
+        anomalies,
+        allowed_severities={"critical", "high"},
+        max_count=max(0, int(max_anomalies)),
+    )
+
+
+def _compact_finance_summary(
+    finance_document: dict[str, Any],
+    *,
+    deduplicate_context: bool = True,
+) -> dict[str, Any]:
     """Select decision-relevant calculated values without copying full reports.
 
     Inputs: Step 3 finance summary document.
@@ -51,6 +85,18 @@ def _compact_finance_summary(finance_document: dict[str, Any]) -> dict[str, Any]
     budget = finance.get("budget_vs_actual", {})
     payments = finance.get("student_payments", {})
     cash = finance.get("cash_flow", {})
+    kpis = [
+        {
+            "metric": item.get("metric"),
+            "value": item.get("value"),
+            "unit": item.get("unit"),
+            "availability": item.get("availability"),
+        }
+        for item in finance_document.get("kpi_summary", [])[:12]
+        if isinstance(item, dict)
+    ]
+    if deduplicate_context:
+        kpis = deduplicate_dicts(kpis, key_fields=("metric", "unit", "value"))
     return {
         "report_period": finance_document.get("report_period"),
         "headline_finance": {
@@ -88,16 +134,7 @@ def _compact_finance_summary(finance_document: dict[str, Any]) -> dict[str, Any]
                 cash.get("ending_cash") if isinstance(cash, dict) else None
             ),
         },
-        "kpi_summary": [
-            {
-                "metric": item.get("metric"),
-                "value": item.get("value"),
-                "unit": item.get("unit"),
-                "availability": item.get("availability"),
-            }
-            for item in finance_document.get("kpi_summary", [])[:8]
-            if isinstance(item, dict)
-        ],
+        "kpi_summary": kpis[:8],
         "calculation_warnings": [
             str(warning)[:240]
             for warning in finance_document.get("calculation_warnings", [])[:10]
@@ -105,7 +142,11 @@ def _compact_finance_summary(finance_document: dict[str, Any]) -> dict[str, Any]
     }
 
 
-def _compact_anomaly_report(anomaly_report: dict[str, Any]) -> dict[str, Any]:
+def _compact_anomaly_report(
+    anomaly_report: dict[str, Any],
+    *,
+    max_anomalies: int = 5,
+) -> dict[str, Any]:
     """Compress anomaly evidence to scalar risk facts for planning.
 
     Inputs: Step 4 anomaly report.
@@ -113,11 +154,23 @@ def _compact_anomaly_report(anomaly_report: dict[str, Any]) -> dict[str, Any]:
     Assumptions: descriptions and source file paths are unnecessary for planning.
     """
 
+    ranked = rank_anomalies_for_planning(
+        anomaly_report,
+        max_anomalies=max_anomalies,
+    )
+    all_anomalies = anomaly_report.get("anomalies", [])
+    all_anomalies = all_anomalies if isinstance(all_anomalies, list) else []
     return {
         "report_period": anomaly_report.get("report_period"),
         "total_anomalies": anomaly_report.get("total_anomalies"),
         "anomalies_by_severity": anomaly_report.get("anomalies_by_severity", {}),
         "thresholds": anomaly_report.get("thresholds", {}),
+        "planner_anomaly_filter": {
+            "included_severities": ["critical", "high"],
+            "max_anomalies": max_anomalies,
+            "included_count": len(ranked),
+            "available_to_python_count": len(all_anomalies),
+        },
         "anomalies": [
             {
                 "anomaly_id": anomaly.get("anomaly_id"),
@@ -130,7 +183,7 @@ def _compact_anomaly_report(anomaly_report: dict[str, Any]) -> dict[str, Any]:
                 "evidence": str(anomaly.get("evidence", ""))[:160],
                 "rule_id": anomaly.get("rule_id"),
             }
-            for anomaly in anomaly_report.get("anomalies", [])[:MAX_PLAN_STEPS]
+            for anomaly in ranked
             if isinstance(anomaly, dict)
         ],
     }
@@ -244,6 +297,9 @@ def build_ollama_planner_prompt(
     enriched_model: dict[str, Any],
     baseline_plan: InvestigationPlan,
     period_slug: str,
+    max_anomalies: int = 5,
+    compact_context: bool = True,
+    deduplicate_context: bool = True,
 ) -> str:
     """Build a bounded planning prompt from compressed processed summaries.
 
@@ -252,10 +308,17 @@ def build_ollama_planner_prompt(
     Assumptions: no full report, normalized table, transaction, or sample row is sent.
     """
 
+    del compact_context  # Planner context is always compact; flag is recorded in config.
     context = {
         "period_slug": period_slug,
-        "finance_and_kpis": _compact_finance_summary(finance_document),
-        "anomaly_summary": _compact_anomaly_report(anomaly_report),
+        "finance_and_kpis": _compact_finance_summary(
+            finance_document,
+            deduplicate_context=deduplicate_context,
+        ),
+        "anomaly_summary": _compact_anomaly_report(
+            anomaly_report,
+            max_anomalies=max_anomalies,
+        ),
         "annual_risk_summary": _compact_risk_summary(risk_summary),
         "data_quality_summary": _compact_enriched_model(
             enriched_model,
@@ -264,6 +327,11 @@ def build_ollama_planner_prompt(
         "deterministic_baseline": _compact_baseline(baseline_plan),
         "available_tool_interfaces": TOOL_INTERFACES,
         "maximum_investigation_steps": MAX_PLAN_STEPS,
+        "context_policy": {
+            "critical_high_anomalies_only": True,
+            "max_planner_anomalies": max_anomalies,
+            "deduplicate_context": deduplicate_context,
+        },
     }
     schema_example = {
         "investigation_steps": [
@@ -295,7 +363,9 @@ def build_ollama_planner_prompt(
         "Return strict JSON only, with exactly the "
         "root key investigation_steps and exactly the step fields shown. Every "
         "tool_name/arguments pair must be unique. Keep the plan focused and within "
-        f"{MAX_PLAN_STEPS} steps. Before responding, group proposed steps by exact "
+        f"{MAX_PLAN_STEPS} steps. The anomaly context intentionally contains only "
+        "the top Critical/High risks; lower severity items remain available to "
+        "Python for later retrieval. Before responding, group proposed steps by exact "
         "tool_name and arguments and emit each equivalent call only once. Consolidate "
         "all questions supported by that call into one cross-cutting step. In "
         "particular, get_previous_cycle_memory with empty arguments may appear at "
@@ -467,6 +537,9 @@ def create_ollama_investigation_plan(
     enriched_model: dict[str, Any],
     baseline_plan: InvestigationPlan,
     period_slug: str,
+    max_anomalies: int = 5,
+    compact_context: bool = True,
+    deduplicate_context: bool = True,
 ) -> OllamaPlannerResult:
     """Create, validate, and queue a primary Ollama plan or Python fallback.
 
@@ -475,11 +548,16 @@ def create_ollama_investigation_plan(
     Assumptions: any unavailability, request error, or validation error falls back.
     """
 
+    stage_started = time.perf_counter()
+    preprocessing_started = time.perf_counter()
     available = client.is_available()
     validation: PlanValidationResult | None = None
     errors: tuple[str, ...] = ()
     deduplicated_tool_calls = 0
     repaired_text_fields = 0
+    prompt = ""
+    ollama_telemetry: dict[str, Any] = {}
+    validation_time = 0.0
     if available:
         prompt = build_ollama_planner_prompt(
             finance_document=finance_document,
@@ -488,9 +566,19 @@ def create_ollama_investigation_plan(
             enriched_model=enriched_model,
             baseline_plan=baseline_plan,
             period_slug=period_slug,
+            max_anomalies=max_anomalies,
+            compact_context=compact_context,
+            deduplicate_context=deduplicate_context,
         )
+        preprocessing_time = time.perf_counter() - preprocessing_started
         try:
-            response = client.generate(prompt)
+            if hasattr(client, "generate_with_metadata"):
+                generation = client.generate_with_metadata(prompt)  # type: ignore[attr-defined]
+                response = str(generation["response"])
+                ollama_telemetry = dict(generation.get("telemetry", {}))
+            else:
+                response = client.generate(prompt)
+            validation_started = time.perf_counter()
             validation = validate_ollama_plan_response(
                 response,
                 allowed_source_ids=_allowed_source_ids(
@@ -502,8 +590,11 @@ def create_ollama_investigation_plan(
             errors = validation.errors
             deduplicated_tool_calls = validation.deduplicated_steps
             repaired_text_fields = validation.repaired_text_fields
+            validation_time = time.perf_counter() - validation_started
         except OllamaError as exc:
             errors = (str(exc),)
+    else:
+        preprocessing_time = time.perf_counter() - preprocessing_started
 
     if validation is not None and validation.is_valid:
         steps = validation.steps
@@ -534,6 +625,31 @@ def create_ollama_investigation_plan(
         ollama_plan_accepted=planner_source == "ollama",
         fallback_used=planner_source == "deterministic_fallback",
         validation_errors=errors,
+        telemetry=merge_telemetry(
+            {
+                "python_preprocessing_time_seconds": preprocessing_time,
+                "json_validation_time_seconds": validation_time,
+                "total_stage_time_seconds": time.perf_counter() - stage_started,
+                "context_characters": len(prompt),
+                "context_token_estimate": estimate_tokens_from_text(prompt),
+                "compact_context": compact_context,
+                "deduplicate_context": deduplicate_context,
+                "max_planner_anomalies": max_anomalies,
+                "ranked_planner_anomaly_count": len(
+                    rank_anomalies_for_planning(
+                        anomaly_report,
+                        max_anomalies=max_anomalies,
+                    )
+                ),
+                "compact_context_json_characters": compact_json_size(
+                    _compact_anomaly_report(
+                        anomaly_report,
+                        max_anomalies=max_anomalies,
+                    )
+                ),
+            },
+            ollama_telemetry,
+        ),
     )
 
 

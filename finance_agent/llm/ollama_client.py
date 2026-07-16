@@ -24,6 +24,7 @@ class OllamaClient:
     endpoint: str = DEFAULT_OLLAMA_ENDPOINT
     model: str = DEFAULT_OLLAMA_MODEL
     timeout_seconds: float = 90.0
+    reasoning_enabled: bool = False
 
     def _request(
         self,
@@ -78,11 +79,11 @@ class OllamaClient:
             return False
         return True
 
-    def generate(self, prompt: str) -> str:
-        """Ask Ollama for one non-streaming strict-JSON response.
+    def generate_with_metadata(self, prompt: str) -> dict[str, Any]:
+        """Ask Ollama for one response plus timing metadata.
 
         Inputs: compact task-specific prompt.
-        Outputs: model response text from Ollama's response envelope.
+        Outputs: dictionary with generated text and Ollama timing telemetry.
         Assumptions: callers validate the model-authored JSON before using it.
         """
 
@@ -94,9 +95,9 @@ class OllamaClient:
                 "prompt": prompt,
                 "stream": False,
                 "format": "json",
-                # Qwen3 otherwise may place the requested JSON in its separate
-                # thinking field and leave the normal response field empty.
-                "think": False,
+                # Structure fallback stays non-thinking for strict schema mapping,
+                # while planner/analysis clients can explicitly enable reasoning.
+                "think": self.reasoning_enabled,
                 # Structure classification should be stable rather than creative.
                 "options": {"temperature": 0},
             },
@@ -109,4 +110,43 @@ class OllamaClient:
             generated_text = response.get("thinking")
         if not isinstance(generated_text, str) or not generated_text.strip():
             raise OllamaError("Ollama response did not contain generated text.")
-        return generated_text
+
+        def seconds_from_nanoseconds(field_name: str) -> float:
+            """Convert an Ollama duration field to seconds.
+
+            Inputs: Ollama response field name.
+            Outputs: seconds, or 0.0 when the field is absent.
+            Assumptions: Ollama duration metadata is reported in nanoseconds.
+            """
+
+            value = response.get(field_name)
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                return float(value) / 1_000_000_000
+            return 0.0
+
+        telemetry = {
+            "model": self.model,
+            "reasoning_enabled": self.reasoning_enabled,
+            "prompt_characters": len(prompt),
+            "prompt_token_estimate": max(1, len(prompt) // 4) if prompt else 0,
+            "model_load_time_seconds": seconds_from_nanoseconds("load_duration"),
+            "prompt_evaluation_time_seconds": seconds_from_nanoseconds(
+                "prompt_eval_duration"
+            ),
+            "generation_time_seconds": seconds_from_nanoseconds("eval_duration"),
+            "total_ollama_time_seconds": seconds_from_nanoseconds("total_duration"),
+            "prompt_eval_count": response.get("prompt_eval_count"),
+            "generation_eval_count": response.get("eval_count"),
+            "thinking_characters": len(str(response.get("thinking", ""))),
+        }
+        return {"response": generated_text, "telemetry": telemetry}
+
+    def generate(self, prompt: str) -> str:
+        """Ask Ollama for one non-streaming strict-JSON response.
+
+        Inputs: compact task-specific prompt.
+        Outputs: model response text from Ollama's response envelope.
+        Assumptions: this compatibility wrapper discards timing metadata.
+        """
+
+        return str(self.generate_with_metadata(prompt)["response"])

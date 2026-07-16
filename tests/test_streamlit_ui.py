@@ -155,6 +155,9 @@ def test_run_analysis_from_files_invokes_pipeline_runner(tmp_path: Path) -> None
             ollama_model="qwen3:30b-a3b",
             ollama_timeout_seconds=12,
             stage_timeout_seconds=34,
+            max_planner_anomalies=3,
+            compact_context=True,
+            deduplicate_context=False,
         ),
         runner=fake_runner,
     )
@@ -163,6 +166,8 @@ def test_run_analysis_from_files_invokes_pipeline_runner(tmp_path: Path) -> None
     assert captured["input_model"].period_override == "2026-06"
     assert captured["config"].ollama_timeout_seconds == 12
     assert captured["config"].stage_timeout_seconds == 34
+    assert captured["config"].max_planner_anomalies == 3
+    assert captured["config"].deduplicate_context is False
     assert captured["config"].input_model is captured["input_model"]
     assert captured["config"].effective_ollama_models() == {
         "structure_fallback": "qwen3:30b-a3b",
@@ -198,6 +203,9 @@ def test_ui_single_model_setting_routes_all_stages(tmp_path: Path) -> None:
         "investigation_planner": "qwen3:30b-a3b",
         "strategic_analysis": "qwen3:30b-a3b",
     }
+    assert config.max_planner_anomalies == 5
+    assert config.compact_context is True
+    assert config.deduplicate_context is True
 
 
 def test_ui_experimental_stage_models_remain_available(tmp_path: Path) -> None:
@@ -281,6 +289,13 @@ def test_ui_stage_results_display_cache_and_skipped_status() -> None:
                 warnings=("Skipped; deterministic structure was high-confidence.",),
                 error=None,
                 runtime_seconds=0.01,
+                telemetry={
+                    "context_characters": 100,
+                    "context_token_estimate": 25,
+                    "generation_time_seconds": 0.0,
+                    "json_validation_time_seconds": 0.0,
+                    "python_preprocessing_time_seconds": 0.01,
+                },
             ),
         ),
         output_files=(),
@@ -302,3 +317,4 @@ def test_ui_stage_results_display_cache_and_skipped_status() -> None:
 
     assert fake_st.info_messages == ["Pipeline cache: hit"]
     assert fake_st.tables[0][0]["Status"] == "Skipped"
+    assert fake_st.tables[-1][0]["Context chars"] == 100
