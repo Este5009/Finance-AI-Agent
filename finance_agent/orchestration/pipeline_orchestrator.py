@@ -961,6 +961,8 @@ def run_pipeline_for_report(
         max_planner_anomalies=config.max_planner_anomalies,
         compact_context=config.compact_context,
         deduplicate_context=config.deduplicate_context,
+        enable_memory_storage=config.enable_memory_storage,
+        memory_database_path=config.memory_database_path,
     )
     if stages is not None or stage_executor is not run_stage_subprocess:
         # Tests and legacy callers can still exercise the script-backed path with
@@ -1001,6 +1003,18 @@ def run_object_pipeline_for_report(
             pipeline_started=pipeline_started,
         )
         if cached_result is not None:
+            if config.enable_memory_storage:
+                try:
+                    from finance_agent.memory.run_storage import persist_pipeline_run
+
+                    persist_pipeline_run(
+                        cached_result,
+                        period_slug=period_slug,
+                        database_path=config.memory_database_path
+                        or config.project_root / "data" / "memory" / "finance_memory.db",
+                    )
+                except Exception as exc:  # noqa: BLE001 - cache reuse remains valid.
+                    print(f"Memory storage skipped after cache hit: {exc}")
             return cached_result
     report_label = input_model.effective_period_label
     report_prefix = clean_column_name(input_model.financial_report_path.stem)
@@ -1359,4 +1373,19 @@ def run_object_pipeline_for_report(
             cache_key=cache_key,
             period_slug=period_slug,
         )
+    if result.success and config.enable_memory_storage:
+        try:
+            from finance_agent.memory.run_storage import persist_pipeline_run
+
+            persist_pipeline_run(
+                result,
+                period_slug=period_slug,
+                database_path=config.memory_database_path
+                or config.project_root / "data" / "memory" / "finance_memory.db",
+            )
+        except Exception as exc:  # noqa: BLE001 - storage must not corrupt outputs.
+            # Historical storage is post-run persistence. The report artifacts
+            # remain valid even if SQLite is unavailable, so preserve existing
+            # pipeline behavior and surface the error through a warning-like print.
+            print(f"Memory storage skipped after pipeline run: {exc}")
     return result

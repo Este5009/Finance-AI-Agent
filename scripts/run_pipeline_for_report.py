@@ -62,6 +62,12 @@ def build_argument_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--ollama-timeout", type=float, default=180.0)
     parser.add_argument("--stage-timeout", type=float, default=420.0)
+    parser.add_argument(
+        "--memory-database",
+        type=Path,
+        default=PROJECT_ROOT / "data" / "memory" / "finance_memory.db",
+    )
+    parser.add_argument("--disable-memory-storage", action="store_true")
     parser.add_argument("--max-planner-anomalies", type=int, default=5)
     parser.add_argument(
         "--no-compact-context",
@@ -127,6 +133,8 @@ def main() -> None:
         max_planner_anomalies=args.max_planner_anomalies,
         compact_context=not args.no_compact_context,
         deduplicate_context=not args.no_deduplicate_context,
+        enable_memory_storage=not args.disable_memory_storage,
+        memory_database_path=args.memory_database,
     )
 
     print("Finance AI Agent - Generic Report Pipeline")
@@ -143,6 +151,11 @@ def main() -> None:
         f"max_planner_anomalies={config.max_planner_anomalies}, "
         f"compact_context={config.compact_context}, "
         f"deduplicate_context={config.deduplicate_context}"
+    )
+    print(
+        "Memory storage: "
+        f"{'enabled' if config.enable_memory_storage else 'disabled'} "
+        f"({config.memory_database_path})"
     )
     for evidence in input_model.detected_period.evidence:
         print(f"  evidence: {evidence}")

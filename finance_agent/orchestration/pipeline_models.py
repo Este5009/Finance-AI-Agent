@@ -192,6 +192,8 @@ class PipelineConfig:
     max_planner_anomalies: int = 5
     compact_context: bool = True
     deduplicate_context: bool = True
+    enable_memory_storage: bool = True
+    memory_database_path: Path | None = None
 
     @classmethod
     def from_project_root(
@@ -214,6 +216,8 @@ class PipelineConfig:
         max_planner_anomalies: int = 5,
         compact_context: bool = True,
         deduplicate_context: bool = True,
+        enable_memory_storage: bool = True,
+        memory_database_path: str | Path | None = None,
     ) -> "PipelineConfig":
         """Build a default configuration from the repository root.
 
@@ -247,6 +251,10 @@ class PipelineConfig:
             max_planner_anomalies=max_planner_anomalies,
             compact_context=compact_context,
             deduplicate_context=deduplicate_context,
+            enable_memory_storage=enable_memory_storage,
+            memory_database_path=Path(memory_database_path)
+            if memory_database_path is not None
+            else root / "data" / "memory" / "finance_memory.db",
         )
 
     def to_dict(self) -> dict[str, Any]:
