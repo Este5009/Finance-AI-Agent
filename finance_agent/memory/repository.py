@@ -69,6 +69,81 @@ class MemoryRepository:
             ).fetchone()
         return str(row["run_id"]) if row else None
 
+    def fetch_periods(
+        self,
+        *,
+        limit: int | None = None,
+        before_period: str | None = None,
+        include_current: bool = False,
+    ) -> tuple[sqlite3.Row, ...]:
+        """Fetch stored run periods for read-only memory retrieval.
+
+        Inputs: optional limit, before-period filter, and inclusivity flag.
+        Outputs: tuple of sqlite rows from pipeline_runs.
+        Assumptions: chronological sorting is finalized by the retrieval layer.
+        """
+
+        where = ""
+        params: list[object] = []
+        if before_period is not None:
+            operator = "<=" if include_current else "<"
+            where = f"WHERE period {operator} ?"
+            params.append(before_period)
+        query = f"SELECT * FROM pipeline_runs {where} ORDER BY period"
+        if limit is not None:
+            query += " LIMIT ?"
+            params.append(limit)
+        with connect_database(self.database_path) as connection:
+            return tuple(connection.execute(query, params).fetchall())
+
+    def fetch_period_run(self, period: str) -> sqlite3.Row | None:
+        """Fetch one stored pipeline run by period.
+
+        Inputs: period identifier.
+        Outputs: pipeline_runs row or None.
+        Assumptions: current storage keeps one idempotent run per period/config.
+        """
+
+        with connect_database(self.database_path) as connection:
+            return connection.execute(
+                "SELECT * FROM pipeline_runs WHERE period = ? ORDER BY updated_at_utc DESC LIMIT 1",
+                (period,),
+            ).fetchone()
+
+    def fetch_rows_for_periods(
+        self,
+        table: str,
+        periods: tuple[str, ...],
+        *,
+        extra_where: str = "",
+        params: tuple[object, ...] = (),
+    ) -> tuple[sqlite3.Row, ...]:
+        """Fetch child-table rows joined to runs for selected periods.
+
+        Inputs: allowed table name, periods, optional SQL predicate and params.
+        Outputs: read-only sqlite rows.
+        Assumptions: table names are allowlisted before interpolation.
+        """
+
+        if table not in CHILD_TABLES:
+            raise ValueError(f"Unsupported memory child table: {table}")
+        if not periods:
+            return ()
+        placeholders = ",".join("?" for _ in periods)
+        query = (
+            f"SELECT child.*, runs.period AS run_period, runs.period_type "
+            f"FROM {table} AS child "
+            "JOIN pipeline_runs AS runs ON child.run_id = runs.run_id "
+            f"WHERE runs.period IN ({placeholders})"
+        )
+        query_params: list[object] = list(periods)
+        if extra_where:
+            query += f" AND ({extra_where})"
+            query_params.extend(params)
+        query += " ORDER BY runs.period"
+        with connect_database(self.database_path) as connection:
+            return tuple(connection.execute(query, query_params).fetchall())
+
     def save_pipeline_run(self, payload: StoredPipelineRun) -> StorageResult:
         """Store one accepted pipeline run transactionally and idempotently.
 

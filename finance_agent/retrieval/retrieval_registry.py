@@ -155,4 +155,49 @@ def create_default_registry() -> RetrievalRegistry:
     registry.register("get_transactions", retrieve_transactions, "")
     registry.register("get_previous_cycle_memory", retrieve_previous_cycle_memory, "")
     registry.register("get_full_report", retrieve_financial_report, "")
+
+    from finance_agent.memory.retrieval import (
+        memory_result_to_retrieval_result,
+        registry_adapter,
+    )
+
+    def memory_tool(name: str) -> RetrievalFunction:
+        """Create a registry adapter for one historical memory tool.
+
+        Inputs: memory tool name.
+        Outputs: RetrievalFunction compatible with Step 8 registry.
+        Assumptions: memory tools stay read-only and are not planner-integrated yet.
+        """
+
+        def run(context: "RetrievalContext", arguments: dict[str, Any]) -> "RetrievalResult":
+            """Run one memory retrieval tool through the existing registry shape."""
+
+            args = dict(arguments)
+            args.setdefault(
+                "database_path",
+                str(context.project_root / "data" / "memory" / "finance_memory.db"),
+            )
+            return memory_result_to_retrieval_result(registry_adapter(name, args))
+
+        return run
+
+    registry.register("get_previous_period", memory_tool("get_previous_period"), "")
+    registry.register("get_period_history", memory_tool("get_period_history"), "")
+    registry.register("get_metric_history", memory_tool("get_metric_history"), "")
+    registry.register(
+        "get_memory_department_history",
+        memory_tool("get_memory_department_history"),
+        "Retrieve historical department memory without replacing current-period retrieval.",
+    )
+    registry.register(
+        "get_historical_department_history",
+        memory_tool("get_memory_department_history"),
+        "Alias for historical department memory retrieval.",
+    )
+    registry.register("get_repeated_anomalies", memory_tool("get_repeated_anomalies"), "")
+    registry.register("get_previous_recommendations", memory_tool("get_previous_recommendations"), "")
+    registry.register("get_goal_progress", memory_tool("get_goal_progress"), "")
+    registry.register("get_memory_facts", memory_tool("get_memory_facts"), "")
+    registry.register("get_full_period_record", memory_tool("get_full_period_record"), "")
+    registry.register("get_artifact_references", memory_tool("get_artifact_references"), "")
     return registry
