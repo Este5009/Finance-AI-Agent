@@ -1,0 +1,251 @@
+{
+  "scenario": "recovery",
+  "year": 2026,
+  "seed": 42,
+  "period_type": "monthly",
+  "departments": [
+    "Engineering",
+    "Business",
+    "Health Sciences",
+    "Arts & Humanities",
+    "Student Services",
+    "Administration"
+  ],
+  "reports": [
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_01.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_02.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_03.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_04.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_05.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_06.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_07.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_08.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_09.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_10.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_11.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_12.xlsx"
+  ],
+  "goals": [
+    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_01.pdf",
+    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_02.pdf",
+    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_03.pdf",
+    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_04.pdf",
+    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_05.pdf",
+    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_06.pdf",
+    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_07.pdf",
+    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_08.pdf",
+    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_09.pdf",
+    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_10.pdf",
+    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_11.pdf",
+    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_12.pdf"
+  ],
+  "monthly_payroll_ratio_trend": {
+    "2026_01": 0.38,
+    "2026_02": 0.39,
+    "2026_03": 0.42,
+    "2026_04": 0.45,
+    "2026_05": 0.47,
+    "2026_06": 0.53,
+    "2026_07": 0.52,
+    "2026_08": 0.49,
+    "2026_09": 0.46,
+    "2026_10": 0.43,
+    "2026_11": 0.41,
+    "2026_12": 0.4
+  },
+  "collection_rate_trend": {
+    "2026_01": 0.95,
+    "2026_02": 0.93,
+    "2026_03": 0.91,
+    "2026_04": 0.89,
+    "2026_05": 0.86,
+    "2026_06": 0.84,
+    "2026_07": 0.85,
+    "2026_08": 0.9,
+    "2026_09": 0.92,
+    "2026_10": 0.94,
+    "2026_11": 0.95,
+    "2026_12": 0.96
+  },
+  "health_sciences_overspending_periods": [
+    "2026_04",
+    "2026_05",
+    "2026_06",
+    "2026_07"
+  ],
+  "recurring_vendor_anomaly_periods": [
+    "2026_07",
+    "2026_08",
+    "2026_09"
+  ],
+  "recommendation_milestone": {
+    "period": "2026_05",
+    "topic": "health_sciences_overtime_reduction"
+  },
+  "cash_flow_recovery_periods": [
+    "2026_09",
+    "2026_10",
+    "2026_11",
+    "2026_12"
+  ],
+  "expected_goal_progress": {
+    "payroll_ratio_peak": "2026_06",
+    "collection_campaign_start": "2026_08",
+    "hiring_freeze_start": "2026_09",
+    "cash_flow_positive_from": "2026_09"
+  },
+  "monthly_totals": {
+    "2026_01": {
+      "actual_revenue": 2100000.0,
+      "budget_revenue": 2100000.0,
+      "actual_expense": 2017500.0,
+      "budget_expense": 1953000.0,
+      "payroll_total": 798000.0,
+      "payroll_ratio": 0.38,
+      "collection_rate": 0.95,
+      "net_cash_flow": 150000,
+      "ending_cash": 2650000.0
+    },
+    "2026_02": {
+      "actual_revenue": 2045148.0,
+      "budget_revenue": 2108400.0,
+      "actual_expense": 2001148.0,
+      "budget_expense": 1960812.0,
+      "payroll_total": 797607.72,
+      "payroll_ratio": 0.39,
+      "collection_rate": 0.93,
+      "net_cash_flow": 80000,
+      "ending_cash": 2730000.0
+    },
+    "2026_03": {
+      "actual_revenue": 2032128.0,
+      "budget_revenue": 2116800.0,
+      "actual_expense": 2021128.0,
+      "budget_expense": 1968624.0,
+      "payroll_total": 853493.76,
+      "payroll_ratio": 0.42,
+      "collection_rate": 0.91,
+      "net_cash_flow": 20000,
+      "ending_cash": 2750000.0
+    },
+    "2026_04": {
+      "actual_revenue": 2018940.0,
+      "budget_revenue": 2125200.0,
+      "actual_expense": 2084940.0,
+      "budget_expense": 1976436.0,
+      "payroll_total": 908523.0,
+      "payroll_ratio": 0.45,
+      "collection_rate": 0.89,
+      "net_cash_flow": -120000,
+      "ending_cash": 2630000.0
+    },
+    "2026_05": {
+      "actual_revenue": 2005584.0,
+      "budget_revenue": 2133600.0,
+      "actual_expense": 2126584.0,
+      "budget_expense": 1984248.0,
+      "payroll_total": 942624.48,
+      "payroll_ratio": 0.47,
+      "collection_rate": 0.86,
+      "net_cash_flow": -220000,
+      "ending_cash": 2410000.0
+    },
+    "2026_06": {
+      "actual_revenue": 1992060.0,
+      "budget_revenue": 2142000.0,
+      "actual_expense": 2366060.0,
+      "budget_expense": 1992060.0,
+      "payroll_total": 1055791.8,
+      "payroll_ratio": 0.53,
+      "collection_rate": 0.84,
+      "net_cash_flow": -680000,
+      "ending_cash": 1730000.0
+    },
+    "2026_07": {
+      "actual_revenue": 2021376.0,
+      "budget_revenue": 2150400.0,
+      "actual_expense": 2213876.0,
+      "budget_expense": 1999872.0,
+      "payroll_total": 1051115.52,
+      "payroll_ratio": 0.52,
+      "collection_rate": 0.85,
+      "net_cash_flow": -350000,
+      "ending_cash": 1380000.0
+    },
+    "2026_08": {
+      "actual_revenue": 2072448.0,
+      "budget_revenue": 2158800.0,
+      "actual_expense": 2138448.0,
+      "budget_expense": 2007684.0,
+      "payroll_total": 1015499.52,
+      "payroll_ratio": 0.49,
+      "collection_rate": 0.9,
+      "net_cash_flow": -120000,
+      "ending_cash": 1260000.0
+    },
+    "2026_09": {
+      "actual_revenue": 2123856.0,
+      "budget_revenue": 2167200.0,
+      "actual_expense": 2096356.0,
+      "budget_expense": 2015496.0,
+      "payroll_total": 976973.76,
+      "payroll_ratio": 0.46,
+      "collection_rate": 0.92,
+      "net_cash_flow": 50000,
+      "ending_cash": 1310000.0
+    },
+    "2026_10": {
+      "actual_revenue": 2175600.0,
+      "budget_revenue": 2175600.0,
+      "actual_expense": 2076600.0,
+      "budget_expense": 2023308.0,
+      "payroll_total": 935508.0,
+      "payroll_ratio": 0.43,
+      "collection_rate": 0.94,
+      "net_cash_flow": 180000,
+      "ending_cash": 1490000.0
+    },
+    "2026_11": {
+      "actual_revenue": 2227680.0,
+      "budget_revenue": 2184000.0,
+      "actual_expense": 2051680.0,
+      "budget_expense": 2031120.0,
+      "payroll_total": 913348.8,
+      "payroll_ratio": 0.41,
+      "collection_rate": 0.95,
+      "net_cash_flow": 320000,
+      "ending_cash": 1810000.0
+    },
+    "2026_12": {
+      "actual_revenue": 2280096.0,
+      "budget_revenue": 2192400.0,
+      "actual_expense": 2032596.0,
+      "budget_expense": 2038932.0,
+      "payroll_total": 912038.4,
+      "payroll_ratio": 0.4,
+      "collection_rate": 0.96,
+      "net_cash_flow": 450000,
+      "ending_cash": 2260000.0
+    }
+  },
+  "annual_totals": {
+    "actual_revenue": 25094916.0,
+    "actual_expense": 25226916.0,
+    "payroll_total": 11160524.76,
+    "net_cash_flow": -240000
+  },
+  "expected_timeline_es": {
+    "2026_01": "Línea base saludable con márgenes estables.",
+    "2026_02": "Ligera caída de matrícula e ingresos.",
+    "2026_03": "La nómina empieza a crecer por cobertura operativa.",
+    "2026_04": "Aumenta el tiempo extra en Ciencias de la Salud.",
+    "2026_05": "Se introduce meta de reducción de horas extra.",
+    "2026_06": "El problema persiste y el flujo de caja se debilita.",
+    "2026_07": "Aparece anomalía recurrente de proveedor crítico.",
+    "2026_08": "Campaña de cobranza mejora la recuperación estudiantil.",
+    "2026_09": "Congelamiento de contrataciones y control de costos.",
+    "2026_10": "La nómina se estabiliza tras controles operativos.",
+    "2026_11": "El flujo de caja mejora por cobranza y disciplina de gasto.",
+    "2026_12": "La mayoría de metas anuales mejora; quedan riesgos abiertos."
+  }
+}
