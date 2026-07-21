@@ -1,0 +1,304 @@
+{
+  "history_root": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026",
+  "database_path": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\memory\\recovery_2026_memory.db",
+  "output_directory": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\history_population",
+  "periods_discovered": 12,
+  "periods_run": 0,
+  "resume_missing": true,
+  "successful_periods": [
+    "2026_01",
+    "2026_02",
+    "2026_03",
+    "2026_04",
+    "2026_05",
+    "2026_06",
+    "2026_07",
+    "2026_08",
+    "2026_09",
+    "2026_10",
+    "2026_11",
+    "2026_12"
+  ],
+  "failed_periods": [],
+  "initial_pass": [],
+  "idempotency_pass": [
+    {
+      "pass": "idempotency",
+      "period_slug": "2026_01",
+      "pipeline_success": true,
+      "stored": true,
+      "storage_reason": null,
+      "updated_existing": true,
+      "warnings": [],
+      "runtime_seconds": 300.598
+    },
+    {
+      "pass": "idempotency",
+      "period_slug": "2026_02",
+      "pipeline_success": true,
+      "stored": true,
+      "storage_reason": null,
+      "updated_existing": true,
+      "warnings": [],
+      "runtime_seconds": 312.808
+    },
+    {
+      "pass": "idempotency",
+      "period_slug": "2026_03",
+      "pipeline_success": true,
+      "stored": true,
+      "storage_reason": null,
+      "updated_existing": true,
+      "warnings": [],
+      "runtime_seconds": 316.722
+    },
+    {
+      "pass": "idempotency",
+      "period_slug": "2026_04",
+      "pipeline_success": true,
+      "stored": true,
+      "storage_reason": null,
+      "updated_existing": true,
+      "warnings": [],
+      "runtime_seconds": 372.488
+    },
+    {
+      "pass": "idempotency",
+      "period_slug": "2026_05",
+      "pipeline_success": true,
+      "stored": true,
+      "storage_reason": null,
+      "updated_existing": true,
+      "warnings": [],
+      "runtime_seconds": 376.134
+    },
+    {
+      "pass": "idempotency",
+      "period_slug": "2026_06",
+      "pipeline_success": true,
+      "stored": true,
+      "storage_reason": null,
+      "updated_existing": true,
+      "warnings": [],
+      "runtime_seconds": 59261.326
+    },
+    {
+      "pass": "idempotency",
+      "period_slug": "2026_07",
+      "pipeline_success": true,
+      "stored": true,
+      "storage_reason": null,
+      "updated_existing": true,
+      "warnings": [
+        "investigation_steps[7].tool_name is not allowed"
+      ],
+      "runtime_seconds": 377.783
+    },
+    {
+      "pass": "idempotency",
+      "period_slug": "2026_08",
+      "pipeline_success": true,
+      "stored": true,
+      "storage_reason": null,
+      "updated_existing": true,
+      "warnings": [],
+      "runtime_seconds": 373.246
+    },
+    {
+      "pass": "idempotency",
+      "period_slug": "2026_09",
+      "pipeline_success": true,
+      "stored": true,
+      "storage_reason": null,
+      "updated_existing": true,
+      "warnings": [],
+      "runtime_seconds": 404.192
+    },
+    {
+      "pass": "idempotency",
+      "period_slug": "2026_10",
+      "pipeline_success": true,
+      "stored": true,
+      "storage_reason": null,
+      "updated_existing": true,
+      "warnings": [],
+      "runtime_seconds": 6058.943
+    },
+    {
+      "pass": "idempotency",
+      "period_slug": "2026_11",
+      "pipeline_success": true,
+      "stored": true,
+      "storage_reason": null,
+      "updated_existing": true,
+      "warnings": [],
+      "runtime_seconds": 275.471
+    },
+    {
+      "pass": "idempotency",
+      "period_slug": "2026_12",
+      "pipeline_success": true,
+      "stored": true,
+      "storage_reason": null,
+      "updated_existing": true,
+      "warnings": [],
+      "runtime_seconds": 302.118
+    }
+  ],
+  "idempotency_verified": true,
+  "table_counts": {
+    "pipeline_runs": 12,
+    "artifacts": 570,
+    "kpis": 180,
+    "anomalies": 61,
+    "recommendations": 33,
+    "goals": 0,
+    "memory_facts": 210
+  },
+  "validation": {
+    "valid": true,
+    "checks": {
+      "all_periods_stored": true,
+      "payroll_trend_matches": true,
+      "collection_trend_matches": true,
+      "health_sciences_overspending_matches": true,
+      "recurring_vendor_anomaly_matches": true,
+      "recommendation_timeline_matches": true,
+      "cash_flow_recovery_matches": true
+    },
+    "expected": {
+      "periods": [
+        "2026_01",
+        "2026_02",
+        "2026_03",
+        "2026_04",
+        "2026_05",
+        "2026_06",
+        "2026_07",
+        "2026_08",
+        "2026_09",
+        "2026_10",
+        "2026_11",
+        "2026_12"
+      ],
+      "payroll_trend": {
+        "2026_01": 0.38,
+        "2026_02": 0.39,
+        "2026_03": 0.42,
+        "2026_04": 0.45,
+        "2026_05": 0.47,
+        "2026_06": 0.53,
+        "2026_07": 0.52,
+        "2026_08": 0.49,
+        "2026_09": 0.46,
+        "2026_10": 0.43,
+        "2026_11": 0.41,
+        "2026_12": 0.4
+      },
+      "collection_trend": {
+        "2026_01": 0.95,
+        "2026_02": 0.93,
+        "2026_03": 0.91,
+        "2026_04": 0.89,
+        "2026_05": 0.86,
+        "2026_06": 0.84,
+        "2026_07": 0.85,
+        "2026_08": 0.9,
+        "2026_09": 0.92,
+        "2026_10": 0.94,
+        "2026_11": 0.95,
+        "2026_12": 0.96
+      },
+      "health_sciences_overspending_periods": [
+        "2026_04",
+        "2026_05",
+        "2026_06",
+        "2026_07"
+      ],
+      "recurring_vendor_anomaly_periods": [
+        "2026_07",
+        "2026_08",
+        "2026_09"
+      ],
+      "recommendation_milestone": {
+        "period": "2026_05",
+        "topic": "health_sciences_overtime_reduction"
+      },
+      "cash_flow_recovery_periods": [
+        "2026_09",
+        "2026_10",
+        "2026_11",
+        "2026_12"
+      ]
+    },
+    "observed": {
+      "periods": [
+        "2026_01",
+        "2026_02",
+        "2026_03",
+        "2026_04",
+        "2026_05",
+        "2026_06",
+        "2026_07",
+        "2026_08",
+        "2026_09",
+        "2026_10",
+        "2026_11",
+        "2026_12"
+      ],
+      "payroll_trend": {
+        "2026_01": 0.38,
+        "2026_02": 0.39,
+        "2026_03": 0.42,
+        "2026_04": 0.45000000000000007,
+        "2026_05": 0.47,
+        "2026_06": 0.53,
+        "2026_07": 0.52,
+        "2026_08": 0.4900000000000001,
+        "2026_09": 0.46,
+        "2026_10": 0.43,
+        "2026_11": 0.41,
+        "2026_12": 0.39999999999999997
+      },
+      "collection_trend": {
+        "2026_01": 0.95,
+        "2026_02": 0.9300000130389912,
+        "2026_03": 0.9100000098418998,
+        "2026_04": 0.890000033020628,
+        "2026_05": 0.8599999911358599,
+        "2026_06": 0.8399999944223008,
+        "2026_07": 0.8499999821353819,
+        "2026_08": 0.9000000375294229,
+        "2026_09": 0.9199999665179234,
+        "2026_10": 0.9399999744642602,
+        "2026_11": 0.9500000000000002,
+        "2026_12": 0.9600000029238533
+      },
+      "health_sciences_overspending_periods": [
+        "2026_04",
+        "2026_05",
+        "2026_06",
+        "2026_07"
+      ],
+      "recurring_vendor_anomaly_periods": [
+        "2026_07",
+        "2026_08",
+        "2026_09"
+      ],
+      "recommendation_periods": [
+        "2026_05",
+        "2026_08",
+        "2026_09",
+        "2026_10"
+      ],
+      "cash_flow_recovery_periods": [
+        "2026_09",
+        "2026_10",
+        "2026_11",
+        "2026_12"
+      ]
+    }
+  },
+  "runtime_seconds": 68731.904,
+  "idempotency_note": "Verified by stable pipeline_runs count, no duplicate periods, and rerun rows updating existing run records; child memory_facts may vary with live LLM wording."
+}

@@ -1,0 +1,31 @@
+period,month,department,expense_category,budget_expense,actual_expense,variance,variance_pct
+2026-08-01,August,Engineering,Payroll,213264.64,221795.23,8530.59,0.04
+2026-08-01,August,Engineering,Supplies,86211.84,93878.49,7666.65,0.0889
+2026-08-01,August,Engineering,Services,77136.91,83996.55,6859.63,0.0889
+2026-08-01,August,Engineering,Facilities,40837.19,44468.76,3631.57,0.0889
+2026-08-01,August,Engineering,Technology,22687.33,24704.87,2017.54,0.0889
+2026-08-01,August,Business,Payroll,193876.94,201632.02,7755.08,0.04
+2026-08-01,August,Business,Supplies,78374.4,85344.08,6969.68,0.0889
+2026-08-01,August,Business,Services,70124.47,76360.5,6236.03,0.0889
+2026-08-01,August,Business,Facilities,37124.72,40426.15,3301.43,0.0889
+2026-08-01,August,Business,Technology,20624.84,22458.97,1834.13,0.0889
+2026-08-01,August,Health Sciences,Payroll,259097.15,269461.04,10363.89,0.04
+2026-08-01,August,Health Sciences,Supplies,101886.72,110947.31,9060.59,0.0889
+2026-08-01,August,Health Sciences,Services,91161.81,99268.65,8106.84,0.0889
+2026-08-01,August,Health Sciences,Facilities,48262.13,52553.99,4291.86,0.0889
+2026-08-01,August,Health Sciences,Technology,26812.3,29196.66,2384.36,0.0889
+2026-08-01,August,Arts & Humanities,Payroll,135713.87,141142.42,5428.55,0.04
+2026-08-01,August,Arts & Humanities,Supplies,54862.08,59740.86,4878.78,0.0889
+2026-08-01,August,Arts & Humanities,Services,49087.13,53452.35,4365.22,0.0889
+2026-08-01,August,Arts & Humanities,Facilities,25987.3,28298.3,2311.0,0.0889
+2026-08-01,August,Arts & Humanities,Technology,14437.39,15721.28,1283.89,0.0889
+2026-08-01,August,Student Services,Payroll,96938.47,100816.01,3877.54,0.04
+2026-08-01,August,Student Services,Supplies,39187.2,42672.04,3484.84,0.0889
+2026-08-01,August,Student Services,Services,35062.23,38180.25,3118.02,0.0889
+2026-08-01,August,Student Services,Facilities,18562.36,20213.07,1650.71,0.0889
+2026-08-01,August,Student Services,Technology,10312.42,11229.48,917.06,0.0889
+2026-08-01,August,Administration,Payroll,77550.77,80652.8,3102.03,0.04
+2026-08-01,August,Administration,Supplies,31349.76,34137.63,2787.87,0.0889
+2026-08-01,August,Administration,Services,28049.79,30544.2,2494.41,0.0889
+2026-08-01,August,Administration,Facilities,14849.89,16170.46,1320.57,0.0889
+2026-08-01,August,Administration,Technology,8249.95,8983.58,733.63,0.0889

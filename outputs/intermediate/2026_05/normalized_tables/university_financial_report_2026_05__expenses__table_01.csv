@@ -1,0 +1,31 @@
+period,month,department,expense_category,budget_expense,actual_expense,variance,variance_pct
+2026-05-01,May,Engineering,Payroll,195937.16,203774.65,7837.49,0.04
+2026-05-01,May,Engineering,Supplies,90110.63,98979.02,8868.39,0.0984
+2026-05-01,May,Engineering,Services,80625.3,88560.17,7934.87,0.0984
+2026-05-01,May,Engineering,Facilities,42683.98,46884.8,4200.82,0.0984
+2026-05-01,May,Engineering,Technology,23713.32,26047.11,2333.79,0.0984
+2026-05-01,May,Business,Payroll,178124.69,185249.68,7124.99,0.04
+2026-05-01,May,Business,Supplies,81918.75,89980.92,8062.17,0.0984
+2026-05-01,May,Business,Services,73295.72,80509.25,7213.52,0.0984
+2026-05-01,May,Business,Facilities,38803.62,42622.54,3818.92,0.0984
+2026-05-01,May,Business,Technology,21557.57,23679.19,2121.62,0.0984
+2026-05-01,May,Health Sciences,Payroll,247308.33,257200.66,9892.33,0.04
+2026-05-01,May,Health Sciences,Supplies,106494.38,116975.2,10480.82,0.0984
+2026-05-01,May,Health Sciences,Services,95284.44,104662.02,9377.58,0.0984
+2026-05-01,May,Health Sciences,Facilities,50444.7,55409.31,4964.6,0.0984
+2026-05-01,May,Health Sciences,Technology,28024.84,30782.95,2758.11,0.0984
+2026-05-01,May,Arts & Humanities,Payroll,124687.29,129674.78,4987.49,0.04
+2026-05-01,May,Arts & Humanities,Supplies,57343.13,62986.65,5643.52,0.0984
+2026-05-01,May,Arts & Humanities,Services,51307.01,56356.47,5049.47,0.0984
+2026-05-01,May,Arts & Humanities,Facilities,27162.53,29835.78,2673.25,0.0984
+2026-05-01,May,Arts & Humanities,Technology,15090.3,16575.43,1485.14,0.0984
+2026-05-01,May,Student Services,Payroll,89062.35,92624.84,3562.49,0.04
+2026-05-01,May,Student Services,Supplies,40959.38,44990.46,4031.09,0.0984
+2026-05-01,May,Student Services,Services,36647.86,40254.62,3606.76,0.0984
+2026-05-01,May,Student Services,Facilities,19401.81,21311.27,1909.46,0.0984
+2026-05-01,May,Student Services,Technology,10778.78,11839.6,1060.81,0.0984
+2026-05-01,May,Administration,Payroll,71249.88,74099.87,2849.99,0.04
+2026-05-01,May,Administration,Supplies,32767.5,35992.37,3224.87,0.0984
+2026-05-01,May,Administration,Services,29318.29,32203.7,2885.41,0.0984
+2026-05-01,May,Administration,Facilities,15521.45,17049.02,1527.57,0.0984
+2026-05-01,May,Administration,Technology,8623.01,9471.67,848.66,0.0984

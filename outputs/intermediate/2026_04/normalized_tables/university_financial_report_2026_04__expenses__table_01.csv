@@ -1,0 +1,31 @@
+period,month,department,expense_category,budget_expense,actual_expense,variance,variance_pct
+2026-04-01,April,Engineering,Payroll,189623.85,197208.8,7584.95,0.04
+2026-04-01,April,Engineering,Supplies,92198.78,98348.46,6149.68,0.0667
+2026-04-01,April,Engineering,Services,82493.64,87995.99,5502.35,0.0667
+2026-04-01,April,Engineering,Facilities,43673.11,46586.11,2913.01,0.0667
+2026-04-01,April,Engineering,Technology,24262.84,25881.17,1618.34,0.0667
+2026-04-01,April,Business,Payroll,172385.31,179280.72,6895.41,0.04
+2026-04-01,April,Business,Supplies,83817.07,89407.69,5590.62,0.0667
+2026-04-01,April,Business,Services,74994.22,79996.36,5002.13,0.0667
+2026-04-01,April,Business,Facilities,39702.82,42351.01,2648.19,0.0667
+2026-04-01,April,Business,Technology,22057.12,23528.34,1471.22,0.0667
+2026-04-01,April,Health Sciences,Payroll,235754.15,245184.32,9430.17,0.04
+2026-04-01,April,Health Sciences,Supplies,108962.19,116230.0,7267.81,0.0667
+2026-04-01,April,Health Sciences,Services,97492.49,103995.26,6502.78,0.0667
+2026-04-01,April,Health Sciences,Facilities,51613.67,55056.32,3442.65,0.0667
+2026-04-01,April,Health Sciences,Technology,28674.26,30586.84,1912.58,0.0667
+2026-04-01,April,Arts & Humanities,Payroll,120669.72,125496.51,4826.79,0.04
+2026-04-01,April,Arts & Humanities,Supplies,58671.95,62585.38,3913.43,0.0667
+2026-04-01,April,Arts & Humanities,Services,52495.95,55997.45,3501.49,0.0667
+2026-04-01,April,Arts & Humanities,Facilities,27791.98,29645.71,1853.73,0.0667
+2026-04-01,April,Arts & Humanities,Technology,15439.99,16469.84,1029.85,0.0667
+2026-04-01,April,Student Services,Payroll,86192.65,89640.36,3447.71,0.04
+2026-04-01,April,Student Services,Supplies,41908.54,44703.85,2795.31,0.0667
+2026-04-01,April,Student Services,Services,37497.11,39998.18,2501.07,0.0667
+2026-04-01,April,Student Services,Facilities,19851.41,21175.51,1324.09,0.0667
+2026-04-01,April,Student Services,Technology,11028.56,11764.17,735.61,0.0667
+2026-04-01,April,Administration,Payroll,68954.12,71712.29,2758.17,0.04
+2026-04-01,April,Administration,Supplies,33526.83,35763.08,2236.25,0.0667
+2026-04-01,April,Administration,Services,29997.69,31998.54,2000.85,0.0667
+2026-04-01,April,Administration,Facilities,15881.13,16940.4,1059.28,0.0667
+2026-04-01,April,Administration,Technology,8822.85,9411.34,588.49,0.0667

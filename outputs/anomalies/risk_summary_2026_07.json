@@ -1,0 +1,117 @@
+{
+  "report_period": "2026-07",
+  "total_anomalies": 16,
+  "anomalies_by_severity": {
+    "critical": 2,
+    "high": 8,
+    "medium": 6,
+    "low": 0
+  },
+  "high_priority_count": 10,
+  "thresholds": {
+    "payroll_percent_max": 42.0,
+    "department_overspend_flag_percent": 12.0,
+    "department_budget_target_range_percent": 8.0,
+    "tuition_collection_min_percent": 94.0,
+    "overdue_payment_max_percent": 6.0,
+    "vendor_payment_review_threshold": 50000.0,
+    "month_over_month_expense_increase_percent": 10.0,
+    "month_over_month_revenue_drop_percent": 10.0,
+    "low_cash_flow_threshold": 0.0,
+    "statistical_z_score_threshold": 2.0
+  },
+  "source_files": [
+    "finance_summary_2026_07.json",
+    "kpi_summary_2026_07.csv",
+    "department_summary_2026_07.csv",
+    "category_summary_2026_07.csv"
+  ],
+  "top_risks": [
+    {
+      "anomaly_id": "ANOM-2026-07-003",
+      "title": "Overdue student payments above limit",
+      "severity": "critical",
+      "period": "2026-07",
+      "metric": "overdue_payment_percentage",
+      "recommended_next_check": "Review student receivables by aging and department."
+    },
+    {
+      "anomaly_id": "ANOM-2026-07-005",
+      "title": "Negative or low cash flow",
+      "severity": "critical",
+      "period": "2026-07",
+      "metric": "net_cash_flow",
+      "recommended_next_check": "Review operating, scholarship, and capital cash outflows."
+    },
+    {
+      "anomaly_id": "ANOM-2026-07-001",
+      "title": "Payroll exceeds revenue threshold",
+      "severity": "high",
+      "period": "2026-07",
+      "metric": "payroll_percentage_of_revenue",
+      "recommended_next_check": "Review payroll by department, overtime, benefits, and headcount."
+    },
+    {
+      "anomaly_id": "ANOM-2026-07-002",
+      "title": "Tuition collection below target",
+      "severity": "high",
+      "period": "2026-07",
+      "metric": "student_payment_collection_rate",
+      "recommended_next_check": "Inspect overdue invoices, aging buckets, and payment plans."
+    },
+    {
+      "anomaly_id": "ANOM-2026-07-004",
+      "title": "Negative or zero operating result",
+      "severity": "high",
+      "period": "2026-07",
+      "metric": "net_operating_result",
+      "recommended_next_check": "Review revenue shortfalls and expense drivers by department."
+    },
+    {
+      "anomaly_id": "ANOM-2026-07-006",
+      "title": "Vendor payment exceeds review threshold",
+      "severity": "high",
+      "period": "2026-07",
+      "metric": "maximum_vendor_payment",
+      "recommended_next_check": "Inspect the underlying vendor invoice, approval, and duplicate checks."
+    },
+    {
+      "anomaly_id": "ANOM-2026-07-013",
+      "title": "Facilities category overspending",
+      "severity": "high",
+      "period": "2026-07",
+      "metric": "category_expense_variance_pct",
+      "recommended_next_check": "Review the category by department and underlying transactions."
+    },
+    {
+      "anomaly_id": "ANOM-2026-07-014",
+      "title": "Services category overspending",
+      "severity": "high",
+      "period": "2026-07",
+      "metric": "category_expense_variance_pct",
+      "recommended_next_check": "Review the category by department and underlying transactions."
+    },
+    {
+      "anomaly_id": "ANOM-2026-07-015",
+      "title": "Supplies category overspending",
+      "severity": "high",
+      "period": "2026-07",
+      "metric": "category_expense_variance_pct",
+      "recommended_next_check": "Review the category by department and underlying transactions."
+    },
+    {
+      "anomaly_id": "ANOM-2026-07-016",
+      "title": "Technology category overspending",
+      "severity": "high",
+      "period": "2026-07",
+      "metric": "category_expense_variance_pct",
+      "recommended_next_check": "Review the category by department and underlying transactions."
+    }
+  ],
+  "detection_scope": {
+    "rule_based": true,
+    "trend_based": true,
+    "statistical_z_score": true,
+    "llm_used": false
+  }
+}

@@ -1,0 +1,7 @@
+period,month,department,scholarship_type,allocated,awarded,remaining,recipients,utilization_pct
+2026-05-01,May,Engineering,Need-based,26208.97,24267.57,1941.41,48,0.9259
+2026-05-01,May,Business,Need-based,23826.34,22061.42,1764.91,44,0.9259
+2026-05-01,May,Health Sciences,Need-based,30974.24,28679.85,2294.39,57,0.9259
+2026-05-01,May,Arts & Humanities,Need-based,16678.44,15443.0,1235.44,31,0.9259
+2026-05-01,May,Student Services,Need-based,11913.17,11030.71,882.46,22,0.9259
+2026-05-01,May,Administration,Need-based,9530.54,8824.57,705.97,18,0.9259

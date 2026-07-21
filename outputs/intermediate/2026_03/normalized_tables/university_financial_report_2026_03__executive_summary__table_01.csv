@@ -1,0 +1,8 @@
+metric,actual,goal_or_budget,variance,format,status
+Actual Revenue,2032128.0,2116800.0,-84672.0,Currency,Below target
+Operating Expenses,2021128.0,1968624.0,52504.0,Currency,Over budget
+Net Operating Result,11000.0,148176.0,-137176.0,Currency,Positive
+Payroll Ratio,0.42,0.42,0.0,Percent,Healthy
+Collection Rate,0.91,0.93,-0.02,Percent,On target
+Net Cash Flow,20000.0,0.0,20000.0,Currency,Positive
+Embedded Anomaly Count,0.0,0.0,0.0,Count,Clear

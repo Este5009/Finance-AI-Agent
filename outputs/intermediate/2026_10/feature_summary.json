@@ -1,0 +1,389 @@
+{
+  "model_version": "2.0",
+  "source_workbook_count": 1,
+  "detected_table_count": 10,
+  "table_type_counts": {
+    "Budget_vs_Actual": 1,
+    "Cash_Flow": 1,
+    "Department_Summary": 1,
+    "Executive_Summary": 1,
+    "Expenses": 1,
+    "Payroll": 1,
+    "Revenue": 1,
+    "Scholarships": 1,
+    "Student_Payments": 1,
+    "Vendor_Payments": 1
+  },
+  "automatic_table_count": 10,
+  "requires_future_interpretation_count": 0,
+  "features_by_table_type": {
+    "Budget_vs_Actual": {
+      "dimensions": [
+        "department",
+        "month",
+        "period"
+      ],
+      "metrics": [
+        "actual_expense",
+        "actual_revenue",
+        "budget_expense",
+        "budget_revenue",
+        "expense_variance",
+        "expense_variance_pct",
+        "net_actual",
+        "net_budget",
+        "revenue_variance",
+        "revenue_variance_pct"
+      ]
+    },
+    "Cash_Flow": {
+      "dimensions": [
+        "month",
+        "period"
+      ],
+      "metrics": [
+        "actual_capital_outflows",
+        "actual_cash_inflows",
+        "actual_ending_cash",
+        "actual_net_cash_flow",
+        "actual_operating_outflows",
+        "actual_scholarships",
+        "beginning_cash",
+        "budget_capital_outflows",
+        "budget_cash_inflows",
+        "budget_ending_cash",
+        "budget_net_cash_flow",
+        "budget_operating_outflows",
+        "budget_scholarships",
+        "ending_cash_variance"
+      ]
+    },
+    "Department_Summary": {
+      "dimensions": [
+        "department",
+        "status"
+      ],
+      "metrics": [
+        "actual_expense",
+        "actual_revenue",
+        "budget_expense",
+        "budget_revenue",
+        "expense_variance",
+        "expense_variance_pct",
+        "net_contribution"
+      ]
+    },
+    "Executive_Summary": {
+      "dimensions": [
+        "format",
+        "metric",
+        "status"
+      ],
+      "metrics": [
+        "actual",
+        "goal_or_budget",
+        "variance"
+      ]
+    },
+    "Expenses": {
+      "dimensions": [
+        "department",
+        "expense_category",
+        "month",
+        "period"
+      ],
+      "metrics": [
+        "actual_expense",
+        "budget_expense",
+        "variance",
+        "variance_pct"
+      ]
+    },
+    "Payroll": {
+      "dimensions": [
+        "department",
+        "month",
+        "period"
+      ],
+      "metrics": [
+        "base_salary",
+        "benefits",
+        "headcount_fte",
+        "overtime",
+        "payroll_budget",
+        "total_payroll",
+        "variance",
+        "variance_pct"
+      ]
+    },
+    "Revenue": {
+      "dimensions": [
+        "department",
+        "month",
+        "period",
+        "revenue_category"
+      ],
+      "metrics": [
+        "actual_revenue",
+        "budget_revenue",
+        "variance",
+        "variance_pct"
+      ]
+    },
+    "Scholarships": {
+      "dimensions": [
+        "department",
+        "month",
+        "period",
+        "scholarship_type"
+      ],
+      "metrics": [
+        "allocated",
+        "awarded",
+        "recipients",
+        "remaining",
+        "utilization_pct"
+      ]
+    },
+    "Student_Payments": {
+      "dimensions": [
+        "billing_period",
+        "department",
+        "due_date",
+        "invoice_id",
+        "payment_date",
+        "status",
+        "student_id"
+      ],
+      "metrics": [
+        "amount_due",
+        "amount_paid",
+        "days_overdue",
+        "outstanding"
+      ]
+    },
+    "Vendor_Payments": {
+      "dimensions": [
+        "approval_status",
+        "department",
+        "expense_category",
+        "invoice_number",
+        "month",
+        "payment_date",
+        "payment_id",
+        "payment_method",
+        "vendor"
+      ],
+      "metrics": [
+        "amount",
+        "high_value_flag",
+        "potential_duplicate"
+      ]
+    }
+  },
+  "tables": [
+    {
+      "table_id": "university_financial_report_2026_10__executive_summary__table_01",
+      "detected_type": "Executive_Summary",
+      "confidence": 0.99,
+      "requires_future_ollama_interpretation": false,
+      "dimensions": [
+        "metric",
+        "format",
+        "status"
+      ],
+      "metrics": [
+        "actual",
+        "goal_or_budget",
+        "variance"
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__revenue__table_01",
+      "detected_type": "Revenue",
+      "confidence": 0.99,
+      "requires_future_ollama_interpretation": false,
+      "dimensions": [
+        "period",
+        "month",
+        "department",
+        "revenue_category"
+      ],
+      "metrics": [
+        "budget_revenue",
+        "actual_revenue",
+        "variance",
+        "variance_pct"
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__expenses__table_01",
+      "detected_type": "Expenses",
+      "confidence": 0.8375,
+      "requires_future_ollama_interpretation": false,
+      "dimensions": [
+        "period",
+        "month",
+        "department",
+        "expense_category"
+      ],
+      "metrics": [
+        "budget_expense",
+        "actual_expense",
+        "variance",
+        "variance_pct"
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__budget_vs_actual__table_01",
+      "detected_type": "Budget_vs_Actual",
+      "confidence": 0.8375,
+      "requires_future_ollama_interpretation": false,
+      "dimensions": [
+        "period",
+        "month",
+        "department"
+      ],
+      "metrics": [
+        "budget_revenue",
+        "actual_revenue",
+        "budget_expense",
+        "actual_expense",
+        "revenue_variance",
+        "revenue_variance_pct",
+        "expense_variance",
+        "expense_variance_pct",
+        "net_budget",
+        "net_actual"
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__department_summary__table_01",
+      "detected_type": "Department_Summary",
+      "confidence": 0.87,
+      "requires_future_ollama_interpretation": false,
+      "dimensions": [
+        "department",
+        "status"
+      ],
+      "metrics": [
+        "budget_revenue",
+        "actual_revenue",
+        "budget_expense",
+        "actual_expense",
+        "net_contribution",
+        "expense_variance",
+        "expense_variance_pct"
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__payroll__table_01",
+      "detected_type": "Payroll",
+      "confidence": 0.99,
+      "requires_future_ollama_interpretation": false,
+      "dimensions": [
+        "period",
+        "month",
+        "department"
+      ],
+      "metrics": [
+        "headcount_fte",
+        "base_salary",
+        "benefits",
+        "overtime",
+        "total_payroll",
+        "payroll_budget",
+        "variance",
+        "variance_pct"
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__student_payments__table_01",
+      "detected_type": "Student_Payments",
+      "confidence": 0.99,
+      "requires_future_ollama_interpretation": false,
+      "dimensions": [
+        "invoice_id",
+        "student_id",
+        "department",
+        "billing_period",
+        "due_date",
+        "payment_date",
+        "status"
+      ],
+      "metrics": [
+        "amount_due",
+        "amount_paid",
+        "outstanding",
+        "days_overdue"
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__cash_flow__table_01",
+      "detected_type": "Cash_Flow",
+      "confidence": 0.7833,
+      "requires_future_ollama_interpretation": false,
+      "dimensions": [
+        "period",
+        "month"
+      ],
+      "metrics": [
+        "beginning_cash",
+        "budget_cash_inflows",
+        "actual_cash_inflows",
+        "budget_operating_outflows",
+        "actual_operating_outflows",
+        "budget_scholarships",
+        "actual_scholarships",
+        "budget_capital_outflows",
+        "actual_capital_outflows",
+        "budget_net_cash_flow",
+        "actual_net_cash_flow",
+        "budget_ending_cash",
+        "actual_ending_cash",
+        "ending_cash_variance"
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__scholarships__table_01",
+      "detected_type": "Scholarships",
+      "confidence": 0.99,
+      "requires_future_ollama_interpretation": false,
+      "dimensions": [
+        "period",
+        "month",
+        "department",
+        "scholarship_type"
+      ],
+      "metrics": [
+        "allocated",
+        "awarded",
+        "remaining",
+        "recipients",
+        "utilization_pct"
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__vendor_payments__table_01",
+      "detected_type": "Vendor_Payments",
+      "confidence": 0.99,
+      "requires_future_ollama_interpretation": false,
+      "dimensions": [
+        "payment_id",
+        "payment_date",
+        "month",
+        "department",
+        "vendor",
+        "invoice_number",
+        "expense_category",
+        "payment_method",
+        "approval_status"
+      ],
+      "metrics": [
+        "amount",
+        "potential_duplicate",
+        "high_value_flag"
+      ]
+    }
+  ]
+}

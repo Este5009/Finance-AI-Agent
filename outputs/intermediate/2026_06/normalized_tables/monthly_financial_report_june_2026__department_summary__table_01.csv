@@ -1,5 +1,0 @@
-department,budget_revenue,actual_revenue,budget_expense,actual_expense,net_contribution,expense_variance,expense_variance_pct,status
-Administration,156000,145860,377400,387987,-242127,10587,0.02805246422893482,Within Threshold
-Business,522600,481545,418200,425728,55817,7528,0.01800095648015304,Within Threshold
-Engineering,717600,665272,622200,734196,-68924,111996,0.18,Flag - Overspend
-Health Sciences,631800,585047,566100,658959,-73912,92859,0.1640328563857976,Flag - Overspend

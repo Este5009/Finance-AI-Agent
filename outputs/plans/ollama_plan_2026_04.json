@@ -1,0 +1,73 @@
+{
+  "plan_id": "OLLAMA-PLAN-2026-04",
+  "report_period": "2026-04",
+  "period_slug": "2026_04",
+  "planner_source": "ollama",
+  "ollama_available": true,
+  "validation_status": "accepted",
+  "fallback_used": false,
+  "validation_errors": [],
+  "deduplicated_tool_calls": 3,
+  "repaired_text_fields": 0,
+  "maximum_ollama_plan_steps": 8,
+  "deterministic_baseline_task_count": 10,
+  "total_steps": 4,
+  "investigation_steps": [
+    {
+      "step_id": "STEP-001",
+      "anomaly_id": "ANOM-2026-04-003",
+      "priority": "critical",
+      "question": "Which invoices and aging buckets caused overdue payments in 2026-04?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "status": "overdue",
+          "period": "2026-04"
+        }
+      },
+      "reasoning": "Critical anomaly with 100% overdue invoices requires transaction-level detail.",
+      "expected_output": "List of overdue invoices with aging buckets and amounts."
+    },
+    {
+      "step_id": "STEP-002",
+      "anomaly_id": "ANOM-2026-04-001",
+      "priority": "high",
+      "question": "What payroll components and departments caused payroll risk in 2026-04?",
+      "tool_name": "get_payroll_history",
+      "arguments": {
+        "department": "all",
+        "months": 1
+      },
+      "reasoning": "High anomaly showing payroll at 45% of revenue vs. 42% threshold.",
+      "expected_output": "Payroll breakdown by department and component (e.g., benefits, overtime)."
+    },
+    {
+      "step_id": "STEP-003",
+      "anomaly_id": "ANOM-2026-04-002",
+      "priority": "high",
+      "question": "Why did student collection rate miss target in 2026-04?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "type": "tuition",
+          "status": "paid",
+          "period": "2026-04"
+        }
+      },
+      "reasoning": "High anomaly with 89% collection rate vs. 94% target.",
+      "expected_output": "Tuition payment details showing missed collections."
+    },
+    {
+      "step_id": "STEP-004",
+      "anomaly_id": null,
+      "priority": "high",
+      "question": "Which revenue shortfalls and expense drivers caused operating deficit? | Which outflows caused cash-flow risk in 2026-04? | What is the correct structure of anomalies_embedded table? | What is the correct structure of department_summary table?",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026-04"
+      },
+      "reasoning": "High anomaly with negative operating result ($-66k). | High anomaly with negative net cash flow ($-120k). | Data quality issue with low-confidence anomalies table. | Data quality issue with medium-confidence department table.",
+      "expected_output": "Revenue vs. expense breakdown by category. | Cash flow statement with major outflow sources. | Table schema and business meaning of anomalies_embedded. | Table schema and business meaning of department_summary."
+    }
+  ]
+}

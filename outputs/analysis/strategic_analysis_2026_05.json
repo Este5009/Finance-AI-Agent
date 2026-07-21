@@ -1,0 +1,62 @@
+{
+  "analysis_id": "STRATEGIC-ANALYSIS-2026-05",
+  "period_slug": "2026_05",
+  "report_period": "2026-05",
+  "analysis_source": "ollama",
+  "ollama_available": true,
+  "validation_status": "accepted",
+  "analysis_generated": true,
+  "validation_errors": [],
+  "recommendation_count": 3,
+  "analysis": {
+    "executive_summary": "The university faces significant cash-flow risks due to unmet revenue targets and overspending in key departments. Payroll variances and expense overruns in Administration and Health Sciences are critical, with student collection rates missing targets. Annual financial goals are at risk without immediate corrective actions.",
+    "key_findings": [
+      "Payroll variance of $35,475.95 in Health Sciences exceeds budget, driven by high overtime and benefits costs.",
+      "Administration department overspent on supplies ($3,224.87), services ($2,885.41), and facilities ($1,527.57) in May 2026.",
+      "Student collection rate missed target, with 30 transaction records showing expense overruns but no revenue data.",
+      "Operating deficit linked to scholarship outflows and capital expenditures not aligned with revenue streams."
+    ],
+    "root_causes": [
+      "Unplanned overtime and benefits in Health Sciences payroll due to staffing gaps or project delays.",
+      "Administration's expense overruns likely stem from uncontrolled procurement or budget misallocation.",
+      "Student collection rate shortfall may reflect weak billing processes or delayed payments from external sources.",
+      "Capital outflows not matched to revenue streams, indicating poor financial planning or forecasting."
+    ],
+    "recommendations": [
+      {
+        "priority": "critical",
+        "action": "Conduct payroll audit for Health Sciences to identify overtime and benefits drivers.",
+        "rationale": "Health Sciences payroll variance is the largest ($35,475.95), indicating potential inefficiencies or unplanned costs.",
+        "supporting_evidence": "Payroll breakdown shows Health Sciences variance of $35,475.95.",
+        "expected_impact": "Reduce payroll costs by addressing overtime and benefits overruns.",
+        "confidence": 0.85
+      },
+      {
+        "priority": "high",
+        "action": "Review Administration's expense categories for budget misalignment.",
+        "rationale": "Administration overspent across multiple categories, suggesting systemic budgeting issues.",
+        "supporting_evidence": "Administration expense variances: supplies ($3,224.87), services ($2,885.41), facilities ($1,527.57).",
+        "expected_impact": "Align expenses with budget to prevent further overruns.",
+        "confidence": 0.8
+      },
+      {
+        "priority": "high",
+        "action": "Investigate student billing and collection processes to address rate shortfall.",
+        "rationale": "Student collection rate missed target, with no revenue data in transaction records.",
+        "supporting_evidence": "30 transaction records show expense overruns but no revenue data.",
+        "expected_impact": "Improve cash flow by increasing student payment collections.",
+        "confidence": 0.7
+      }
+    ],
+    "strategic_priorities": [
+      "Address payroll and expense variances to stabilize operating cash flow.",
+      "Improve student revenue collection to meet annual targets."
+    ],
+    "missing_information": [
+      "Revenue data to correlate with student collection rate shortfall.",
+      "Detailed breakdown of scholarship outflows and capital expenditures."
+    ],
+    "confidence": 0.75,
+    "reasoning_summary": "Evidence shows payroll and expense variances in key departments, with student collection rate missing target. Root causes include staffing inefficiencies, budget misallocation, and weak billing processes. Recommendations focus on immediate audits and process improvements to mitigate risks."
+  }
+}

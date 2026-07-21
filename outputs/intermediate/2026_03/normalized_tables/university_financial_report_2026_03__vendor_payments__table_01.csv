@@ -1,0 +1,7 @@
+payment_id,payment_date,month,department,vendor,invoice_number,expense_category,amount,payment_method,approval_status,potential_duplicate,high_value_flag
+PAY-2026_03-001,2026-03-08,March,Engineering,LabSource,LAB-2026_03-001,Services,26558,ACH,Approved,False,False
+PAY-2026_03-002,2026-03-11,March,Business,FacilitiesPlus,FAC-2026_03-002,Services,24967,ACH,Approved,False,False
+PAY-2026_03-003,2026-03-14,March,Health Sciences,CloudEdu,CLO-2026_03-003,Services,22462,ACH,Approved,False,False
+PAY-2026_03-004,2026-03-17,March,Arts & Humanities,LibraryHub,LIB-2026_03-004,Services,27837,ACH,Approved,False,False
+PAY-2026_03-005,2026-03-20,March,Student Services,MedSupply Co,MED-2026_03-005,Medical Supplies,27706,ACH,Approved,False,False
+PAY-2026_03-006,2026-03-23,March,Administration,CampusWorks,CAM-2026_03-006,Services,25760,ACH,Approved,False,False

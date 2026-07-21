@@ -1,0 +1,31 @@
+period,month,department,expense_category,budget_expense,actual_expense,variance,variance_pct
+2026-02-01,February,Engineering,Payroll,168724.71,175473.7,6748.99,0.04
+2026-02-01,February,Engineering,Supplies,99808.49,100615.97,807.47,0.0081
+2026-02-01,February,Engineering,Services,89302.34,90024.81,722.48,0.0081
+2026-02-01,February,Engineering,Facilities,47277.71,47660.2,382.49,0.0081
+2026-02-01,February,Engineering,Technology,26265.39,26477.89,212.49,0.0081
+2026-02-01,February,Business,Payroll,153386.1,159521.54,6135.44,0.04
+2026-02-01,February,Business,Supplies,90734.99,91469.06,734.07,0.0081
+2026-02-01,February,Business,Services,81183.94,81840.74,656.8,0.0081
+2026-02-01,February,Business,Facilities,42979.73,43327.45,347.72,0.0081
+2026-02-01,February,Business,Technology,23877.63,24070.81,193.18,0.0081
+2026-02-01,February,Health Sciences,Payroll,199401.93,207378.01,7976.08,0.04
+2026-02-01,February,Health Sciences,Supplies,117955.49,118909.78,954.29,0.0081
+2026-02-01,February,Health Sciences,Services,105539.12,106392.96,853.84,0.0081
+2026-02-01,February,Health Sciences,Facilities,55873.65,56325.69,452.03,0.0081
+2026-02-01,February,Health Sciences,Technology,31040.92,31292.05,251.13,0.0081
+2026-02-01,February,Arts & Humanities,Payroll,107370.27,111665.08,4294.81,0.04
+2026-02-01,February,Arts & Humanities,Supplies,63514.5,64028.34,513.85,0.0081
+2026-02-01,February,Arts & Humanities,Services,56828.76,57288.52,459.76,0.0081
+2026-02-01,February,Arts & Humanities,Facilities,30085.81,30329.22,243.4,0.0081
+2026-02-01,February,Arts & Humanities,Technology,16714.34,16849.56,135.22,0.0081
+2026-02-01,February,Student Services,Payroll,76693.05,79760.77,3067.72,0.04
+2026-02-01,February,Student Services,Supplies,45367.5,45734.53,367.03,0.0081
+2026-02-01,February,Student Services,Services,40591.97,40920.37,328.4,0.0081
+2026-02-01,February,Student Services,Facilities,21489.87,21663.73,173.86,0.0081
+2026-02-01,February,Student Services,Technology,11938.82,12035.4,96.59,0.0081
+2026-02-01,February,Administration,Payroll,61354.44,63808.62,2454.18,0.04
+2026-02-01,February,Administration,Supplies,36294.0,36587.62,293.63,0.0081
+2026-02-01,February,Administration,Services,32473.58,32736.3,262.72,0.0081
+2026-02-01,February,Administration,Facilities,17191.89,17330.98,139.09,0.0081
+2026-02-01,February,Administration,Technology,9551.06,9628.3,77.24,0.0081

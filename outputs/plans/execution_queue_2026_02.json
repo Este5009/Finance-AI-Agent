@@ -1,0 +1,46 @@
+{
+  "queue_id": "QUEUE-2026-02",
+  "period_slug": "2026_02",
+  "source_plan_id": "OLLAMA-PLAN-2026-02",
+  "planner_source": "ollama",
+  "status": "pending",
+  "tools_executed": false,
+  "total_items": 2,
+  "items": [
+    {
+      "queue_position": 1,
+      "execution_id": "EXEC-2026-02-001",
+      "step_id": "STEP-001",
+      "anomaly_id": "ANOM-2026-02-001",
+      "priority": "medium",
+      "question": "Why did the student collection rate miss its target in 2026-02?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "type": "student_payment",
+          "period": "2026-02"
+        }
+      },
+      "reasoning": "The anomaly indicates tuition collection below target; need transaction-level data to identify causes.",
+      "expected_output": "Transaction details showing payment patterns and missed collections.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 2,
+      "execution_id": "EXEC-2026-02-002",
+      "step_id": "STEP-002",
+      "anomaly_id": null,
+      "priority": "medium",
+      "question": "What is the correct structure and business meaning of department summary table? | What is the correct structure and business meaning of cash flow table?",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026-02"
+      },
+      "reasoning": "Data quality issue with department summary table requires full report context. | Data quality issue with cash flow table requires full report context.",
+      "expected_output": "Correct table structure and business meaning for department summary. | Correct table structure and business meaning for cash flow.",
+      "status": "queued",
+      "dependencies": []
+    }
+  ]
+}

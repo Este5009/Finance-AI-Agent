@@ -1,0 +1,31 @@
+period,month,department,expense_category,budget_expense,actual_expense,variance,variance_pct
+2026-06-01,June,Engineering,Payroll,218567.07,227309.75,8742.68,0.04
+2026-06-01,June,Engineering,Supplies,81666.8,109538.42,27871.62,0.3413
+2026-06-01,June,Engineering,Services,73070.29,98008.06,24937.77,0.3413
+2026-06-01,June,Engineering,Facilities,38684.27,51886.62,13202.35,0.3413
+2026-06-01,June,Engineering,Technology,21491.26,28825.9,7334.64,0.3413
+2026-06-01,June,Business,Payroll,198697.34,206645.23,7947.89,0.04
+2026-06-01,June,Business,Supplies,74242.54,99580.38,25337.84,0.3413
+2026-06-01,June,Business,Services,66427.54,89098.24,22670.7,0.3413
+2026-06-01,June,Business,Facilities,35167.52,47169.66,12002.13,0.3413
+2026-06-01,June,Business,Technology,19537.51,26205.36,6667.85,0.3413
+2026-06-01,June,Health Sciences,Payroll,280004.29,291204.46,11200.17,0.04
+2026-06-01,June,Health Sciences,Supplies,96515.31,129454.5,32939.19,0.3413
+2026-06-01,June,Health Sciences,Services,86355.8,115827.71,29471.91,0.3413
+2026-06-01,June,Health Sciences,Facilities,45717.78,61320.55,15602.77,0.3413
+2026-06-01,June,Health Sciences,Technology,25398.76,34066.97,8668.21,0.3413
+2026-06-01,June,Arts & Humanities,Payroll,139088.13,144651.66,5563.53,0.04
+2026-06-01,June,Arts & Humanities,Supplies,51969.78,69706.27,17736.49,0.3413
+2026-06-01,June,Arts & Humanities,Services,46499.28,62368.77,15869.49,0.3413
+2026-06-01,June,Arts & Humanities,Facilities,24617.26,33018.76,8401.49,0.3413
+2026-06-01,June,Arts & Humanities,Technology,13676.26,18343.75,4667.5,0.3413
+2026-06-01,June,Student Services,Payroll,99348.66,103322.61,3973.95,0.04
+2026-06-01,June,Student Services,Supplies,37121.27,49790.19,12668.92,0.3413
+2026-06-01,June,Student Services,Services,33213.77,44549.12,11335.35,0.3413
+2026-06-01,June,Student Services,Facilities,17583.76,23584.83,6001.07,0.3413
+2026-06-01,June,Student Services,Technology,9768.76,13102.68,3333.93,0.3413
+2026-06-01,June,Administration,Payroll,79478.93,82658.09,3179.16,0.04
+2026-06-01,June,Administration,Supplies,29697.02,39832.15,10135.14,0.3413
+2026-06-01,June,Administration,Services,26571.02,35639.3,9068.28,0.3413
+2026-06-01,June,Administration,Facilities,14067.01,18867.86,4800.85,0.3413
+2026-06-01,June,Administration,Technology,7815.01,10482.15,2667.14,0.3413

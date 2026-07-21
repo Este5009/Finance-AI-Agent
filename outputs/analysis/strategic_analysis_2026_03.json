@@ -1,0 +1,62 @@
+{
+  "analysis_id": "STRATEGIC-ANALYSIS-2026-03",
+  "period_slug": "2026_03",
+  "report_period": "2026-03",
+  "analysis_source": "ollama",
+  "ollama_available": true,
+  "validation_status": "accepted",
+  "analysis_generated": true,
+  "validation_errors": [],
+  "recommendation_count": 3,
+  "analysis": {
+    "executive_summary": "The March 2026 financial report shows a narrow net operating result of $11,000, with revenue falling short by $84,672 and expenses exceeding budget by $52,504. The primary concern is a tuition collection rate of 91.0% (below the 94.0% target), which is the only critical anomaly detected.",
+    "key_findings": [
+      "Tuition collection rate at 91.0% misses the 94.0% target, with $1,331,450 collected against $1,463,132 due.",
+      "Payroll expenses exceeded budget by $32,826.69 (4.0% variance), representing 42% of revenue.",
+      "All departments showed revenue shortfalls (4% variance) and expense overruns (2.67% variance).",
+      "Facilities, Payroll, Services, Supplies, and Technology all exceeded budget with 1.71% variance."
+    ],
+    "root_causes": [
+      "Inadequate collection processes leading to missed tuition payments.",
+      "Payroll budgeting may not account for actual headcount or compensation changes.",
+      "Departmental budgeting may not align with actual operational needs."
+    ],
+    "recommendations": [
+      {
+        "priority": "high",
+        "action": "Inspect overdue invoices, aging buckets, and payment plans.",
+        "rationale": "The anomaly report identifies a high-severity tuition collection issue requiring immediate investigation.",
+        "supporting_evidence": "Tuition collection rate: 91.0% vs. target 94.0%.",
+        "expected_impact": "Improve collection rate to meet target, reducing cash flow risk.",
+        "confidence": 0.85
+      },
+      {
+        "priority": "high",
+        "action": "Review payroll budgeting methodology for accuracy.",
+        "rationale": "Payroll variance of 4.0% exceeds the 42% revenue threshold, indicating potential budgeting misalignment.",
+        "supporting_evidence": "Payroll expense variance: $32,826.69 (4.0% of budget).",
+        "expected_impact": "Align payroll budget with actual headcount and compensation trends.",
+        "confidence": 0.75
+      },
+      {
+        "priority": "medium",
+        "action": "Conduct departmental budget variance analysis.",
+        "rationale": "All departments show consistent revenue shortfalls and expense overruns, suggesting systemic budgeting issues.",
+        "supporting_evidence": "Department revenue variance: -4.0%, expense variance: +2.67%.",
+        "expected_impact": "Refine budgeting processes to improve forecast accuracy.",
+        "confidence": 0.7
+      }
+    ],
+    "strategic_priorities": [
+      "Achieve 94% tuition collection rate to meet cash flow targets.",
+      "Reduce payroll expense variance to within budgeted 42% revenue threshold.",
+      "Improve departmental budget accuracy to minimize revenue and expense variances."
+    ],
+    "missing_information": [
+      "No processed transaction records retrieved for tuition collection analysis.",
+      "Insufficient data on payment plan structures and overdue invoice aging."
+    ],
+    "confidence": 0.75,
+    "reasoning_summary": "The anomaly report and evidence package confirm a high-severity tuition collection issue with 91.0% rate vs. 94.0% target. Payroll variance and departmental trends support the need for budget review. Missing transaction data limits root cause analysis but confirms the need for immediate action."
+  }
+}

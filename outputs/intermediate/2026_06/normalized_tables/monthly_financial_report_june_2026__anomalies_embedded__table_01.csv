@@ -1,8 +1,0 @@
-anomaly_id,detected_period,department,anomaly_type,severity,description,observed_value,threshold,source_sheet
-ANOM-001,2026-06-01,Engineering,Department Overspending,High,Actual expenses exceed June budget by more than 15%.,0.1799999999999999,0.12,Budget_vs_Actual
-ANOM-002,2026-06-01,Health Sciences,Payroll Spike,High,June payroll increased sharply relative to May.,0.342387251246222,0.1,Payroll
-ANOM-003,2026-06-01,Multiple,Overdue Student Payments,Medium,9 June tuition invoices are overdue or partially paid.,9.0,8.0,Student_Payments
-ANOM-004,2026-06-01,Engineering,Duplicate Vendor Payment,Critical,"Two payments share the same vendor, invoice number, and amount.",54750.0,0.0,Vendor_Payments
-ANOM-005,2026-06-01,Administration,Unusually High Facilities Expense,High,Single facilities payment materially exceeds normal transaction size.,96000.0,50000.0,Vendor_Payments
-ANOM-006,2026-12-31,University-wide,Tuition Revenue Below Target,High,Annual tuition revenue remains below budget.,-0.03976605212968853,-0.02,Revenue
-ANOM-007,2026-06-01,University-wide,Cash Flow Below Expectation,High,June net cash flow is materially below budget.,-415097.0,0.0,Cash_Flow

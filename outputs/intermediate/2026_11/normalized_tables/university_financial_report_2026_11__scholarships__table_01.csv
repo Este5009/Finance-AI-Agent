@@ -1,0 +1,7 @@
+period,month,department,scholarship_type,allocated,awarded,remaining,recipients,utilization_pct
+2026-11-01,November,Engineering,Need-based,29111.32,26954.93,2156.39,48,0.9259
+2026-11-01,November,Business,Need-based,26464.84,24504.48,1960.36,44,0.9259
+2026-11-01,November,Health Sciences,Need-based,34404.29,31855.82,2548.47,57,0.9259
+2026-11-01,November,Arts & Humanities,Need-based,18525.39,17153.14,1372.25,31,0.9259
+2026-11-01,November,Student Services,Need-based,13232.42,12252.24,980.18,22,0.9259
+2026-11-01,November,Administration,Need-based,10585.94,9801.79,784.14,18,0.9259

@@ -1,0 +1,29 @@
+{
+  "plan_id": "OLLAMA-PLAN-2026-12",
+  "report_period": "2026-12",
+  "period_slug": "2026_12",
+  "planner_source": "ollama",
+  "ollama_available": true,
+  "validation_status": "accepted",
+  "fallback_used": false,
+  "validation_errors": [],
+  "deduplicated_tool_calls": 2,
+  "repaired_text_fields": 0,
+  "maximum_ollama_plan_steps": 8,
+  "deterministic_baseline_task_count": 3,
+  "total_steps": 1,
+  "investigation_steps": [
+    {
+      "step_id": "STEP-001",
+      "anomaly_id": null,
+      "priority": "medium",
+      "question": "What is the correct structure and business meaning of the cash flow table? | What is the correct structure and business meaning of the department summary table? | What is the correct structure and business meaning of the scholarships table?",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026_12"
+      },
+      "reasoning": "The cash flow table requires human review to resolve data quality issues. | The department summary table requires human review to resolve data quality issues. | The scholarships table requires human review to resolve data quality issues.",
+      "expected_output": "Correct structure and business meaning of the cash flow table. | Correct structure and business meaning of the department summary table. | Correct structure and business meaning of the scholarships table."
+    }
+  ]
+}

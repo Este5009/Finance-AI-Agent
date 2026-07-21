@@ -1,0 +1,31 @@
+period,month,department,expense_category,budget_expense,actual_expense,variance,variance_pct
+2026-09-01,September,Engineering,Payroll,206152.97,214399.09,8246.12,0.04
+2026-09-01,September,Engineering,Supplies,89961.81,93580.36,3618.55,0.0402
+2026-09-01,September,Engineering,Services,80492.14,83729.79,3237.65,0.0402
+2026-09-01,September,Engineering,Facilities,42613.49,44327.54,1714.05,0.0402
+2026-09-01,September,Engineering,Technology,23674.16,24626.41,952.25,0.0402
+2026-09-01,September,Business,Payroll,187411.79,194908.26,7496.47,0.04
+2026-09-01,September,Business,Supplies,81783.46,85073.05,3289.59,0.0402
+2026-09-01,September,Business,Services,73174.67,76117.99,2943.32,0.0402
+2026-09-01,September,Business,Facilities,38739.53,40297.76,1558.23,0.0402
+2026-09-01,September,Business,Technology,21521.96,22387.64,865.68,0.0402
+2026-09-01,September,Health Sciences,Payroll,245974.22,255813.19,9838.97,0.04
+2026-09-01,September,Health Sciences,Supplies,106318.5,110594.97,4276.47,0.0402
+2026-09-01,September,Health Sciences,Services,95127.08,98953.39,3826.31,0.0402
+2026-09-01,September,Health Sciences,Facilities,50361.39,52387.09,2025.7,0.0402
+2026-09-01,September,Health Sciences,Technology,27978.55,29103.94,1125.39,0.0402
+2026-09-01,September,Arts & Humanities,Payroll,131188.25,136435.78,5247.53,0.04
+2026-09-01,September,Arts & Humanities,Supplies,57248.42,59551.14,2302.71,0.0402
+2026-09-01,September,Arts & Humanities,Services,51222.27,53282.59,2060.32,0.0402
+2026-09-01,September,Arts & Humanities,Facilities,27117.67,28208.43,1090.76,0.0402
+2026-09-01,September,Arts & Humanities,Technology,15065.37,15671.35,605.98,0.0402
+2026-09-01,September,Student Services,Payroll,93705.89,97454.13,3748.24,0.04
+2026-09-01,September,Student Services,Supplies,40891.73,42536.53,1644.8,0.0402
+2026-09-01,September,Student Services,Services,36587.34,38059.0,1471.66,0.0402
+2026-09-01,September,Student Services,Facilities,19369.77,20148.88,779.11,0.0402
+2026-09-01,September,Student Services,Technology,10760.98,11193.82,432.84,0.0402
+2026-09-01,September,Administration,Payroll,74964.72,77963.31,2998.59,0.04
+2026-09-01,September,Administration,Supplies,32713.38,34029.22,1315.84,0.0402
+2026-09-01,September,Administration,Services,29269.87,30447.2,1177.33,0.0402
+2026-09-01,September,Administration,Facilities,15495.81,16119.1,623.29,0.0402
+2026-09-01,September,Administration,Technology,8608.81,8955.05,346.24,0.0402

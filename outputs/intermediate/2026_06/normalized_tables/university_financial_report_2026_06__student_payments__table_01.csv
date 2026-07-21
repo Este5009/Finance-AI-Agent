@@ -1,0 +1,25 @@
+invoice_id,student_id,department,billing_period,due_date,payment_date,amount_due,amount_paid,outstanding,status,days_overdue
+INV-2026_06-001,ENG-FR-001,Engineering,June,2026-06-20,,78885.58,66263.88,12621.69,Partially collected,18
+INV-2026_06-002,ENG-SO-002,Engineering,June,2026-06-20,,78885.58,66263.88,12621.69,Partially collected,18
+INV-2026_06-003,ENG-JU-003,Engineering,June,2026-06-20,,78885.58,66263.88,12621.69,Partially collected,18
+INV-2026_06-004,ENG-SE-004,Engineering,June,2026-06-20,,78885.58,66263.88,12621.69,Partially collected,18
+INV-2026_06-005,BUS-FR-005,Business,June,2026-06-20,,71714.16,60239.89,11474.27,Partially collected,18
+INV-2026_06-006,BUS-SO-006,Business,June,2026-06-20,,71714.16,60239.89,11474.27,Partially collected,18
+INV-2026_06-007,BUS-JU-007,Business,June,2026-06-20,,71714.16,60239.89,11474.27,Partially collected,18
+INV-2026_06-008,BUS-SE-008,Business,June,2026-06-20,,71714.16,60239.89,11474.27,Partially collected,18
+INV-2026_06-009,HEA-FR-009,Health Sciences,June,2026-06-20,,93228.41,78311.86,14916.55,Partially collected,18
+INV-2026_06-010,HEA-SO-010,Health Sciences,June,2026-06-20,,93228.41,78311.86,14916.55,Partially collected,18
+INV-2026_06-011,HEA-JU-011,Health Sciences,June,2026-06-20,,93228.41,78311.86,14916.55,Partially collected,18
+INV-2026_06-012,HEA-SE-012,Health Sciences,June,2026-06-20,,93228.41,78311.86,14916.55,Partially collected,18
+INV-2026_06-013,ART-FR-013,Arts & Humanities,June,2026-06-20,,50199.91,42167.93,8031.99,Partially collected,18
+INV-2026_06-014,ART-SO-014,Arts & Humanities,June,2026-06-20,,50199.91,42167.93,8031.99,Partially collected,18
+INV-2026_06-015,ART-JU-015,Arts & Humanities,June,2026-06-20,,50199.91,42167.93,8031.99,Partially collected,18
+INV-2026_06-016,ART-SE-016,Arts & Humanities,June,2026-06-20,,50199.91,42167.93,8031.99,Partially collected,18
+INV-2026_06-017,STU-FR-017,Student Services,June,2026-06-20,,35857.08,30119.95,5737.13,Partially collected,18
+INV-2026_06-018,STU-SO-018,Student Services,June,2026-06-20,,35857.08,30119.95,5737.13,Partially collected,18
+INV-2026_06-019,STU-JU-019,Student Services,June,2026-06-20,,35857.08,30119.95,5737.13,Partially collected,18
+INV-2026_06-020,STU-SE-020,Student Services,June,2026-06-20,,35857.08,30119.95,5737.13,Partially collected,18
+INV-2026_06-021,ADM-FR-021,Administration,June,2026-06-20,,28685.66,24095.96,4589.71,Partially collected,18
+INV-2026_06-022,ADM-SO-022,Administration,June,2026-06-20,,28685.66,24095.96,4589.71,Partially collected,18
+INV-2026_06-023,ADM-JU-023,Administration,June,2026-06-20,,28685.66,24095.96,4589.71,Partially collected,18
+INV-2026_06-024,ADM-SE-024,Administration,June,2026-06-20,,28685.66,24095.96,4589.71,Partially collected,18

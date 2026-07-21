@@ -1,0 +1,934 @@
+{
+  "package_id": "EVIDENCE-2026-09",
+  "period_slug": "2026_09",
+  "source_queue_id": "QUEUE-2026-09",
+  "source_plan_id": "OLLAMA-PLAN-2026-09",
+  "retrieval_status": "completed",
+  "tools_executed": true,
+  "summary": {
+    "package_id": "EVIDENCE-2026-09",
+    "period_slug": "2026_09",
+    "tasks_executed": 4,
+    "successful_retrievals": 3,
+    "failed_retrievals": 1,
+    "unavailable_evidence": 1
+  },
+  "evidence_packages": [
+    {
+      "task_id": "STEP-001",
+      "execution_id": "EXEC-2026-09-001",
+      "anomaly_id": "ANOM-2026-09-001",
+      "priority": "high",
+      "investigation_question": "What payroll components and departments caused the payroll risk in 2026-09?",
+      "retrieved_evidence": {
+        "retrieval_name": "payroll_history",
+        "success": true,
+        "data": {
+          "summary": "Retrieved 6 processed payroll history record(s).",
+          "record_count": 6,
+          "records": [
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Engineering",
+              "headcount_fte": "44.4",
+              "base_salary": "156511.33",
+              "benefits": "40735.83",
+              "overtime": "17151.93",
+              "total_payroll": "214399.09",
+              "payroll_budget": "206152.97",
+              "variance": "8246.12",
+              "variance_pct": "0.04",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Business",
+              "headcount_fte": "42.0",
+              "base_salary": "142283.03",
+              "benefits": "37032.57",
+              "overtime": "15592.66",
+              "total_payroll": "194908.26",
+              "payroll_budget": "187411.79",
+              "variance": "7496.47",
+              "variance_pct": "0.04",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Health Sciences",
+              "headcount_fte": "49.2",
+              "base_salary": "184287.83",
+              "benefits": "48604.51",
+              "overtime": "22920.86",
+              "total_payroll": "255813.19",
+              "payroll_budget": "245974.23",
+              "variance": "9838.97",
+              "variance_pct": "0.04",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Arts & Humanities",
+              "headcount_fte": "34.8",
+              "base_salary": "99598.12",
+              "benefits": "25922.8",
+              "overtime": "10914.86",
+              "total_payroll": "136435.78",
+              "payroll_budget": "131188.25",
+              "variance": "5247.53",
+              "variance_pct": "0.04",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Student Services",
+              "headcount_fte": "30.0",
+              "base_salary": "71141.52",
+              "benefits": "18516.28",
+              "overtime": "7796.33",
+              "total_payroll": "97454.13",
+              "payroll_budget": "93705.89",
+              "variance": "3748.24",
+              "variance_pct": "0.04",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Administration",
+              "headcount_fte": "27.6",
+              "base_salary": "56913.21",
+              "benefits": "14813.03",
+              "overtime": "6237.06",
+              "total_payroll": "77963.31",
+              "payroll_budget": "74964.72",
+              "variance": "2998.59",
+              "variance_pct": "0.04",
+              "_source_table": "payroll"
+            }
+          ],
+          "department": "all",
+          "payroll_breakdown": [
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Engineering",
+              "headcount_fte": "44.4",
+              "base_salary": "156511.33",
+              "benefits": "40735.83",
+              "overtime": "17151.93",
+              "payroll_amount": "214399.09",
+              "payroll_budget": "206152.97",
+              "variance": "8246.12",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Business",
+              "headcount_fte": "42.0",
+              "base_salary": "142283.03",
+              "benefits": "37032.57",
+              "overtime": "15592.66",
+              "payroll_amount": "194908.26",
+              "payroll_budget": "187411.79",
+              "variance": "7496.47",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Health Sciences",
+              "headcount_fte": "49.2",
+              "base_salary": "184287.83",
+              "benefits": "48604.51",
+              "overtime": "22920.86",
+              "payroll_amount": "255813.19",
+              "payroll_budget": "245974.23",
+              "variance": "9838.97",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Arts & Humanities",
+              "headcount_fte": "34.8",
+              "base_salary": "99598.12",
+              "benefits": "25922.8",
+              "overtime": "10914.86",
+              "payroll_amount": "136435.78",
+              "payroll_budget": "131188.25",
+              "variance": "5247.53",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Student Services",
+              "headcount_fte": "30.0",
+              "base_salary": "71141.52",
+              "benefits": "18516.28",
+              "overtime": "7796.33",
+              "payroll_amount": "97454.13",
+              "payroll_budget": "93705.89",
+              "variance": "3748.24",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Administration",
+              "headcount_fte": "27.6",
+              "base_salary": "56913.21",
+              "benefits": "14813.03",
+              "overtime": "6237.06",
+              "payroll_amount": "77963.31",
+              "payroll_budget": "74964.72",
+              "variance": "2998.59",
+              "source_table": "payroll"
+            }
+          ],
+          "source_tables": [
+            "payroll"
+          ]
+        },
+        "source_references": [
+          "normalized_tables/university_financial_report_2026_09__payroll__table_01.csv"
+        ],
+        "warnings": [],
+        "unavailable_data": [],
+        "confidence": 0.95
+      },
+      "evidence_summary": "Retrieved 6 processed payroll history record(s).",
+      "source_references": [
+        "normalized_tables/university_financial_report_2026_09__payroll__table_01.csv"
+      ],
+      "retrieval_warnings": [],
+      "confidence": 0.95
+    },
+    {
+      "task_id": "STEP-002",
+      "execution_id": "EXEC-2026-09-002",
+      "anomaly_id": "ANOM-2026-09-002",
+      "priority": "high",
+      "investigation_question": "Why did the student collection rate miss its target in 2026-09?",
+      "retrieved_evidence": {
+        "retrieval_name": "transactions",
+        "success": true,
+        "data": {
+          "summary": "Retrieved 30 processed transaction record(s).",
+          "record_count": 30,
+          "records": [
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Engineering",
+              "expense_category": "Payroll",
+              "budget_expense": "206152.97",
+              "actual_expense": "214399.09",
+              "variance": "8246.12",
+              "variance_pct": "0.04",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Engineering",
+              "expense_category": "Supplies",
+              "budget_expense": "89961.81",
+              "actual_expense": "93580.36",
+              "variance": "3618.55",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Engineering",
+              "expense_category": "Services",
+              "budget_expense": "80492.14",
+              "actual_expense": "83729.79",
+              "variance": "3237.65",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Engineering",
+              "expense_category": "Facilities",
+              "budget_expense": "42613.49",
+              "actual_expense": "44327.54",
+              "variance": "1714.05",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Engineering",
+              "expense_category": "Technology",
+              "budget_expense": "23674.16",
+              "actual_expense": "24626.41",
+              "variance": "952.25",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Business",
+              "expense_category": "Payroll",
+              "budget_expense": "187411.79",
+              "actual_expense": "194908.26",
+              "variance": "7496.47",
+              "variance_pct": "0.04",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Business",
+              "expense_category": "Supplies",
+              "budget_expense": "81783.46",
+              "actual_expense": "85073.05",
+              "variance": "3289.59",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Business",
+              "expense_category": "Services",
+              "budget_expense": "73174.67",
+              "actual_expense": "76117.99",
+              "variance": "2943.32",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Business",
+              "expense_category": "Facilities",
+              "budget_expense": "38739.53",
+              "actual_expense": "40297.76",
+              "variance": "1558.23",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Business",
+              "expense_category": "Technology",
+              "budget_expense": "21521.96",
+              "actual_expense": "22387.64",
+              "variance": "865.68",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Health Sciences",
+              "expense_category": "Payroll",
+              "budget_expense": "245974.22",
+              "actual_expense": "255813.19",
+              "variance": "9838.97",
+              "variance_pct": "0.04",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Health Sciences",
+              "expense_category": "Supplies",
+              "budget_expense": "106318.5",
+              "actual_expense": "110594.97",
+              "variance": "4276.47",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Health Sciences",
+              "expense_category": "Services",
+              "budget_expense": "95127.08",
+              "actual_expense": "98953.39",
+              "variance": "3826.31",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Health Sciences",
+              "expense_category": "Facilities",
+              "budget_expense": "50361.39",
+              "actual_expense": "52387.09",
+              "variance": "2025.7",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Health Sciences",
+              "expense_category": "Technology",
+              "budget_expense": "27978.55",
+              "actual_expense": "29103.94",
+              "variance": "1125.39",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Arts & Humanities",
+              "expense_category": "Payroll",
+              "budget_expense": "131188.25",
+              "actual_expense": "136435.78",
+              "variance": "5247.53",
+              "variance_pct": "0.04",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Arts & Humanities",
+              "expense_category": "Supplies",
+              "budget_expense": "57248.42",
+              "actual_expense": "59551.14",
+              "variance": "2302.71",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Arts & Humanities",
+              "expense_category": "Services",
+              "budget_expense": "51222.27",
+              "actual_expense": "53282.59",
+              "variance": "2060.32",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Arts & Humanities",
+              "expense_category": "Facilities",
+              "budget_expense": "27117.67",
+              "actual_expense": "28208.43",
+              "variance": "1090.76",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Arts & Humanities",
+              "expense_category": "Technology",
+              "budget_expense": "15065.37",
+              "actual_expense": "15671.35",
+              "variance": "605.98",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Student Services",
+              "expense_category": "Payroll",
+              "budget_expense": "93705.89",
+              "actual_expense": "97454.13",
+              "variance": "3748.24",
+              "variance_pct": "0.04",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Student Services",
+              "expense_category": "Supplies",
+              "budget_expense": "40891.73",
+              "actual_expense": "42536.53",
+              "variance": "1644.8",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Student Services",
+              "expense_category": "Services",
+              "budget_expense": "36587.34",
+              "actual_expense": "38059.0",
+              "variance": "1471.66",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Student Services",
+              "expense_category": "Facilities",
+              "budget_expense": "19369.77",
+              "actual_expense": "20148.88",
+              "variance": "779.11",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Student Services",
+              "expense_category": "Technology",
+              "budget_expense": "10760.98",
+              "actual_expense": "11193.82",
+              "variance": "432.84",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Administration",
+              "expense_category": "Payroll",
+              "budget_expense": "74964.72",
+              "actual_expense": "77963.31",
+              "variance": "2998.59",
+              "variance_pct": "0.04",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Administration",
+              "expense_category": "Supplies",
+              "budget_expense": "32713.38",
+              "actual_expense": "34029.22",
+              "variance": "1315.84",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Administration",
+              "expense_category": "Services",
+              "budget_expense": "29269.87",
+              "actual_expense": "30447.2",
+              "variance": "1177.33",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Administration",
+              "expense_category": "Facilities",
+              "budget_expense": "15495.81",
+              "actual_expense": "16119.1",
+              "variance": "623.29",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            },
+            {
+              "period": "2026-09-01",
+              "month": "September",
+              "department": "Administration",
+              "expense_category": "Technology",
+              "budget_expense": "8608.81",
+              "actual_expense": "8955.05",
+              "variance": "346.24",
+              "variance_pct": "0.0402",
+              "_source_table": "expenses"
+            }
+          ],
+          "filters_applied": {
+            "type": "tuition",
+            "period": "2026-09"
+          },
+          "matched_tables": [
+            "expenses"
+          ],
+          "counts_by_source": {
+            "expenses": 30
+          }
+        },
+        "source_references": [
+          "normalized_tables/university_financial_report_2026_09__transaction_tables"
+        ],
+        "warnings": [],
+        "unavailable_data": [],
+        "confidence": 0.95
+      },
+      "evidence_summary": "Retrieved 30 processed transaction record(s).",
+      "source_references": [
+        "normalized_tables/university_financial_report_2026_09__transaction_tables"
+      ],
+      "retrieval_warnings": [],
+      "confidence": 0.95
+    },
+    {
+      "task_id": "STEP-003",
+      "execution_id": "EXEC-2026-09-003",
+      "anomaly_id": "ANOM-2026-09-003",
+      "priority": "high",
+      "investigation_question": "Does the flagged vendor payment in 2026-09 have valid invoice, approval, and duplicate evidence?",
+      "retrieved_evidence": {
+        "retrieval_name": "transactions",
+        "success": false,
+        "data": {
+          "summary": "Retrieved 0 processed transaction record(s).",
+          "record_count": 0,
+          "records": [],
+          "filters_applied": {
+            "vendor": "specific_vendor_name",
+            "period": "2026-09",
+            "minimum_amount": 50000
+          },
+          "matched_tables": [],
+          "counts_by_source": {}
+        },
+        "source_references": [
+          "normalized_tables/university_financial_report_2026_09__transaction_tables"
+        ],
+        "warnings": [],
+        "unavailable_data": [
+          "No processed transactions matched the filters."
+        ],
+        "confidence": 0.55
+      },
+      "evidence_summary": "Retrieved 0 processed transaction record(s). Unavailable: No processed transactions matched the filters..",
+      "source_references": [
+        "normalized_tables/university_financial_report_2026_09__transaction_tables"
+      ],
+      "retrieval_warnings": [],
+      "confidence": 0.55
+    },
+    {
+      "task_id": "STEP-004",
+      "execution_id": "EXEC-2026-09-004",
+      "anomaly_id": null,
+      "priority": "high",
+      "investigation_question": "What is the correct structure and business meaning of table 'university_financial_report_2026_09__anomalies_embedded__table_01'? | What is the correct structure and business meaning of table 'university_financial_report_2026_09__department_summary__table_01'? | What is the correct structure and business meaning of tâ€¦",
+      "retrieved_evidence": {
+        "retrieval_name": "financial_report",
+        "success": true,
+        "data": {
+          "summary": "Retrieved processed 2026_09 finance summary.",
+          "report": {
+            "report_period": "2026-09",
+            "period_scope": {
+              "mode": "monthly",
+              "label": "2026-09",
+              "start_date": "2026-09-01",
+              "end_date": "2026-09-30"
+            },
+            "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_09.xlsx",
+            "intermediate_model": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_09\\financial_document_model.json",
+            "finance_summary": {
+              "total_revenue": 2123856.0,
+              "total_expenses": 2096356.0,
+              "net_operating_result": 27500.0,
+              "budget_vs_actual": {
+                "revenue_budget": 2167200.0,
+                "revenue_actual": 2123856.0,
+                "revenue_variance": -43344.0,
+                "revenue_variance_pct": -0.02,
+                "expense_budget": 2015496.0,
+                "expense_actual": 2096356.0,
+                "expense_variance": 80860.0,
+                "expense_variance_pct": 0.040119156773320314,
+                "net_budget": 151704.0,
+                "net_actual": 27500.0,
+                "net_variance": -124204.0
+              },
+              "payroll_total": 976973.76,
+              "payroll_percentage_of_revenue": 0.46,
+              "student_payments": {
+                "amount_due": 1529176.36,
+                "amount_paid": 1406842.2,
+                "outstanding": 122334.12,
+                "collection_rate": 0.9199999665179234,
+                "invoice_count": 24,
+                "overdue_invoice_count": 0,
+                "overdue_payment_percentage": 0.0
+              },
+              "vendor_payments": {
+                "payment_count": 8,
+                "total_amount": 297761.0,
+                "maximum_payment_amount": 74500.0
+              },
+              "scholarships": {
+                "allocated": 126157.04000000001,
+                "awarded": 116812.09,
+                "remaining": 9344.97,
+                "recipients": 220,
+                "utilization_rate": 0.9259260521648256
+              },
+              "cash_flow": {
+                "beginning_cash": 1260000.0,
+                "cash_inflows": 2163947.52,
+                "operating_outflows": 1872135.44,
+                "scholarship_outflows": 116812.08,
+                "capital_outflows": 125000.0,
+                "net_cash_flow": 50000.0,
+                "ending_cash": 1310000.0,
+                "ending_cash_variance": -120000.0
+              }
+            },
+            "kpi_summary": [
+              {
+                "metric": "total_revenue",
+                "value": 2123856.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Revenue"
+              },
+              {
+                "metric": "total_expenses",
+                "value": 2096356.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Expenses"
+              },
+              {
+                "metric": "net_operating_result",
+                "value": 27500.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Revenue - Expenses"
+              },
+              {
+                "metric": "revenue_budget_variance",
+                "value": -43344.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Budget_vs_Actual"
+              },
+              {
+                "metric": "revenue_budget_variance_pct",
+                "value": -0.02,
+                "unit": "ratio",
+                "availability": "available",
+                "source": "Budget_vs_Actual"
+              },
+              {
+                "metric": "expense_budget_variance",
+                "value": 80860.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Budget_vs_Actual"
+              },
+              {
+                "metric": "expense_budget_variance_pct",
+                "value": 0.0401191568,
+                "unit": "ratio",
+                "availability": "available",
+                "source": "Budget_vs_Actual"
+              },
+              {
+                "metric": "payroll_total",
+                "value": 976973.76,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Payroll"
+              },
+              {
+                "metric": "payroll_percentage_of_revenue",
+                "value": 0.46,
+                "unit": "ratio",
+                "availability": "available",
+                "source": "Payroll / Revenue"
+              },
+              {
+                "metric": "student_payment_collection_rate",
+                "value": 0.9199999665,
+                "unit": "ratio",
+                "availability": "available",
+                "source": "Student_Payments"
+              },
+              {
+                "metric": "overdue_payment_percentage",
+                "value": 0.0,
+                "unit": "ratio",
+                "availability": "available",
+                "source": "Student_Payments"
+              },
+              {
+                "metric": "vendor_payment_total",
+                "value": 297761.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Vendor_Payments"
+              },
+              {
+                "metric": "scholarship_awarded_total",
+                "value": 116812.09,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Scholarships"
+              },
+              {
+                "metric": "net_cash_flow",
+                "value": 50000.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Cash_Flow"
+              },
+              {
+                "metric": "ending_cash",
+                "value": 1310000.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Cash_Flow"
+              }
+            ],
+            "department_summary": [
+              {
+                "department": "Administration",
+                "budget_revenue": 173376.0,
+                "actual_revenue": 169908.46,
+                "revenue_variance": -3467.54,
+                "revenue_variance_pct": -0.0200001154,
+                "budget_expenses": 161052.59,
+                "actual_expenses": 167513.88,
+                "expense_variance": 6461.29,
+                "expense_variance_pct": 0.0401191313,
+                "net_operating_result": 2394.58
+              },
+              {
+                "department": "Arts & Humanities",
+                "budget_revenue": 303408.0,
+                "actual_revenue": 297339.85,
+                "revenue_variance": -6068.15,
+                "revenue_variance_pct": -0.019999967,
+                "budget_expenses": 281841.98,
+                "actual_expenses": 293149.29,
+                "expense_variance": 11307.31,
+                "expense_variance_pct": 0.040119325,
+                "net_operating_result": 4190.56
+              },
+              {
+                "department": "Business",
+                "budget_revenue": 433440.0,
+                "actual_revenue": 424771.2,
+                "revenue_variance": -8668.8,
+                "revenue_variance_pct": -0.02,
+                "budget_expenses": 402631.41,
+                "actual_expenses": 418784.7,
+                "expense_variance": 16153.29,
+                "expense_variance_pct": 0.0401192992,
+                "net_operating_result": 5986.4999999999
+              },
+              {
+                "department": "Engineering",
+                "budget_revenue": 476784.0,
+                "actual_revenue": 467248.32,
+                "revenue_variance": -9535.68,
+                "revenue_variance_pct": -0.02,
+                "budget_expenses": 442894.57,
+                "actual_expenses": 460663.19,
+                "expense_variance": 17768.62,
+                "expense_variance_pct": 0.0401192997,
+                "net_operating_result": 6585.13
+              },
+              {
+                "department": "Health Sciences",
+                "budget_revenue": 563472.0,
+                "actual_revenue": 552202.57,
+                "revenue_variance": -11269.4300000001,
+                "revenue_variance_pct": -0.0199999823,
+                "budget_expenses": 525759.74,
+                "actual_expenses": 546852.58,
+                "expense_variance": 21092.84,
+                "expense_variance_pct": 0.0401187813,
+                "net_operating_result": 5349.99
+              },
+              {
+                "department": "Student Services",
+                "budget_revenue": 216720.0,
+                "actual_revenue": 212385.6,
+                "revenue_variance": -4334.4,
+                "revenue_variance_pct": -0.02,
+                "budget_expenses": 201315.71,
+                "actual_expenses": 209392.36,
+                "expense_variance": 8076.65,
+                "expense_variance_pct": 0.040119323,
+                "net_operating_result": 2993.24
+              }
+            ],
+            "category_summary": [
+              {
+                "category_type": "expense",
+                "category": "Facilities",
+                "budget_amount": 193697.66,
+                "actual_amount": 201488.8,
+                "variance": 7791.14,
+                "variance_pct": 0.0402232015
+              },
+              {
+                "category_type": "expense",
+                "category": "Payroll",
+                "budget_amount": 939397.84,
+                "actual_amount": 976973.76,
+                "variance": 37575.92,
+                "variance_pct": 0.0400000068
+              },
+              {
+                "category_type": "expense",
+                "category": "Services",
+                "budget_amount": 365873.37,
+                "actual_amount": 380589.96,
+                "variance": 14716.59,
+                "variance_pct": 0.0402231789
+              },
+              {
+                "category_type": "expense",
+                "category": "Supplies",
+                "budget_amount": 408917.3,
+                "actual_amount": 425365.27,
+                "variance": 16447.97,
+                "variance_pct": 0.0402232187
+              },
+              {
+                "category_type": "expense",
+                "category": "Technology",
+                "budget_amount": 107609.83,
+                "actual_amount": 111938.21,
+                "variance": 4328.38,
+                "variance_pct": 0.0402229053
+              }
+            ],
+            "monthly_trends": [],
+            "calculation_warnings": []
+          }
+        },
+        "source_references": [
+          "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_09.json"
+        ],
+        "warnings": [],
+        "unavailable_data": [],
+        "confidence": 0.98
+      },
+      "evidence_summary": "Retrieved processed 2026_09 finance summary.",
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_09.json"
+      ],
+      "retrieval_warnings": [],
+      "confidence": 0.98
+    }
+  ]
+}

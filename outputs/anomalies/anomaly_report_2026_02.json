@@ -1,0 +1,49 @@
+{
+  "report_period": "2026-02",
+  "period_slug": "2026_02",
+  "thresholds": {
+    "payroll_percent_max": 42.0,
+    "department_overspend_flag_percent": 12.0,
+    "department_budget_target_range_percent": 8.0,
+    "tuition_collection_min_percent": 94.0,
+    "overdue_payment_max_percent": 6.0,
+    "vendor_payment_review_threshold": 50000.0,
+    "month_over_month_expense_increase_percent": 10.0,
+    "month_over_month_revenue_drop_percent": 10.0,
+    "low_cash_flow_threshold": 0.0,
+    "statistical_z_score_threshold": 2.0
+  },
+  "source_files": [
+    "finance_summary_2026_02.json",
+    "kpi_summary_2026_02.csv",
+    "department_summary_2026_02.csv",
+    "category_summary_2026_02.csv"
+  ],
+  "total_anomalies": 1,
+  "anomalies_by_severity": {
+    "critical": 0,
+    "high": 0,
+    "medium": 1,
+    "low": 0
+  },
+  "anomalies_by_detection_method": {
+    "rule_based": 1
+  },
+  "anomalies": [
+    {
+      "anomaly_id": "ANOM-2026-02-001",
+      "title": "Tuition collection below target",
+      "description": "Student payment collections are below the configured minimum.",
+      "metric": "student_payment_collection_rate",
+      "observed_value": 93.00000130389911,
+      "threshold_value": 94.0,
+      "severity": "medium",
+      "period": "2026-02",
+      "source_file": "finance_summary_2026_02.json",
+      "evidence": "Collection rate is 93.00% from $1,369,431 paid against $1,472,507 due.",
+      "recommended_next_check": "Inspect overdue invoices, aging buckets, and payment plans.",
+      "detection_method": "rule_based",
+      "rule_id": "TUITION_COLLECTION_MIN"
+    }
+  ]
+}

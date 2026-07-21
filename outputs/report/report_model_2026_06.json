@@ -12,7 +12,7 @@
         "title": "Finance AI Agent Report",
         "report_period": "2026-06",
         "period_slug": "2026_06",
-        "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+        "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx",
         "renderer_note": "Renderer-agnostic report model; no layout applied."
       },
       "source_references": [
@@ -24,20 +24,20 @@
       "section_id": "executive_summary",
       "title": "Executive Summary",
       "content": {
-        "summary": "The Health Sciences department significantly overspent on payroll and vendor payments in June 2026, with a $87,255 variance against budget. Engineering also exceeded its budget, while other departments met targets. The student collection rate missed its target, and flagged vendor payments lack evidence.",
+        "summary": "The university faces critical financial anomalies in June 2026, including negative cash flow, Facilities and Services category overspending, and missing transaction data. Key evidence shows departmental budget variances exceeding thresholds, with incomplete data hindering full analysis.",
         "key_findings": [
-          "Health Sciences payroll variance of $87,255 (actual $342,000 vs. budget $254,745) driven by high benefits ($61,560) and overtime ($18,810).",
-          "Engineering department overspent by $111,996 (actual $734,196 vs. budget $622,200) with vendor payments for supplies and services.",
-          "Student collection rate missed target with no evidence of transaction processing for June 2026.",
-          "Flagged vendor payments have no processed transaction records, indicating potential data gaps."
+          "Net cash flow is critically low (threshold: 0.0), with operating, scholarship, and capital cash outflows requiring review.",
+          "Facilities category overspending (6 transactions) across Health Sciences, Arts & Humanities, Student Services, and Administration departments.",
+          "Services category overspending (11 transactions) with vendors like FacilitiesPlus and CloudEdu contributing to budget variances.",
+          "Student collection rate missed target due to 0 processed transactions retrieved, indicating data unavailability."
         ],
         "root_causes": [
-          "Unplanned overtime and benefits in Health Sciences due to staffing or project demands.",
-          "Unplanned vendor payments in Engineering for supplies and services exceeding budget allocations.",
-          "Incomplete transaction processing for student payments leading to collection rate shortfall.",
-          "Data filtering issues causing missing vendor payment evidence for flagged transactions."
+          "Inadequate transaction processing leading to missing data for collection rate analysis.",
+          "Unplanned vendor payments (e.g., FacilitiesPlus, CloudEdu) causing Services category overspending.",
+          "Departmental budget variances exceeding 12% threshold for Facilities and Services categories.",
+          "Negative cash flow driven by unreviewed operating, scholarship, and capital outflows."
         ],
-        "confidence": 0.8,
+        "confidence": 0.75,
         "analysis_status": "accepted"
       },
       "source_references": [
@@ -49,13 +49,13 @@
       "section_id": "financial_health_overview",
       "title": "Financial Health Overview",
       "content": {
-        "total_revenue": 1877724.0,
-        "total_expenses": 2206870.0,
-        "net_operating_result": -329146.0,
-        "net_cash_flow": -685996.0,
-        "ending_cash": 4739362.0,
-        "payroll_percentage_of_revenue": 0.5310162728920758,
-        "collection_rate": 0.8444563489064443
+        "total_revenue": 1992060.0,
+        "total_expenses": 2366059.9999999995,
+        "net_operating_result": -373999.99999999953,
+        "net_cash_flow": -680000.0,
+        "ending_cash": 1730000.0,
+        "payroll_percentage_of_revenue": 0.53,
+        "collection_rate": 0.8399999944223008
       },
       "source_references": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json"
@@ -69,105 +69,105 @@
         "kpis": [
           {
             "metric": "total_revenue",
-            "value": 1877724.0,
+            "value": 1992060.0,
             "unit": "USD",
             "availability": "available",
             "source": "Revenue"
           },
           {
             "metric": "total_expenses",
-            "value": 2206870.0,
+            "value": 2366059.9999999995,
             "unit": "USD",
             "availability": "available",
             "source": "Expenses"
           },
           {
             "metric": "net_operating_result",
-            "value": -329146.0,
+            "value": -373999.9999999995,
             "unit": "USD",
             "availability": "available",
             "source": "Revenue - Expenses"
           },
           {
             "metric": "revenue_budget_variance",
-            "value": -150276.0,
+            "value": -149940.0000000002,
             "unit": "USD",
             "availability": "available",
             "source": "Budget_vs_Actual"
           },
           {
             "metric": "revenue_budget_variance_pct",
-            "value": -0.0741005917,
+            "value": -0.07,
             "unit": "ratio",
             "availability": "available",
             "source": "Budget_vs_Actual"
           },
           {
             "metric": "expense_budget_variance",
-            "value": 222970.0,
+            "value": 374000.0,
             "unit": "USD",
             "availability": "available",
             "source": "Budget_vs_Actual"
           },
           {
             "metric": "expense_budget_variance_pct",
-            "value": 0.1123897374,
+            "value": 0.187745349,
             "unit": "ratio",
             "availability": "available",
             "source": "Budget_vs_Actual"
           },
           {
             "metric": "payroll_total",
-            "value": 997102.0,
+            "value": 1055791.8,
             "unit": "USD",
             "availability": "available",
             "source": "Payroll"
           },
           {
             "metric": "payroll_percentage_of_revenue",
-            "value": 0.5310162729,
+            "value": 0.53,
             "unit": "ratio",
             "availability": "available",
             "source": "Payroll / Revenue"
           },
           {
             "metric": "student_payment_collection_rate",
-            "value": 0.8444563489,
+            "value": 0.8399999944,
             "unit": "ratio",
             "availability": "available",
             "source": "Student_Payments"
           },
           {
             "metric": "overdue_payment_percentage",
-            "value": 0.1875,
+            "value": 1.0,
             "unit": "ratio",
             "availability": "available",
             "source": "Student_Payments"
           },
           {
             "metric": "vendor_payment_total",
-            "value": 1209768.0,
+            "value": 154739.0,
             "unit": "USD",
             "availability": "available",
             "source": "Vendor_Payments"
           },
           {
             "metric": "scholarship_awarded_total",
-            "value": 188100.0,
+            "value": 109563.3,
             "unit": "USD",
             "availability": "available",
             "source": "Scholarships"
           },
           {
             "metric": "net_cash_flow",
-            "value": -685996.0,
+            "value": -680000.0,
             "unit": "USD",
             "availability": "available",
             "source": "Cash_Flow"
           },
           {
             "metric": "ending_cash",
-            "value": 4739362.0,
+            "value": 1730000.0,
             "unit": "USD",
             "availability": "available",
             "source": "Cash_Flow"
@@ -183,58 +183,82 @@
       "section_id": "revenue_analysis",
       "title": "Revenue Analysis",
       "content": {
-        "total_revenue": 1877724.0,
-        "revenue_budget": 2028000.0,
-        "revenue_variance": -150276.0,
-        "revenue_variance_pct": -0.07410059171597633,
+        "total_revenue": 1992060.0,
+        "revenue_budget": 2142000.0,
+        "revenue_variance": -149940.00000000023,
+        "revenue_variance_pct": -0.0700000000000001,
         "department_summary": [
           {
             "department": "Administration",
-            "budget_revenue": 156000,
-            "actual_revenue": 145860,
-            "revenue_variance": -10140,
-            "revenue_variance_pct": -0.065,
-            "budget_expenses": 377400,
-            "actual_expenses": 387987,
-            "expense_variance": 10587,
-            "expense_variance_pct": 0.0280524642,
-            "net_operating_result": -242127
+            "budget_revenue": 171360.0,
+            "actual_revenue": 159364.8,
+            "revenue_variance": -11995.2,
+            "revenue_variance_pct": -0.07,
+            "budget_expenses": 157628.99,
+            "actual_expenses": 187479.55,
+            "expense_variance": 29850.56,
+            "expense_variance_pct": 0.1893722722,
+            "net_operating_result": -28114.75
+          },
+          {
+            "department": "Arts & Humanities",
+            "budget_revenue": 299880.0,
+            "actual_revenue": 278888.4,
+            "revenue_variance": -20991.6,
+            "revenue_variance_pct": -0.07,
+            "budget_expenses": 275850.71,
+            "actual_expenses": 328089.21,
+            "expense_variance": 52238.5,
+            "expense_variance_pct": 0.1893723601,
+            "net_operating_result": -49200.81
           },
           {
             "department": "Business",
-            "budget_revenue": 522600,
-            "actual_revenue": 481545,
-            "revenue_variance": -41055,
-            "revenue_variance_pct": -0.0785591274,
-            "budget_expenses": 418200,
-            "actual_expenses": 425728,
-            "expense_variance": 7528,
-            "expense_variance_pct": 0.0180009565,
-            "net_operating_result": 55817
+            "budget_revenue": 428400.0,
+            "actual_revenue": 398412.0,
+            "revenue_variance": -29988.0,
+            "revenue_variance_pct": -0.07,
+            "budget_expenses": 394072.45,
+            "actual_expenses": 468698.87,
+            "expense_variance": 74626.42,
+            "expense_variance_pct": 0.189372335,
+            "net_operating_result": -70286.87
           },
           {
             "department": "Engineering",
-            "budget_revenue": 717600,
-            "actual_revenue": 665272,
-            "revenue_variance": -52328,
-            "revenue_variance_pct": -0.0729208473,
-            "budget_expenses": 622200,
-            "actual_expenses": 734196,
-            "expense_variance": 111996,
-            "expense_variance_pct": 0.18,
-            "net_operating_result": -68924
+            "budget_revenue": 471240.0,
+            "actual_revenue": 438253.2,
+            "revenue_variance": -32986.8,
+            "revenue_variance_pct": -0.07,
+            "budget_expenses": 433479.69,
+            "actual_expenses": 515568.75,
+            "expense_variance": 82089.06,
+            "expense_variance_pct": 0.1893723325,
+            "net_operating_result": -77315.55
           },
           {
             "department": "Health Sciences",
-            "budget_revenue": 631800,
-            "actual_revenue": 585047,
-            "revenue_variance": -46753,
-            "revenue_variance_pct": -0.0739996834,
-            "budget_expenses": 566100,
-            "actual_expenses": 658959,
-            "expense_variance": 92859,
-            "expense_variance_pct": 0.1640328564,
-            "net_operating_result": -73912
+            "budget_revenue": 556920.0,
+            "actual_revenue": 517935.6,
+            "revenue_variance": -38984.4,
+            "revenue_variance_pct": -0.07,
+            "budget_expenses": 533991.94,
+            "actual_expenses": 631874.1900000001,
+            "expense_variance": 97882.2500000001,
+            "expense_variance_pct": 0.1833028603,
+            "net_operating_result": -113938.59
+          },
+          {
+            "department": "Student Services",
+            "budget_revenue": 214200.0,
+            "actual_revenue": 199206.0,
+            "revenue_variance": -14994.0,
+            "revenue_variance_pct": -0.07,
+            "budget_expenses": 197036.22,
+            "actual_expenses": 234349.43,
+            "expense_variance": 37313.21,
+            "expense_variance_pct": 0.1893723398,
+            "net_operating_result": -35143.43
           }
         ]
       },
@@ -247,59 +271,51 @@
       "section_id": "expense_analysis",
       "title": "Expense Analysis",
       "content": {
-        "total_expenses": 2206870.0,
-        "expense_budget": 1983900.0,
-        "expense_variance": 222970.0,
-        "expense_variance_pct": 0.11238973738595695,
-        "payroll_total": 997102.0,
+        "total_expenses": 2366059.9999999995,
+        "expense_budget": 1992060.0,
+        "expense_variance": 374000.0,
+        "expense_variance_pct": 0.1877453490356716,
+        "payroll_total": 1055791.8,
         "category_summary": [
           {
             "category_type": "expense",
-            "category": "Equipment",
-            "budget_amount": 227358,
-            "actual_amount": 277444,
-            "variance": 50086,
-            "variance_pct": 0.220295745
-          },
-          {
-            "category_type": "expense",
             "category": "Facilities",
-            "budget_amount": 367302,
-            "actual_amount": 407772,
-            "variance": 40470,
-            "variance_pct": 0.1101818122
+            "budget_amount": 175837.6,
+            "actual_amount": 235848.28,
+            "variance": 60010.6800000001,
+            "variance_pct": 0.3412846854
           },
           {
             "category_type": "expense",
             "category": "Payroll",
-            "budget_amount": 898263,
-            "actual_amount": 997102,
-            "variance": 98839,
-            "variance_pct": 0.1100334757
+            "budget_amount": 1015184.4199999999,
+            "actual_amount": 1055791.8,
+            "variance": 40607.3800000001,
+            "variance_pct": 0.0400000032
           },
           {
             "category_type": "expense",
             "category": "Services",
-            "budget_amount": 156927,
-            "actual_amount": 167341,
-            "variance": 10414,
-            "variance_pct": 0.0663620664
+            "budget_amount": 332137.7,
+            "actual_amount": 445491.2,
+            "variance": 113353.5,
+            "variance_pct": 0.3412846539
           },
           {
             "category_type": "expense",
             "category": "Supplies",
-            "budget_amount": 165852,
-            "actual_amount": 175906,
-            "variance": 10054,
-            "variance_pct": 0.0606203121
+            "budget_amount": 371212.72,
+            "actual_amount": 497901.91,
+            "variance": 126689.1900000001,
+            "variance_pct": 0.3412846144
           },
           {
             "category_type": "expense",
             "category": "Technology",
-            "budget_amount": 168198,
-            "actual_amount": 181305,
-            "variance": 13107,
-            "variance_pct": 0.0779260158
+            "budget_amount": 97687.56,
+            "actual_amount": 131026.81,
+            "variance": 33339.25,
+            "variance_pct": 0.3412844993
           }
         ]
       },
@@ -315,97 +331,78 @@
         "department_summary": [
           {
             "department": "Administration",
-            "budget_revenue": 156000,
-            "actual_revenue": 145860,
-            "revenue_variance": -10140,
-            "revenue_variance_pct": -0.065,
-            "budget_expenses": 377400,
-            "actual_expenses": 387987,
-            "expense_variance": 10587,
-            "expense_variance_pct": 0.0280524642,
-            "net_operating_result": -242127
+            "budget_revenue": 171360.0,
+            "actual_revenue": 159364.8,
+            "revenue_variance": -11995.2,
+            "revenue_variance_pct": -0.07,
+            "budget_expenses": 157628.99,
+            "actual_expenses": 187479.55,
+            "expense_variance": 29850.56,
+            "expense_variance_pct": 0.1893722722,
+            "net_operating_result": -28114.75
+          },
+          {
+            "department": "Arts & Humanities",
+            "budget_revenue": 299880.0,
+            "actual_revenue": 278888.4,
+            "revenue_variance": -20991.6,
+            "revenue_variance_pct": -0.07,
+            "budget_expenses": 275850.71,
+            "actual_expenses": 328089.21,
+            "expense_variance": 52238.5,
+            "expense_variance_pct": 0.1893723601,
+            "net_operating_result": -49200.81
           },
           {
             "department": "Business",
-            "budget_revenue": 522600,
-            "actual_revenue": 481545,
-            "revenue_variance": -41055,
-            "revenue_variance_pct": -0.0785591274,
-            "budget_expenses": 418200,
-            "actual_expenses": 425728,
-            "expense_variance": 7528,
-            "expense_variance_pct": 0.0180009565,
-            "net_operating_result": 55817
+            "budget_revenue": 428400.0,
+            "actual_revenue": 398412.0,
+            "revenue_variance": -29988.0,
+            "revenue_variance_pct": -0.07,
+            "budget_expenses": 394072.45,
+            "actual_expenses": 468698.87,
+            "expense_variance": 74626.42,
+            "expense_variance_pct": 0.189372335,
+            "net_operating_result": -70286.87
           },
           {
             "department": "Engineering",
-            "budget_revenue": 717600,
-            "actual_revenue": 665272,
-            "revenue_variance": -52328,
-            "revenue_variance_pct": -0.0729208473,
-            "budget_expenses": 622200,
-            "actual_expenses": 734196,
-            "expense_variance": 111996,
-            "expense_variance_pct": 0.18,
-            "net_operating_result": -68924
+            "budget_revenue": 471240.0,
+            "actual_revenue": 438253.2,
+            "revenue_variance": -32986.8,
+            "revenue_variance_pct": -0.07,
+            "budget_expenses": 433479.69,
+            "actual_expenses": 515568.75,
+            "expense_variance": 82089.06,
+            "expense_variance_pct": 0.1893723325,
+            "net_operating_result": -77315.55
           },
           {
             "department": "Health Sciences",
-            "budget_revenue": 631800,
-            "actual_revenue": 585047,
-            "revenue_variance": -46753,
-            "revenue_variance_pct": -0.0739996834,
-            "budget_expenses": 566100,
-            "actual_expenses": 658959,
-            "expense_variance": 92859,
-            "expense_variance_pct": 0.1640328564,
-            "net_operating_result": -73912
-          }
-        ],
-        "department_evidence": [
-          {
-            "task_id": "STEP-007",
-            "priority": "high",
-            "question": "What is the departmental overspending context?",
-            "retrieval_name": "department_history",
-            "success": true,
-            "record_count": 20,
-            "matched_tables": [
-              "budget_vs_actual",
-              "department_summary",
-              "expenses",
-              "payroll",
-              "vendor_payments"
-            ],
-            "evidence_summary": "Retrieved 20 processed department history record(s).",
-            "source_references": [
-              "normalized_tables/monthly_financial_report_june_2026__department_sources"
-            ],
-            "warnings": [],
-            "unavailable_data": []
+            "budget_revenue": 556920.0,
+            "actual_revenue": 517935.6,
+            "revenue_variance": -38984.4,
+            "revenue_variance_pct": -0.07,
+            "budget_expenses": 533991.94,
+            "actual_expenses": 631874.1900000001,
+            "expense_variance": 97882.2500000001,
+            "expense_variance_pct": 0.1833028603,
+            "net_operating_result": -113938.59
           },
           {
-            "task_id": "STEP-008",
-            "priority": "high",
-            "question": "What is the Health Sciences department overspending context?",
-            "retrieval_name": "department_history",
-            "success": true,
-            "record_count": 19,
-            "matched_tables": [
-              "budget_vs_actual",
-              "department_summary",
-              "expenses",
-              "payroll",
-              "vendor_payments"
-            ],
-            "evidence_summary": "Retrieved 19 processed department history record(s).",
-            "source_references": [
-              "normalized_tables/monthly_financial_report_june_2026__department_sources"
-            ],
-            "warnings": [],
-            "unavailable_data": []
+            "department": "Student Services",
+            "budget_revenue": 214200.0,
+            "actual_revenue": 199206.0,
+            "revenue_variance": -14994.0,
+            "revenue_variance_pct": -0.07,
+            "budget_expenses": 197036.22,
+            "actual_expenses": 234349.43,
+            "expense_variance": 37313.21,
+            "expense_variance_pct": 0.1893723398,
+            "net_operating_result": -35143.43
           }
-        ]
+        ],
+        "department_evidence": []
       },
       "source_references": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_06.json",
@@ -417,70 +414,25 @@
       "section_id": "anomaly_summary",
       "title": "Anomaly Summary",
       "content": {
-        "total_anomalies": 11,
+        "total_anomalies": 15,
         "anomalies_by_severity": {
-          "critical": 2,
+          "critical": 8,
           "high": 7,
-          "medium": 2,
+          "medium": 0,
           "low": 0
         },
         "top_anomalies": [
-          {
-            "anomaly_id": "ANOM-2026-06-004",
-            "title": "Negative or zero operating result",
-            "description": "Operating expenses meet or exceed operating revenue.",
-            "metric": "net_operating_result",
-            "observed_value": -329146.0,
-            "threshold_value": 0,
-            "severity": "critical",
-            "period": "2026-06",
-            "source_file": "finance_summary_2026_06.json",
-            "evidence": "Net operating result is $-329,146 on $1,877,724 of revenue.",
-            "recommended_next_check": "Review revenue shortfalls and expense drivers by department.",
-            "detection_method": "rule_based",
-            "rule_id": "OPERATING_RESULT_MIN"
-          },
-          {
-            "anomaly_id": "ANOM-2026-06-005",
-            "title": "Negative or low cash flow",
-            "description": "Net cash flow is at or below the configured minimum.",
-            "metric": "net_cash_flow",
-            "observed_value": -685996.0,
-            "threshold_value": 0.0,
-            "severity": "critical",
-            "period": "2026-06",
-            "source_file": "finance_summary_2026_06.json",
-            "evidence": "Net cash flow is $-685,996; ending cash is $4,739,362.",
-            "recommended_next_check": "Review operating, scholarship, and capital cash outflows.",
-            "detection_method": "rule_based",
-            "rule_id": "NET_CASH_FLOW_MIN"
-          },
-          {
-            "anomaly_id": "ANOM-2026-06-001",
-            "title": "Payroll exceeds revenue threshold",
-            "description": "Payroll cost is above the configured maximum share of revenue.",
-            "metric": "payroll_percentage_of_revenue",
-            "observed_value": 53.10162728920758,
-            "threshold_value": 42.0,
-            "severity": "high",
-            "period": "2026-06",
-            "source_file": "finance_summary_2026_06.json",
-            "evidence": "Calculated payroll/revenue is 53.10% versus a 42.00% maximum.",
-            "recommended_next_check": "Review payroll by department, overtime, benefits, and headcount.",
-            "detection_method": "rule_based",
-            "rule_id": "PAYROLL_RATIO_MAX"
-          },
           {
             "anomaly_id": "ANOM-2026-06-002",
             "title": "Tuition collection below target",
             "description": "Student payment collections are below the configured minimum.",
             "metric": "student_payment_collection_rate",
-            "observed_value": 84.44563489064443,
+            "observed_value": 83.99999944223008,
             "threshold_value": 94.0,
-            "severity": "high",
+            "severity": "critical",
             "period": "2026-06",
             "source_file": "finance_summary_2026_06.json",
-            "evidence": "Collection rate is 84.45% from $1,139,707 paid against $1,349,634 due.",
+            "evidence": "Collection rate is 84.00% from $1,204,798 paid against $1,434,283 due.",
             "recommended_next_check": "Inspect overdue invoices, aging buckets, and payment plans.",
             "detection_method": "rule_based",
             "rule_id": "TUITION_COLLECTION_MIN"
@@ -490,90 +442,135 @@
             "title": "Overdue student payments above limit",
             "description": "The share of overdue student invoices exceeds policy.",
             "metric": "overdue_payment_percentage",
-            "observed_value": 18.75,
+            "observed_value": 100.0,
             "threshold_value": 6.0,
-            "severity": "high",
+            "severity": "critical",
             "period": "2026-06",
             "source_file": "finance_summary_2026_06.json",
-            "evidence": "9 of 48 invoices are overdue (18.75%).",
+            "evidence": "24 of 24 invoices are overdue (100.00%).",
             "recommended_next_check": "Review student receivables by aging and department.",
             "detection_method": "rule_based",
             "rule_id": "OVERDUE_PAYMENT_MAX"
           },
           {
-            "anomaly_id": "ANOM-2026-06-006",
-            "title": "Vendor payment exceeds review threshold",
-            "description": "At least one vendor payment exceeds the configured review value.",
-            "metric": "maximum_vendor_payment",
-            "observed_value": 96000.0,
-            "threshold_value": 50000.0,
-            "severity": "high",
+            "anomaly_id": "ANOM-2026-06-004",
+            "title": "Negative or zero operating result",
+            "description": "Operating expenses meet or exceed operating revenue.",
+            "metric": "net_operating_result",
+            "observed_value": -373999.99999999953,
+            "threshold_value": 0,
+            "severity": "critical",
             "period": "2026-06",
             "source_file": "finance_summary_2026_06.json",
-            "evidence": "Maximum payment is $96,000 versus a $50,000 threshold.",
-            "recommended_next_check": "Inspect the underlying vendor invoice, approval, and duplicate checks.",
+            "evidence": "Net operating result is $-374,000 on $1,992,060 of revenue.",
+            "recommended_next_check": "Review revenue shortfalls and expense drivers by department.",
             "detection_method": "rule_based",
-            "rule_id": "VENDOR_PAYMENT_REVIEW"
+            "rule_id": "OPERATING_RESULT_MIN"
           },
           {
-            "anomaly_id": "ANOM-2026-06-007",
-            "title": "Engineering overspending exceeds flag threshold",
-            "description": "Department actual expenses materially exceed budget.",
-            "metric": "department_expense_variance_pct",
-            "observed_value": 18.0,
-            "threshold_value": 12.0,
-            "severity": "high",
+            "anomaly_id": "ANOM-2026-06-005",
+            "title": "Negative or low cash flow",
+            "description": "Net cash flow is at or below the configured minimum.",
+            "metric": "net_cash_flow",
+            "observed_value": -680000.0,
+            "threshold_value": 0.0,
+            "severity": "critical",
             "period": "2026-06",
-            "source_file": "department_summary_2026_06.csv",
-            "evidence": "Engineering spent $734,196 against $622,200 budget (18.00% variance).",
-            "recommended_next_check": "Inspect department expense categories, payroll, and vendors.",
+            "source_file": "finance_summary_2026_06.json",
+            "evidence": "Net cash flow is $-680,000; ending cash is $1,730,000.",
+            "recommended_next_check": "Review operating, scholarship, and capital cash outflows.",
             "detection_method": "rule_based",
-            "rule_id": "DEPARTMENT_OVERSPEND_FLAG"
+            "rule_id": "NET_CASH_FLOW_MIN"
           },
           {
-            "anomaly_id": "ANOM-2026-06-008",
-            "title": "Health Sciences overspending exceeds flag threshold",
-            "description": "Department actual expenses materially exceed budget.",
-            "metric": "department_expense_variance_pct",
-            "observed_value": 16.403285638579757,
-            "threshold_value": 12.0,
-            "severity": "high",
-            "period": "2026-06",
-            "source_file": "department_summary_2026_06.csv",
-            "evidence": "Health Sciences spent $658,959 against $566,100 budget (16.40% variance).",
-            "recommended_next_check": "Inspect department expense categories, payroll, and vendors.",
-            "detection_method": "rule_based",
-            "rule_id": "DEPARTMENT_OVERSPEND_FLAG"
-          },
-          {
-            "anomaly_id": "ANOM-2026-06-009",
-            "title": "Equipment category overspending",
+            "anomaly_id": "ANOM-2026-06-012",
+            "title": "Facilities category overspending",
             "description": "Expense category actual value exceeds its budget range.",
             "metric": "category_expense_variance_pct",
-            "observed_value": 22.02957450364623,
+            "observed_value": 34.1284685414269,
             "threshold_value": 12.0,
-            "severity": "high",
+            "severity": "critical",
             "period": "2026-06",
             "source_file": "category_summary_2026_06.csv",
-            "evidence": "Equipment actual $277,444 versus budget $227,358; variance 22.03%.",
+            "evidence": "Facilities actual $235,848 versus budget $175,838; variance 34.13%.",
             "recommended_next_check": "Review the category by department and underlying transactions.",
             "detection_method": "rule_based",
             "rule_id": "CATEGORY_OVERSPEND_FLAG"
           },
           {
-            "anomaly_id": "ANOM-2026-06-010",
-            "title": "Facilities category outside budget target",
+            "anomaly_id": "ANOM-2026-06-013",
+            "title": "Services category overspending",
             "description": "Expense category actual value exceeds its budget range.",
             "metric": "category_expense_variance_pct",
-            "observed_value": 11.018181224169757,
-            "threshold_value": 8.0,
-            "severity": "medium",
+            "observed_value": 34.12846539251642,
+            "threshold_value": 12.0,
+            "severity": "critical",
             "period": "2026-06",
             "source_file": "category_summary_2026_06.csv",
-            "evidence": "Facilities actual $407,772 versus budget $367,302; variance 11.02%.",
+            "evidence": "Services actual $445,491 versus budget $332,138; variance 34.13%.",
             "recommended_next_check": "Review the category by department and underlying transactions.",
             "detection_method": "rule_based",
-            "rule_id": "CATEGORY_BUDGET_RANGE"
+            "rule_id": "CATEGORY_OVERSPEND_FLAG"
+          },
+          {
+            "anomaly_id": "ANOM-2026-06-014",
+            "title": "Supplies category overspending",
+            "description": "Expense category actual value exceeds its budget range.",
+            "metric": "category_expense_variance_pct",
+            "observed_value": 34.128461438498135,
+            "threshold_value": 12.0,
+            "severity": "critical",
+            "period": "2026-06",
+            "source_file": "category_summary_2026_06.csv",
+            "evidence": "Supplies actual $497,902 versus budget $371,213; variance 34.13%.",
+            "recommended_next_check": "Review the category by department and underlying transactions.",
+            "detection_method": "rule_based",
+            "rule_id": "CATEGORY_OVERSPEND_FLAG"
+          },
+          {
+            "anomaly_id": "ANOM-2026-06-015",
+            "title": "Technology category overspending",
+            "description": "Expense category actual value exceeds its budget range.",
+            "metric": "category_expense_variance_pct",
+            "observed_value": 34.12844992750356,
+            "threshold_value": 12.0,
+            "severity": "critical",
+            "period": "2026-06",
+            "source_file": "category_summary_2026_06.csv",
+            "evidence": "Technology actual $131,027 versus budget $97,688; variance 34.13%.",
+            "recommended_next_check": "Review the category by department and underlying transactions.",
+            "detection_method": "rule_based",
+            "rule_id": "CATEGORY_OVERSPEND_FLAG"
+          },
+          {
+            "anomaly_id": "ANOM-2026-06-001",
+            "title": "Payroll exceeds revenue threshold",
+            "description": "Payroll cost is above the configured maximum share of revenue.",
+            "metric": "payroll_percentage_of_revenue",
+            "observed_value": 53.0,
+            "threshold_value": 42.0,
+            "severity": "high",
+            "period": "2026-06",
+            "source_file": "finance_summary_2026_06.json",
+            "evidence": "Calculated payroll/revenue is 53.00% versus a 42.00% maximum.",
+            "recommended_next_check": "Review payroll by department, overtime, benefits, and headcount.",
+            "detection_method": "rule_based",
+            "rule_id": "PAYROLL_RATIO_MAX"
+          },
+          {
+            "anomaly_id": "ANOM-2026-06-006",
+            "title": "Administration overspending exceeds flag threshold",
+            "description": "Department actual expenses materially exceed budget.",
+            "metric": "department_expense_variance_pct",
+            "observed_value": 18.9372272194347,
+            "threshold_value": 12.0,
+            "severity": "high",
+            "period": "2026-06",
+            "source_file": "department_summary_2026_06.csv",
+            "evidence": "Administration spent $187,480 against $157,629 budget (18.94% variance).",
+            "recommended_next_check": "Inspect department expense categories, payroll, and vendors.",
+            "detection_method": "rule_based",
+            "rule_id": "DEPARTMENT_OVERSPEND_FLAG"
           }
         ]
       },
@@ -589,16 +586,50 @@
         "retrieval_summary": {
           "package_id": "EVIDENCE-2026-06",
           "period_slug": "2026_06",
-          "tasks_executed": 7,
-          "successful_retrievals": 6,
-          "failed_retrievals": 1,
-          "unavailable_evidence": 2
+          "tasks_executed": 6,
+          "successful_retrievals": 4,
+          "failed_retrievals": 2,
+          "unavailable_evidence": 3
         },
         "evidence_items": [
           {
             "task_id": "STEP-001",
             "priority": "critical",
-            "question": "Which operating, scholarship, or capital outflows caused cash-flow risk? | Which revenue shortfalls and expense drivers caused the operating deficit?",
+            "question": "Why did the student collection rate miss its target?",
+            "retrieval_name": "transactions",
+            "success": false,
+            "record_count": 0,
+            "matched_tables": null,
+            "evidence_summary": "Retrieved 0 processed transaction record(s). Unavailable: No processed transactions matched the filters..",
+            "source_references": [
+              "normalized_tables/university_financial_report_2026_06__transaction_tables"
+            ],
+            "warnings": [],
+            "unavailable_data": [
+              "No processed transactions matched the filters."
+            ]
+          },
+          {
+            "task_id": "STEP-002",
+            "priority": "critical",
+            "question": "Which invoices and aging buckets caused overdue payments?",
+            "retrieval_name": "transactions",
+            "success": false,
+            "record_count": 0,
+            "matched_tables": null,
+            "evidence_summary": "Retrieved 0 processed transaction record(s). Unavailable: No processed transactions matched the filters..",
+            "source_references": [
+              "normalized_tables/university_financial_report_2026_06__transaction_tables"
+            ],
+            "warnings": [],
+            "unavailable_data": [
+              "No processed transactions matched the filters."
+            ]
+          },
+          {
+            "task_id": "STEP-003",
+            "priority": "critical",
+            "question": "Which revenue shortfalls and expense drivers caused the operating deficit?",
             "retrieval_name": "financial_report",
             "success": true,
             "record_count": null,
@@ -611,55 +642,39 @@
             "unavailable_data": []
           },
           {
-            "task_id": "STEP-003",
-            "priority": "high",
-            "question": "What payroll components and departments caused payroll risk?",
-            "retrieval_name": "payroll_history",
-            "success": true,
-            "record_count": 4,
-            "matched_tables": [
-              "payroll"
-            ],
-            "evidence_summary": "Retrieved 4 processed payroll history record(s).",
-            "source_references": [
-              "normalized_tables/monthly_financial_report_june_2026__payroll__table_01.csv"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
             "task_id": "STEP-004",
-            "priority": "high",
-            "question": "Why did student collection rate miss target?",
+            "priority": "critical",
+            "question": "Which transactions caused Facilities category overspending?",
             "retrieval_name": "transactions",
             "success": true,
-            "record_count": 48,
+            "record_count": 6,
             "matched_tables": [
-              "student_payments"
+              "expenses"
             ],
-            "evidence_summary": "Retrieved 48 processed transaction record(s).",
+            "evidence_summary": "Retrieved 6 processed transaction record(s).",
             "source_references": [
-              "normalized_tables/monthly_financial_report_june_2026__transaction_tables"
+              "normalized_tables/university_financial_report_2026_06__transaction_tables"
             ],
             "warnings": [],
             "unavailable_data": []
           },
           {
             "task_id": "STEP-005",
-            "priority": "high",
-            "question": "Does flagged vendor payment have valid evidence?",
+            "priority": "critical",
+            "question": "Which transactions caused Services category overspending?",
             "retrieval_name": "transactions",
-            "success": false,
-            "record_count": 0,
-            "matched_tables": null,
-            "evidence_summary": "Retrieved 0 processed transaction record(s). Unavailable: No processed transactions matched the filters..",
+            "success": true,
+            "record_count": 11,
+            "matched_tables": [
+              "expenses",
+              "vendor_payments"
+            ],
+            "evidence_summary": "Retrieved 11 processed transaction record(s).",
             "source_references": [
-              "normalized_tables/monthly_financial_report_june_2026__transaction_tables"
+              "normalized_tables/university_financial_report_2026_06__transaction_tables"
             ],
             "warnings": [],
-            "unavailable_data": [
-              "No processed transactions matched the filters."
-            ]
+            "unavailable_data": []
           },
           {
             "task_id": "STEP-006",
@@ -679,48 +694,6 @@
             "unavailable_data": [
               "previous_cycle_memory_database"
             ]
-          },
-          {
-            "task_id": "STEP-007",
-            "priority": "high",
-            "question": "What is the departmental overspending context?",
-            "retrieval_name": "department_history",
-            "success": true,
-            "record_count": 20,
-            "matched_tables": [
-              "budget_vs_actual",
-              "department_summary",
-              "expenses",
-              "payroll",
-              "vendor_payments"
-            ],
-            "evidence_summary": "Retrieved 20 processed department history record(s).",
-            "source_references": [
-              "normalized_tables/monthly_financial_report_june_2026__department_sources"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "STEP-008",
-            "priority": "high",
-            "question": "What is the Health Sciences department overspending context?",
-            "retrieval_name": "department_history",
-            "success": true,
-            "record_count": 19,
-            "matched_tables": [
-              "budget_vs_actual",
-              "department_summary",
-              "expenses",
-              "payroll",
-              "vendor_payments"
-            ],
-            "evidence_summary": "Retrieved 19 processed department history record(s).",
-            "source_references": [
-              "normalized_tables/monthly_financial_report_june_2026__department_sources"
-            ],
-            "warnings": [],
-            "unavailable_data": []
           }
         ]
       },
@@ -735,42 +708,42 @@
       "content": {
         "recommendations": [
           {
-            "priority": "high",
-            "action": "Conduct departmental review of Health Sciences payroll and vendor spending.",
-            "rationale": "Health Sciences has the largest variance; understanding root causes can prevent future overspending.",
-            "supporting_evidence": "Health Sciences payroll variance $87,255, vendor payments $29,045 for supplies.",
-            "expected_impact": "Reduce overspending by 50% in next quarter.",
-            "confidence": 0.85
+            "priority": "critical",
+            "action": "Review operating, scholarship, and capital cash outflows immediately.",
+            "rationale": "Critical net cash flow anomaly requires urgent investigation to prevent liquidity issues.",
+            "supporting_evidence": "net_cash_flow metric, severity: critical",
+            "expected_impact": "Restore positive cash flow within 30 days.",
+            "confidence": 0.95
+          },
+          {
+            "priority": "critical",
+            "action": "Audit Facilities and Services category transactions by department.",
+            "rationale": "Overspending in these categories exceeds departmental overspend threshold (12%).",
+            "supporting_evidence": "category_expense_variance_pct metric, severity: critical",
+            "expected_impact": "Reduce category overspending by 20% within 60 days.",
+            "confidence": 0.95
           },
           {
             "priority": "high",
-            "action": "Investigate student payment processing delays and implement tracking system.",
-            "rationale": "Student collection rate missed target due to unprocessed transactions.",
-            "supporting_evidence": "48 transaction records retrieved but status 'Paid' not confirmed for collection rate.",
-            "expected_impact": "Achieve 95% collection rate by July 2026.",
-            "confidence": 0.75
-          },
-          {
-            "priority": "medium",
-            "action": "Review vendor payment filters to ensure all transactions are processed.",
-            "rationale": "Flagged vendor payments have no evidence due to filtering issues.",
-            "supporting_evidence": "0 processed transactions retrieved for flagged vendor payments.",
-            "expected_impact": "Ensure 100% of vendor payments are recorded and auditable.",
-            "confidence": 0.65
+            "action": "Investigate missing transaction data for student collections.",
+            "rationale": "0 processed transactions retrieved for collection rate analysis, hindering revenue forecasting.",
+            "supporting_evidence": "STEP-001 evidence failure, confidence: 0.55",
+            "expected_impact": "Improve collection rate accuracy by 15% within 45 days.",
+            "confidence": 0.55
           }
         ],
         "root_causes": [
-          "Unplanned overtime and benefits in Health Sciences due to staffing or project demands.",
-          "Unplanned vendor payments in Engineering for supplies and services exceeding budget allocations.",
-          "Incomplete transaction processing for student payments leading to collection rate shortfall.",
-          "Data filtering issues causing missing vendor payment evidence for flagged transactions."
+          "Inadequate transaction processing leading to missing data for collection rate analysis.",
+          "Unplanned vendor payments (e.g., FacilitiesPlus, CloudEdu) causing Services category overspending.",
+          "Departmental budget variances exceeding 12% threshold for Facilities and Services categories.",
+          "Negative cash flow driven by unreviewed operating, scholarship, and capital outflows."
         ],
         "strategic_priorities": [
-          "Address Health Sciences overspending to align with annual budget goals.",
-          "Improve student payment collection rate to meet financial targets.",
-          "Fix data processing gaps for vendor payments to ensure auditability."
+          "Prevent cash flow deterioration",
+          "Control category overspending",
+          "Improve data completeness for revenue tracking"
         ],
-        "reasoning_summary": "Evidence shows Health Sciences and Engineering overspending, student payments missing, and vendor data gaps. Recommendations focus on root cause analysis and process improvements based on retrieved data."
+        "reasoning_summary": "Critical anomalies in cash flow and category overspending are supported by evidence, but missing transaction data reduces confidence in collection rate analysis. Recommendations prioritize immediate cash flow review and category audits based on available evidence."
       },
       "source_references": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_06.json"
@@ -782,13 +755,14 @@
       "title": "Missing Information",
       "content": {
         "missing_information": [
-          "Details on Engineering vendor payment categories exceeding budget.",
-          "Specific cause of student payment processing delays."
+          "No processed transactions for student collections (STEP-001, STEP-002)",
+          "Historical memory database unavailable for unresolved data (STEP-006)"
         ],
         "evidence_warnings": [
           "Historical memory database is not available in Step 8."
         ],
         "unavailable_evidence": [
+          "No processed transactions matched the filters.",
           "No processed transactions matched the filters.",
           "previous_cycle_memory_database"
         ]

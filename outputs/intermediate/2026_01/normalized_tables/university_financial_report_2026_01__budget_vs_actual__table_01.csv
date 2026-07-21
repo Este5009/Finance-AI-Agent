@@ -1,0 +1,7 @@
+period,month,department,budget_revenue,actual_revenue,budget_expense,actual_expense,revenue_variance,revenue_variance_pct,expense_variance,expense_variance_pct,net_budget,net_actual
+2026-01-01,January,Engineering,462000,462000,429660.0,443850,0,0,14190.0,0.033,32340.0,18150
+2026-01-01,January,Business,420000,420000,390600.01,403500,0,0,12899.99,0.033,29399.99,16500
+2026-01-01,January,Health Sciences,546000,546000,507780.0,524550,0,0,16770.0,0.033,38220.0,21450
+2026-01-01,January,Arts & Humanities,294000,294000,273420.0,282450,0,0,9030.0,0.033,20580.0,11550
+2026-01-01,January,Student Services,210000,210000,195300.0,201750,0,0,6450.0,0.033,14700.0,8250
+2026-01-01,January,Administration,168000,168000,156239.99,161400,0,0,5160.01,0.033,11760.01,6600

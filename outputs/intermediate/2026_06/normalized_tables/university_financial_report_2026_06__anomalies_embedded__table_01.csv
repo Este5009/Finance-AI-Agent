@@ -1,0 +1,3 @@
+anomaly_id,detected_period,department,anomaly_type,severity,description,observed_value,threshold,source_sheet
+ANOM-2026_06-HS-OT,2026_06,Health Sciences,payroll_overtime_overspend,Critical,Health Sciences overtime remains above the reduction threshold.,47757.53,20083.07,Payroll
+ANOM-2026_06-CF,2026_06,University,negative_cash_flow,Critical,Net cash flow is materially negative for the month.,-680000.0,0.0,Cash_Flow

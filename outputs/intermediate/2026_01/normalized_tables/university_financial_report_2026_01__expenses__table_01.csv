@@ -1,0 +1,31 @@
+period,month,department,expense_category,budget_expense,actual_expense,variance,variance_pct
+2026-01-01,January,Engineering,Payroll,168807.69,175560.0,6752.31,0.04
+2026-01-01,January,Engineering,Supplies,99123.88,101950.2,2826.32,0.0285
+2026-01-01,January,Engineering,Services,88689.78,91218.6,2528.82,0.0285
+2026-01-01,January,Engineering,Facilities,46953.42,48292.2,1338.78,0.0285
+2026-01-01,January,Engineering,Technology,26085.23,26829.0,743.77,0.0285
+2026-01-01,January,Business,Payroll,153461.54,159600.0,6138.46,0.04
+2026-01-01,January,Business,Supplies,90112.62,92682.0,2569.38,0.0285
+2026-01-01,January,Business,Services,80627.08,82926.0,2298.92,0.0285
+2026-01-01,January,Business,Facilities,42684.92,43902.0,1217.08,0.0285
+2026-01-01,January,Business,Technology,23713.85,24390.0,676.15,0.0285
+2026-01-01,January,Health Sciences,Payroll,199500.0,207480.0,7980.0,0.04
+2026-01-01,January,Health Sciences,Supplies,117146.4,120486.6,3340.2,0.0285
+2026-01-01,January,Health Sciences,Services,104815.2,107803.8,2988.6,0.0285
+2026-01-01,January,Health Sciences,Facilities,55490.4,57072.6,1582.2,0.0285
+2026-01-01,January,Health Sciences,Technology,30828.0,31707.0,879.0,0.0285
+2026-01-01,January,Arts & Humanities,Payroll,107423.08,111720.0,4296.92,0.04
+2026-01-01,January,Arts & Humanities,Supplies,63078.83,64877.4,1798.57,0.0285
+2026-01-01,January,Arts & Humanities,Services,56438.95,58048.2,1609.25,0.0285
+2026-01-01,January,Arts & Humanities,Facilities,29879.45,30731.4,851.95,0.0285
+2026-01-01,January,Arts & Humanities,Technology,16599.69,17073.0,473.31,0.0285
+2026-01-01,January,Student Services,Payroll,76730.77,79800.0,3069.23,0.04
+2026-01-01,January,Student Services,Supplies,45056.31,46341.0,1284.69,0.0285
+2026-01-01,January,Student Services,Services,40313.54,41463.0,1149.46,0.0285
+2026-01-01,January,Student Services,Facilities,21342.46,21951.0,608.54,0.0285
+2026-01-01,January,Student Services,Technology,11856.92,12195.0,338.08,0.0285
+2026-01-01,January,Administration,Payroll,61384.62,63840.0,2455.38,0.04
+2026-01-01,January,Administration,Supplies,36045.05,37072.8,1027.75,0.0285
+2026-01-01,January,Administration,Services,32250.83,33170.4,919.57,0.0285
+2026-01-01,January,Administration,Facilities,17073.97,17560.8,486.83,0.0285
+2026-01-01,January,Administration,Technology,9485.52,9756.0,270.48,0.0285

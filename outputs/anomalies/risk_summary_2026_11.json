@@ -1,0 +1,36 @@
+{
+  "report_period": "2026-11",
+  "total_anomalies": 0,
+  "anomalies_by_severity": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0
+  },
+  "high_priority_count": 0,
+  "thresholds": {
+    "payroll_percent_max": 42.0,
+    "department_overspend_flag_percent": 12.0,
+    "department_budget_target_range_percent": 8.0,
+    "tuition_collection_min_percent": 94.0,
+    "overdue_payment_max_percent": 6.0,
+    "vendor_payment_review_threshold": 50000.0,
+    "month_over_month_expense_increase_percent": 10.0,
+    "month_over_month_revenue_drop_percent": 10.0,
+    "low_cash_flow_threshold": 0.0,
+    "statistical_z_score_threshold": 2.0
+  },
+  "source_files": [
+    "finance_summary_2026_11.json",
+    "kpi_summary_2026_11.csv",
+    "department_summary_2026_11.csv",
+    "category_summary_2026_11.csv"
+  ],
+  "top_risks": [],
+  "detection_scope": {
+    "rule_based": true,
+    "trend_based": true,
+    "statistical_z_score": true,
+    "llm_used": false
+  }
+}

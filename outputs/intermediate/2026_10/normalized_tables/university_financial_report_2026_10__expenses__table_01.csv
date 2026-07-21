@@ -1,0 +1,31 @@
+period,month,department,expense_category,budget_expense,actual_expense,variance,variance_pct
+2026-10-01,October,Engineering,Payroll,197813.63,205726.18,7912.55,0.04
+2026-10-01,October,Engineering,Supplies,93948.1,95395.29,1447.19,0.0154
+2026-10-01,October,Engineering,Services,84058.82,85353.68,1294.86,0.0154
+2026-10-01,October,Engineering,Facilities,44501.73,45187.24,685.51,0.0154
+2026-10-01,October,Engineering,Technology,24723.18,25104.02,380.84,0.0154
+2026-10-01,October,Business,Payroll,179830.58,187023.8,7193.22,0.04
+2026-10-01,October,Business,Supplies,85407.36,86722.99,1315.63,0.0154
+2026-10-01,October,Business,Services,76417.11,77594.26,1177.14,0.0154
+2026-10-01,October,Business,Facilities,40456.12,41079.31,623.19,0.0154
+2026-10-01,October,Business,Technology,22475.62,22821.84,346.22,0.0154
+2026-10-01,October,Health Sciences,Payroll,234153.8,243519.95,9366.15,0.04
+2026-10-01,October,Health Sciences,Supplies,111029.57,112739.89,1710.32,0.0154
+2026-10-01,October,Health Sciences,Services,99342.25,100872.53,1530.29,0.0154
+2026-10-01,October,Health Sciences,Facilities,52592.95,53403.11,810.15,0.0154
+2026-10-01,October,Health Sciences,Technology,29218.31,29668.39,450.08,0.0154
+2026-10-01,October,Arts & Humanities,Payroll,125881.4,130916.66,5035.26,0.04
+2026-10-01,October,Arts & Humanities,Supplies,59785.15,60706.09,920.94,0.0154
+2026-10-01,October,Arts & Humanities,Services,53491.98,54315.98,824.0,0.0154
+2026-10-01,October,Arts & Humanities,Facilities,28319.28,28755.52,436.24,0.0154
+2026-10-01,October,Arts & Humanities,Technology,15732.94,15975.29,242.35,0.0154
+2026-10-01,October,Student Services,Payroll,89915.29,93511.9,3596.61,0.04
+2026-10-01,October,Student Services,Supplies,42703.68,43361.5,657.82,0.0154
+2026-10-01,October,Student Services,Services,38208.56,38797.13,588.57,0.0154
+2026-10-01,October,Student Services,Facilities,20228.06,20539.66,311.6,0.0154
+2026-10-01,October,Student Services,Technology,11237.81,11410.92,173.11,0.0154
+2026-10-01,October,Administration,Payroll,71932.22,74809.51,2877.29,0.04
+2026-10-01,October,Administration,Supplies,34162.94,34689.2,526.25,0.0154
+2026-10-01,October,Administration,Services,30566.85,31037.7,470.86,0.0154
+2026-10-01,October,Administration,Facilities,16182.45,16431.72,249.28,0.0154
+2026-10-01,October,Administration,Technology,8990.26,9128.74,138.48,0.0154

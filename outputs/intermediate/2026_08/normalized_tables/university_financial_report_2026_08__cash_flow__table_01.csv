@@ -1,0 +1,2 @@
+period,month,beginning_cash,budget_cash_inflows,actual_cash_inflows,budget_operating_outflows,actual_operating_outflows,budget_scholarships,actual_scholarships,budget_capital_outflows,actual_capital_outflows,budget_net_cash_flow,actual_net_cash_flow,budget_ending_cash,actual_ending_cash,ending_cash_variance
+2026-08-01,August,1380000,2217684,2075203.2,1565993.52,1951218.56,112257.6,113984.64,123500,130000,170000,-120000,1550000,1260000,-290000

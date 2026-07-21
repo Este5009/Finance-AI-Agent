@@ -1,0 +1,359 @@
+{
+  "plan_id": "PLAN-2026-04",
+  "report_period": "2026-04",
+  "period_slug": "2026_04",
+  "source_files": [
+    "university_financial_report_2026_04.xlsx"
+  ],
+  "total_tasks": 10,
+  "tasks_by_priority": {
+    "critical": 3,
+    "high": 3,
+    "medium": 4,
+    "low": 0
+  },
+  "tasks": [
+    {
+      "task_id": "INV-2026-04-001",
+      "anomaly_id": "ANOM-2026-04-003",
+      "priority": "critical",
+      "priority_score": 109,
+      "question_to_answer": "Which invoices and aging buckets caused overdue payments in 2026-04?",
+      "reason": "24 of 24 invoices are overdue (100.00%).",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-04-001-E01",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "type": "student_receivable",
+            "period": "2026-04",
+            "include_aging": true
+          },
+          "purpose": "Inspect overdue invoices, aging, and payment-plan status."
+        },
+        {
+          "request_id": "INV-2026-04-001-E02",
+          "tool_name": "get_previous_cycle_memory",
+          "parameters": {},
+          "purpose": "Check whether prior analysis already identified this issue and actions."
+        }
+      ],
+      "suggested_tool": "get_transactions",
+      "expected_output": "Overdue invoice list grouped by aging, department, and payment status.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:critical",
+        "goal_or_threshold_violation",
+        "operational_importance:8",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-04-002",
+      "anomaly_id": "ANOM-2026-04-004",
+      "priority": "critical",
+      "priority_score": 94,
+      "question_to_answer": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-04?",
+      "reason": "Net operating result is $-66,000 on $2,018,940 of revenue.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-04-002-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-04"
+          },
+          "purpose": "Compare revenue, expense, and cash-flow components for the period."
+        },
+        {
+          "request_id": "INV-2026-04-002-E02",
+          "tool_name": "get_previous_cycle_memory",
+          "parameters": {},
+          "purpose": "Check whether prior analysis already identified this issue and actions."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Operating-result bridge by major revenue and expense driver.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "financial_impact:66000.00",
+        "goal_or_threshold_violation",
+        "operational_importance:10",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-04-003",
+      "anomaly_id": "ANOM-2026-04-005",
+      "priority": "critical",
+      "priority_score": 94,
+      "question_to_answer": "Which operating, scholarship, or capital outflows caused cash-flow risk in 2026-04?",
+      "reason": "Net cash flow is $-120,000; ending cash is $2,630,000.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-04-003-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-04"
+          },
+          "purpose": "Compare revenue, expense, and cash-flow components for the period."
+        },
+        {
+          "request_id": "INV-2026-04-003-E02",
+          "tool_name": "get_previous_cycle_memory",
+          "parameters": {},
+          "purpose": "Check whether prior analysis already identified this issue and actions."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Cash-flow bridge showing the dominant negative drivers.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "financial_impact:120000.00",
+        "goal_or_threshold_violation",
+        "operational_importance:10",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-04-004",
+      "anomaly_id": "ANOM-2026-04-001",
+      "priority": "high",
+      "priority_score": 84,
+      "question_to_answer": "What payroll components and departments caused the payroll risk in 2026-04?",
+      "reason": "Calculated payroll/revenue is 45.00% versus a 42.00% maximum.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-04-004-E01",
+          "tool_name": "get_payroll_history",
+          "parameters": {
+            "department": "all",
+            "months": 6
+          },
+          "purpose": "Compare payroll, overtime, benefits, and headcount over time."
+        },
+        {
+          "request_id": "INV-2026-04-004-E02",
+          "tool_name": "get_previous_cycle_memory",
+          "parameters": {},
+          "purpose": "Check whether prior analysis already identified this issue and actions."
+        }
+      ],
+      "suggested_tool": "get_payroll_history",
+      "expected_output": "Payroll driver breakdown by department, overtime, benefits, and headcount.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "goal_or_threshold_violation",
+        "operational_importance:8",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-04-005",
+      "anomaly_id": "ANOM-2026-04-002",
+      "priority": "high",
+      "priority_score": 84,
+      "question_to_answer": "Why did the student collection rate miss its target in 2026-04?",
+      "reason": "Collection rate is 89.00% from $1,293,737 paid against $1,453,637 due.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-04-005-E01",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "type": "student_receivable",
+            "period": "2026-04",
+            "include_aging": true
+          },
+          "purpose": "Inspect overdue invoices, aging, and payment-plan status."
+        },
+        {
+          "request_id": "INV-2026-04-005-E02",
+          "tool_name": "get_previous_cycle_memory",
+          "parameters": {},
+          "purpose": "Check whether prior analysis already identified this issue and actions."
+        }
+      ],
+      "suggested_tool": "get_transactions",
+      "expected_output": "Receivables aging and collection shortfall breakdown.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "goal_or_threshold_violation",
+        "operational_importance:8",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-04-006",
+      "anomaly_id": "DATA-TABLE-university_financial_report_2026_04__anomalies_embedded__table_01",
+      "priority": "high",
+      "priority_score": 75,
+      "question_to_answer": "What is the correct structure and business meaning of table 'university_financial_report_2026_04__anomalies_embedded__table_01'?",
+      "reason": "Enriched model requires human review; final type is Unknown with confidence 0.3.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-04-006-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-04"
+          },
+          "purpose": "Review the table in the context of its processed report."
+        },
+        {
+          "request_id": "INV-2026-04-006-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "table_id": "university_financial_report_2026_04__anomalies_embedded__table_01",
+            "limit": 100
+          },
+          "purpose": "Inspect representative processed records before schema approval."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "planned",
+      "prioritization_factors": [
+        "missing_or_uncertain_data",
+        "final_table_type:Unknown"
+      ]
+    },
+    {
+      "task_id": "INV-2026-04-007",
+      "anomaly_id": "DATA-TABLE-university_financial_report_2026_04__cash_flow__table_01",
+      "priority": "medium",
+      "priority_score": 50,
+      "question_to_answer": "What is the correct structure and business meaning of table 'university_financial_report_2026_04__cash_flow__table_01'?",
+      "reason": "Enriched model requires human review; final type is Cash_Flow with confidence 0.7833.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-04-007-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-04"
+          },
+          "purpose": "Review the table in the context of its processed report."
+        },
+        {
+          "request_id": "INV-2026-04-007-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "table_id": "university_financial_report_2026_04__cash_flow__table_01",
+            "limit": 100
+          },
+          "purpose": "Inspect representative processed records before schema approval."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "planned",
+      "prioritization_factors": [
+        "missing_or_uncertain_data",
+        "final_table_type:Cash_Flow"
+      ]
+    },
+    {
+      "task_id": "INV-2026-04-008",
+      "anomaly_id": "DATA-TABLE-university_financial_report_2026_04__department_summary__table_01",
+      "priority": "medium",
+      "priority_score": 50,
+      "question_to_answer": "What is the correct structure and business meaning of table 'university_financial_report_2026_04__department_summary__table_01'?",
+      "reason": "Enriched model requires human review; final type is Department_Summary with confidence 0.87.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-04-008-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-04"
+          },
+          "purpose": "Review the table in the context of its processed report."
+        },
+        {
+          "request_id": "INV-2026-04-008-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "table_id": "university_financial_report_2026_04__department_summary__table_01",
+            "limit": 100
+          },
+          "purpose": "Inspect representative processed records before schema approval."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "planned",
+      "prioritization_factors": [
+        "missing_or_uncertain_data",
+        "final_table_type:Department_Summary"
+      ]
+    },
+    {
+      "task_id": "INV-2026-04-009",
+      "anomaly_id": "DATA-TABLE-university_financial_report_2026_04__scholarships__table_01",
+      "priority": "medium",
+      "priority_score": 50,
+      "question_to_answer": "What is the correct structure and business meaning of table 'university_financial_report_2026_04__scholarships__table_01'?",
+      "reason": "Enriched model requires human review; final type is Scholarships with confidence 0.99.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-04-009-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-04"
+          },
+          "purpose": "Review the table in the context of its processed report."
+        },
+        {
+          "request_id": "INV-2026-04-009-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "table_id": "university_financial_report_2026_04__scholarships__table_01",
+            "limit": 100
+          },
+          "purpose": "Inspect representative processed records before schema approval."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "planned",
+      "prioritization_factors": [
+        "missing_or_uncertain_data",
+        "final_table_type:Scholarships"
+      ]
+    },
+    {
+      "task_id": "INV-2026-04-010",
+      "anomaly_id": "DATA-TABLE-university_financial_report_2026_04__vendor_payments__table_01",
+      "priority": "medium",
+      "priority_score": 50,
+      "question_to_answer": "What is the correct structure and business meaning of table 'university_financial_report_2026_04__vendor_payments__table_01'?",
+      "reason": "Enriched model requires human review; final type is Vendor_Payments with confidence 0.99.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-04-010-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-04"
+          },
+          "purpose": "Review the table in the context of its processed report."
+        },
+        {
+          "request_id": "INV-2026-04-010-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "table_id": "university_financial_report_2026_04__vendor_payments__table_01",
+            "limit": 100
+          },
+          "purpose": "Inspect representative processed records before schema approval."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "planned",
+      "prioritization_factors": [
+        "missing_or_uncertain_data",
+        "final_table_type:Vendor_Payments"
+      ]
+    }
+  ]
+}

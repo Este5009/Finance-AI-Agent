@@ -1,0 +1,7 @@
+department,budget_revenue,actual_revenue,budget_expense,actual_expense,net_contribution,expense_variance,expense_variance_pct,status
+Engineering,471240,438253.2,433479.69,515568.75,-77315.55,82089.06,0.1894,Over budget
+Business,428400,398412.0,394072.45,468698.87,-70286.87,74626.42,0.1894,Over budget
+Health Sciences,556920,517935.6,533991.94,631874.19,-113938.59,97882.25,0.1833,Over budget - overtime pressure
+Arts & Humanities,299880,278888.4,275850.71,328089.21,-49200.81,52238.5,0.1894,Over budget
+Student Services,214200,199206.0,197036.22,234349.43,-35143.43,37313.21,0.1894,Over budget
+Administration,171360,159364.8,157628.99,187479.55,-28114.75,29850.56,0.1894,Over budget

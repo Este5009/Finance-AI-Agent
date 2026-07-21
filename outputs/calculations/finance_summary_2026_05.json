@@ -1,0 +1,287 @@
+{
+  "report_period": "2026-05",
+  "period_scope": {
+    "mode": "monthly",
+    "label": "2026-05",
+    "start_date": "2026-05-01",
+    "end_date": "2026-05-31"
+  },
+  "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_05.xlsx",
+  "intermediate_model": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_05\\financial_document_model.json",
+  "finance_summary": {
+    "total_revenue": 2005584.0,
+    "total_expenses": 2126584.0000000005,
+    "net_operating_result": -121000.00000000047,
+    "budget_vs_actual": {
+      "revenue_budget": 2133600.0,
+      "revenue_actual": 2005584.0,
+      "revenue_variance": -128016.0,
+      "revenue_variance_pct": -0.06,
+      "expense_budget": 1984248.0,
+      "expense_actual": 2126584.0,
+      "expense_variance": 142336.0,
+      "expense_variance_pct": 0.07173296886276312,
+      "net_budget": 149352.0,
+      "net_actual": -121000.0,
+      "net_variance": -270352.0
+    },
+    "payroll_total": 942624.48,
+    "payroll_percentage_of_revenue": 0.47,
+    "student_payments": {
+      "amount_due": 1444020.48,
+      "amount_paid": 1241857.6,
+      "outstanding": 202162.88,
+      "collection_rate": 0.8599999911358599,
+      "invoice_count": 24,
+      "overdue_invoice_count": 24,
+      "overdue_payment_percentage": 1.0
+    },
+    "vendor_payments": {
+      "payment_count": 6,
+      "total_amount": 157625.0,
+      "maximum_payment_amount": 31245.0
+    },
+    "scholarships": {
+      "allocated": 119131.70000000001,
+      "awarded": 110307.12,
+      "remaining": 8824.58,
+      "recipients": 220,
+      "utilization_rate": 0.9259258450941268
+    },
+    "cash_flow": {
+      "beginning_cash": 2630000.0,
+      "cash_inflows": 1934802.24,
+      "operating_outflows": 1899495.12,
+      "scholarship_outflows": 110307.12,
+      "capital_outflows": 145000.0,
+      "net_cash_flow": -220000.0,
+      "ending_cash": 2410000.0,
+      "ending_cash_variance": -375000.0
+    }
+  },
+  "kpi_summary": [
+    {
+      "metric": "total_revenue",
+      "value": 2005584.0,
+      "unit": "USD",
+      "availability": "available",
+      "source": "Revenue"
+    },
+    {
+      "metric": "total_expenses",
+      "value": 2126584.0000000005,
+      "unit": "USD",
+      "availability": "available",
+      "source": "Expenses"
+    },
+    {
+      "metric": "net_operating_result",
+      "value": -121000.0000000005,
+      "unit": "USD",
+      "availability": "available",
+      "source": "Revenue - Expenses"
+    },
+    {
+      "metric": "revenue_budget_variance",
+      "value": -128016.0,
+      "unit": "USD",
+      "availability": "available",
+      "source": "Budget_vs_Actual"
+    },
+    {
+      "metric": "revenue_budget_variance_pct",
+      "value": -0.06,
+      "unit": "ratio",
+      "availability": "available",
+      "source": "Budget_vs_Actual"
+    },
+    {
+      "metric": "expense_budget_variance",
+      "value": 142336.0,
+      "unit": "USD",
+      "availability": "available",
+      "source": "Budget_vs_Actual"
+    },
+    {
+      "metric": "expense_budget_variance_pct",
+      "value": 0.0717329689,
+      "unit": "ratio",
+      "availability": "available",
+      "source": "Budget_vs_Actual"
+    },
+    {
+      "metric": "payroll_total",
+      "value": 942624.48,
+      "unit": "USD",
+      "availability": "available",
+      "source": "Payroll"
+    },
+    {
+      "metric": "payroll_percentage_of_revenue",
+      "value": 0.47,
+      "unit": "ratio",
+      "availability": "available",
+      "source": "Payroll / Revenue"
+    },
+    {
+      "metric": "student_payment_collection_rate",
+      "value": 0.8599999911,
+      "unit": "ratio",
+      "availability": "available",
+      "source": "Student_Payments"
+    },
+    {
+      "metric": "overdue_payment_percentage",
+      "value": 1.0,
+      "unit": "ratio",
+      "availability": "available",
+      "source": "Student_Payments"
+    },
+    {
+      "metric": "vendor_payment_total",
+      "value": 157625.0,
+      "unit": "USD",
+      "availability": "available",
+      "source": "Vendor_Payments"
+    },
+    {
+      "metric": "scholarship_awarded_total",
+      "value": 110307.12,
+      "unit": "USD",
+      "availability": "available",
+      "source": "Scholarships"
+    },
+    {
+      "metric": "net_cash_flow",
+      "value": -220000.0,
+      "unit": "USD",
+      "availability": "available",
+      "source": "Cash_Flow"
+    },
+    {
+      "metric": "ending_cash",
+      "value": 2410000.0,
+      "unit": "USD",
+      "availability": "available",
+      "source": "Cash_Flow"
+    }
+  ],
+  "department_summary": [
+    {
+      "department": "Administration",
+      "budget_revenue": 170688.0,
+      "actual_revenue": 160446.73,
+      "revenue_variance": -10241.27,
+      "revenue_variance_pct": -0.0599999414,
+      "budget_expenses": 157480.13,
+      "actual_expenses": 168816.63,
+      "expense_variance": 11336.5,
+      "expense_variance_pct": 0.0719868595,
+      "net_operating_result": -8369.9
+    },
+    {
+      "department": "Arts & Humanities",
+      "budget_revenue": 298704.0,
+      "actual_revenue": 280781.75,
+      "revenue_variance": -17922.25,
+      "revenue_variance_pct": -0.0600000335,
+      "budget_expenses": 275590.26,
+      "actual_expenses": 295429.11,
+      "expense_variance": 19838.85,
+      "expense_variance_pct": 0.0719867603,
+      "net_operating_result": -14647.36
+    },
+    {
+      "department": "Business",
+      "budget_revenue": 426720.0,
+      "actual_revenue": 401116.8,
+      "revenue_variance": -25603.2,
+      "revenue_variance_pct": -0.06,
+      "budget_expenses": 393700.35,
+      "actual_expenses": 422041.58,
+      "expense_variance": 28341.23,
+      "expense_variance_pct": 0.0719868042,
+      "net_operating_result": -20924.78
+    },
+    {
+      "department": "Engineering",
+      "budget_revenue": 469392.0,
+      "actual_revenue": 441228.47,
+      "revenue_variance": -28163.53,
+      "revenue_variance_pct": -0.0600000213,
+      "budget_expenses": 433070.39,
+      "actual_expenses": 464245.75,
+      "expense_variance": 31175.36,
+      "expense_variance_pct": 0.0719868195,
+      "net_operating_result": -23017.28
+    },
+    {
+      "department": "Health Sciences",
+      "budget_revenue": 554736.0,
+      "actual_revenue": 521451.85,
+      "revenue_variance": -33284.15,
+      "revenue_variance_pct": -0.059999982,
+      "budget_expenses": 527556.69,
+      "actual_expenses": 565030.14,
+      "expense_variance": 37473.4500000001,
+      "expense_variance_pct": 0.0710320819,
+      "net_operating_result": -43578.29
+    },
+    {
+      "department": "Student Services",
+      "budget_revenue": 213360.0,
+      "actual_revenue": 200558.4,
+      "revenue_variance": -12801.6,
+      "revenue_variance_pct": -0.06,
+      "budget_expenses": 196850.18,
+      "actual_expenses": 211020.79,
+      "expense_variance": 14170.61,
+      "expense_variance_pct": 0.0719867769,
+      "net_operating_result": -10462.39
+    }
+  ],
+  "category_summary": [
+    {
+      "category_type": "expense",
+      "category": "Facilities",
+      "budget_amount": 194018.09,
+      "actual_amount": 213112.72,
+      "variance": 19094.63,
+      "variance_pct": 0.0984167507
+    },
+    {
+      "category_type": "expense",
+      "category": "Payroll",
+      "budget_amount": 906369.7,
+      "actual_amount": 942624.48,
+      "variance": 36254.78,
+      "variance_pct": 0.0399999912
+    },
+    {
+      "category_type": "expense",
+      "category": "Services",
+      "budget_amount": 366478.62,
+      "actual_amount": 402546.23,
+      "variance": 36067.61,
+      "variance_pct": 0.0984166825
+    },
+    {
+      "category_type": "expense",
+      "category": "Supplies",
+      "budget_amount": 409593.77,
+      "actual_amount": 449904.62,
+      "variance": 40310.85,
+      "variance_pct": 0.098416658
+    },
+    {
+      "category_type": "expense",
+      "category": "Technology",
+      "budget_amount": 107787.82,
+      "actual_amount": 118395.95,
+      "variance": 10608.13,
+      "variance_pct": 0.0984167784
+    }
+  ],
+  "monthly_trends": [],
+  "calculation_warnings": []
+}

@@ -1,0 +1,83 @@
+{
+  "queue_id": "QUEUE-2026-09",
+  "period_slug": "2026_09",
+  "source_plan_id": "OLLAMA-PLAN-2026-09",
+  "planner_source": "ollama",
+  "status": "pending",
+  "tools_executed": false,
+  "total_items": 4,
+  "items": [
+    {
+      "queue_position": 1,
+      "execution_id": "EXEC-2026-09-001",
+      "step_id": "STEP-001",
+      "anomaly_id": "ANOM-2026-09-001",
+      "priority": "high",
+      "question": "What payroll components and departments caused the payroll risk in 2026-09?",
+      "tool_name": "get_payroll_history",
+      "arguments": {
+        "department": "all",
+        "months": 1
+      },
+      "reasoning": "Payroll exceeds revenue threshold (46% vs 42%) requires department-level analysis.",
+      "expected_output": "Payroll breakdown by department and component for September 2026.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 2,
+      "execution_id": "EXEC-2026-09-002",
+      "step_id": "STEP-002",
+      "anomaly_id": "ANOM-2026-09-002",
+      "priority": "high",
+      "question": "Why did the student collection rate miss its target in 2026-09?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "type": "tuition",
+          "period": "2026-09"
+        }
+      },
+      "reasoning": "Tuition collection rate at 92% below 94% target needs transaction-level evidence.",
+      "expected_output": "Transaction details showing unpaid tuition amounts and reasons.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 3,
+      "execution_id": "EXEC-2026-09-003",
+      "step_id": "STEP-003",
+      "anomaly_id": "ANOM-2026-09-003",
+      "priority": "high",
+      "question": "Does the flagged vendor payment in 2026-09 have valid invoice, approval, and duplicate evidence?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "vendor": "specific_vendor_name",
+          "period": "2026-09",
+          "minimum_amount": 50000
+        }
+      },
+      "reasoning": "Vendor payment of $74,500 exceeds $50,000 threshold; needs invoice/approval verification.",
+      "expected_output": "Invoice, approval chain, and duplicate check for the $74,500 payment.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 4,
+      "execution_id": "EXEC-2026-09-004",
+      "step_id": "STEP-004",
+      "anomaly_id": null,
+      "priority": "high",
+      "question": "What is the correct structure and business meaning of table 'university_financial_report_2026_09__anomalies_embedded__table_01'? | What is the correct structure and business meaning of table 'university_financial_report_2026_09__department_summary__table_01'? | What is the correct structure and business meaning of tâ€¦",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026-09"
+      },
+      "reasoning": "Data quality issue with anomalies table requires full report context. | Data quality issue with department summary table needs resolution. | Data quality issue with scholarships table requires clarification. | Data quality issue with cash flow table needs resolution.",
+      "expected_output": "Correct table structure and business meaning for anomalies table. | Correct table structure and business meaning for department summary. | Correct table structure and business meaning for scholarships table. | Correct table structure and business meaning for cash flow table.",
+      "status": "queued",
+      "dependencies": []
+    }
+  ]
+}

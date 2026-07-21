@@ -1,0 +1,2 @@
+anomaly_id,title,description,metric,observed_value,threshold_value,severity,period,source_file,evidence,recommended_next_check,detection_method,rule_id
+ANOM-2026-02-001,Tuition collection below target,Student payment collections are below the configured minimum.,student_payment_collection_rate,93.00000130389911,94.0,medium,2026-02,finance_summary_2026_02.json,"Collection rate is 93.00% from $1,369,431 paid against $1,472,507 due.","Inspect overdue invoices, aging buckets, and payment plans.",rule_based,TUITION_COLLECTION_MIN

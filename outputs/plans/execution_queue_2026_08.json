@@ -1,0 +1,83 @@
+{
+  "queue_id": "QUEUE-2026-08",
+  "period_slug": "2026_08",
+  "source_plan_id": "OLLAMA-PLAN-2026-08",
+  "planner_source": "ollama",
+  "status": "pending",
+  "tools_executed": false,
+  "total_items": 4,
+  "items": [
+    {
+      "queue_position": 1,
+      "execution_id": "EXEC-2026-08-001",
+      "step_id": "STEP-001",
+      "anomaly_id": "ANOM-2026-08-001",
+      "priority": "high",
+      "question": "What payroll components and departments caused the payroll risk?",
+      "tool_name": "get_payroll_history",
+      "arguments": {
+        "department": "all",
+        "months": 1
+      },
+      "reasoning": "Payroll ratio exceeds threshold; need department-level breakdown.",
+      "expected_output": "Payroll components and departmental distribution.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 2,
+      "execution_id": "EXEC-2026-08-002",
+      "step_id": "STEP-002",
+      "anomaly_id": "ANOM-2026-08-002",
+      "priority": "high",
+      "question": "Why did the student collection rate miss its target?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "type": "student_payment",
+          "period": "2026-08"
+        }
+      },
+      "reasoning": "Collection rate below target; need transaction-level evidence.",
+      "expected_output": "Student payment transaction details and aging.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 3,
+      "execution_id": "EXEC-2026-08-003",
+      "step_id": "STEP-003",
+      "anomaly_id": null,
+      "priority": "critical",
+      "question": "Which revenue shortfalls and expense drivers caused the operating deficit? | Which operating, scholarship, or capital outflows caused cash-flow risk? | What is the correct structure and business meaning of anomalies embedded table? | What is the correct structure and business meaning of cash flow table? | What is thâ€¦",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026-08"
+      },
+      "reasoning": "Operating result negative; need full report for root cause. | Net cash flow negative; need full report for cash flow drivers. | Data quality issue with anomalies table; need full report for context. | Data quality issue with cash flow table; need full report for context. | Data quality issue with department summary table; need full report for context.",
+      "expected_output": "Revenue and expense driver analysis. | Cash flow driver analysis including outflows. | Table structure and business meaning clarification.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 4,
+      "execution_id": "EXEC-2026-08-004",
+      "step_id": "STEP-005",
+      "anomaly_id": "ANOM-2026-08-005",
+      "priority": "critical",
+      "question": "Does the flagged vendor payment have valid invoice, approval, and duplicate evidence?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "vendor": "specific_vendor_name",
+          "period": "2026-08",
+          "minimum_amount": 74500
+        }
+      },
+      "reasoning": "Vendor payment exceeds threshold; need transaction evidence.",
+      "expected_output": "Vendor payment transaction details and validation.",
+      "status": "queued",
+      "dependencies": []
+    }
+  ]
+}

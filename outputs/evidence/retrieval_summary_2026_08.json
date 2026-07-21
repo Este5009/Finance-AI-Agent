@@ -1,0 +1,18 @@
+{
+  "summary_id": "RETRIEVAL-SUMMARY-2026",
+  "total_scopes": 1,
+  "tasks_executed": 4,
+  "successful_retrievals": 2,
+  "failed_retrievals": 2,
+  "unavailable_evidence": 2,
+  "scopes": [
+    {
+      "package_id": "EVIDENCE-2026-08",
+      "period_slug": "2026_08",
+      "tasks_executed": 4,
+      "successful_retrievals": 2,
+      "failed_retrievals": 2,
+      "unavailable_evidence": 2
+    }
+  ]
+}

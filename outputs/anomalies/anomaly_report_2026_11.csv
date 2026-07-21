@@ -1,0 +1,1 @@
+anomaly_id,title,description,metric,observed_value,threshold_value,severity,period,source_file,evidence,recommended_next_check,detection_method,rule_id

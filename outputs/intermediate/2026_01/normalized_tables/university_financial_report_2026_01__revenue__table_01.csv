@@ -1,0 +1,25 @@
+period,month,department,revenue_category,budget_revenue,actual_revenue,variance,variance_pct
+2026-01-01,January,Engineering,Tuition,360360,360360,0,0
+2026-01-01,January,Engineering,Grants,55440,55440,0,0
+2026-01-01,January,Engineering,Auxiliary,32340,32340,0,0
+2026-01-01,January,Engineering,Donations,13860,13860,0,0
+2026-01-01,January,Business,Tuition,327600,327600,0,0
+2026-01-01,January,Business,Grants,50400,50400,0,0
+2026-01-01,January,Business,Auxiliary,29400,29400,0,0
+2026-01-01,January,Business,Donations,12600,12600,0,0
+2026-01-01,January,Health Sciences,Tuition,425880,425880,0,0
+2026-01-01,January,Health Sciences,Grants,65520,65520,0,0
+2026-01-01,January,Health Sciences,Auxiliary,38220,38220,0,0
+2026-01-01,January,Health Sciences,Donations,16380,16380,0,0
+2026-01-01,January,Arts & Humanities,Tuition,229320,229320,0,0
+2026-01-01,January,Arts & Humanities,Grants,35280,35280,0,0
+2026-01-01,January,Arts & Humanities,Auxiliary,20580,20580,0,0
+2026-01-01,January,Arts & Humanities,Donations,8820,8820,0,0
+2026-01-01,January,Student Services,Tuition,163800,163800,0,0
+2026-01-01,January,Student Services,Grants,25200,25200,0,0
+2026-01-01,January,Student Services,Auxiliary,14700,14700,0,0
+2026-01-01,January,Student Services,Donations,6300,6300,0,0
+2026-01-01,January,Administration,Tuition,131040,131040,0,0
+2026-01-01,January,Administration,Grants,20160,20160,0,0
+2026-01-01,January,Administration,Auxiliary,11760,11760,0,0
+2026-01-01,January,Administration,Donations,5040,5040,0,0

@@ -1,0 +1,7 @@
+period,month,department,headcount_fte,base_salary,benefits,overtime,total_payroll,payroll_budget,variance,variance_pct
+2026-01-01,January,Engineering,44.4,128158.8,33356.4,14044.8,175560,168807.69,6752.31,0.04
+2026-01-01,January,Business,42.0,116508.0,30324.0,12768.0,159600,153461.54,6138.46,0.04
+2026-01-01,January,Health Sciences,49.2,151460.4,39421.2,16598.4,207480,199500.0,7980.0,0.04
+2026-01-01,January,Arts & Humanities,34.8,81555.6,21226.8,8937.6,111720,107423.08,4296.92,0.04
+2026-01-01,January,Student Services,30.0,58254.0,15162.0,6384.0,79800,76730.77,3069.23,0.04
+2026-01-01,January,Administration,27.6,46603.2,12129.6,5107.2,63840,61384.62,2455.38,0.04

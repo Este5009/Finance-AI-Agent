@@ -1,0 +1,25 @@
+period,month,department,revenue_category,budget_revenue,actual_revenue,variance,variance_pct
+2026-08-01,August,Engineering,Tuition,370450.08,355632.08,-14818.0,-0.04
+2026-08-01,August,Engineering,Grants,56992.32,54712.63,-2279.69,-0.04
+2026-08-01,August,Engineering,Auxiliary,33245.52,31915.7,-1329.82,-0.04
+2026-08-01,August,Engineering,Donations,14248.08,13678.16,-569.92,-0.04
+2026-08-01,August,Business,Tuition,336772.8,323301.89,-13470.91,-0.04
+2026-08-01,August,Business,Grants,51811.2,49738.75,-2072.45,-0.04
+2026-08-01,August,Business,Auxiliary,30223.2,29014.27,-1208.93,-0.04
+2026-08-01,August,Business,Donations,12952.8,12434.69,-518.11,-0.04
+2026-08-01,August,Health Sciences,Tuition,437804.64,420292.45,-17512.19,-0.04
+2026-08-01,August,Health Sciences,Grants,67354.56,64660.38,-2694.18,-0.04
+2026-08-01,August,Health Sciences,Auxiliary,39290.16,37718.55,-1571.61,-0.04
+2026-08-01,August,Health Sciences,Donations,16838.64,16165.09,-673.55,-0.04
+2026-08-01,August,Arts & Humanities,Tuition,235740.96,226311.32,-9429.64,-0.04
+2026-08-01,August,Arts & Humanities,Grants,36267.84,34817.13,-1450.71,-0.04
+2026-08-01,August,Arts & Humanities,Auxiliary,21156.24,20309.99,-846.25,-0.04
+2026-08-01,August,Arts & Humanities,Donations,9066.96,8704.28,-362.68,-0.04
+2026-08-01,August,Student Services,Tuition,168386.4,161650.94,-6735.46,-0.04
+2026-08-01,August,Student Services,Grants,25905.6,24869.38,-1036.22,-0.04
+2026-08-01,August,Student Services,Auxiliary,15111.6,14507.14,-604.46,-0.04
+2026-08-01,August,Student Services,Donations,6476.4,6217.34,-259.06,-0.04
+2026-08-01,August,Administration,Tuition,134709.12,129320.76,-5388.36,-0.04
+2026-08-01,August,Administration,Grants,20724.48,19895.5,-828.98,-0.04
+2026-08-01,August,Administration,Auxiliary,12089.28,11605.71,-483.57,-0.04
+2026-08-01,August,Administration,Donations,5181.12,4973.87,-207.25,-0.04

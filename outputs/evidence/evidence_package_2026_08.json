@@ -1,0 +1,601 @@
+{
+  "package_id": "EVIDENCE-2026-08",
+  "period_slug": "2026_08",
+  "source_queue_id": "QUEUE-2026-08",
+  "source_plan_id": "OLLAMA-PLAN-2026-08",
+  "retrieval_status": "completed",
+  "tools_executed": true,
+  "summary": {
+    "package_id": "EVIDENCE-2026-08",
+    "period_slug": "2026_08",
+    "tasks_executed": 4,
+    "successful_retrievals": 2,
+    "failed_retrievals": 2,
+    "unavailable_evidence": 2
+  },
+  "evidence_packages": [
+    {
+      "task_id": "STEP-001",
+      "execution_id": "EXEC-2026-08-001",
+      "anomaly_id": "ANOM-2026-08-001",
+      "priority": "high",
+      "investigation_question": "What payroll components and departments caused the payroll risk?",
+      "retrieved_evidence": {
+        "retrieval_name": "payroll_history",
+        "success": true,
+        "data": {
+          "summary": "Retrieved 6 processed payroll history record(s).",
+          "record_count": 6,
+          "records": [
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Engineering",
+              "headcount_fte": "44.4",
+              "base_salary": "161910.51",
+              "benefits": "42141.09",
+              "overtime": "17743.62",
+              "total_payroll": "221795.23",
+              "payroll_budget": "213264.64",
+              "variance": "8530.59",
+              "variance_pct": "0.04",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Business",
+              "headcount_fte": "42.0",
+              "base_salary": "147191.38",
+              "benefits": "38310.08",
+              "overtime": "16130.56",
+              "total_payroll": "201632.02",
+              "payroll_budget": "193876.95",
+              "variance": "7755.08",
+              "variance_pct": "0.04",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Health Sciences",
+              "headcount_fte": "49.2",
+              "base_salary": "189161.65",
+              "benefits": "51197.6",
+              "overtime": "29101.79",
+              "total_payroll": "269461.04",
+              "payroll_budget": "259097.15",
+              "variance": "10363.89",
+              "variance_pct": "0.04",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Arts & Humanities",
+              "headcount_fte": "34.8",
+              "base_salary": "103033.96",
+              "benefits": "26817.06",
+              "overtime": "11291.39",
+              "total_payroll": "141142.42",
+              "payroll_budget": "135713.86",
+              "variance": "5428.55",
+              "variance_pct": "0.04",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Student Services",
+              "headcount_fte": "30.0",
+              "base_salary": "73595.69",
+              "benefits": "19155.04",
+              "overtime": "8065.28",
+              "total_payroll": "100816.01",
+              "payroll_budget": "96938.47",
+              "variance": "3877.54",
+              "variance_pct": "0.04",
+              "_source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Administration",
+              "headcount_fte": "27.6",
+              "base_salary": "58876.55",
+              "benefits": "15324.03",
+              "overtime": "6452.22",
+              "total_payroll": "80652.8",
+              "payroll_budget": "77550.78",
+              "variance": "3102.03",
+              "variance_pct": "0.04",
+              "_source_table": "payroll"
+            }
+          ],
+          "department": "all",
+          "payroll_breakdown": [
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Engineering",
+              "headcount_fte": "44.4",
+              "base_salary": "161910.51",
+              "benefits": "42141.09",
+              "overtime": "17743.62",
+              "payroll_amount": "221795.23",
+              "payroll_budget": "213264.64",
+              "variance": "8530.59",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Business",
+              "headcount_fte": "42.0",
+              "base_salary": "147191.38",
+              "benefits": "38310.08",
+              "overtime": "16130.56",
+              "payroll_amount": "201632.02",
+              "payroll_budget": "193876.95",
+              "variance": "7755.08",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Health Sciences",
+              "headcount_fte": "49.2",
+              "base_salary": "189161.65",
+              "benefits": "51197.6",
+              "overtime": "29101.79",
+              "payroll_amount": "269461.04",
+              "payroll_budget": "259097.15",
+              "variance": "10363.89",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Arts & Humanities",
+              "headcount_fte": "34.8",
+              "base_salary": "103033.96",
+              "benefits": "26817.06",
+              "overtime": "11291.39",
+              "payroll_amount": "141142.42",
+              "payroll_budget": "135713.86",
+              "variance": "5428.55",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Student Services",
+              "headcount_fte": "30.0",
+              "base_salary": "73595.69",
+              "benefits": "19155.04",
+              "overtime": "8065.28",
+              "payroll_amount": "100816.01",
+              "payroll_budget": "96938.47",
+              "variance": "3877.54",
+              "source_table": "payroll"
+            },
+            {
+              "period": "2026-08-01",
+              "month": "August",
+              "department": "Administration",
+              "headcount_fte": "27.6",
+              "base_salary": "58876.55",
+              "benefits": "15324.03",
+              "overtime": "6452.22",
+              "payroll_amount": "80652.8",
+              "payroll_budget": "77550.78",
+              "variance": "3102.03",
+              "source_table": "payroll"
+            }
+          ],
+          "source_tables": [
+            "payroll"
+          ]
+        },
+        "source_references": [
+          "normalized_tables/university_financial_report_2026_08__payroll__table_01.csv"
+        ],
+        "warnings": [],
+        "unavailable_data": [],
+        "confidence": 0.95
+      },
+      "evidence_summary": "Retrieved 6 processed payroll history record(s).",
+      "source_references": [
+        "normalized_tables/university_financial_report_2026_08__payroll__table_01.csv"
+      ],
+      "retrieval_warnings": [],
+      "confidence": 0.95
+    },
+    {
+      "task_id": "STEP-002",
+      "execution_id": "EXEC-2026-08-002",
+      "anomaly_id": "ANOM-2026-08-002",
+      "priority": "high",
+      "investigation_question": "Why did the student collection rate miss its target?",
+      "retrieved_evidence": {
+        "retrieval_name": "transactions",
+        "success": false,
+        "data": {
+          "summary": "Retrieved 0 processed transaction record(s).",
+          "record_count": 0,
+          "records": [],
+          "filters_applied": {
+            "type": "student_payment",
+            "period": "2026-08"
+          },
+          "matched_tables": [],
+          "counts_by_source": {}
+        },
+        "source_references": [
+          "normalized_tables/university_financial_report_2026_08__transaction_tables"
+        ],
+        "warnings": [],
+        "unavailable_data": [
+          "No processed transactions matched the filters."
+        ],
+        "confidence": 0.55
+      },
+      "evidence_summary": "Retrieved 0 processed transaction record(s). Unavailable: No processed transactions matched the filters..",
+      "source_references": [
+        "normalized_tables/university_financial_report_2026_08__transaction_tables"
+      ],
+      "retrieval_warnings": [],
+      "confidence": 0.55
+    },
+    {
+      "task_id": "STEP-003",
+      "execution_id": "EXEC-2026-08-003",
+      "anomaly_id": null,
+      "priority": "critical",
+      "investigation_question": "Which revenue shortfalls and expense drivers caused the operating deficit? | Which operating, scholarship, or capital outflows caused cash-flow risk? | What is the correct structure and business meaning of anomalies embedded table? | What is the correct structure and business meaning of cash flow table? | What is thâ€¦",
+      "retrieved_evidence": {
+        "retrieval_name": "financial_report",
+        "success": true,
+        "data": {
+          "summary": "Retrieved processed 2026_08 finance summary.",
+          "report": {
+            "report_period": "2026-08",
+            "period_scope": {
+              "mode": "monthly",
+              "label": "2026-08",
+              "start_date": "2026-08-01",
+              "end_date": "2026-08-31"
+            },
+            "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_08.xlsx",
+            "intermediate_model": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_08\\financial_document_model.json",
+            "finance_summary": {
+              "total_revenue": 2072447.9999999998,
+              "total_expenses": 2138448.0,
+              "net_operating_result": -66000.00000000023,
+              "budget_vs_actual": {
+                "revenue_budget": 2158800.0,
+                "revenue_actual": 2072448.0,
+                "revenue_variance": -86352.0,
+                "revenue_variance_pct": -0.04,
+                "expense_budget": 2007684.0,
+                "expense_actual": 2138448.0,
+                "expense_variance": 130764.0,
+                "expense_variance_pct": 0.06513176376362018,
+                "net_budget": 151116.0,
+                "net_actual": -66000.0,
+                "net_variance": -217116.0
+              },
+              "payroll_total": 1015499.5200000001,
+              "payroll_percentage_of_revenue": 0.4900000000000001,
+              "student_payments": {
+                "amount_due": 1492162.56,
+                "amount_paid": 1342946.3599999999,
+                "outstanding": 149216.28,
+                "collection_rate": 0.9000000375294229,
+                "invoice_count": 24,
+                "overdue_invoice_count": 0,
+                "overdue_payment_percentage": 0.0
+              },
+              "vendor_payments": {
+                "payment_count": 8,
+                "total_amount": 300530.0,
+                "maximum_payment_amount": 74500.0
+              },
+              "scholarships": {
+                "allocated": 123103.41,
+                "awarded": 113984.64,
+                "remaining": 9118.77,
+                "recipients": 220,
+                "utilization_rate": 0.9259259349517612
+              },
+              "cash_flow": {
+                "beginning_cash": 1380000.0,
+                "cash_inflows": 2075203.2,
+                "operating_outflows": 1951218.56,
+                "scholarship_outflows": 113984.64,
+                "capital_outflows": 130000.0,
+                "net_cash_flow": -120000.0,
+                "ending_cash": 1260000.0,
+                "ending_cash_variance": -290000.0
+              }
+            },
+            "kpi_summary": [
+              {
+                "metric": "total_revenue",
+                "value": 2072447.9999999998,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Revenue"
+              },
+              {
+                "metric": "total_expenses",
+                "value": 2138448.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Expenses"
+              },
+              {
+                "metric": "net_operating_result",
+                "value": -66000.0000000002,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Revenue - Expenses"
+              },
+              {
+                "metric": "revenue_budget_variance",
+                "value": -86352.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Budget_vs_Actual"
+              },
+              {
+                "metric": "revenue_budget_variance_pct",
+                "value": -0.04,
+                "unit": "ratio",
+                "availability": "available",
+                "source": "Budget_vs_Actual"
+              },
+              {
+                "metric": "expense_budget_variance",
+                "value": 130764.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Budget_vs_Actual"
+              },
+              {
+                "metric": "expense_budget_variance_pct",
+                "value": 0.0651317638,
+                "unit": "ratio",
+                "availability": "available",
+                "source": "Budget_vs_Actual"
+              },
+              {
+                "metric": "payroll_total",
+                "value": 1015499.5200000001,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Payroll"
+              },
+              {
+                "metric": "payroll_percentage_of_revenue",
+                "value": 0.49,
+                "unit": "ratio",
+                "availability": "available",
+                "source": "Payroll / Revenue"
+              },
+              {
+                "metric": "student_payment_collection_rate",
+                "value": 0.9000000375,
+                "unit": "ratio",
+                "availability": "available",
+                "source": "Student_Payments"
+              },
+              {
+                "metric": "overdue_payment_percentage",
+                "value": 0.0,
+                "unit": "ratio",
+                "availability": "available",
+                "source": "Student_Payments"
+              },
+              {
+                "metric": "vendor_payment_total",
+                "value": 300530.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Vendor_Payments"
+              },
+              {
+                "metric": "scholarship_awarded_total",
+                "value": 113984.64,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Scholarships"
+              },
+              {
+                "metric": "net_cash_flow",
+                "value": -120000.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Cash_Flow"
+              },
+              {
+                "metric": "ending_cash",
+                "value": 1260000.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Cash_Flow"
+              }
+            ],
+            "department_summary": [
+              {
+                "department": "Administration",
+                "budget_revenue": 172704.0,
+                "actual_revenue": 165795.84,
+                "revenue_variance": -6908.16,
+                "revenue_variance_pct": -0.04,
+                "budget_expenses": 160050.16,
+                "actual_expenses": 170488.67,
+                "expense_variance": 10438.51,
+                "expense_variance_pct": 0.065220241,
+                "net_operating_result": -4692.83
+              },
+              {
+                "department": "Arts & Humanities",
+                "budget_revenue": 302232.0,
+                "actual_revenue": 290142.72,
+                "revenue_variance": -12089.28,
+                "revenue_variance_pct": -0.04,
+                "budget_expenses": 280087.77,
+                "actual_expenses": 298355.21,
+                "expense_variance": 18267.44,
+                "expense_variance_pct": 0.0652204129,
+                "net_operating_result": -8212.49
+              },
+              {
+                "department": "Business",
+                "budget_revenue": 431760.0,
+                "actual_revenue": 414489.6,
+                "revenue_variance": -17270.4,
+                "revenue_variance_pct": -0.04,
+                "budget_expenses": 400125.37,
+                "actual_expenses": 426221.72,
+                "expense_variance": 26096.35,
+                "expense_variance_pct": 0.0652204333,
+                "net_operating_result": -11732.1199999999
+              },
+              {
+                "department": "Engineering",
+                "budget_revenue": 474936.0,
+                "actual_revenue": 455938.57,
+                "revenue_variance": -18997.43,
+                "revenue_variance_pct": -0.0399999789,
+                "budget_expenses": 440137.91,
+                "actual_expenses": 468843.9,
+                "expense_variance": 28705.99,
+                "expense_variance_pct": 0.0652204442,
+                "net_operating_result": -12905.33
+              },
+              {
+                "department": "Health Sciences",
+                "budget_revenue": 561288.0,
+                "actual_revenue": 538836.47,
+                "revenue_variance": -22451.53,
+                "revenue_variance_pct": -0.0400000178,
+                "budget_expenses": 527220.11,
+                "actual_expenses": 561427.65,
+                "expense_variance": 34207.54,
+                "expense_variance_pct": 0.0648828437,
+                "net_operating_result": -22591.1800000001
+              },
+              {
+                "department": "Student Services",
+                "budget_revenue": 215880.0,
+                "actual_revenue": 207244.8,
+                "revenue_variance": -8635.2,
+                "revenue_variance_pct": -0.04,
+                "budget_expenses": 200062.68,
+                "actual_expenses": 213110.85,
+                "expense_variance": 13048.17,
+                "expense_variance_pct": 0.0652204099,
+                "net_operating_result": -5866.05
+              }
+            ],
+            "category_summary": [
+              {
+                "category_type": "expense",
+                "category": "Facilities",
+                "budget_amount": 185623.59,
+                "actual_amount": 202130.73,
+                "variance": 16507.14,
+                "variance_pct": 0.088928029
+              },
+              {
+                "category_type": "expense",
+                "category": "Payroll",
+                "budget_amount": 976441.84,
+                "actual_amount": 1015499.52,
+                "variance": 39057.6800000001,
+                "variance_pct": 0.0400000066
+              },
+              {
+                "category_type": "expense",
+                "category": "Services",
+                "budget_amount": 350622.34,
+                "actual_amount": 381802.5,
+                "variance": 31180.16,
+                "variance_pct": 0.0889280472
+              },
+              {
+                "category_type": "expense",
+                "category": "Supplies",
+                "budget_amount": 391872.0,
+                "actual_amount": 426720.41,
+                "variance": 34848.41,
+                "variance_pct": 0.0889280428
+              },
+              {
+                "category_type": "expense",
+                "category": "Technology",
+                "budget_amount": 103124.23,
+                "actual_amount": 112294.84,
+                "variance": 9170.61,
+                "variance_pct": 0.0889277913
+              }
+            ],
+            "monthly_trends": [],
+            "calculation_warnings": []
+          }
+        },
+        "source_references": [
+          "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_08.json"
+        ],
+        "warnings": [],
+        "unavailable_data": [],
+        "confidence": 0.98
+      },
+      "evidence_summary": "Retrieved processed 2026_08 finance summary.",
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_08.json"
+      ],
+      "retrieval_warnings": [],
+      "confidence": 0.98
+    },
+    {
+      "task_id": "STEP-005",
+      "execution_id": "EXEC-2026-08-004",
+      "anomaly_id": "ANOM-2026-08-005",
+      "priority": "critical",
+      "investigation_question": "Does the flagged vendor payment have valid invoice, approval, and duplicate evidence?",
+      "retrieved_evidence": {
+        "retrieval_name": "transactions",
+        "success": false,
+        "data": {
+          "summary": "Retrieved 0 processed transaction record(s).",
+          "record_count": 0,
+          "records": [],
+          "filters_applied": {
+            "vendor": "specific_vendor_name",
+            "period": "2026-08",
+            "minimum_amount": 74500
+          },
+          "matched_tables": [],
+          "counts_by_source": {}
+        },
+        "source_references": [
+          "normalized_tables/university_financial_report_2026_08__transaction_tables"
+        ],
+        "warnings": [],
+        "unavailable_data": [
+          "No processed transactions matched the filters."
+        ],
+        "confidence": 0.55
+      },
+      "evidence_summary": "Retrieved 0 processed transaction record(s). Unavailable: No processed transactions matched the filters..",
+      "source_references": [
+        "normalized_tables/university_financial_report_2026_08__transaction_tables"
+      ],
+      "retrieval_warnings": [],
+      "confidence": 0.55
+    }
+  ]
+}

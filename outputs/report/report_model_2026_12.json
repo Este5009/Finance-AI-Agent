@@ -1,0 +1,548 @@
+{
+  "report_id": "REPORT-MODEL-2026-12",
+  "period_slug": "2026_12",
+  "report_period": "2026-12",
+  "renderer_contract_version": "1.0",
+  "section_count": 12,
+  "sections": [
+    {
+      "section_id": "cover",
+      "title": "Cover",
+      "content": {
+        "title": "Finance AI Agent Report",
+        "report_period": "2026-12",
+        "period_slug": "2026_12",
+        "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_12.xlsx",
+        "renderer_note": "Renderer-agnostic report model; no layout applied."
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_12.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "executive_summary",
+      "title": "Executive Summary",
+      "content": {
+        "summary": "The December 2026 financial performance shows a strong net operating result of $247,500 with revenue exceeding budget by $87,696. However, payroll expenses are 4% above budget, creating a tension between revenue growth and cost management. The cash position remains healthy with $2.26M ending cash, but payroll efficiency requires attention.",
+        "key_findings": [
+          "Revenue variance is positive ($87,696) across all departments, with Arts & Humanities showing the highest percentage variance (4%)",
+          "Payroll expenses are 4% above budget ($35,078.40 variance), exceeding the 42% threshold for payroll as percentage of revenue",
+          "All departments show positive net operating results with Engineering leading at $54,450",
+          "Expense categories show consistent under-spending across Facilities, Services, Supplies, and Technology (3.56% variance)"
+        ],
+        "root_causes": [
+          "Payroll expense growth may be driven by headcount increases or salary adjustments not reflected in budget planning",
+          "Revenue growth is outpacing budget planning assumptions, creating a mismatch in expense allocation",
+          "The 4% payroll variance is the primary driver of the net operating result variance"
+        ],
+        "confidence": 0.8,
+        "analysis_status": "accepted"
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_12.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "financial_health_overview",
+      "title": "Financial Health Overview",
+      "content": {
+        "total_revenue": 2280096.0,
+        "total_expenses": 2032596.0,
+        "net_operating_result": 247500.0,
+        "net_cash_flow": 450000.0,
+        "ending_cash": 2260000.0,
+        "payroll_percentage_of_revenue": 0.39999999999999997,
+        "collection_rate": 0.9600000029238533
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_12.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "kpi_overview",
+      "title": "KPI Overview",
+      "content": {
+        "kpis": [
+          {
+            "metric": "total_revenue",
+            "value": 2280096.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Revenue"
+          },
+          {
+            "metric": "total_expenses",
+            "value": 2032596.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Expenses"
+          },
+          {
+            "metric": "net_operating_result",
+            "value": 247500.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Revenue - Expenses"
+          },
+          {
+            "metric": "revenue_budget_variance",
+            "value": 87696.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Budget_vs_Actual"
+          },
+          {
+            "metric": "revenue_budget_variance_pct",
+            "value": 0.04,
+            "unit": "ratio",
+            "availability": "available",
+            "source": "Budget_vs_Actual"
+          },
+          {
+            "metric": "expense_budget_variance",
+            "value": -6336.0000000002,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Budget_vs_Actual"
+          },
+          {
+            "metric": "expense_budget_variance_pct",
+            "value": -0.0031075092,
+            "unit": "ratio",
+            "availability": "available",
+            "source": "Budget_vs_Actual"
+          },
+          {
+            "metric": "payroll_total",
+            "value": 912038.3999999999,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Payroll"
+          },
+          {
+            "metric": "payroll_percentage_of_revenue",
+            "value": 0.4,
+            "unit": "ratio",
+            "availability": "available",
+            "source": "Payroll / Revenue"
+          },
+          {
+            "metric": "student_payment_collection_rate",
+            "value": 0.9600000029,
+            "unit": "ratio",
+            "availability": "available",
+            "source": "Student_Payments"
+          },
+          {
+            "metric": "overdue_payment_percentage",
+            "value": 0.0,
+            "unit": "ratio",
+            "availability": "available",
+            "source": "Student_Payments"
+          },
+          {
+            "metric": "vendor_payment_total",
+            "value": 158827.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Vendor_Payments"
+          },
+          {
+            "metric": "scholarship_awarded_total",
+            "value": 125405.28,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Scholarships"
+          },
+          {
+            "metric": "net_cash_flow",
+            "value": 450000.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Cash_Flow"
+          },
+          {
+            "metric": "ending_cash",
+            "value": 2260000.0,
+            "unit": "USD",
+            "availability": "available",
+            "source": "Cash_Flow"
+          }
+        ]
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\kpi_summary_2026_12.csv"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "revenue_analysis",
+      "title": "Revenue Analysis",
+      "content": {
+        "total_revenue": 2280096.0,
+        "revenue_budget": 2192400.0,
+        "revenue_variance": 87696.0,
+        "revenue_variance_pct": 0.04,
+        "department_summary": [
+          {
+            "department": "Administration",
+            "budget_revenue": 175392.0,
+            "actual_revenue": 182407.69,
+            "revenue_variance": 7015.69,
+            "revenue_variance_pct": 0.040000057,
+            "budget_expenses": 163114.56,
+            "actual_expenses": 162607.66,
+            "expense_variance": -506.9,
+            "expense_variance_pct": -0.0031076318,
+            "net_operating_result": 19800.03
+          },
+          {
+            "department": "Arts & Humanities",
+            "budget_revenue": 306936.0,
+            "actual_revenue": 319213.43,
+            "revenue_variance": 12277.43,
+            "revenue_variance_pct": 0.0399999674,
+            "budget_expenses": 285450.48,
+            "actual_expenses": 284563.44,
+            "expense_variance": -887.04,
+            "expense_variance_pct": -0.0031075092,
+            "net_operating_result": 34649.99
+          },
+          {
+            "department": "Business",
+            "budget_revenue": 438480.0,
+            "actual_revenue": 456019.2,
+            "revenue_variance": 17539.2,
+            "revenue_variance_pct": 0.04,
+            "budget_expenses": 407786.4,
+            "actual_expenses": 406519.2,
+            "expense_variance": -1267.2,
+            "expense_variance_pct": -0.0031075092,
+            "net_operating_result": 49500.0
+          },
+          {
+            "department": "Engineering",
+            "budget_revenue": 482328.0,
+            "actual_revenue": 501621.11,
+            "revenue_variance": 19293.11,
+            "revenue_variance_pct": 0.0399999793,
+            "budget_expenses": 448565.04,
+            "actual_expenses": 447171.13,
+            "expense_variance": -1393.91,
+            "expense_variance_pct": -0.0031074869,
+            "net_operating_result": 54449.98
+          },
+          {
+            "department": "Health Sciences",
+            "budget_revenue": 570024.0,
+            "actual_revenue": 592824.97,
+            "revenue_variance": 22800.97,
+            "revenue_variance_pct": 0.0400000175,
+            "budget_expenses": 530122.31,
+            "actual_expenses": 528474.96,
+            "expense_variance": -1647.3500000001,
+            "expense_variance_pct": -0.0031074904,
+            "net_operating_result": 64350.01
+          },
+          {
+            "department": "Student Services",
+            "budget_revenue": 219240.0,
+            "actual_revenue": 228009.6,
+            "revenue_variance": 8769.6,
+            "revenue_variance_pct": 0.04,
+            "budget_expenses": 203893.21,
+            "actual_expenses": 203259.61,
+            "expense_variance": -633.6,
+            "expense_variance_pct": -0.0031075091,
+            "net_operating_result": 24749.99
+          }
+        ]
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_12.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "expense_analysis",
+      "title": "Expense Analysis",
+      "content": {
+        "total_expenses": 2032596.0,
+        "expense_budget": 2038932.0,
+        "expense_variance": -6336.000000000233,
+        "expense_variance_pct": -0.0031075092254181274,
+        "payroll_total": 912038.3999999999,
+        "category_summary": [
+          {
+            "category_type": "expense",
+            "category": "Facilities",
+            "budget_amount": 209154.96,
+            "actual_amount": 201700.37,
+            "variance": -7454.59,
+            "variance_pct": -0.0356414689
+          },
+          {
+            "category_type": "expense",
+            "category": "Payroll",
+            "budget_amount": 876960.0,
+            "actual_amount": 912038.4,
+            "variance": 35078.4,
+            "variance_pct": 0.04
+          },
+          {
+            "category_type": "expense",
+            "category": "Services",
+            "budget_amount": 395070.49,
+            "actual_amount": 380989.59,
+            "variance": -14080.9,
+            "variance_pct": -0.0356414877
+          },
+          {
+            "category_type": "expense",
+            "category": "Supplies",
+            "budget_amount": 441549.36,
+            "actual_amount": 425811.89,
+            "variance": -15737.47,
+            "variance_pct": -0.0356414739
+          },
+          {
+            "category_type": "expense",
+            "category": "Technology",
+            "budget_amount": 116197.19,
+            "actual_amount": 112055.75,
+            "variance": -4141.44,
+            "variance_pct": -0.0356414815
+          }
+        ]
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_12.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "department_analysis",
+      "title": "Department Analysis",
+      "content": {
+        "department_summary": [
+          {
+            "department": "Administration",
+            "budget_revenue": 175392.0,
+            "actual_revenue": 182407.69,
+            "revenue_variance": 7015.69,
+            "revenue_variance_pct": 0.040000057,
+            "budget_expenses": 163114.56,
+            "actual_expenses": 162607.66,
+            "expense_variance": -506.9,
+            "expense_variance_pct": -0.0031076318,
+            "net_operating_result": 19800.03
+          },
+          {
+            "department": "Arts & Humanities",
+            "budget_revenue": 306936.0,
+            "actual_revenue": 319213.43,
+            "revenue_variance": 12277.43,
+            "revenue_variance_pct": 0.0399999674,
+            "budget_expenses": 285450.48,
+            "actual_expenses": 284563.44,
+            "expense_variance": -887.04,
+            "expense_variance_pct": -0.0031075092,
+            "net_operating_result": 34649.99
+          },
+          {
+            "department": "Business",
+            "budget_revenue": 438480.0,
+            "actual_revenue": 456019.2,
+            "revenue_variance": 17539.2,
+            "revenue_variance_pct": 0.04,
+            "budget_expenses": 407786.4,
+            "actual_expenses": 406519.2,
+            "expense_variance": -1267.2,
+            "expense_variance_pct": -0.0031075092,
+            "net_operating_result": 49500.0
+          },
+          {
+            "department": "Engineering",
+            "budget_revenue": 482328.0,
+            "actual_revenue": 501621.11,
+            "revenue_variance": 19293.11,
+            "revenue_variance_pct": 0.0399999793,
+            "budget_expenses": 448565.04,
+            "actual_expenses": 447171.13,
+            "expense_variance": -1393.91,
+            "expense_variance_pct": -0.0031074869,
+            "net_operating_result": 54449.98
+          },
+          {
+            "department": "Health Sciences",
+            "budget_revenue": 570024.0,
+            "actual_revenue": 592824.97,
+            "revenue_variance": 22800.97,
+            "revenue_variance_pct": 0.0400000175,
+            "budget_expenses": 530122.31,
+            "actual_expenses": 528474.96,
+            "expense_variance": -1647.3500000001,
+            "expense_variance_pct": -0.0031074904,
+            "net_operating_result": 64350.01
+          },
+          {
+            "department": "Student Services",
+            "budget_revenue": 219240.0,
+            "actual_revenue": 228009.6,
+            "revenue_variance": 8769.6,
+            "revenue_variance_pct": 0.04,
+            "budget_expenses": 203893.21,
+            "actual_expenses": 203259.61,
+            "expense_variance": -633.6,
+            "expense_variance_pct": -0.0031075091,
+            "net_operating_result": 24749.99
+          }
+        ],
+        "department_evidence": []
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_12.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_12.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "anomaly_summary",
+      "title": "Anomaly Summary",
+      "content": {
+        "total_anomalies": 0,
+        "anomalies_by_severity": {
+          "critical": 0,
+          "high": 0,
+          "medium": 0,
+          "low": 0
+        },
+        "top_anomalies": []
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_12.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "investigation_evidence",
+      "title": "Investigation Evidence",
+      "content": {
+        "retrieval_summary": {
+          "package_id": "EVIDENCE-2026-12",
+          "period_slug": "2026_12",
+          "tasks_executed": 1,
+          "successful_retrievals": 1,
+          "failed_retrievals": 0,
+          "unavailable_evidence": 0
+        },
+        "evidence_items": [
+          {
+            "task_id": "STEP-001",
+            "priority": "medium",
+            "question": "What is the correct structure and business meaning of the cash flow table? | What is the correct structure and business meaning of the department summary table? | What is the correct structure and business meaning of the scholarships table?",
+            "retrieval_name": "financial_report",
+            "success": true,
+            "record_count": null,
+            "matched_tables": null,
+            "evidence_summary": "Retrieved processed 2026_12 finance summary.",
+            "source_references": [
+              "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_12.json"
+            ],
+            "warnings": [],
+            "unavailable_data": []
+          }
+        ]
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_12.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "strategic_recommendations",
+      "title": "Strategic Recommendations",
+      "content": {
+        "recommendations": [
+          {
+            "priority": "high",
+            "action": "Conduct payroll headcount and compensation review for Q1 2027",
+            "rationale": "Payroll is 4% above budget and exceeds the 42% threshold, requiring immediate attention to align with revenue growth",
+            "supporting_evidence": "Payroll percentage of revenue: 40% (0.39999999999999997) - close to 42% threshold",
+            "expected_impact": "Reduce payroll expense variance to within budget range",
+            "confidence": 0.85
+          },
+          {
+            "priority": "medium",
+            "action": "Adjust departmental budget planning assumptions for 2027",
+            "rationale": "Revenue growth is consistently above budget (3.9-4.0%) across departments, indicating budget planning may be conservative",
+            "supporting_evidence": "Revenue variance percentages: 3.9-4.0% across departments",
+            "expected_impact": "Improve budget accuracy for future planning cycles",
+            "confidence": 0.75
+          }
+        ],
+        "root_causes": [
+          "Payroll expense growth may be driven by headcount increases or salary adjustments not reflected in budget planning",
+          "Revenue growth is outpacing budget planning assumptions, creating a mismatch in expense allocation",
+          "The 4% payroll variance is the primary driver of the net operating result variance"
+        ],
+        "strategic_priorities": [
+          "Align payroll expense growth with revenue growth to maintain healthy margins",
+          "Improve budget planning accuracy based on actual revenue performance"
+        ],
+        "reasoning_summary": "The evidence shows strong revenue performance but payroll expense variance is the primary concern. The payroll percentage of revenue is at 40% (close to the 42% threshold), indicating potential risk if not addressed. All departments are performing well financially, but payroll management is critical for maintaining margins."
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_12.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "missing_information",
+      "title": "Missing Information",
+      "content": {
+        "missing_information": [],
+        "evidence_warnings": [],
+        "unavailable_evidence": []
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_12.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_12.json"
+      ],
+      "warnings": []
+    },
+    {
+      "section_id": "appendix",
+      "title": "Appendix",
+      "content": {
+        "source_files": [
+          "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_12.json",
+          "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\kpi_summary_2026_12.csv",
+          "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_12.json",
+          "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_12.json",
+          "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_12.json"
+        ],
+        "calculation_warnings": [],
+        "analysis_validation_errors": []
+      },
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_12.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\kpi_summary_2026_12.csv",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_12.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_12.json",
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_12.json"
+      ],
+      "warnings": []
+    }
+  ],
+  "source_references": [
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_12.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_12.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\kpi_summary_2026_12.csv",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_12.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_12.json"
+  ]
+}

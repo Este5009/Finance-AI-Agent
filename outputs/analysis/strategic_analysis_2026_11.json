@@ -1,0 +1,59 @@
+{
+  "analysis_id": "STRATEGIC-ANALYSIS-2026-11",
+  "period_slug": "2026_11",
+  "report_period": "2026-11",
+  "analysis_source": "ollama",
+  "ollama_available": true,
+  "validation_status": "accepted",
+  "analysis_generated": true,
+  "validation_errors": [],
+  "recommendation_count": 3,
+  "analysis": {
+    "executive_summary": "The November 2026 financial performance shows a positive net operating result of $176,000, with revenue exceeding budget by $43,680. However, payroll expenses are 4.1% above budget, raising concerns about cost control. Collection rates remain strong at 95%, but departmental overspending is observed in multiple areas.",
+    "key_findings": [
+      "Payroll expenses are 4.1% of revenue (4.1% vs. 42% budget threshold), exceeding the 42% threshold by 1.9 percentage points.",
+      "All departments show revenue variance of +2% (budgeted vs. actual), but expense variance is +1.01% on average.",
+      "Facilities, Supplies, and Technology categories show negative variances (under budget), while Payroll shows a significant +4% variance.",
+      "Collection rate is 95%, meeting the 94% threshold, but no overdue invoices are reported."
+    ],
+    "root_causes": [
+      "Payroll expense growth may be driven by headcount increases or salary adjustments not reflected in budget planning.",
+      "Departmental expense variances suggest inconsistent budget adherence across departments.",
+      "Facilities and Technology under-spending may indicate inefficient resource allocation or delayed spending."
+    ],
+    "recommendations": [
+      {
+        "priority": "high",
+        "action": "Conduct payroll cost analysis to identify headcount/salary drivers.",
+        "rationale": "Payroll is 4.1% of revenue, exceeding the 42% threshold by 1.9 percentage points, indicating potential cost overrun.",
+        "supporting_evidence": "Payroll percentage of revenue: 41% (vs. 42% threshold)",
+        "expected_impact": "Reduce payroll costs to align with budget, improving net operating result.",
+        "confidence": 0.85
+      },
+      {
+        "priority": "medium",
+        "action": "Review departmental expense variances to identify overspending patterns.",
+        "rationale": "All departments show expense variance of +1.01% on average, suggesting inconsistent budget adherence.",
+        "supporting_evidence": "Department expense variance percentage: 1.01%",
+        "expected_impact": "Improve budget adherence and reduce unnecessary spending.",
+        "confidence": 0.75
+      },
+      {
+        "priority": "low",
+        "action": "Analyze facilities and technology under-spending to optimize resource allocation.",
+        "rationale": "Facilities, Supplies, and Technology show negative variances, indicating potential inefficiencies.",
+        "supporting_evidence": "Facilities variance: -1.26%, Technology variance: -1.26%",
+        "expected_impact": "Increase utilization of allocated resources, improving operational efficiency.",
+        "confidence": 0.65
+      }
+    ],
+    "strategic_priorities": [
+      "Maintain payroll cost control to stay within 42% threshold.",
+      "Improve departmental budget adherence to reduce expense variances.",
+      "Optimize underutilized resources in Facilities and Technology."
+    ],
+    "missing_information": [],
+    "confidence": 0.75,
+    "reasoning_summary": "Payroll expense variance is the most critical issue, with a 4.1% revenue ratio exceeding the 42% threshold. Departmental expense variances and under-spending in key categories require attention to improve financial performance."
+  }
+}

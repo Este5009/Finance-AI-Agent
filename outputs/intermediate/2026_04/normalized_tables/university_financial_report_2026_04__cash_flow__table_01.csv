@@ -1,0 +1,2 @@
+period,month,beginning_cash,budget_cash_inflows,actual_cash_inflows,budget_operating_outflows,actual_operating_outflows,budget_scholarships,actual_scholarships,budget_capital_outflows,actual_capital_outflows,budget_net_cash_flow,actual_net_cash_flow,budget_ending_cash,actual_ending_cash,ending_cash_variance
+2026-04-01,April,2750000,2186436,2006856.6,1541620.08,1865814.9,110510.4,111041.7,142500,150000,140000,-120000,2890000,2630000,-260000

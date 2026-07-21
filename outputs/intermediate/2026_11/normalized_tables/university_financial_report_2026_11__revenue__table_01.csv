@@ -1,0 +1,25 @@
+period,month,department,revenue_category,budget_revenue,actual_revenue,variance,variance_pct
+2026-11-01,November,Engineering,Tuition,374774.4,382269.89,7495.49,0.02
+2026-11-01,November,Engineering,Grants,57657.6,58810.75,1153.15,0.02
+2026-11-01,November,Engineering,Auxiliary,33633.6,34306.27,672.67,0.02
+2026-11-01,November,Engineering,Donations,14414.4,14702.69,288.29,0.02
+2026-11-01,November,Business,Tuition,340704.0,347518.08,6814.08,0.02
+2026-11-01,November,Business,Grants,52416.0,53464.32,1048.32,0.02
+2026-11-01,November,Business,Auxiliary,30576.0,31187.52,611.52,0.02
+2026-11-01,November,Business,Donations,13104.0,13366.08,262.08,0.02
+2026-11-01,November,Health Sciences,Tuition,442915.2,451773.5,8858.3,0.02
+2026-11-01,November,Health Sciences,Grants,68140.8,69503.62,1362.82,0.02
+2026-11-01,November,Health Sciences,Auxiliary,39748.8,40543.78,794.98,0.02
+2026-11-01,November,Health Sciences,Donations,17035.2,17375.9,340.7,0.02
+2026-11-01,November,Arts & Humanities,Tuition,238492.8,243262.66,4769.86,0.02
+2026-11-01,November,Arts & Humanities,Grants,36691.2,37425.02,733.82,0.02
+2026-11-01,November,Arts & Humanities,Auxiliary,21403.2,21831.26,428.06,0.02
+2026-11-01,November,Arts & Humanities,Donations,9172.8,9356.26,183.46,0.02
+2026-11-01,November,Student Services,Tuition,170352.0,173759.04,3407.04,0.02
+2026-11-01,November,Student Services,Grants,26208.0,26732.16,524.16,0.02
+2026-11-01,November,Student Services,Auxiliary,15288.0,15593.76,305.76,0.02
+2026-11-01,November,Student Services,Donations,6552.0,6683.04,131.04,0.02
+2026-11-01,November,Administration,Tuition,136281.6,139007.23,2725.63,0.02
+2026-11-01,November,Administration,Grants,20966.4,21385.73,419.33,0.02
+2026-11-01,November,Administration,Auxiliary,12230.4,12475.01,244.61,0.02
+2026-11-01,November,Administration,Donations,5241.6,5346.43,104.83,0.02

@@ -1,0 +1,46 @@
+{
+  "queue_id": "QUEUE-2026-03",
+  "period_slug": "2026_03",
+  "source_plan_id": "OLLAMA-PLAN-2026-03",
+  "planner_source": "ollama",
+  "status": "pending",
+  "tools_executed": false,
+  "total_items": 2,
+  "items": [
+    {
+      "queue_position": 1,
+      "execution_id": "EXEC-2026-03-001",
+      "step_id": "STEP-001",
+      "anomaly_id": "ANOM-2026-03-001",
+      "priority": "high",
+      "question": "Why did tuition collection rate miss target?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "type": "student_payment",
+          "period": "2026-03"
+        }
+      },
+      "reasoning": "High severity anomaly requires transaction-level evidence to explain collection rate shortfall.",
+      "expected_output": "Detailed transaction data showing payment patterns and missed collections.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 2,
+      "execution_id": "EXEC-2026-03-002",
+      "step_id": "STEP-002",
+      "anomaly_id": null,
+      "priority": "medium",
+      "question": "What is the correct structure of department summary table? | What is the correct structure of cash flow table? | What is the correct structure of scholarships table?",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026_03"
+      },
+      "reasoning": "Data quality issue requires full report to validate table structure.",
+      "expected_output": "Correct table schema and business meaning for department summary. | Correct table schema and business meaning for cash flow. | Correct table schema and business meaning for scholarships.",
+      "status": "queued",
+      "dependencies": []
+    }
+  ]
+}

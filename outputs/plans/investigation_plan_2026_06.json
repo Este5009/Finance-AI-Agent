@@ -3,13 +3,13 @@
   "report_period": "2026-06",
   "period_slug": "2026_06",
   "source_files": [
-    "monthly_financial_report_june_2026.xlsx"
+    "university_financial_report_2026_06.xlsx"
   ],
-  "total_tasks": 15,
+  "total_tasks": 19,
   "tasks_by_priority": {
-    "critical": 3,
-    "high": 7,
-    "medium": 5,
+    "critical": 8,
+    "high": 8,
+    "medium": 3,
     "low": 0
   },
   "tasks": [
@@ -19,7 +19,7 @@
       "priority": "critical",
       "priority_score": 125,
       "question_to_answer": "Which operating, scholarship, or capital outflows caused cash-flow risk in 2026-06?",
-      "reason": "Net cash flow is $-685,996; ending cash is $4,739,362.",
+      "reason": "Net cash flow is $-680,000; ending cash is $1,730,000.",
       "required_evidence": [
         {
           "request_id": "INV-2026-06-001-E01",
@@ -41,7 +41,7 @@
       "status": "planned",
       "prioritization_factors": [
         "severity:critical",
-        "financial_impact:685996.00",
+        "financial_impact:680000.00",
         "goal_or_threshold_violation",
         "operational_importance:10",
         "listed_in_annual_top_risks"
@@ -53,7 +53,7 @@
       "priority": "critical",
       "priority_score": 123,
       "question_to_answer": "Which revenue shortfalls and expense drivers caused the operating deficit in 2026-06?",
-      "reason": "Net operating result is $-329,146 on $1,877,724 of revenue.",
+      "reason": "Net operating result is $-374,000 on $1,992,060 of revenue.",
       "required_evidence": [
         {
           "request_id": "INV-2026-06-002-E01",
@@ -75,7 +75,7 @@
       "status": "planned",
       "prioritization_factors": [
         "severity:critical",
-        "financial_impact:329146.00",
+        "financial_impact:374000.00",
         "goal_or_threshold_violation",
         "operational_importance:10",
         "listed_in_annual_top_risks"
@@ -83,53 +83,196 @@
     },
     {
       "task_id": "INV-2026-06-003",
-      "anomaly_id": "ANOM-2026-06-006",
+      "anomaly_id": "ANOM-2026-06-002",
       "priority": "critical",
-      "priority_score": 90,
-      "question_to_answer": "Does the flagged vendor payment in 2026-06 have valid invoice, approval, and duplicate evidence?",
-      "reason": "Maximum payment is $96,000 versus a $50,000 threshold.",
+      "priority_score": 109,
+      "question_to_answer": "Why did the student collection rate miss its target in 2026-06?",
+      "reason": "Collection rate is 84.00% from $1,204,798 paid against $1,434,283 due.",
       "required_evidence": [
         {
           "request_id": "INV-2026-06-003-E01",
           "tool_name": "get_transactions",
           "parameters": {
-            "type": "vendor_payment",
+            "type": "student_receivable",
             "period": "2026-06",
-            "minimum_amount": 50000.0
+            "include_aging": true
           },
-          "purpose": "Locate flagged invoices, approvals, and possible duplicates."
+          "purpose": "Inspect overdue invoices, aging, and payment-plan status."
         },
         {
           "request_id": "INV-2026-06-003-E02",
-          "tool_name": "get_vendor_history",
-          "parameters": {
-            "vendor": "$flagged_transaction.vendor",
-            "months": 12
-          },
-          "purpose": "Review the selected vendor's payment pattern after identification."
+          "tool_name": "get_previous_cycle_memory",
+          "parameters": {},
+          "purpose": "Check whether prior analysis already identified this issue and actions."
         }
       ],
       "suggested_tool": "get_transactions",
-      "expected_output": "Payment control review with invoice, approval, duplicate, and vendor-history evidence.",
+      "expected_output": "Receivables aging and collection shortfall breakdown.",
       "status": "planned",
       "prioritization_factors": [
-        "severity:high",
-        "financial_impact:96000.00",
+        "severity:critical",
         "goal_or_threshold_violation",
-        "operational_importance:6",
+        "operational_importance:8",
         "listed_in_annual_top_risks"
       ]
     },
     {
       "task_id": "INV-2026-06-004",
+      "anomaly_id": "ANOM-2026-06-003",
+      "priority": "critical",
+      "priority_score": 109,
+      "question_to_answer": "Which invoices and aging buckets caused overdue payments in 2026-06?",
+      "reason": "24 of 24 invoices are overdue (100.00%).",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-004-E01",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "type": "student_receivable",
+            "period": "2026-06",
+            "include_aging": true
+          },
+          "purpose": "Inspect overdue invoices, aging, and payment-plan status."
+        },
+        {
+          "request_id": "INV-2026-06-004-E02",
+          "tool_name": "get_previous_cycle_memory",
+          "parameters": {},
+          "purpose": "Check whether prior analysis already identified this issue and actions."
+        }
+      ],
+      "suggested_tool": "get_transactions",
+      "expected_output": "Overdue invoice list grouped by aging, department, and payment status.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:critical",
+        "goal_or_threshold_violation",
+        "operational_importance:8",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-005",
+      "anomaly_id": "ANOM-2026-06-012",
+      "priority": "critical",
+      "priority_score": 105,
+      "question_to_answer": "Which transactions caused Facilities category overspending?",
+      "reason": "Facilities actual $235,848 versus budget $175,838; variance 34.13%.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-005-E01",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "expense_category": "Facilities",
+            "period": "2026-06"
+          },
+          "purpose": "Identify transactions and vendors behind category overspending."
+        }
+      ],
+      "suggested_tool": "get_transactions",
+      "expected_output": "Category variance breakdown with top transactions and vendors.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:critical",
+        "goal_or_threshold_violation",
+        "operational_importance:4",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-006",
+      "anomaly_id": "ANOM-2026-06-013",
+      "priority": "critical",
+      "priority_score": 105,
+      "question_to_answer": "Which transactions caused Services category overspending?",
+      "reason": "Services actual $445,491 versus budget $332,138; variance 34.13%.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-006-E01",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "expense_category": "Services",
+            "period": "2026-06"
+          },
+          "purpose": "Identify transactions and vendors behind category overspending."
+        }
+      ],
+      "suggested_tool": "get_transactions",
+      "expected_output": "Category variance breakdown with top transactions and vendors.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:critical",
+        "goal_or_threshold_violation",
+        "operational_importance:4",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-007",
+      "anomaly_id": "ANOM-2026-06-014",
+      "priority": "critical",
+      "priority_score": 105,
+      "question_to_answer": "Which transactions caused Supplies category overspending?",
+      "reason": "Supplies actual $497,902 versus budget $371,213; variance 34.13%.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-007-E01",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "expense_category": "Supplies",
+            "period": "2026-06"
+          },
+          "purpose": "Identify transactions and vendors behind category overspending."
+        }
+      ],
+      "suggested_tool": "get_transactions",
+      "expected_output": "Category variance breakdown with top transactions and vendors.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:critical",
+        "goal_or_threshold_violation",
+        "operational_importance:4",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-008",
+      "anomaly_id": "ANOM-2026-06-015",
+      "priority": "critical",
+      "priority_score": 105,
+      "question_to_answer": "Which transactions caused Technology category overspending?",
+      "reason": "Technology actual $131,027 versus budget $97,688; variance 34.13%.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-008-E01",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "expense_category": "Technology",
+            "period": "2026-06"
+          },
+          "purpose": "Identify transactions and vendors behind category overspending."
+        }
+      ],
+      "suggested_tool": "get_transactions",
+      "expected_output": "Category variance breakdown with top transactions and vendors.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:critical",
+        "goal_or_threshold_violation",
+        "operational_importance:4",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-009",
       "anomaly_id": "ANOM-2026-06-001",
       "priority": "high",
       "priority_score": 84,
       "question_to_answer": "What payroll components and departments caused the payroll risk in 2026-06?",
-      "reason": "Calculated payroll/revenue is 53.10% versus a 42.00% maximum.",
+      "reason": "Calculated payroll/revenue is 53.00% versus a 42.00% maximum.",
       "required_evidence": [
         {
-          "request_id": "INV-2026-06-004-E01",
+          "request_id": "INV-2026-06-009-E01",
           "tool_name": "get_payroll_history",
           "parameters": {
             "department": "all",
@@ -138,7 +281,7 @@
           "purpose": "Compare payroll, overtime, benefits, and headcount over time."
         },
         {
-          "request_id": "INV-2026-06-004-E02",
+          "request_id": "INV-2026-06-009-E02",
           "tool_name": "get_previous_cycle_memory",
           "parameters": {},
           "purpose": "Check whether prior analysis already identified this issue and actions."
@@ -155,187 +298,237 @@
       ]
     },
     {
-      "task_id": "INV-2026-06-005",
-      "anomaly_id": "ANOM-2026-06-002",
-      "priority": "high",
-      "priority_score": 84,
-      "question_to_answer": "Why did the student collection rate miss its target in 2026-06?",
-      "reason": "Collection rate is 84.45% from $1,139,707 paid against $1,349,634 due.",
-      "required_evidence": [
-        {
-          "request_id": "INV-2026-06-005-E01",
-          "tool_name": "get_transactions",
-          "parameters": {
-            "type": "student_receivable",
-            "period": "2026-06",
-            "include_aging": true
-          },
-          "purpose": "Inspect overdue invoices, aging, and payment-plan status."
-        },
-        {
-          "request_id": "INV-2026-06-005-E02",
-          "tool_name": "get_previous_cycle_memory",
-          "parameters": {},
-          "purpose": "Check whether prior analysis already identified this issue and actions."
-        }
-      ],
-      "suggested_tool": "get_transactions",
-      "expected_output": "Receivables aging and collection shortfall breakdown.",
-      "status": "planned",
-      "prioritization_factors": [
-        "severity:high",
-        "goal_or_threshold_violation",
-        "operational_importance:8",
-        "listed_in_annual_top_risks"
-      ]
-    },
-    {
-      "task_id": "INV-2026-06-006",
-      "anomaly_id": "ANOM-2026-06-003",
-      "priority": "high",
-      "priority_score": 84,
-      "question_to_answer": "Which invoices and aging buckets caused overdue payments in 2026-06?",
-      "reason": "9 of 48 invoices are overdue (18.75%).",
-      "required_evidence": [
-        {
-          "request_id": "INV-2026-06-006-E01",
-          "tool_name": "get_transactions",
-          "parameters": {
-            "type": "student_receivable",
-            "period": "2026-06",
-            "include_aging": true
-          },
-          "purpose": "Inspect overdue invoices, aging, and payment-plan status."
-        },
-        {
-          "request_id": "INV-2026-06-006-E02",
-          "tool_name": "get_previous_cycle_memory",
-          "parameters": {},
-          "purpose": "Check whether prior analysis already identified this issue and actions."
-        }
-      ],
-      "suggested_tool": "get_transactions",
-      "expected_output": "Overdue invoice list grouped by aging, department, and payment status.",
-      "status": "planned",
-      "prioritization_factors": [
-        "severity:high",
-        "goal_or_threshold_violation",
-        "operational_importance:8",
-        "listed_in_annual_top_risks"
-      ]
-    },
-    {
-      "task_id": "INV-2026-06-007",
-      "anomaly_id": "ANOM-2026-06-007",
-      "priority": "high",
-      "priority_score": 82,
-      "question_to_answer": "Which expense categories, payroll items, or vendors caused Engineering overspending exceeds flag threshold?",
-      "reason": "Engineering spent $734,196 against $622,200 budget (18.00% variance).",
-      "required_evidence": [
-        {
-          "request_id": "INV-2026-06-007-E01",
-          "tool_name": "get_department_history",
-          "parameters": {
-            "department": "Engineering",
-            "months": 6
-          },
-          "purpose": "Compare department budget and actual expense history."
-        },
-        {
-          "request_id": "INV-2026-06-007-E02",
-          "tool_name": "get_transactions",
-          "parameters": {
-            "department": "Engineering",
-            "period": "2026-06"
-          },
-          "purpose": "Identify expense categories, vendors, and transactions driving variance."
-        }
-      ],
-      "suggested_tool": "get_department_history",
-      "expected_output": "Department variance bridge with the largest contributing transactions.",
-      "status": "planned",
-      "prioritization_factors": [
-        "severity:high",
-        "goal_or_threshold_violation",
-        "operational_importance:6",
-        "listed_in_annual_top_risks"
-      ]
-    },
-    {
-      "task_id": "INV-2026-06-008",
-      "anomaly_id": "ANOM-2026-06-008",
-      "priority": "high",
-      "priority_score": 82,
-      "question_to_answer": "Which expense categories, payroll items, or vendors caused Health Sciences overspending exceeds flag threshold?",
-      "reason": "Health Sciences spent $658,959 against $566,100 budget (16.40% variance).",
-      "required_evidence": [
-        {
-          "request_id": "INV-2026-06-008-E01",
-          "tool_name": "get_department_history",
-          "parameters": {
-            "department": "Health Sciences",
-            "months": 6
-          },
-          "purpose": "Compare department budget and actual expense history."
-        },
-        {
-          "request_id": "INV-2026-06-008-E02",
-          "tool_name": "get_transactions",
-          "parameters": {
-            "department": "Health Sciences",
-            "period": "2026-06"
-          },
-          "purpose": "Identify expense categories, vendors, and transactions driving variance."
-        }
-      ],
-      "suggested_tool": "get_department_history",
-      "expected_output": "Department variance bridge with the largest contributing transactions.",
-      "status": "planned",
-      "prioritization_factors": [
-        "severity:high",
-        "goal_or_threshold_violation",
-        "operational_importance:6",
-        "listed_in_annual_top_risks"
-      ]
-    },
-    {
-      "task_id": "INV-2026-06-009",
-      "anomaly_id": "ANOM-2026-06-009",
-      "priority": "high",
-      "priority_score": 80,
-      "question_to_answer": "Which transactions caused Equipment category overspending?",
-      "reason": "Equipment actual $277,444 versus budget $227,358; variance 22.03%.",
-      "required_evidence": [
-        {
-          "request_id": "INV-2026-06-009-E01",
-          "tool_name": "get_transactions",
-          "parameters": {
-            "expense_category": "Equipment",
-            "period": "2026-06"
-          },
-          "purpose": "Identify transactions and vendors behind category overspending."
-        }
-      ],
-      "suggested_tool": "get_transactions",
-      "expected_output": "Category variance breakdown with top transactions and vendors.",
-      "status": "planned",
-      "prioritization_factors": [
-        "severity:high",
-        "goal_or_threshold_violation",
-        "operational_importance:4",
-        "listed_in_annual_top_risks"
-      ]
-    },
-    {
       "task_id": "INV-2026-06-010",
-      "anomaly_id": "DATA-TABLE-monthly_financial_report_june_2026__anomalies_embedded__table_01",
+      "anomaly_id": "ANOM-2026-06-006",
       "priority": "high",
-      "priority_score": 75,
-      "question_to_answer": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__anomalies_embedded__table_01'?",
-      "reason": "Enriched model requires human review; final type is Unknown with confidence 0.3.",
+      "priority_score": 82,
+      "question_to_answer": "Which expense categories, payroll items, or vendors caused Administration overspending exceeds flag threshold?",
+      "reason": "Administration spent $187,480 against $157,629 budget (18.94% variance).",
       "required_evidence": [
         {
           "request_id": "INV-2026-06-010-E01",
+          "tool_name": "get_department_history",
+          "parameters": {
+            "department": "Administration",
+            "months": 6
+          },
+          "purpose": "Compare department budget and actual expense history."
+        },
+        {
+          "request_id": "INV-2026-06-010-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "department": "Administration",
+            "period": "2026-06"
+          },
+          "purpose": "Identify expense categories, vendors, and transactions driving variance."
+        }
+      ],
+      "suggested_tool": "get_department_history",
+      "expected_output": "Department variance bridge with the largest contributing transactions.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "goal_or_threshold_violation",
+        "operational_importance:6",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-011",
+      "anomaly_id": "ANOM-2026-06-007",
+      "priority": "high",
+      "priority_score": 82,
+      "question_to_answer": "Which expense categories, payroll items, or vendors caused Arts & Humanities overspending exceeds flag threshold?",
+      "reason": "Arts & Humanities spent $328,089 against $275,851 budget (18.94% variance).",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-011-E01",
+          "tool_name": "get_department_history",
+          "parameters": {
+            "department": "Arts & Humanities",
+            "months": 6
+          },
+          "purpose": "Compare department budget and actual expense history."
+        },
+        {
+          "request_id": "INV-2026-06-011-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "department": "Arts & Humanities",
+            "period": "2026-06"
+          },
+          "purpose": "Identify expense categories, vendors, and transactions driving variance."
+        }
+      ],
+      "suggested_tool": "get_department_history",
+      "expected_output": "Department variance bridge with the largest contributing transactions.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "goal_or_threshold_violation",
+        "operational_importance:6",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-012",
+      "anomaly_id": "ANOM-2026-06-008",
+      "priority": "high",
+      "priority_score": 82,
+      "question_to_answer": "Which expense categories, payroll items, or vendors caused Business overspending exceeds flag threshold?",
+      "reason": "Business spent $468,699 against $394,072 budget (18.94% variance).",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-012-E01",
+          "tool_name": "get_department_history",
+          "parameters": {
+            "department": "Business",
+            "months": 6
+          },
+          "purpose": "Compare department budget and actual expense history."
+        },
+        {
+          "request_id": "INV-2026-06-012-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "department": "Business",
+            "period": "2026-06"
+          },
+          "purpose": "Identify expense categories, vendors, and transactions driving variance."
+        }
+      ],
+      "suggested_tool": "get_department_history",
+      "expected_output": "Department variance bridge with the largest contributing transactions.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "goal_or_threshold_violation",
+        "operational_importance:6",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-013",
+      "anomaly_id": "ANOM-2026-06-009",
+      "priority": "high",
+      "priority_score": 82,
+      "question_to_answer": "Which expense categories, payroll items, or vendors caused Engineering overspending exceeds flag threshold?",
+      "reason": "Engineering spent $515,569 against $433,480 budget (18.94% variance).",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-013-E01",
+          "tool_name": "get_department_history",
+          "parameters": {
+            "department": "Engineering",
+            "months": 6
+          },
+          "purpose": "Compare department budget and actual expense history."
+        },
+        {
+          "request_id": "INV-2026-06-013-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "department": "Engineering",
+            "period": "2026-06"
+          },
+          "purpose": "Identify expense categories, vendors, and transactions driving variance."
+        }
+      ],
+      "suggested_tool": "get_department_history",
+      "expected_output": "Department variance bridge with the largest contributing transactions.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "goal_or_threshold_violation",
+        "operational_importance:6",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-014",
+      "anomaly_id": "ANOM-2026-06-010",
+      "priority": "high",
+      "priority_score": 82,
+      "question_to_answer": "Which expense categories, payroll items, or vendors caused Health Sciences overspending exceeds flag threshold?",
+      "reason": "Health Sciences spent $631,874 against $533,992 budget (18.33% variance).",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-014-E01",
+          "tool_name": "get_department_history",
+          "parameters": {
+            "department": "Health Sciences",
+            "months": 6
+          },
+          "purpose": "Compare department budget and actual expense history."
+        },
+        {
+          "request_id": "INV-2026-06-014-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "department": "Health Sciences",
+            "period": "2026-06"
+          },
+          "purpose": "Identify expense categories, vendors, and transactions driving variance."
+        }
+      ],
+      "suggested_tool": "get_department_history",
+      "expected_output": "Department variance bridge with the largest contributing transactions.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "goal_or_threshold_violation",
+        "operational_importance:6",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-015",
+      "anomaly_id": "ANOM-2026-06-011",
+      "priority": "high",
+      "priority_score": 82,
+      "question_to_answer": "Which expense categories, payroll items, or vendors caused Student Services overspending exceeds flag threshold?",
+      "reason": "Student Services spent $234,349 against $197,036 budget (18.94% variance).",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-015-E01",
+          "tool_name": "get_department_history",
+          "parameters": {
+            "department": "Student Services",
+            "months": 6
+          },
+          "purpose": "Compare department budget and actual expense history."
+        },
+        {
+          "request_id": "INV-2026-06-015-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "department": "Student Services",
+            "period": "2026-06"
+          },
+          "purpose": "Identify expense categories, vendors, and transactions driving variance."
+        }
+      ],
+      "suggested_tool": "get_department_history",
+      "expected_output": "Department variance bridge with the largest contributing transactions.",
+      "status": "planned",
+      "prioritization_factors": [
+        "severity:high",
+        "goal_or_threshold_violation",
+        "operational_importance:6",
+        "listed_in_annual_top_risks"
+      ]
+    },
+    {
+      "task_id": "INV-2026-06-016",
+      "anomaly_id": "DATA-TABLE-university_financial_report_2026_06__anomalies_embedded__table_01",
+      "priority": "high",
+      "priority_score": 75,
+      "question_to_answer": "What is the correct structure and business meaning of table 'university_financial_report_2026_06__anomalies_embedded__table_01'?",
+      "reason": "Enriched model requires human review; final type is Unknown with confidence 0.3.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-06-016-E01",
           "tool_name": "get_full_report",
           "parameters": {
             "period": "2026-06"
@@ -343,10 +536,10 @@
           "purpose": "Review the table in the context of its processed report."
         },
         {
-          "request_id": "INV-2026-06-010-E02",
+          "request_id": "INV-2026-06-016-E02",
           "tool_name": "get_transactions",
           "parameters": {
-            "table_id": "monthly_financial_report_june_2026__anomalies_embedded__table_01",
+            "table_id": "university_financial_report_2026_06__anomalies_embedded__table_01",
             "limit": 100
           },
           "purpose": "Inspect representative processed records before schema approval."
@@ -361,48 +554,15 @@
       ]
     },
     {
-      "task_id": "INV-2026-06-011",
-      "anomaly_id": "ANOM-2026-06-011",
-      "priority": "medium",
-      "priority_score": 51,
-      "question_to_answer": "What payroll components and departments caused the payroll risk in 2026-06?",
-      "reason": "Payroll actual $997,102 versus budget $898,263; variance 11.00%.",
-      "required_evidence": [
-        {
-          "request_id": "INV-2026-06-011-E01",
-          "tool_name": "get_payroll_history",
-          "parameters": {
-            "department": "all",
-            "months": 6
-          },
-          "purpose": "Compare payroll, overtime, benefits, and headcount over time."
-        },
-        {
-          "request_id": "INV-2026-06-011-E02",
-          "tool_name": "get_previous_cycle_memory",
-          "parameters": {},
-          "purpose": "Check whether prior analysis already identified this issue and actions."
-        }
-      ],
-      "suggested_tool": "get_payroll_history",
-      "expected_output": "Payroll driver breakdown by department, overtime, benefits, and headcount.",
-      "status": "planned",
-      "prioritization_factors": [
-        "severity:medium",
-        "operational_importance:8",
-        "listed_in_annual_top_risks"
-      ]
-    },
-    {
-      "task_id": "INV-2026-06-012",
-      "anomaly_id": "DATA-TABLE-monthly_financial_report_june_2026__cash_flow__table_01",
+      "task_id": "INV-2026-06-017",
+      "anomaly_id": "DATA-TABLE-university_financial_report_2026_06__cash_flow__table_01",
       "priority": "medium",
       "priority_score": 50,
-      "question_to_answer": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__cash_flow__table_01'?",
+      "question_to_answer": "What is the correct structure and business meaning of table 'university_financial_report_2026_06__cash_flow__table_01'?",
       "reason": "Enriched model requires human review; final type is Cash_Flow with confidence 0.7833.",
       "required_evidence": [
         {
-          "request_id": "INV-2026-06-012-E01",
+          "request_id": "INV-2026-06-017-E01",
           "tool_name": "get_full_report",
           "parameters": {
             "period": "2026-06"
@@ -410,10 +570,10 @@
           "purpose": "Review the table in the context of its processed report."
         },
         {
-          "request_id": "INV-2026-06-012-E02",
+          "request_id": "INV-2026-06-017-E02",
           "tool_name": "get_transactions",
           "parameters": {
-            "table_id": "monthly_financial_report_june_2026__cash_flow__table_01",
+            "table_id": "university_financial_report_2026_06__cash_flow__table_01",
             "limit": 100
           },
           "purpose": "Inspect representative processed records before schema approval."
@@ -428,15 +588,15 @@
       ]
     },
     {
-      "task_id": "INV-2026-06-013",
-      "anomaly_id": "DATA-TABLE-monthly_financial_report_june_2026__department_summary__table_01",
+      "task_id": "INV-2026-06-018",
+      "anomaly_id": "DATA-TABLE-university_financial_report_2026_06__department_summary__table_01",
       "priority": "medium",
       "priority_score": 50,
-      "question_to_answer": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__department_summary__table_01'?",
+      "question_to_answer": "What is the correct structure and business meaning of table 'university_financial_report_2026_06__department_summary__table_01'?",
       "reason": "Enriched model requires human review; final type is Department_Summary with confidence 0.87.",
       "required_evidence": [
         {
-          "request_id": "INV-2026-06-013-E01",
+          "request_id": "INV-2026-06-018-E01",
           "tool_name": "get_full_report",
           "parameters": {
             "period": "2026-06"
@@ -444,10 +604,10 @@
           "purpose": "Review the table in the context of its processed report."
         },
         {
-          "request_id": "INV-2026-06-013-E02",
+          "request_id": "INV-2026-06-018-E02",
           "tool_name": "get_transactions",
           "parameters": {
-            "table_id": "monthly_financial_report_june_2026__department_summary__table_01",
+            "table_id": "university_financial_report_2026_06__department_summary__table_01",
             "limit": 100
           },
           "purpose": "Inspect representative processed records before schema approval."
@@ -462,15 +622,15 @@
       ]
     },
     {
-      "task_id": "INV-2026-06-014",
-      "anomaly_id": "DATA-TABLE-monthly_financial_report_june_2026__scholarships__table_01",
+      "task_id": "INV-2026-06-019",
+      "anomaly_id": "DATA-TABLE-university_financial_report_2026_06__scholarships__table_01",
       "priority": "medium",
       "priority_score": 50,
-      "question_to_answer": "What is the correct structure and business meaning of table 'monthly_financial_report_june_2026__scholarships__table_01'?",
+      "question_to_answer": "What is the correct structure and business meaning of table 'university_financial_report_2026_06__scholarships__table_01'?",
       "reason": "Enriched model requires human review; final type is Scholarships with confidence 0.99.",
       "required_evidence": [
         {
-          "request_id": "INV-2026-06-014-E01",
+          "request_id": "INV-2026-06-019-E01",
           "tool_name": "get_full_report",
           "parameters": {
             "period": "2026-06"
@@ -478,10 +638,10 @@
           "purpose": "Review the table in the context of its processed report."
         },
         {
-          "request_id": "INV-2026-06-014-E02",
+          "request_id": "INV-2026-06-019-E02",
           "tool_name": "get_transactions",
           "parameters": {
-            "table_id": "monthly_financial_report_june_2026__scholarships__table_01",
+            "table_id": "university_financial_report_2026_06__scholarships__table_01",
             "limit": 100
           },
           "purpose": "Inspect representative processed records before schema approval."
@@ -493,33 +653,6 @@
       "prioritization_factors": [
         "missing_or_uncertain_data",
         "final_table_type:Scholarships"
-      ]
-    },
-    {
-      "task_id": "INV-2026-06-015",
-      "anomaly_id": "ANOM-2026-06-010",
-      "priority": "medium",
-      "priority_score": 47,
-      "question_to_answer": "Which transactions caused Facilities category outside budget target?",
-      "reason": "Facilities actual $407,772 versus budget $367,302; variance 11.02%.",
-      "required_evidence": [
-        {
-          "request_id": "INV-2026-06-015-E01",
-          "tool_name": "get_transactions",
-          "parameters": {
-            "expense_category": "unknown",
-            "period": "2026-06"
-          },
-          "purpose": "Identify transactions and vendors behind category overspending."
-        }
-      ],
-      "suggested_tool": "get_transactions",
-      "expected_output": "Category variance breakdown with top transactions and vendors.",
-      "status": "planned",
-      "prioritization_factors": [
-        "severity:medium",
-        "operational_importance:4",
-        "listed_in_annual_top_risks"
       ]
     }
   ]

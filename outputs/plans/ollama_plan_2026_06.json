@@ -7,42 +7,17 @@
   "validation_status": "accepted",
   "fallback_used": false,
   "validation_errors": [],
-  "deduplicated_tool_calls": 1,
+  "deduplicated_tool_calls": 0,
   "repaired_text_fields": 0,
   "maximum_ollama_plan_steps": 8,
-  "deterministic_baseline_task_count": 15,
-  "total_steps": 7,
+  "deterministic_baseline_task_count": 19,
+  "total_steps": 6,
   "investigation_steps": [
     {
       "step_id": "STEP-001",
-      "anomaly_id": null,
-      "priority": "critical",
-      "question": "Which operating, scholarship, or capital outflows caused cash-flow risk? | Which revenue shortfalls and expense drivers caused the operating deficit?",
-      "tool_name": "get_full_report",
-      "arguments": {
-        "period": "2026-06"
-      },
-      "reasoning": "Critical cash flow anomaly requires full report to identify root causes. | Critical operating result anomaly requires full report for root cause analysis.",
-      "expected_output": "Detailed breakdown of cash flow drivers and outflows. | Revenue and expense driver analysis for deficit."
-    },
-    {
-      "step_id": "STEP-003",
-      "anomaly_id": "ANOM-2026-06-001",
-      "priority": "high",
-      "question": "What payroll components and departments caused payroll risk?",
-      "tool_name": "get_payroll_history",
-      "arguments": {
-        "department": "all",
-        "months": 1
-      },
-      "reasoning": "Payroll ratio exceeds threshold; need institution-wide payroll history.",
-      "expected_output": "Payroll breakdown by department and component."
-    },
-    {
-      "step_id": "STEP-004",
       "anomaly_id": "ANOM-2026-06-002",
-      "priority": "high",
-      "question": "Why did student collection rate miss target?",
+      "priority": "critical",
+      "question": "Why did the student collection rate miss its target?",
       "tool_name": "get_transactions",
       "arguments": {
         "filters": {
@@ -50,23 +25,65 @@
           "period": "2026-06"
         }
       },
-      "reasoning": "Collection rate below target requires transaction-level analysis.",
-      "expected_output": "Student payment transaction details and aging buckets."
+      "reasoning": "Critical anomaly with high impact on revenue collection.",
+      "expected_output": "Breakdown of student payment collections vs due amounts."
     },
     {
-      "step_id": "STEP-005",
-      "anomaly_id": "ANOM-2026-06-006",
-      "priority": "high",
-      "question": "Does flagged vendor payment have valid evidence?",
+      "step_id": "STEP-002",
+      "anomaly_id": "ANOM-2026-06-003",
+      "priority": "critical",
+      "question": "Which invoices and aging buckets caused overdue payments?",
       "tool_name": "get_transactions",
       "arguments": {
         "filters": {
-          "vendor": "96000.0",
+          "status": "overdue",
           "period": "2026-06"
         }
       },
-      "reasoning": "Vendor payment exceeds threshold; need transaction evidence.",
-      "expected_output": "Invoice, approval, and duplicate check for payment."
+      "reasoning": "Critical anomaly with 100% overdue invoices.",
+      "expected_output": "List of overdue invoices and their aging buckets."
+    },
+    {
+      "step_id": "STEP-003",
+      "anomaly_id": "ANOM-2026-06-004",
+      "priority": "critical",
+      "question": "Which revenue shortfalls and expense drivers caused the operating deficit?",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026-06"
+      },
+      "reasoning": "Critical anomaly requiring full report for root cause analysis.",
+      "expected_output": "Detailed revenue and expense breakdown for the period."
+    },
+    {
+      "step_id": "STEP-004",
+      "anomaly_id": "ANOM-2026-06-012",
+      "priority": "critical",
+      "question": "Which transactions caused Facilities category overspending?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "expense_category": "Facilities",
+          "period": "2026-06"
+        }
+      },
+      "reasoning": "Critical anomaly with 34.13% overspending in Facilities.",
+      "expected_output": "Transactions contributing to Facilities overspending."
+    },
+    {
+      "step_id": "STEP-005",
+      "anomaly_id": "ANOM-2026-06-013",
+      "priority": "critical",
+      "question": "Which transactions caused Services category overspending?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "expense_category": "Services",
+          "period": "2026-06"
+        }
+      },
+      "reasoning": "Critical anomaly with overspending in Services category.",
+      "expected_output": "Transactions contributing to Services overspending."
     },
     {
       "step_id": "STEP-006",
@@ -75,34 +92,8 @@
       "question": "What is the status of unresolved data tables?",
       "tool_name": "get_previous_cycle_memory",
       "arguments": {},
-      "reasoning": "Data quality issues require memory of previous cycle for context.",
-      "expected_output": "Resolution status of unresolved tables from prior cycle."
-    },
-    {
-      "step_id": "STEP-007",
-      "anomaly_id": null,
-      "priority": "high",
-      "question": "What is the departmental overspending context?",
-      "tool_name": "get_department_history",
-      "arguments": {
-        "department": "Engineering",
-        "months": 1
-      },
-      "reasoning": "Engineering department overspending flagged; need department history.",
-      "expected_output": "Engineering department expense history and overspending details."
-    },
-    {
-      "step_id": "STEP-008",
-      "anomaly_id": null,
-      "priority": "high",
-      "question": "What is the Health Sciences department overspending context?",
-      "tool_name": "get_department_history",
-      "arguments": {
-        "department": "Health Sciences",
-        "months": 1
-      },
-      "reasoning": "Health Sciences department overspending flagged; need department history.",
-      "expected_output": "Health Sciences department expense history and overspending details."
+      "reasoning": "Data quality issue with unresolved tables requiring review.",
+      "expected_output": "Status of unresolved data tables from previous cycle."
     }
   ]
 }

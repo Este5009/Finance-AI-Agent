@@ -1,0 +1,31 @@
+period,month,department,expense_category,budget_expense,actual_expense,variance,variance_pct
+2026-03-01,March,Engineering,Payroll,180546.76,187768.63,7221.87,0.04
+2026-03-01,March,Engineering,Supplies,95969.2,97614.22,1645.02,0.0171
+2026-03-01,March,Engineering,Services,85867.18,87339.04,1471.86,0.0171
+2026-03-01,March,Engineering,Facilities,45459.09,46238.32,779.22,0.0171
+2026-03-01,March,Engineering,Technology,25255.05,25687.95,432.9,0.0171
+2026-03-01,March,Business,Payroll,164133.41,170698.75,6565.34,0.04
+2026-03-01,March,Business,Supplies,87244.73,88740.2,1495.48,0.0171
+2026-03-01,March,Business,Services,78061.07,79399.13,1338.06,0.0171
+2026-03-01,March,Business,Facilities,41326.45,42034.83,708.38,0.0171
+2026-03-01,March,Business,Technology,22959.14,23352.68,393.55,0.0171
+2026-03-01,March,Health Sciences,Payroll,213373.44,221908.38,8534.94,0.04
+2026-03-01,March,Health Sciences,Supplies,113418.14,115362.26,1944.12,0.0171
+2026-03-01,March,Health Sciences,Services,101479.39,103218.87,1739.47,0.0171
+2026-03-01,March,Health Sciences,Facilities,53724.38,54645.28,920.9,0.0171
+2026-03-01,March,Health Sciences,Technology,29846.88,30358.49,511.61,0.0171
+2026-03-01,March,Arts & Humanities,Payroll,114893.39,119489.13,4595.74,0.04
+2026-03-01,March,Arts & Humanities,Supplies,61071.31,62118.14,1046.83,0.0171
+2026-03-01,March,Arts & Humanities,Services,54642.75,55579.39,936.64,0.0171
+2026-03-01,March,Arts & Humanities,Facilities,28928.51,29424.38,495.87,0.0171
+2026-03-01,March,Arts & Humanities,Technology,16071.4,16346.88,275.48,0.0171
+2026-03-01,March,Student Services,Payroll,82066.71,85349.38,3282.67,0.04
+2026-03-01,March,Student Services,Supplies,43622.36,44370.1,747.74,0.0171
+2026-03-01,March,Student Services,Services,39030.54,39699.56,669.03,0.0171
+2026-03-01,March,Student Services,Facilities,20663.22,21017.42,354.19,0.0171
+2026-03-01,March,Student Services,Technology,11479.57,11676.34,196.77,0.0171
+2026-03-01,March,Administration,Payroll,65653.36,68279.49,2626.13,0.04
+2026-03-01,March,Administration,Supplies,34897.89,35496.08,598.19,0.0171
+2026-03-01,March,Administration,Services,31224.43,31759.65,535.22,0.0171
+2026-03-01,March,Administration,Facilities,16530.58,16813.93,283.35,0.0171
+2026-03-01,March,Administration,Technology,9183.67,9341.1,157.43,0.0171

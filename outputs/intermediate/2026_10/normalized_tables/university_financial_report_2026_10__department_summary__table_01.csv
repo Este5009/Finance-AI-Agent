@@ -1,0 +1,7 @@
+department,budget_revenue,actual_revenue,budget_expense,actual_expense,net_contribution,expense_variance,expense_variance_pct,status
+Engineering,478632,478632,445045.46,456766.41,21865.59,11720.95,0.0263,On track
+Business,435120,435120,404586.79,415242.2,19877.8,10655.41,0.0263,On track
+Health Sciences,565656,565656,526336.88,540203.87,25452.13,13866.99,0.0263,On track
+Arts & Humanities,304584,304584,283210.75,290669.54,13914.46,7458.79,0.0263,On track
+Student Services,217560,217560,202293.4,207621.11,9938.89,5327.71,0.0263,On track
+Administration,174048,174048,161834.72,166096.87,7951.13,4262.15,0.0263,On track

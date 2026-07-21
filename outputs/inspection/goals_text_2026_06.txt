@@ -1,134 +1,18 @@
-FINANCE AI AGENT | UNIVERSITY FINANCIAL GOVERNANCE
-Synthetic policy input | Fiscal Year 2026
-Page 1
-Financial Goals 2026
-Small/Medium University | Governance thresholds for automated financial analysis
-Purpose: provide measurable, machine-readable financial goals against which monthly and annual reports
-can be validated, compared, and explained. All financial calculations remain deterministic; AI-generated
-analysis should interpret the results without recalculating them.
-Executive Overview
-The university will balance academic investment with disciplined cost control and liquidity protection. Leadership will
-prioritize tuition collection, payroll sustainability, department accountability, and early identification of unusual
-transactions. Exceptions require documented review, not automatic rejection.
-Core Annual Goals
-Area
-FY2026 Goal
-Measurement and Action
-Annual revenue
-$26.0 million budget; achieve at least
-98% of total revenue target
-Compare actual revenue with approved budget monthly and
-year-to-date.
-Expense control
-Keep total operating expenses at or
-below approved budget
-Investigate material unfavorable category and department
-variances.
-Payroll cost
-Below 42% of total revenue
-Flag when monthly or year-to-date payroll ratio is 42% or
-higher.
-Tuition collection
-Collection rate above 94%
-Amount paid divided by amount due; review aging and
-payment plans.
-Scholarships
-Deploy 95%-100% of approved
-allocation
-Protect access goals while avoiding unapproved
-over-allocation.
-Cash reserve
-At least 3 months of operating
-expenses
-Ending unrestricted cash divided by average monthly
-operating expense.
-Department Budget Variance Thresholds
-Department leaders are accountable for approved budgets and documented corrective action. Normal operating
-tolerance is within +/-8% of budget. A variance between 8% and 12% is a watch item. More than 12% overspending is a
-mandatory financial risk flag.
-Variance
-Classification
-Required Response
-Within +/-8%
-Acceptable
-Monitor through standard monthly reporting.
-8% to 12% overspend
-Watch
-Department explanation and near-term forecast update.
->12% overspend
-Flag
-Immediate review by Finance; corrective action and approval assessment.
-
-FINANCE AI AGENT | UNIVERSITY FINANCIAL GOVERNANCE
-Synthetic policy input | Fiscal Year 2026
-Page 2
-Revenue and Tuition Collection Goals
-Revenue reporting must separate tuition, research grants, service fees, donations, and other revenue. Tuition
-performance is measured against both billed value and cash collected. The annual tuition collection rate must exceed
-94%, while overdue payments must remain below 6% of open and issued student invoices.
-Expense and Payroll Cost Goals
-Operating expense analysis must compare budget and actual values by month, department, and expense category.
-Payroll includes base salary, benefits, and overtime. Payroll must remain below 42% of total revenue, and unusual
-overtime or month-over-month changes require explanation.
-Scholarship Allocation Goals
-Scholarship reporting must reconcile approved allocation, awarded value, remaining balance, and recipient count by
-department and scholarship type. The target utilization range is 95%-100% by year-end. Awards may not exceed the
-approved allocation without formal authorization.
-Cash Reserve Goals
-The university will maintain unrestricted cash equal to at least three months of average operating expenses. Monthly
-cash flow reporting must reconcile beginning cash, inflows, operating outflows, scholarship disbursements, capital
-outflows, net cash flow, and ending cash. Negative variance to the cash plan requires commentary.
-Risk Monitoring Rules
-Rule
-Threshold
-Flagging Standard
-Department overspending
-More than 12% above budget
-High-priority department variance flag.
-Vendor payment
-Above $50,000
-High-value transaction review; validate approval and support.
-Duplicate payment
-Same vendor + invoice +
-amount
-Critical exception; investigate before next payment cycle.
-Expense acceleration
-Month-over-month increase
-above 10%
-Identify category, department, and business driver.
-Overdue student
-payments
-6% or more
-Collection risk flag and aging review.
-Payroll ratio
-42% or more of total revenue
-Cost sustainability flag.
-Cash reserve
-Below 3 months
-Liquidity flag with cash recovery plan.
-Monthly Reporting Standards
-Standard
-Requirement
-Reporting deadline
-Issue the management report within 10 business days after month-end.
-Required comparisons
-Actual vs budget, variance dollars, variance percent, prior month, and year-to-date context.
-
-FINANCE AI AGENT | UNIVERSITY FINANCIAL GOVERNANCE
-Synthetic policy input | Fiscal Year 2026
-Page 3
-Standard
-Requirement
-Required dimensions
-Department, revenue/expense category, vendor, payroll component, and student payment
-status.
-Reconciliation
-Revenue, expenses, payroll, scholarships, vendor payments, and cash flow must tie to their
-reported totals.
-Exception commentary
-Every high or critical flag must identify cause, owner, response, and expected resolution date.
-Data quality
-No missing reporting periods, duplicate identifiers, unexplained negative values, or unresolved
-total mismatches.
-Approval and use: These goals are synthetic project inputs designed to exercise the Finance AI Agent's
-deterministic calculation, anomaly detection, and report interpretation workflows.
+Metas financieras universitarias - junio 2026
+El problema persiste y el flujo de caja se debilita.
+Meta
+Objetivo mensual
+Progreso esperado
+Margen operativo
+Mantener resultado operativo positivo
+-374,000 (requiere atención)
+Ratio de nómina
+Mantener nómina bajo 42% de ingresos
+53.0%
+Cobranza estudiantil
+Recuperar al menos 93% de saldos facturados
+84.0%
+Flujo de caja
+Evitar flujo de caja mensual negativo
+-680,000 (requiere atención)
+Hito de gestión: monitoreo mensual de ingresos, gastos, nómina y cobranza.

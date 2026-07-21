@@ -1,0 +1,2 @@
+anomaly_id,detected_period,department,anomaly_type,severity,description,observed_value,threshold,source_sheet
+ANOM-2026_05-HS-OT,2026_05,Health Sciences,payroll_overtime_overspend,High,Health Sciences overtime remains above the reduction threshold.,38065.7,17737.98,Payroll

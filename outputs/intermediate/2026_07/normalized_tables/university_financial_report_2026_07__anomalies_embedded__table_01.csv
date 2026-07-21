@@ -1,0 +1,4 @@
+anomaly_id,detected_period,department,anomaly_type,severity,description,observed_value,threshold,source_sheet
+ANOM-2026_07-HS-OT,2026_07,Health Sciences,payroll_overtime_overspend,Critical,Health Sciences overtime remains above the reduction threshold.,39933.28,19671.57,Payroll
+ANOM-2026_07-CF,2026_07,University,negative_cash_flow,High,Net cash flow is materially negative for the month.,-350000.0,0.0,Cash_Flow
+ANOM-2026_07-VENDOR,2026_07,Health Sciences,recurring_vendor_duplicate,High,Recurring MedSupply Co payment shares an invoice number and high-value flag.,149000.0,50000.0,Vendor_Payments

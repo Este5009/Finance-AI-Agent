@@ -2,262 +2,157 @@
   "model_version": "2.0",
   "purpose": "Intermediate bridge between arbitrary financial workbooks and deterministic finance calculations.",
   "source_workbooks": [
-    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx"
   ],
   "sheet_count": 11,
   "table_count": 11,
   "sheet_analyses": [
     {
       "sheet_name": "Executive_Summary",
-      "max_row": 14,
+      "max_row": 12,
       "max_column": 6,
       "empty_separator_rows": [
         4
       ],
-      "merged_title_regions": [
-        {
-          "start_row": 2,
-          "end_row": 2,
-          "start_column": 1,
-          "end_column": 6,
-          "text": "Management reporting view with goals, variances, and exception status"
-        },
-        {
-          "start_row": 1,
-          "end_row": 1,
-          "start_column": 1,
-          "end_column": 6,
-          "text": "University Financial Executive Summary - June 2026"
-        }
-      ],
+      "merged_title_regions": [],
       "context_regions": [
         {
           "start_row": 1,
           "end_row": 3,
           "region_type": "title_or_context",
-          "text": "University Financial Executive Summary - June 2026 | Management reporting view with goals, variances, and exception status | Currency: USD | Synthetic data | Generated deterministically"
+          "text": "Executive Summary - June 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
         }
       ],
       "detected_table_ids": [
-        "monthly_financial_report_june_2026__executive_summary__table_01"
+        "university_financial_report_2026_06__executive_summary__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx"
     },
     {
       "sheet_name": "Revenue",
-      "max_row": 17,
-      "max_column": 8,
-      "empty_separator_rows": [
-        4
-      ],
-      "merged_title_regions": [
-        {
-          "start_row": 2,
-          "end_row": 2,
-          "start_column": 1,
-          "end_column": 8,
-          "text": "Small/medium university | Engineering, Business, Health Sciences, and Administration"
-        },
-        {
-          "start_row": 1,
-          "end_row": 1,
-          "start_column": 1,
-          "end_column": 8,
-          "text": "Revenue - June 2026"
-        }
-      ],
-      "context_regions": [
-        {
-          "start_row": 1,
-          "end_row": 3,
-          "region_type": "title_or_context",
-          "text": "Revenue - June 2026 | Small/medium university | Engineering, Business, Health Sciences, and Administration | Currency: USD | Synthetic data | Generated deterministically"
-        }
-      ],
-      "detected_table_ids": [
-        "monthly_financial_report_june_2026__revenue__table_01"
-      ],
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
-    },
-    {
-      "sheet_name": "Expenses",
       "max_row": 29,
       "max_column": 8,
       "empty_separator_rows": [
         4
       ],
-      "merged_title_regions": [
-        {
-          "start_row": 2,
-          "end_row": 2,
-          "start_column": 1,
-          "end_column": 8,
-          "text": "Small/medium university | Engineering, Business, Health Sciences, and Administration"
-        },
-        {
-          "start_row": 1,
-          "end_row": 1,
-          "start_column": 1,
-          "end_column": 8,
-          "text": "Expenses - June 2026"
-        }
-      ],
+      "merged_title_regions": [],
       "context_regions": [
         {
           "start_row": 1,
           "end_row": 3,
           "region_type": "title_or_context",
-          "text": "Expenses - June 2026 | Small/medium university | Engineering, Business, Health Sciences, and Administration | Currency: USD | Synthetic data | Generated deterministically"
+          "text": "Revenue - June 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
         }
       ],
       "detected_table_ids": [
-        "monthly_financial_report_june_2026__expenses__table_01"
+        "university_financial_report_2026_06__revenue__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx"
+    },
+    {
+      "sheet_name": "Expenses",
+      "max_row": 35,
+      "max_column": 8,
+      "empty_separator_rows": [
+        4
+      ],
+      "merged_title_regions": [],
+      "context_regions": [
+        {
+          "start_row": 1,
+          "end_row": 3,
+          "region_type": "title_or_context",
+          "text": "Expenses - June 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
+        }
+      ],
+      "detected_table_ids": [
+        "university_financial_report_2026_06__expenses__table_01"
+      ],
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx"
     },
     {
       "sheet_name": "Budget_vs_Actual",
-      "max_row": 9,
+      "max_row": 11,
       "max_column": 13,
       "empty_separator_rows": [
         4
       ],
-      "merged_title_regions": [
-        {
-          "start_row": 2,
-          "end_row": 2,
-          "start_column": 1,
-          "end_column": 13,
-          "text": "Small/medium university | Engineering, Business, Health Sciences, and Administration"
-        },
-        {
-          "start_row": 1,
-          "end_row": 1,
-          "start_column": 1,
-          "end_column": 13,
-          "text": "Budget vs Actual - June 2026"
-        }
-      ],
+      "merged_title_regions": [],
       "context_regions": [
         {
           "start_row": 1,
           "end_row": 3,
           "region_type": "title_or_context",
-          "text": "Budget vs Actual - June 2026 | Small/medium university | Engineering, Business, Health Sciences, and Administration | Currency: USD | Synthetic data | Generated deterministically"
+          "text": "Budget vs Actual - June 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
         }
       ],
       "detected_table_ids": [
-        "monthly_financial_report_june_2026__budget_vs_actual__table_01"
+        "university_financial_report_2026_06__budget_vs_actual__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx"
     },
     {
       "sheet_name": "Department_Summary",
-      "max_row": 9,
+      "max_row": 11,
       "max_column": 9,
       "empty_separator_rows": [
         4
       ],
-      "merged_title_regions": [
-        {
-          "start_row": 1,
-          "end_row": 1,
-          "start_column": 1,
-          "end_column": 9,
-          "text": "Department Summary - June 2026"
-        },
-        {
-          "start_row": 2,
-          "end_row": 2,
-          "start_column": 1,
-          "end_column": 9,
-          "text": "Small/medium university | Engineering, Business, Health Sciences, and Administration"
-        }
-      ],
+      "merged_title_regions": [],
       "context_regions": [
         {
           "start_row": 1,
           "end_row": 3,
           "region_type": "title_or_context",
-          "text": "Department Summary - June 2026 | Small/medium university | Engineering, Business, Health Sciences, and Administration | Currency: USD | Synthetic data | Generated deterministically"
+          "text": "Department Summary - June 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
         }
       ],
       "detected_table_ids": [
-        "monthly_financial_report_june_2026__department_summary__table_01"
+        "university_financial_report_2026_06__department_summary__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx"
     },
     {
       "sheet_name": "Payroll",
-      "max_row": 9,
+      "max_row": 11,
       "max_column": 11,
       "empty_separator_rows": [
         4
       ],
-      "merged_title_regions": [
-        {
-          "start_row": 2,
-          "end_row": 2,
-          "start_column": 1,
-          "end_column": 11,
-          "text": "Small/medium university | Engineering, Business, Health Sciences, and Administration"
-        },
-        {
-          "start_row": 1,
-          "end_row": 1,
-          "start_column": 1,
-          "end_column": 11,
-          "text": "Payroll - June 2026"
-        }
-      ],
+      "merged_title_regions": [],
       "context_regions": [
         {
           "start_row": 1,
           "end_row": 3,
           "region_type": "title_or_context",
-          "text": "Payroll - June 2026 | Small/medium university | Engineering, Business, Health Sciences, and Administration | Currency: USD | Synthetic data | Generated deterministically"
+          "text": "Payroll - June 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
         }
       ],
       "detected_table_ids": [
-        "monthly_financial_report_june_2026__payroll__table_01"
+        "university_financial_report_2026_06__payroll__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx"
     },
     {
       "sheet_name": "Student_Payments",
-      "max_row": 53,
+      "max_row": 29,
       "max_column": 11,
       "empty_separator_rows": [
         4
       ],
-      "merged_title_regions": [
-        {
-          "start_row": 2,
-          "end_row": 2,
-          "start_column": 1,
-          "end_column": 11,
-          "text": "Small/medium university | Engineering, Business, Health Sciences, and Administration"
-        },
-        {
-          "start_row": 1,
-          "end_row": 1,
-          "start_column": 1,
-          "end_column": 11,
-          "text": "Student Payments - June 2026"
-        }
-      ],
+      "merged_title_regions": [],
       "context_regions": [
         {
           "start_row": 1,
           "end_row": 3,
           "region_type": "title_or_context",
-          "text": "Student Payments - June 2026 | Small/medium university | Engineering, Business, Health Sciences, and Administration | Currency: USD | Synthetic data | Generated deterministically"
+          "text": "Student Payments - June 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
         }
       ],
       "detected_table_ids": [
-        "monthly_financial_report_june_2026__student_payments__table_01"
+        "university_financial_report_2026_06__student_payments__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx"
     },
     {
       "sheet_name": "Cash_Flow",
@@ -266,148 +161,88 @@
       "empty_separator_rows": [
         4
       ],
-      "merged_title_regions": [
-        {
-          "start_row": 1,
-          "end_row": 1,
-          "start_column": 1,
-          "end_column": 16,
-          "text": "Cash Flow - June 2026"
-        },
-        {
-          "start_row": 2,
-          "end_row": 2,
-          "start_column": 1,
-          "end_column": 16,
-          "text": "Small/medium university | Engineering, Business, Health Sciences, and Administration"
-        }
-      ],
+      "merged_title_regions": [],
       "context_regions": [
         {
           "start_row": 1,
           "end_row": 3,
           "region_type": "title_or_context",
-          "text": "Cash Flow - June 2026 | Small/medium university | Engineering, Business, Health Sciences, and Administration | Currency: USD | Synthetic data | Generated deterministically"
+          "text": "Cash Flow - June 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
         }
       ],
       "detected_table_ids": [
-        "monthly_financial_report_june_2026__cash_flow__table_01"
+        "university_financial_report_2026_06__cash_flow__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx"
     },
     {
       "sheet_name": "Scholarships",
-      "max_row": 14,
+      "max_row": 11,
       "max_column": 9,
       "empty_separator_rows": [
         4
       ],
-      "merged_title_regions": [
-        {
-          "start_row": 1,
-          "end_row": 1,
-          "start_column": 1,
-          "end_column": 9,
-          "text": "Scholarships - June 2026"
-        },
-        {
-          "start_row": 2,
-          "end_row": 2,
-          "start_column": 1,
-          "end_column": 9,
-          "text": "Small/medium university | Engineering, Business, Health Sciences, and Administration"
-        }
-      ],
+      "merged_title_regions": [],
       "context_regions": [
         {
           "start_row": 1,
           "end_row": 3,
           "region_type": "title_or_context",
-          "text": "Scholarships - June 2026 | Small/medium university | Engineering, Business, Health Sciences, and Administration | Currency: USD | Synthetic data | Generated deterministically"
+          "text": "Scholarships - June 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
         }
       ],
       "detected_table_ids": [
-        "monthly_financial_report_june_2026__scholarships__table_01"
+        "university_financial_report_2026_06__scholarships__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx"
     },
     {
       "sheet_name": "Vendor_Payments",
-      "max_row": 45,
+      "max_row": 11,
       "max_column": 12,
       "empty_separator_rows": [
         4
       ],
-      "merged_title_regions": [
-        {
-          "start_row": 2,
-          "end_row": 2,
-          "start_column": 1,
-          "end_column": 12,
-          "text": "Small/medium university | Engineering, Business, Health Sciences, and Administration"
-        },
-        {
-          "start_row": 1,
-          "end_row": 1,
-          "start_column": 1,
-          "end_column": 12,
-          "text": "Vendor Payments - June 2026"
-        }
-      ],
+      "merged_title_regions": [],
       "context_regions": [
         {
           "start_row": 1,
           "end_row": 3,
           "region_type": "title_or_context",
-          "text": "Vendor Payments - June 2026 | Small/medium university | Engineering, Business, Health Sciences, and Administration | Currency: USD | Synthetic data | Generated deterministically"
+          "text": "Vendor Payments - June 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
         }
       ],
       "detected_table_ids": [
-        "monthly_financial_report_june_2026__vendor_payments__table_01"
+        "university_financial_report_2026_06__vendor_payments__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx"
     },
     {
       "sheet_name": "Anomalies_Embedded",
-      "max_row": 12,
+      "max_row": 7,
       "max_column": 9,
       "empty_separator_rows": [
         4
       ],
-      "merged_title_regions": [
-        {
-          "start_row": 1,
-          "end_row": 1,
-          "start_column": 1,
-          "end_column": 9,
-          "text": "Anomalies Embedded - June 2026"
-        },
-        {
-          "start_row": 2,
-          "end_row": 2,
-          "start_column": 1,
-          "end_column": 9,
-          "text": "Small/medium university | Engineering, Business, Health Sciences, and Administration"
-        }
-      ],
+      "merged_title_regions": [],
       "context_regions": [
         {
           "start_row": 1,
           "end_row": 3,
           "region_type": "title_or_context",
-          "text": "Anomalies Embedded - June 2026 | Small/medium university | Engineering, Business, Health Sciences, and Administration | Currency: USD | Synthetic data | Generated deterministically"
+          "text": "Anomalies Embedded - June 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
         }
       ],
       "detected_table_ids": [
-        "monthly_financial_report_june_2026__anomalies_embedded__table_01"
+        "university_financial_report_2026_06__anomalies_embedded__table_01"
       ],
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx"
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx"
     }
   ],
   "tables": [
     {
-      "table_id": "monthly_financial_report_june_2026__executive_summary__table_01",
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "table_id": "university_financial_report_2026_06__executive_summary__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx",
       "sheet": "Executive_Summary",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Executive_Summary",
@@ -417,11 +252,11 @@
       "header_row": 5,
       "table_boundaries": {
         "start_row": 5,
-        "end_row": 14,
+        "end_row": 12,
         "start_column": 1,
         "end_column": 6
       },
-      "row_count": 9,
+      "row_count": 7,
       "column_count": 6,
       "original_columns": [
         "Metric",
@@ -529,47 +364,47 @@
           "confidence": 0.95
         }
       ],
-      "normalized_table_file": "normalized_tables/monthly_financial_report_june_2026__executive_summary__table_01.csv",
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_06__executive_summary__table_01.csv",
       "sample_rows": [
         {
           "metric": "Actual Revenue",
-          "actual": 1877724.0,
-          "goal_or_budget": 2028000.0,
-          "variance": -150276.0,
+          "actual": 1992060.0,
+          "goal_or_budget": 2142000.0,
+          "variance": -149940.0,
           "format": "Currency",
           "status": "Below target"
         },
         {
-          "metric": "Actual Operating Expenses",
-          "actual": 2206870.0,
-          "goal_or_budget": 1983900.0,
-          "variance": 222970.0,
+          "metric": "Operating Expenses",
+          "actual": 2366060.0,
+          "goal_or_budget": 1992060.0,
+          "variance": 374000.0,
           "format": "Currency",
           "status": "Over budget"
         },
         {
-          "metric": "Operating Surplus",
-          "actual": -329146.0,
-          "goal_or_budget": 44100.0,
-          "variance": -373246.0,
+          "metric": "Net Operating Result",
+          "actual": -374000.0,
+          "goal_or_budget": 149940.0,
+          "variance": -523940.0,
           "format": "Currency",
-          "status": "Monitor"
+          "status": "Negative"
         },
         {
-          "metric": "Payroll as % of Revenue",
-          "actual": 0.5310162729,
+          "metric": "Payroll Ratio",
+          "actual": 0.53,
           "goal_or_budget": 0.42,
-          "variance": 0.1110162729,
+          "variance": 0.11,
           "format": "Percent",
-          "status": "Flag"
+          "status": "High"
         },
         {
-          "metric": "Tuition Collection Rate",
-          "actual": 0.8444563489,
-          "goal_or_budget": 0.94,
-          "variance": -0.0955436511,
+          "metric": "Collection Rate",
+          "actual": 0.84,
+          "goal_or_budget": 0.93,
+          "variance": -0.09,
           "format": "Percent",
-          "status": "Flag"
+          "status": "Below target"
         }
       ],
       "llm_reviewed": false,
@@ -590,8 +425,8 @@
       "requires_human_review": false
     },
     {
-      "table_id": "monthly_financial_report_june_2026__revenue__table_01",
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "table_id": "university_financial_report_2026_06__revenue__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx",
       "sheet": "Revenue",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Revenue",
@@ -601,11 +436,11 @@
       "header_row": 5,
       "table_boundaries": {
         "start_row": 5,
-        "end_row": 17,
+        "end_row": 29,
         "start_column": 1,
         "end_column": 8
       },
-      "row_count": 12,
+      "row_count": 24,
       "column_count": 8,
       "original_columns": [
         "Period",
@@ -745,57 +580,57 @@
           "confidence": 0.95
         }
       ],
-      "normalized_table_file": "normalized_tables/monthly_financial_report_june_2026__revenue__table_01.csv",
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_06__revenue__table_01.csv",
       "sample_rows": [
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
           "department": "Engineering",
           "revenue_category": "Tuition",
-          "budget_revenue": 473616,
-          "actual_revenue": 434779,
-          "variance": -38837,
-          "variance_pct": -0.0820010304
+          "budget_revenue": 367567.2,
+          "actual_revenue": 341837.5,
+          "variance": -25729.7,
+          "variance_pct": -0.07
         },
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
           "department": "Engineering",
-          "revenue_category": "Research Grants",
-          "budget_revenue": 179400,
-          "actual_revenue": 170430,
-          "variance": -8970,
-          "variance_pct": -0.05
+          "revenue_category": "Grants",
+          "budget_revenue": 56548.8,
+          "actual_revenue": 52590.38,
+          "variance": -3958.42,
+          "variance_pct": -0.07
         },
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
           "department": "Engineering",
-          "revenue_category": "Other Revenue",
-          "budget_revenue": 64584,
-          "actual_revenue": 60063,
-          "variance": -4521,
-          "variance_pct": -0.070001858
+          "revenue_category": "Auxiliary",
+          "budget_revenue": 32986.8,
+          "actual_revenue": 30677.72,
+          "variance": -2309.08,
+          "variance_pct": -0.07
+        },
+        {
+          "period": "2026-06-01T00:00:00.000",
+          "month": "June",
+          "department": "Engineering",
+          "revenue_category": "Donations",
+          "budget_revenue": 14137.2,
+          "actual_revenue": 13147.6,
+          "variance": -989.6,
+          "variance_pct": -0.07
         },
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
           "department": "Business",
           "revenue_category": "Tuition",
-          "budget_revenue": 433758,
-          "actual_revenue": 398190,
-          "variance": -35568,
-          "variance_pct": -0.0819996404
-        },
-        {
-          "period": "2026-06-01T00:00:00.000",
-          "month": "June",
-          "department": "Business",
-          "revenue_category": "Research Grants",
-          "budget_revenue": 36582,
-          "actual_revenue": 34753,
-          "variance": -1829,
-          "variance_pct": -0.0499972664
+          "budget_revenue": 334152.0,
+          "actual_revenue": 310761.36,
+          "variance": -23390.64,
+          "variance_pct": -0.07
         }
       ],
       "llm_reviewed": false,
@@ -818,8 +653,8 @@
       "requires_human_review": false
     },
     {
-      "table_id": "monthly_financial_report_june_2026__expenses__table_01",
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "table_id": "university_financial_report_2026_06__expenses__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx",
       "sheet": "Expenses",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Expenses",
@@ -829,11 +664,11 @@
       "header_row": 5,
       "table_boundaries": {
         "start_row": 5,
-        "end_row": 29,
+        "end_row": 35,
         "start_column": 1,
         "end_column": 8
       },
-      "row_count": 24,
+      "row_count": 30,
       "column_count": 8,
       "original_columns": [
         "Period",
@@ -973,57 +808,57 @@
           "confidence": 0.95
         }
       ],
-      "normalized_table_file": "normalized_tables/monthly_financial_report_june_2026__expenses__table_01.csv",
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_06__expenses__table_01.csv",
       "sample_rows": [
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
           "department": "Engineering",
           "expense_category": "Payroll",
-          "budget_expense": 273768,
-          "actual_expense": 278696,
-          "variance": 4928,
-          "variance_pct": 0.0180006429
-        },
-        {
-          "period": "2026-06-01T00:00:00.000",
-          "month": "June",
-          "department": "Engineering",
-          "expense_category": "Facilities",
-          "budget_expense": 99552,
-          "actual_expense": 131409,
-          "variance": 31857,
-          "variance_pct": 0.3200036162
-        },
-        {
-          "period": "2026-06-01T00:00:00.000",
-          "month": "June",
-          "department": "Engineering",
-          "expense_category": "Equipment",
-          "budget_expense": 99552,
-          "actual_expense": 147337,
-          "variance": 47785,
-          "variance_pct": 0.4800004018
-        },
-        {
-          "period": "2026-06-01T00:00:00.000",
-          "month": "June",
-          "department": "Engineering",
-          "expense_category": "Technology",
-          "budget_expense": 62220,
-          "actual_expense": 73420,
-          "variance": 11200,
-          "variance_pct": 0.1800064288
+          "budget_expense": 218567.07,
+          "actual_expense": 227309.75,
+          "variance": 8742.68,
+          "variance_pct": 0.04
         },
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
           "department": "Engineering",
           "expense_category": "Supplies",
-          "budget_expense": 49776,
-          "actual_expense": 57740,
-          "variance": 7964,
-          "variance_pct": 0.1599967856
+          "budget_expense": 81666.8,
+          "actual_expense": 109538.42,
+          "variance": 27871.62,
+          "variance_pct": 0.3413
+        },
+        {
+          "period": "2026-06-01T00:00:00.000",
+          "month": "June",
+          "department": "Engineering",
+          "expense_category": "Services",
+          "budget_expense": 73070.29,
+          "actual_expense": 98008.06,
+          "variance": 24937.77,
+          "variance_pct": 0.3413
+        },
+        {
+          "period": "2026-06-01T00:00:00.000",
+          "month": "June",
+          "department": "Engineering",
+          "expense_category": "Facilities",
+          "budget_expense": 38684.27,
+          "actual_expense": 51886.62,
+          "variance": 13202.35,
+          "variance_pct": 0.3413
+        },
+        {
+          "period": "2026-06-01T00:00:00.000",
+          "month": "June",
+          "department": "Engineering",
+          "expense_category": "Technology",
+          "budget_expense": 21491.26,
+          "actual_expense": 28825.9,
+          "variance": 7334.64,
+          "variance_pct": 0.3413
         }
       ],
       "llm_reviewed": false,
@@ -1046,8 +881,8 @@
       "requires_human_review": false
     },
     {
-      "table_id": "monthly_financial_report_june_2026__budget_vs_actual__table_01",
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "table_id": "university_financial_report_2026_06__budget_vs_actual__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx",
       "sheet": "Budget_vs_Actual",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Budget_vs_Actual",
@@ -1057,11 +892,11 @@
       "header_row": 5,
       "table_boundaries": {
         "start_row": 5,
-        "end_row": 9,
+        "end_row": 11,
         "start_column": 1,
         "end_column": 13
       },
-      "row_count": 4,
+      "row_count": 6,
       "column_count": 13,
       "original_columns": [
         "Period",
@@ -1281,67 +1116,82 @@
           "confidence": 0.85
         }
       ],
-      "normalized_table_file": "normalized_tables/monthly_financial_report_june_2026__budget_vs_actual__table_01.csv",
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_06__budget_vs_actual__table_01.csv",
       "sample_rows": [
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
-          "department": "Administration",
-          "budget_revenue": 156000,
-          "actual_revenue": 145860,
-          "budget_expense": 377400,
-          "actual_expense": 387987,
-          "revenue_variance": -10140,
-          "revenue_variance_pct": -0.065,
-          "expense_variance": 10587,
-          "expense_variance_pct": 0.0280524642,
-          "net_budget": -221400,
-          "net_actual": -242127
+          "department": "Engineering",
+          "budget_revenue": 471240,
+          "actual_revenue": 438253.2,
+          "budget_expense": 433479.69,
+          "actual_expense": 515568.75,
+          "revenue_variance": -32986.8,
+          "revenue_variance_pct": -0.07,
+          "expense_variance": 82089.06,
+          "expense_variance_pct": 0.1894,
+          "net_budget": 37760.31,
+          "net_actual": -77315.55
         },
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
           "department": "Business",
-          "budget_revenue": 522600,
-          "actual_revenue": 481545,
-          "budget_expense": 418200,
-          "actual_expense": 425728,
-          "revenue_variance": -41055,
-          "revenue_variance_pct": -0.0785591274,
-          "expense_variance": 7528,
-          "expense_variance_pct": 0.0180009565,
-          "net_budget": 104400,
-          "net_actual": 55817
-        },
-        {
-          "period": "2026-06-01T00:00:00.000",
-          "month": "June",
-          "department": "Engineering",
-          "budget_revenue": 717600,
-          "actual_revenue": 665272,
-          "budget_expense": 622200,
-          "actual_expense": 734196,
-          "revenue_variance": -52328,
-          "revenue_variance_pct": -0.0729208473,
-          "expense_variance": 111996,
-          "expense_variance_pct": 0.18,
-          "net_budget": 95400,
-          "net_actual": -68924
+          "budget_revenue": 428400,
+          "actual_revenue": 398412.0,
+          "budget_expense": 394072.45,
+          "actual_expense": 468698.87,
+          "revenue_variance": -29988.0,
+          "revenue_variance_pct": -0.07,
+          "expense_variance": 74626.42,
+          "expense_variance_pct": 0.1894,
+          "net_budget": 34327.55,
+          "net_actual": -70286.87
         },
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
           "department": "Health Sciences",
-          "budget_revenue": 631800,
-          "actual_revenue": 585047,
-          "budget_expense": 566100,
-          "actual_expense": 658959,
-          "revenue_variance": -46753,
-          "revenue_variance_pct": -0.0739996834,
-          "expense_variance": 92859,
-          "expense_variance_pct": 0.1640328564,
-          "net_budget": 65700,
-          "net_actual": -73912
+          "budget_revenue": 556920,
+          "actual_revenue": 517935.6,
+          "budget_expense": 533991.94,
+          "actual_expense": 631874.19,
+          "revenue_variance": -38984.4,
+          "revenue_variance_pct": -0.07,
+          "expense_variance": 97882.25,
+          "expense_variance_pct": 0.1833,
+          "net_budget": 22928.06,
+          "net_actual": -113938.59
+        },
+        {
+          "period": "2026-06-01T00:00:00.000",
+          "month": "June",
+          "department": "Arts & Humanities",
+          "budget_revenue": 299880,
+          "actual_revenue": 278888.4,
+          "budget_expense": 275850.71,
+          "actual_expense": 328089.21,
+          "revenue_variance": -20991.6,
+          "revenue_variance_pct": -0.07,
+          "expense_variance": 52238.5,
+          "expense_variance_pct": 0.1894,
+          "net_budget": 24029.29,
+          "net_actual": -49200.81
+        },
+        {
+          "period": "2026-06-01T00:00:00.000",
+          "month": "June",
+          "department": "Student Services",
+          "budget_revenue": 214200,
+          "actual_revenue": 199206.0,
+          "budget_expense": 197036.22,
+          "actual_expense": 234349.43,
+          "revenue_variance": -14994.0,
+          "revenue_variance_pct": -0.07,
+          "expense_variance": 37313.21,
+          "expense_variance_pct": 0.1894,
+          "net_budget": 17163.78,
+          "net_actual": -35143.43
         }
       ],
       "llm_reviewed": false,
@@ -1369,8 +1219,8 @@
       "requires_human_review": false
     },
     {
-      "table_id": "monthly_financial_report_june_2026__department_summary__table_01",
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "table_id": "university_financial_report_2026_06__department_summary__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx",
       "sheet": "Department_Summary",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Department_Summary",
@@ -1380,11 +1230,11 @@
       "header_row": 5,
       "table_boundaries": {
         "start_row": 5,
-        "end_row": 9,
+        "end_row": 11,
         "start_column": 1,
         "end_column": 9
       },
-      "row_count": 4,
+      "row_count": 6,
       "column_count": 9,
       "original_columns": [
         "Department",
@@ -1540,51 +1390,62 @@
           "confidence": 0.85
         }
       ],
-      "normalized_table_file": "normalized_tables/monthly_financial_report_june_2026__department_summary__table_01.csv",
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_06__department_summary__table_01.csv",
       "sample_rows": [
         {
-          "department": "Administration",
-          "budget_revenue": 156000,
-          "actual_revenue": 145860,
-          "budget_expense": 377400,
-          "actual_expense": 387987,
-          "net_contribution": -242127,
-          "expense_variance": 10587,
-          "expense_variance_pct": 0.0280524642,
-          "status": "Within Threshold"
+          "department": "Engineering",
+          "budget_revenue": 471240,
+          "actual_revenue": 438253.2,
+          "budget_expense": 433479.69,
+          "actual_expense": 515568.75,
+          "net_contribution": -77315.55,
+          "expense_variance": 82089.06,
+          "expense_variance_pct": 0.1894,
+          "status": "Over budget"
         },
         {
           "department": "Business",
-          "budget_revenue": 522600,
-          "actual_revenue": 481545,
-          "budget_expense": 418200,
-          "actual_expense": 425728,
-          "net_contribution": 55817,
-          "expense_variance": 7528,
-          "expense_variance_pct": 0.0180009565,
-          "status": "Within Threshold"
-        },
-        {
-          "department": "Engineering",
-          "budget_revenue": 717600,
-          "actual_revenue": 665272,
-          "budget_expense": 622200,
-          "actual_expense": 734196,
-          "net_contribution": -68924,
-          "expense_variance": 111996,
-          "expense_variance_pct": 0.18,
-          "status": "Flag - Overspend"
+          "budget_revenue": 428400,
+          "actual_revenue": 398412.0,
+          "budget_expense": 394072.45,
+          "actual_expense": 468698.87,
+          "net_contribution": -70286.87,
+          "expense_variance": 74626.42,
+          "expense_variance_pct": 0.1894,
+          "status": "Over budget"
         },
         {
           "department": "Health Sciences",
-          "budget_revenue": 631800,
-          "actual_revenue": 585047,
-          "budget_expense": 566100,
-          "actual_expense": 658959,
-          "net_contribution": -73912,
-          "expense_variance": 92859,
-          "expense_variance_pct": 0.1640328564,
-          "status": "Flag - Overspend"
+          "budget_revenue": 556920,
+          "actual_revenue": 517935.6,
+          "budget_expense": 533991.94,
+          "actual_expense": 631874.19,
+          "net_contribution": -113938.59,
+          "expense_variance": 97882.25,
+          "expense_variance_pct": 0.1833,
+          "status": "Over budget - overtime pressure"
+        },
+        {
+          "department": "Arts & Humanities",
+          "budget_revenue": 299880,
+          "actual_revenue": 278888.4,
+          "budget_expense": 275850.71,
+          "actual_expense": 328089.21,
+          "net_contribution": -49200.81,
+          "expense_variance": 52238.5,
+          "expense_variance_pct": 0.1894,
+          "status": "Over budget"
+        },
+        {
+          "department": "Student Services",
+          "budget_revenue": 214200,
+          "actual_revenue": 199206.0,
+          "budget_expense": 197036.22,
+          "actual_expense": 234349.43,
+          "net_contribution": -35143.43,
+          "expense_variance": 37313.21,
+          "expense_variance_pct": 0.1894,
+          "status": "Over budget"
         }
       ],
       "llm_reviewed": true,
@@ -1601,7 +1462,7 @@
         "Status": "status"
       },
       "llm_confidence": 0.87,
-      "llm_reasoning_short": "Table compares budget vs actual revenue and expenses per department with variance metrics. 'Net_Contribution' is a metric despite low confidence score. Status is a dimension.",
+      "llm_reasoning_short": "Columns match Budget_vs_Actual pattern with revenue/expense metrics and variance fields. Low confidence on Net_Contribution due to 0.55 score. Status is a dimension.",
       "final_table_type": "Department_Summary",
       "final_column_mappings": {
         "Department": "department",
@@ -1618,8 +1479,8 @@
       "requires_human_review": true
     },
     {
-      "table_id": "monthly_financial_report_june_2026__payroll__table_01",
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "table_id": "university_financial_report_2026_06__payroll__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx",
       "sheet": "Payroll",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Payroll",
@@ -1629,11 +1490,11 @@
       "header_row": 5,
       "table_boundaries": {
         "start_row": 5,
-        "end_row": 9,
+        "end_row": 11,
         "start_column": 1,
         "end_column": 11
       },
-      "row_count": 4,
+      "row_count": 6,
       "column_count": 11,
       "original_columns": [
         "Period",
@@ -1821,59 +1682,72 @@
           "confidence": 0.95
         }
       ],
-      "normalized_table_file": "normalized_tables/monthly_financial_report_june_2026__payroll__table_01.csv",
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_06__payroll__table_01.csv",
       "sample_rows": [
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
           "department": "Engineering",
-          "headcount_fte": 76,
-          "base_salary": 223514,
-          "benefits": 50165,
-          "overtime": 5017,
-          "total_payroll": 278696,
-          "payroll_budget": 273768,
-          "variance": 4928,
-          "variance_pct": 0.0180006429
+          "headcount_fte": 44.4,
+          "base_salary": 165936.12,
+          "benefits": 43188.85,
+          "overtime": 18184.78,
+          "total_payroll": 227309.75,
+          "payroll_budget": 218567.07,
+          "variance": 8742.68,
+          "variance_pct": 0.04
         },
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
           "department": "Business",
-          "headcount_fte": 51,
-          "base_salary": 157060,
-          "benefits": 35250,
-          "overtime": 3525,
-          "total_payroll": 195835,
-          "payroll_budget": 192372,
-          "variance": 3463,
-          "variance_pct": 0.0180015803
+          "headcount_fte": 42.0,
+          "base_salary": 150851.02,
+          "benefits": 39262.59,
+          "overtime": 16531.62,
+          "total_payroll": 206645.23,
+          "payroll_budget": 198697.33,
+          "variance": 7947.89,
+          "variance_pct": 0.04
         },
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
           "department": "Health Sciences",
-          "headcount_fte": 68,
-          "base_salary": 261630,
-          "benefits": 61560,
-          "overtime": 18810,
-          "total_payroll": 342000,
-          "payroll_budget": 254745,
-          "variance": 87255,
-          "variance_pct": 0.3425189896
+          "headcount_fte": 49.2,
+          "base_salary": 188118.08,
+          "benefits": 55328.85,
+          "overtime": 47757.53,
+          "total_payroll": 291204.46,
+          "payroll_budget": 251038.32,
+          "variance": 40166.13,
+          "variance_pct": 0.16
         },
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
-          "department": "Administration",
-          "headcount_fte": 48,
-          "base_salary": 144818,
-          "benefits": 32503,
-          "overtime": 3250,
-          "total_payroll": 180571,
-          "payroll_budget": 177378,
-          "variance": 3193,
-          "variance_pct": 0.018001105
+          "department": "Arts & Humanities",
+          "headcount_fte": 34.8,
+          "base_salary": 105595.71,
+          "benefits": 27483.82,
+          "overtime": 11572.13,
+          "total_payroll": 144651.66,
+          "payroll_budget": 139088.13,
+          "variance": 5563.53,
+          "variance_pct": 0.04
+        },
+        {
+          "period": "2026-06-01T00:00:00.000",
+          "month": "June",
+          "department": "Student Services",
+          "headcount_fte": 30.0,
+          "base_salary": 75425.51,
+          "benefits": 19631.3,
+          "overtime": 8265.81,
+          "total_payroll": 103322.61,
+          "payroll_budget": 99348.67,
+          "variance": 3973.95,
+          "variance_pct": 0.04
         }
       ],
       "llm_reviewed": false,
@@ -1899,22 +1773,22 @@
       "requires_human_review": false
     },
     {
-      "table_id": "monthly_financial_report_june_2026__student_payments__table_01",
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "table_id": "university_financial_report_2026_06__student_payments__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx",
       "sheet": "Student_Payments",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Student_Payments",
       "confidence": 0.99,
-      "header_confidence": 1.0,
+      "header_confidence": 0.9818,
       "requires_future_ollama_interpretation": false,
       "header_row": 5,
       "table_boundaries": {
         "start_row": 5,
-        "end_row": 53,
+        "end_row": 29,
         "start_column": 1,
         "end_column": 11
       },
-      "row_count": 48,
+      "row_count": 24,
       "column_count": 11,
       "original_columns": [
         "Invoice_ID",
@@ -2102,72 +1976,72 @@
           "confidence": 0.65
         }
       ],
-      "normalized_table_file": "normalized_tables/monthly_financial_report_june_2026__student_payments__table_01.csv",
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_06__student_payments__table_01.csv",
       "sample_rows": [
         {
-          "invoice_id": "INV-06-ENG-001",
-          "student_id": "STU-01241",
+          "invoice_id": "INV-2026_06-001",
+          "student_id": "ENG-FR-001",
           "department": "Engineering",
-          "billing_period": "2026-06-01T00:00:00.000",
-          "due_date": "2026-06-12T00:00:00.000",
-          "payment_date": "2026-06-11T00:00:00.000",
-          "amount_due": 25740,
-          "amount_paid": 25740,
-          "outstanding": 0,
-          "status": "Paid",
-          "days_overdue": 0
+          "billing_period": "June",
+          "due_date": "2026-06-20T00:00:00.000",
+          "payment_date": null,
+          "amount_due": 78885.58,
+          "amount_paid": 66263.88,
+          "outstanding": 12621.69,
+          "status": "Partially collected",
+          "days_overdue": 18
         },
         {
-          "invoice_id": "INV-06-ENG-002",
-          "student_id": "STU-01242",
+          "invoice_id": "INV-2026_06-002",
+          "student_id": "ENG-SO-002",
           "department": "Engineering",
-          "billing_period": "2026-06-01T00:00:00.000",
-          "due_date": "2026-06-13T00:00:00.000",
-          "payment_date": "2026-07-20T00:00:00.000",
-          "amount_due": 27799,
-          "amount_paid": 9730,
-          "outstanding": 18069,
-          "status": "Overdue - Partial",
-          "days_overdue": 31
+          "billing_period": "June",
+          "due_date": "2026-06-20T00:00:00.000",
+          "payment_date": null,
+          "amount_due": 78885.58,
+          "amount_paid": 66263.88,
+          "outstanding": 12621.69,
+          "status": "Partially collected",
+          "days_overdue": 18
         },
         {
-          "invoice_id": "INV-06-ENG-003",
-          "student_id": "STU-01243",
+          "invoice_id": "INV-2026_06-003",
+          "student_id": "ENG-JU-003",
           "department": "Engineering",
-          "billing_period": "2026-06-01T00:00:00.000",
-          "due_date": "2026-06-14T00:00:00.000",
-          "payment_date": "2026-06-11T00:00:00.000",
-          "amount_due": 29858,
-          "amount_paid": 29858,
-          "outstanding": 0,
-          "status": "Paid",
-          "days_overdue": 0
+          "billing_period": "June",
+          "due_date": "2026-06-20T00:00:00.000",
+          "payment_date": null,
+          "amount_due": 78885.58,
+          "amount_paid": 66263.88,
+          "outstanding": 12621.69,
+          "status": "Partially collected",
+          "days_overdue": 18
         },
         {
-          "invoice_id": "INV-06-ENG-004",
-          "student_id": "STU-01244",
+          "invoice_id": "INV-2026_06-004",
+          "student_id": "ENG-SE-004",
           "department": "Engineering",
-          "billing_period": "2026-06-01T00:00:00.000",
-          "due_date": "2026-06-15T00:00:00.000",
-          "payment_date": "2026-06-11T00:00:00.000",
-          "amount_due": 31918,
-          "amount_paid": 31918,
-          "outstanding": 0,
-          "status": "Paid",
-          "days_overdue": 0
+          "billing_period": "June",
+          "due_date": "2026-06-20T00:00:00.000",
+          "payment_date": null,
+          "amount_due": 78885.58,
+          "amount_paid": 66263.88,
+          "outstanding": 12621.69,
+          "status": "Partially collected",
+          "days_overdue": 18
         },
         {
-          "invoice_id": "INV-06-ENG-005",
-          "student_id": "STU-01245",
-          "department": "Engineering",
-          "billing_period": "2026-06-01T00:00:00.000",
-          "due_date": "2026-06-16T00:00:00.000",
-          "payment_date": "2026-06-15T00:00:00.000",
-          "amount_due": 33977,
-          "amount_paid": 33977,
-          "outstanding": 0,
-          "status": "Paid",
-          "days_overdue": 0
+          "invoice_id": "INV-2026_06-005",
+          "student_id": "BUS-FR-005",
+          "department": "Business",
+          "billing_period": "June",
+          "due_date": "2026-06-20T00:00:00.000",
+          "payment_date": null,
+          "amount_due": 71714.16,
+          "amount_paid": 60239.89,
+          "outstanding": 11474.27,
+          "status": "Partially collected",
+          "days_overdue": 18
         }
       ],
       "llm_reviewed": false,
@@ -2193,8 +2067,8 @@
       "requires_human_review": false
     },
     {
-      "table_id": "monthly_financial_report_june_2026__cash_flow__table_01",
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "table_id": "university_financial_report_2026_06__cash_flow__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx",
       "sheet": "Cash_Flow",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Cash_Flow",
@@ -2476,25 +2350,25 @@
           "confidence": 0.85
         }
       ],
-      "normalized_table_file": "normalized_tables/monthly_financial_report_june_2026__cash_flow__table_01.csv",
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_06__cash_flow__table_01.csv",
       "sample_rows": [
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
-          "beginning_cash": 5425358,
-          "budget_cash_inflows": 2028000,
-          "actual_cash_inflows": 1877724,
-          "budget_operating_outflows": 1983900,
-          "actual_operating_outflows": 2206870,
-          "budget_scholarships": 189999,
-          "actual_scholarships": 188100,
-          "budget_capital_outflows": 125000,
-          "actual_capital_outflows": 168750,
-          "budget_net_cash_flow": -270899,
-          "actual_net_cash_flow": -685996,
-          "budget_ending_cash": 5333244,
-          "actual_ending_cash": 4739362,
-          "ending_cash_variance": -593882
+          "beginning_cash": 2410000,
+          "budget_cash_inflows": 2202060,
+          "actual_cash_inflows": 1883330.4,
+          "budget_operating_outflows": 1553806.8,
+          "actual_operating_outflows": 2313767.1,
+          "budget_scholarships": 111384,
+          "actual_scholarships": 109563.3,
+          "budget_capital_outflows": 133000,
+          "actual_capital_outflows": 140000,
+          "budget_net_cash_flow": 170000,
+          "actual_net_cash_flow": -680000,
+          "budget_ending_cash": 2580000,
+          "actual_ending_cash": 1730000,
+          "ending_cash_variance": -850000
         }
       ],
       "llm_reviewed": true,
@@ -2525,8 +2399,8 @@
       "requires_human_review": true
     },
     {
-      "table_id": "monthly_financial_report_june_2026__scholarships__table_01",
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "table_id": "university_financial_report_2026_06__scholarships__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx",
       "sheet": "Scholarships",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Scholarships",
@@ -2536,11 +2410,11 @@
       "header_row": 5,
       "table_boundaries": {
         "start_row": 5,
-        "end_row": 14,
+        "end_row": 11,
         "start_column": 1,
         "end_column": 9
       },
-      "row_count": 9,
+      "row_count": 6,
       "column_count": 9,
       "original_columns": [
         "Period",
@@ -2696,62 +2570,62 @@
           "confidence": 0.55
         }
       ],
-      "normalized_table_file": "normalized_tables/monthly_financial_report_june_2026__scholarships__table_01.csv",
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_06__scholarships__table_01.csv",
       "sample_rows": [
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
           "department": "Engineering",
-          "scholarship_type": "Merit",
-          "allocated": 29333,
-          "awarded": 29040,
-          "remaining": 293,
-          "recipients": 6,
-          "utilization_pct": 0.9900112501
-        },
-        {
-          "period": "2026-06-01T00:00:00.000",
-          "month": "June",
-          "department": "Engineering",
-          "scholarship_type": "Need-Based",
-          "allocated": 33000,
-          "awarded": 32670,
-          "remaining": 330,
-          "recipients": 7,
-          "utilization_pct": 0.99
-        },
-        {
-          "period": "2026-06-01T00:00:00.000",
-          "month": "June",
-          "department": "Engineering",
-          "scholarship_type": "Research",
-          "allocated": 11000,
-          "awarded": 10890,
-          "remaining": 110,
-          "recipients": 2,
-          "utilization_pct": 0.99
+          "scholarship_type": "Need-based",
+          "allocated": 26032.24,
+          "awarded": 24103.93,
+          "remaining": 1928.31,
+          "recipients": 48,
+          "utilization_pct": 0.9259
         },
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
           "department": "Business",
-          "scholarship_type": "Merit",
-          "allocated": 20333,
-          "awarded": 20130,
-          "remaining": 203,
-          "recipients": 4,
-          "utilization_pct": 0.9900162298
+          "scholarship_type": "Need-based",
+          "allocated": 23665.67,
+          "awarded": 21912.66,
+          "remaining": 1753.01,
+          "recipients": 44,
+          "utilization_pct": 0.9259
         },
         {
           "period": "2026-06-01T00:00:00.000",
           "month": "June",
-          "department": "Business",
-          "scholarship_type": "Need-Based",
-          "allocated": 22875,
-          "awarded": 22646,
-          "remaining": 229,
-          "recipients": 5,
-          "utilization_pct": 0.989989071
+          "department": "Health Sciences",
+          "scholarship_type": "Need-based",
+          "allocated": 30765.37,
+          "awarded": 28486.46,
+          "remaining": 2278.92,
+          "recipients": 57,
+          "utilization_pct": 0.9259
+        },
+        {
+          "period": "2026-06-01T00:00:00.000",
+          "month": "June",
+          "department": "Arts & Humanities",
+          "scholarship_type": "Need-based",
+          "allocated": 16565.97,
+          "awarded": 15338.86,
+          "remaining": 1227.11,
+          "recipients": 31,
+          "utilization_pct": 0.9259
+        },
+        {
+          "period": "2026-06-01T00:00:00.000",
+          "month": "June",
+          "department": "Student Services",
+          "scholarship_type": "Need-based",
+          "allocated": 11832.84,
+          "awarded": 10956.33,
+          "remaining": 876.51,
+          "recipients": 22,
+          "utilization_pct": 0.9259
         }
       ],
       "llm_reviewed": true,
@@ -2775,8 +2649,8 @@
       "requires_human_review": true
     },
     {
-      "table_id": "monthly_financial_report_june_2026__vendor_payments__table_01",
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "table_id": "university_financial_report_2026_06__vendor_payments__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx",
       "sheet": "Vendor_Payments",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Vendor_Payments",
@@ -2786,11 +2660,11 @@
       "header_row": 5,
       "table_boundaries": {
         "start_row": 5,
-        "end_row": 45,
+        "end_row": 11,
         "start_column": 1,
         "end_column": 12
       },
-      "row_count": 40,
+      "row_count": 6,
       "column_count": 12,
       "original_columns": [
         "Payment_ID",
@@ -2969,20 +2843,6 @@
           "semantic_name": "approval_status",
           "role": "dimension",
           "confidence": 0.95
-        },
-        {
-          "original_column": "Potential_Duplicate",
-          "normalized_column": "potential_duplicate",
-          "semantic_name": "potential_duplicate",
-          "role": "dimension",
-          "confidence": 0.55
-        },
-        {
-          "original_column": "High_Value_Flag",
-          "normalized_column": "high_value_flag",
-          "semantic_name": "high_value_flag",
-          "role": "dimension",
-          "confidence": 0.55
         }
       ],
       "extracted_metrics": [
@@ -2992,79 +2852,93 @@
           "semantic_name": "amount",
           "role": "metric",
           "confidence": 0.95
+        },
+        {
+          "original_column": "Potential_Duplicate",
+          "normalized_column": "potential_duplicate",
+          "semantic_name": "potential_duplicate",
+          "role": "metric",
+          "confidence": 0.55
+        },
+        {
+          "original_column": "High_Value_Flag",
+          "normalized_column": "high_value_flag",
+          "semantic_name": "high_value_flag",
+          "role": "metric",
+          "confidence": 0.55
         }
       ],
-      "normalized_table_file": "normalized_tables/monthly_financial_report_june_2026__vendor_payments__table_01.csv",
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_06__vendor_payments__table_01.csv",
       "sample_rows": [
         {
-          "payment_id": "PAY-00051",
+          "payment_id": "PAY-2026_06-001",
           "payment_date": "2026-06-08T00:00:00.000",
           "month": "June",
           "department": "Engineering",
-          "vendor": "Northstar Facilities Group",
-          "invoice_number": "FAC-06-ENG-01",
-          "expense_category": "Facilities",
-          "amount": 76217,
+          "vendor": "LabSource",
+          "invoice_number": "LAB-2026_06-001",
+          "expense_category": "Services",
+          "amount": 23714,
           "payment_method": "ACH",
           "approval_status": "Approved",
-          "potential_duplicate": "No",
-          "high_value_flag": "Yes"
+          "potential_duplicate": false,
+          "high_value_flag": false
         },
         {
-          "payment_id": "PAY-00052",
-          "payment_date": "2026-06-15T00:00:00.000",
+          "payment_id": "PAY-2026_06-002",
+          "payment_date": "2026-06-11T00:00:00.000",
           "month": "June",
-          "department": "Engineering",
-          "vendor": "Northstar Facilities Group",
-          "invoice_number": "FAC-06-ENG-02",
-          "expense_category": "Facilities",
-          "amount": 55192,
+          "department": "Business",
+          "vendor": "FacilitiesPlus",
+          "invoice_number": "FAC-2026_06-002",
+          "expense_category": "Services",
+          "amount": 23936,
           "payment_method": "ACH",
           "approval_status": "Approved",
-          "potential_duplicate": "No",
-          "high_value_flag": "Yes"
+          "potential_duplicate": false,
+          "high_value_flag": false
         },
         {
-          "payment_id": "PAY-00053",
-          "payment_date": "2026-06-08T00:00:00.000",
+          "payment_id": "PAY-2026_06-003",
+          "payment_date": "2026-06-14T00:00:00.000",
           "month": "June",
-          "department": "Engineering",
-          "vendor": "Academic Equipment Partners",
-          "invoice_number": "EQP-0626-ENG-4471",
-          "expense_category": "Equipment",
-          "amount": 54750,
+          "department": "Health Sciences",
+          "vendor": "CloudEdu",
+          "invoice_number": "CLO-2026_06-003",
+          "expense_category": "Services",
+          "amount": 23555,
           "payment_method": "ACH",
           "approval_status": "Approved",
-          "potential_duplicate": "Yes",
-          "high_value_flag": "Yes"
+          "potential_duplicate": false,
+          "high_value_flag": false
         },
         {
-          "payment_id": "PAY-00054",
-          "payment_date": "2026-06-15T00:00:00.000",
+          "payment_id": "PAY-2026_06-004",
+          "payment_date": "2026-06-17T00:00:00.000",
           "month": "June",
-          "department": "Engineering",
-          "vendor": "Academic Equipment Partners",
-          "invoice_number": "EQP-0626-ENG-4471",
-          "expense_category": "Equipment",
-          "amount": 54750,
+          "department": "Arts & Humanities",
+          "vendor": "LibraryHub",
+          "invoice_number": "LIB-2026_06-004",
+          "expense_category": "Services",
+          "amount": 26679,
           "payment_method": "ACH",
           "approval_status": "Approved",
-          "potential_duplicate": "Yes",
-          "high_value_flag": "Yes"
+          "potential_duplicate": false,
+          "high_value_flag": false
         },
         {
-          "payment_id": "PAY-00055",
-          "payment_date": "2026-06-22T00:00:00.000",
+          "payment_id": "PAY-2026_06-005",
+          "payment_date": "2026-06-20T00:00:00.000",
           "month": "June",
-          "department": "Engineering",
-          "vendor": "Academic Equipment Partners",
-          "invoice_number": "EQP-06-ENG-03",
-          "expense_category": "Equipment",
-          "amount": 37837,
+          "department": "Student Services",
+          "vendor": "MedSupply Co",
+          "invoice_number": "MED-2026_06-005",
+          "expense_category": "Medical Supplies",
+          "amount": 29077,
           "payment_method": "ACH",
           "approval_status": "Approved",
-          "potential_duplicate": "No",
-          "high_value_flag": "No"
+          "potential_duplicate": false,
+          "high_value_flag": false
         }
       ],
       "llm_reviewed": true,
@@ -3084,7 +2958,7 @@
         "High_Value_Flag": "high_value_flag"
       },
       "llm_confidence": 0.99,
-      "llm_reasoning_short": "All columns map to canonical fields with high confidence except low-confidence fields which are mapped as-is. Table type matches source name.",
+      "llm_reasoning_short": "All columns match canonical fields. 'Potential_Duplicate' and 'High_Value_Flag' have lower confidence but map to allowed fields. Table type matches source.",
       "final_table_type": "Vendor_Payments",
       "final_column_mappings": {
         "Payment_ID": "payment_id",
@@ -3104,8 +2978,8 @@
       "requires_human_review": false
     },
     {
-      "table_id": "monthly_financial_report_june_2026__anomalies_embedded__table_01",
-      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic\\monthly_financial_report_june_2026.xlsx",
+      "table_id": "university_financial_report_2026_06__anomalies_embedded__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_06.xlsx",
       "sheet": "Anomalies_Embedded",
       "table_title": "Currency: USD | Synthetic data | Generated deterministically",
       "detected_type": "Unknown",
@@ -3115,11 +2989,11 @@
       "header_row": 5,
       "table_boundaries": {
         "start_row": 5,
-        "end_row": 12,
+        "end_row": 7,
         "start_column": 1,
         "end_column": 9
       },
-      "row_count": 7,
+      "row_count": 2,
       "column_count": 9,
       "original_columns": [
         "Anomaly_ID",
@@ -3275,62 +3149,29 @@
           "confidence": 0.55
         }
       ],
-      "normalized_table_file": "normalized_tables/monthly_financial_report_june_2026__anomalies_embedded__table_01.csv",
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_06__anomalies_embedded__table_01.csv",
       "sample_rows": [
         {
-          "anomaly_id": "ANOM-001",
-          "detected_period": "2026-06-01T00:00:00.000",
-          "department": "Engineering",
-          "anomaly_type": "Department Overspending",
-          "severity": "High",
-          "description": "Actual expenses exceed June budget by more than 15%.",
-          "observed_value": 0.18,
-          "threshold": 0.12,
-          "source_sheet": "Budget_vs_Actual"
-        },
-        {
-          "anomaly_id": "ANOM-002",
-          "detected_period": "2026-06-01T00:00:00.000",
+          "anomaly_id": "ANOM-2026_06-HS-OT",
+          "detected_period": "2026_06",
           "department": "Health Sciences",
-          "anomaly_type": "Payroll Spike",
-          "severity": "High",
-          "description": "June payroll increased sharply relative to May.",
-          "observed_value": 0.3423872512,
-          "threshold": 0.1,
+          "anomaly_type": "payroll_overtime_overspend",
+          "severity": "Critical",
+          "description": "Health Sciences overtime remains above the reduction threshold.",
+          "observed_value": 47757.53,
+          "threshold": 20083.07,
           "source_sheet": "Payroll"
         },
         {
-          "anomaly_id": "ANOM-003",
-          "detected_period": "2026-06-01T00:00:00.000",
-          "department": "Multiple",
-          "anomaly_type": "Overdue Student Payments",
-          "severity": "Medium",
-          "description": "9 June tuition invoices are overdue or partially paid.",
-          "observed_value": 9.0,
-          "threshold": 8.0,
-          "source_sheet": "Student_Payments"
-        },
-        {
-          "anomaly_id": "ANOM-004",
-          "detected_period": "2026-06-01T00:00:00.000",
-          "department": "Engineering",
-          "anomaly_type": "Duplicate Vendor Payment",
+          "anomaly_id": "ANOM-2026_06-CF",
+          "detected_period": "2026_06",
+          "department": "University",
+          "anomaly_type": "negative_cash_flow",
           "severity": "Critical",
-          "description": "Two payments share the same vendor, invoice number, and amount.",
-          "observed_value": 54750.0,
+          "description": "Net cash flow is materially negative for the month.",
+          "observed_value": -680000.0,
           "threshold": 0.0,
-          "source_sheet": "Vendor_Payments"
-        },
-        {
-          "anomaly_id": "ANOM-005",
-          "detected_period": "2026-06-01T00:00:00.000",
-          "department": "Administration",
-          "anomaly_type": "Unusually High Facilities Expense",
-          "severity": "High",
-          "description": "Single facilities payment materially exceeds normal transaction size.",
-          "observed_value": 96000.0,
-          "threshold": 50000.0,
-          "source_sheet": "Vendor_Payments"
+          "source_sheet": "Cash_Flow"
         }
       ],
       "llm_reviewed": true,
@@ -3347,7 +3188,7 @@
         "Source_Sheet": "source_sheet"
       },
       "llm_confidence": 0.3,
-      "llm_reasoning_short": "Table contains anomaly detection data with observed values vs thresholds. No clear financial metric alignment. All columns mapped to canonical fields except 'unknown' fields. Low confidence due to mismatched context.",
+      "llm_reasoning_short": "Table contains anomaly detection fields with low confidence scores. No clear financial metric alignment. All columns mapped to canonical fields except 'unknown' fields.",
       "final_table_type": "Unknown",
       "final_column_mappings": {
         "Anomaly_ID": "anomaly_id",
@@ -3366,7 +3207,7 @@
   ],
   "enrichment": {
     "stage": "ollama_structure_fallback",
-    "generated_at_utc": "2026-07-16T20:01:15.242335+00:00",
+    "generated_at_utc": "2026-07-21T12:36:43.917678+00:00",
     "ollama_available": true,
     "items_detected": 5,
     "acceptance_threshold": 0.75,

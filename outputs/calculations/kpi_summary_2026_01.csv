@@ -1,0 +1,16 @@
+metric,value,unit,availability,source
+total_revenue,2100000.0,USD,available,Revenue
+total_expenses,2017500.0,USD,available,Expenses
+net_operating_result,82500.0,USD,available,Revenue - Expenses
+revenue_budget_variance,0.0,USD,available,Budget_vs_Actual
+revenue_budget_variance_pct,0.0,ratio,available,Budget_vs_Actual
+expense_budget_variance,64500.0,USD,available,Budget_vs_Actual
+expense_budget_variance_pct,0.03302611367127496,ratio,available,Budget_vs_Actual
+payroll_total,798000.0,USD,available,Payroll
+payroll_percentage_of_revenue,0.38,ratio,available,Payroll / Revenue
+student_payment_collection_rate,0.95,ratio,available,Student_Payments
+overdue_payment_percentage,0.0,ratio,available,Student_Payments
+vendor_payment_total,150937.0,USD,available,Vendor_Payments
+scholarship_awarded_total,115500.0,USD,available,Scholarships
+net_cash_flow,150000.0,USD,available,Cash_Flow
+ending_cash,2650000.0,USD,available,Cash_Flow

@@ -1,0 +1,25 @@
+invoice_id,student_id,department,billing_period,due_date,payment_date,amount_due,amount_paid,outstanding,status,days_overdue
+INV-2026_08-001,ENG-FR-001,Engineering,August,2026-08-20,2026-08-25,82068.94,73862.05,8206.89,Partially collected,0
+INV-2026_08-002,ENG-SO-002,Engineering,August,2026-08-20,2026-08-25,82068.94,73862.05,8206.89,Partially collected,0
+INV-2026_08-003,ENG-JU-003,Engineering,August,2026-08-20,2026-08-25,82068.94,73862.05,8206.89,Partially collected,0
+INV-2026_08-004,ENG-SE-004,Engineering,August,2026-08-20,2026-08-25,82068.94,73862.05,8206.89,Partially collected,0
+INV-2026_08-005,BUS-FR-005,Business,August,2026-08-20,2026-08-25,74608.13,67147.32,7460.81,Partially collected,0
+INV-2026_08-006,BUS-SO-006,Business,August,2026-08-20,2026-08-25,74608.13,67147.32,7460.81,Partially collected,0
+INV-2026_08-007,BUS-JU-007,Business,August,2026-08-20,2026-08-25,74608.13,67147.32,7460.81,Partially collected,0
+INV-2026_08-008,BUS-SE-008,Business,August,2026-08-20,2026-08-25,74608.13,67147.32,7460.81,Partially collected,0
+INV-2026_08-009,HEA-FR-009,Health Sciences,August,2026-08-20,2026-08-25,96990.57,87291.51,9699.06,Partially collected,0
+INV-2026_08-010,HEA-SO-010,Health Sciences,August,2026-08-20,2026-08-25,96990.57,87291.51,9699.06,Partially collected,0
+INV-2026_08-011,HEA-JU-011,Health Sciences,August,2026-08-20,2026-08-25,96990.57,87291.51,9699.06,Partially collected,0
+INV-2026_08-012,HEA-SE-012,Health Sciences,August,2026-08-20,2026-08-25,96990.57,87291.51,9699.06,Partially collected,0
+INV-2026_08-013,ART-FR-013,Arts & Humanities,August,2026-08-20,2026-08-25,52225.69,47003.12,5222.57,Partially collected,0
+INV-2026_08-014,ART-SO-014,Arts & Humanities,August,2026-08-20,2026-08-25,52225.69,47003.12,5222.57,Partially collected,0
+INV-2026_08-015,ART-JU-015,Arts & Humanities,August,2026-08-20,2026-08-25,52225.69,47003.12,5222.57,Partially collected,0
+INV-2026_08-016,ART-SE-016,Arts & Humanities,August,2026-08-20,2026-08-25,52225.69,47003.12,5222.57,Partially collected,0
+INV-2026_08-017,STU-FR-017,Student Services,August,2026-08-20,2026-08-25,37304.06,33573.66,3730.41,Partially collected,0
+INV-2026_08-018,STU-SO-018,Student Services,August,2026-08-20,2026-08-25,37304.06,33573.66,3730.41,Partially collected,0
+INV-2026_08-019,STU-JU-019,Student Services,August,2026-08-20,2026-08-25,37304.06,33573.66,3730.41,Partially collected,0
+INV-2026_08-020,STU-SE-020,Student Services,August,2026-08-20,2026-08-25,37304.06,33573.66,3730.41,Partially collected,0
+INV-2026_08-021,ADM-FR-021,Administration,August,2026-08-20,2026-08-25,29843.25,26858.93,2984.33,Partially collected,0
+INV-2026_08-022,ADM-SO-022,Administration,August,2026-08-20,2026-08-25,29843.25,26858.93,2984.33,Partially collected,0
+INV-2026_08-023,ADM-JU-023,Administration,August,2026-08-20,2026-08-25,29843.25,26858.93,2984.33,Partially collected,0
+INV-2026_08-024,ADM-SE-024,Administration,August,2026-08-20,2026-08-25,29843.25,26858.93,2984.33,Partially collected,0

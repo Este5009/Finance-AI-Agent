@@ -1,0 +1,31 @@
+period,month,department,expense_category,budget_expense,actual_expense,variance,variance_pct
+2026-11-01,November,Engineering,Payroll,193208.4,200936.74,7728.34,0.04
+2026-11-01,November,Engineering,Supplies,96382.44,95164.49,-1217.95,-0.0126
+2026-11-01,November,Engineering,Services,86236.92,85147.17,-1089.75,-0.0126
+2026-11-01,November,Engineering,Facilities,45654.84,45077.92,-576.92,-0.0126
+2026-11-01,November,Engineering,Technology,25363.8,25043.29,-320.51,-0.0126
+2026-11-01,November,Business,Payroll,175644.0,182669.76,7025.76,0.04
+2026-11-01,November,Business,Supplies,87620.4,86513.17,-1107.23,-0.0126
+2026-11-01,November,Business,Services,78397.2,77406.52,-990.68,-0.0126
+2026-11-01,November,Business,Facilities,41504.4,40979.92,-524.48,-0.0126
+2026-11-01,November,Business,Technology,23058.0,22766.62,-291.38,-0.0126
+2026-11-01,November,Health Sciences,Payroll,228337.2,237470.69,9133.49,0.04
+2026-11-01,November,Health Sciences,Supplies,113906.52,112467.12,-1439.4,-0.0126
+2026-11-01,November,Health Sciences,Services,101916.36,100628.48,-1287.88,-0.0126
+2026-11-01,November,Health Sciences,Facilities,53955.72,53273.9,-681.82,-0.0126
+2026-11-01,November,Health Sciences,Technology,29975.4,29596.61,-378.79,-0.0126
+2026-11-01,November,Arts & Humanities,Payroll,122950.8,127868.83,4918.03,0.04
+2026-11-01,November,Arts & Humanities,Supplies,61334.28,60559.22,-775.06,-0.0126
+2026-11-01,November,Arts & Humanities,Services,54878.04,54184.57,-693.47,-0.0126
+2026-11-01,November,Arts & Humanities,Facilities,29053.08,28685.95,-367.13,-0.0126
+2026-11-01,November,Arts & Humanities,Technology,16140.6,15936.64,-203.96,-0.0126
+2026-11-01,November,Student Services,Payroll,87822.0,91334.88,3512.88,0.04
+2026-11-01,November,Student Services,Supplies,43810.2,43256.59,-553.61,-0.0126
+2026-11-01,November,Student Services,Services,39198.6,38703.26,-495.34,-0.0126
+2026-11-01,November,Student Services,Facilities,20752.2,20489.96,-262.24,-0.0126
+2026-11-01,November,Student Services,Technology,11529.0,11383.31,-145.69,-0.0126
+2026-11-01,November,Administration,Payroll,70257.6,73067.9,2810.3,0.04
+2026-11-01,November,Administration,Supplies,35048.16,34605.27,-442.89,-0.0126
+2026-11-01,November,Administration,Services,31358.88,30962.61,-396.27,-0.0126
+2026-11-01,November,Administration,Facilities,16601.76,16391.97,-209.79,-0.0126
+2026-11-01,November,Administration,Technology,9223.2,9106.64,-116.56,-0.0126

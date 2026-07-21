@@ -183,23 +183,23 @@
         "approval_status",
         "department",
         "expense_category",
-        "high_value_flag",
         "invoice_number",
         "month",
         "payment_date",
         "payment_id",
         "payment_method",
-        "potential_duplicate",
         "vendor"
       ],
       "metrics": [
-        "amount"
+        "amount",
+        "high_value_flag",
+        "potential_duplicate"
       ]
     }
   },
   "tables": [
     {
-      "table_id": "monthly_financial_report_june_2026__executive_summary__table_01",
+      "table_id": "university_financial_report_2026_06__executive_summary__table_01",
       "detected_type": "Executive_Summary",
       "confidence": 0.99,
       "requires_future_ollama_interpretation": false,
@@ -215,7 +215,7 @@
       ]
     },
     {
-      "table_id": "monthly_financial_report_june_2026__revenue__table_01",
+      "table_id": "university_financial_report_2026_06__revenue__table_01",
       "detected_type": "Revenue",
       "confidence": 0.99,
       "requires_future_ollama_interpretation": false,
@@ -233,7 +233,7 @@
       ]
     },
     {
-      "table_id": "monthly_financial_report_june_2026__expenses__table_01",
+      "table_id": "university_financial_report_2026_06__expenses__table_01",
       "detected_type": "Expenses",
       "confidence": 0.8375,
       "requires_future_ollama_interpretation": false,
@@ -251,7 +251,7 @@
       ]
     },
     {
-      "table_id": "monthly_financial_report_june_2026__budget_vs_actual__table_01",
+      "table_id": "university_financial_report_2026_06__budget_vs_actual__table_01",
       "detected_type": "Budget_vs_Actual",
       "confidence": 0.8375,
       "requires_future_ollama_interpretation": false,
@@ -274,7 +274,7 @@
       ]
     },
     {
-      "table_id": "monthly_financial_report_june_2026__department_summary__table_01",
+      "table_id": "university_financial_report_2026_06__department_summary__table_01",
       "detected_type": "Department_Summary",
       "confidence": 0.87,
       "requires_future_ollama_interpretation": false,
@@ -293,7 +293,7 @@
       ]
     },
     {
-      "table_id": "monthly_financial_report_june_2026__payroll__table_01",
+      "table_id": "university_financial_report_2026_06__payroll__table_01",
       "detected_type": "Payroll",
       "confidence": 0.99,
       "requires_future_ollama_interpretation": false,
@@ -314,7 +314,7 @@
       ]
     },
     {
-      "table_id": "monthly_financial_report_june_2026__student_payments__table_01",
+      "table_id": "university_financial_report_2026_06__student_payments__table_01",
       "detected_type": "Student_Payments",
       "confidence": 0.99,
       "requires_future_ollama_interpretation": false,
@@ -335,7 +335,7 @@
       ]
     },
     {
-      "table_id": "monthly_financial_report_june_2026__cash_flow__table_01",
+      "table_id": "university_financial_report_2026_06__cash_flow__table_01",
       "detected_type": "Cash_Flow",
       "confidence": 0.7833,
       "requires_future_ollama_interpretation": false,
@@ -361,7 +361,7 @@
       ]
     },
     {
-      "table_id": "monthly_financial_report_june_2026__scholarships__table_01",
+      "table_id": "university_financial_report_2026_06__scholarships__table_01",
       "detected_type": "Scholarships",
       "confidence": 0.99,
       "requires_future_ollama_interpretation": false,
@@ -380,7 +380,7 @@
       ]
     },
     {
-      "table_id": "monthly_financial_report_june_2026__vendor_payments__table_01",
+      "table_id": "university_financial_report_2026_06__vendor_payments__table_01",
       "detected_type": "Vendor_Payments",
       "confidence": 0.99,
       "requires_future_ollama_interpretation": false,
@@ -393,16 +393,16 @@
         "invoice_number",
         "expense_category",
         "payment_method",
-        "approval_status",
-        "potential_duplicate",
-        "high_value_flag"
+        "approval_status"
       ],
       "metrics": [
-        "amount"
+        "amount",
+        "potential_duplicate",
+        "high_value_flag"
       ]
     },
     {
-      "table_id": "monthly_financial_report_june_2026__anomalies_embedded__table_01",
+      "table_id": "university_financial_report_2026_06__anomalies_embedded__table_01",
       "detected_type": "Unknown",
       "confidence": 0.3,
       "requires_future_ollama_interpretation": true,

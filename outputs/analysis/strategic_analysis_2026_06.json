@@ -9,55 +9,55 @@
   "validation_errors": [],
   "recommendation_count": 3,
   "analysis": {
-    "executive_summary": "The Health Sciences department significantly overspent on payroll and vendor payments in June 2026, with a $87,255 variance against budget. Engineering also exceeded its budget, while other departments met targets. The student collection rate missed its target, and flagged vendor payments lack evidence.",
+    "executive_summary": "The university faces critical financial anomalies in June 2026, including negative cash flow, Facilities and Services category overspending, and missing transaction data. Key evidence shows departmental budget variances exceeding thresholds, with incomplete data hindering full analysis.",
     "key_findings": [
-      "Health Sciences payroll variance of $87,255 (actual $342,000 vs. budget $254,745) driven by high benefits ($61,560) and overtime ($18,810).",
-      "Engineering department overspent by $111,996 (actual $734,196 vs. budget $622,200) with vendor payments for supplies and services.",
-      "Student collection rate missed target with no evidence of transaction processing for June 2026.",
-      "Flagged vendor payments have no processed transaction records, indicating potential data gaps."
+      "Net cash flow is critically low (threshold: 0.0), with operating, scholarship, and capital cash outflows requiring review.",
+      "Facilities category overspending (6 transactions) across Health Sciences, Arts & Humanities, Student Services, and Administration departments.",
+      "Services category overspending (11 transactions) with vendors like FacilitiesPlus and CloudEdu contributing to budget variances.",
+      "Student collection rate missed target due to 0 processed transactions retrieved, indicating data unavailability."
     ],
     "root_causes": [
-      "Unplanned overtime and benefits in Health Sciences due to staffing or project demands.",
-      "Unplanned vendor payments in Engineering for supplies and services exceeding budget allocations.",
-      "Incomplete transaction processing for student payments leading to collection rate shortfall.",
-      "Data filtering issues causing missing vendor payment evidence for flagged transactions."
+      "Inadequate transaction processing leading to missing data for collection rate analysis.",
+      "Unplanned vendor payments (e.g., FacilitiesPlus, CloudEdu) causing Services category overspending.",
+      "Departmental budget variances exceeding 12% threshold for Facilities and Services categories.",
+      "Negative cash flow driven by unreviewed operating, scholarship, and capital outflows."
     ],
     "recommendations": [
       {
-        "priority": "high",
-        "action": "Conduct departmental review of Health Sciences payroll and vendor spending.",
-        "rationale": "Health Sciences has the largest variance; understanding root causes can prevent future overspending.",
-        "supporting_evidence": "Health Sciences payroll variance $87,255, vendor payments $29,045 for supplies.",
-        "expected_impact": "Reduce overspending by 50% in next quarter.",
-        "confidence": 0.85
+        "priority": "critical",
+        "action": "Review operating, scholarship, and capital cash outflows immediately.",
+        "rationale": "Critical net cash flow anomaly requires urgent investigation to prevent liquidity issues.",
+        "supporting_evidence": "net_cash_flow metric, severity: critical",
+        "expected_impact": "Restore positive cash flow within 30 days.",
+        "confidence": 0.95
+      },
+      {
+        "priority": "critical",
+        "action": "Audit Facilities and Services category transactions by department.",
+        "rationale": "Overspending in these categories exceeds departmental overspend threshold (12%).",
+        "supporting_evidence": "category_expense_variance_pct metric, severity: critical",
+        "expected_impact": "Reduce category overspending by 20% within 60 days.",
+        "confidence": 0.95
       },
       {
         "priority": "high",
-        "action": "Investigate student payment processing delays and implement tracking system.",
-        "rationale": "Student collection rate missed target due to unprocessed transactions.",
-        "supporting_evidence": "48 transaction records retrieved but status 'Paid' not confirmed for collection rate.",
-        "expected_impact": "Achieve 95% collection rate by July 2026.",
-        "confidence": 0.75
-      },
-      {
-        "priority": "medium",
-        "action": "Review vendor payment filters to ensure all transactions are processed.",
-        "rationale": "Flagged vendor payments have no evidence due to filtering issues.",
-        "supporting_evidence": "0 processed transactions retrieved for flagged vendor payments.",
-        "expected_impact": "Ensure 100% of vendor payments are recorded and auditable.",
-        "confidence": 0.65
+        "action": "Investigate missing transaction data for student collections.",
+        "rationale": "0 processed transactions retrieved for collection rate analysis, hindering revenue forecasting.",
+        "supporting_evidence": "STEP-001 evidence failure, confidence: 0.55",
+        "expected_impact": "Improve collection rate accuracy by 15% within 45 days.",
+        "confidence": 0.55
       }
     ],
     "strategic_priorities": [
-      "Address Health Sciences overspending to align with annual budget goals.",
-      "Improve student payment collection rate to meet financial targets.",
-      "Fix data processing gaps for vendor payments to ensure auditability."
+      "Prevent cash flow deterioration",
+      "Control category overspending",
+      "Improve data completeness for revenue tracking"
     ],
     "missing_information": [
-      "Details on Engineering vendor payment categories exceeding budget.",
-      "Specific cause of student payment processing delays."
+      "No processed transactions for student collections (STEP-001, STEP-002)",
+      "Historical memory database unavailable for unresolved data (STEP-006)"
     ],
-    "confidence": 0.8,
-    "reasoning_summary": "Evidence shows Health Sciences and Engineering overspending, student payments missing, and vendor data gaps. Recommendations focus on root cause analysis and process improvements based on retrieved data."
+    "confidence": 0.75,
+    "reasoning_summary": "Critical anomalies in cash flow and category overspending are supported by evidence, but missing transaction data reduces confidence in collection rate analysis. Recommendations prioritize immediate cash flow review and category audits based on available evidence."
   }
 }

@@ -1,0 +1,119 @@
+{
+  "plan_id": "PLAN-2026-01",
+  "report_period": "2026-01",
+  "period_slug": "2026_01",
+  "source_files": [
+    "university_financial_report_2026_01.xlsx"
+  ],
+  "total_tasks": 3,
+  "tasks_by_priority": {
+    "critical": 0,
+    "high": 0,
+    "medium": 3,
+    "low": 0
+  },
+  "tasks": [
+    {
+      "task_id": "INV-2026-01-001",
+      "anomaly_id": "DATA-TABLE-university_financial_report_2026_01__cash_flow__table_01",
+      "priority": "medium",
+      "priority_score": 50,
+      "question_to_answer": "What is the correct structure and business meaning of table 'university_financial_report_2026_01__cash_flow__table_01'?",
+      "reason": "Enriched model requires human review; final type is Cash_Flow with confidence 0.7833.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-01-001-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-01"
+          },
+          "purpose": "Review the table in the context of its processed report."
+        },
+        {
+          "request_id": "INV-2026-01-001-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "table_id": "university_financial_report_2026_01__cash_flow__table_01",
+            "limit": 100
+          },
+          "purpose": "Inspect representative processed records before schema approval."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "planned",
+      "prioritization_factors": [
+        "missing_or_uncertain_data",
+        "final_table_type:Cash_Flow"
+      ]
+    },
+    {
+      "task_id": "INV-2026-01-002",
+      "anomaly_id": "DATA-TABLE-university_financial_report_2026_01__department_summary__table_01",
+      "priority": "medium",
+      "priority_score": 50,
+      "question_to_answer": "What is the correct structure and business meaning of table 'university_financial_report_2026_01__department_summary__table_01'?",
+      "reason": "Enriched model requires human review; final type is Department_Summary with confidence 0.87.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-01-002-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-01"
+          },
+          "purpose": "Review the table in the context of its processed report."
+        },
+        {
+          "request_id": "INV-2026-01-002-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "table_id": "university_financial_report_2026_01__department_summary__table_01",
+            "limit": 100
+          },
+          "purpose": "Inspect representative processed records before schema approval."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "planned",
+      "prioritization_factors": [
+        "missing_or_uncertain_data",
+        "final_table_type:Department_Summary"
+      ]
+    },
+    {
+      "task_id": "INV-2026-01-003",
+      "anomaly_id": "DATA-TABLE-university_financial_report_2026_01__scholarships__table_01",
+      "priority": "medium",
+      "priority_score": 50,
+      "question_to_answer": "What is the correct structure and business meaning of table 'university_financial_report_2026_01__scholarships__table_01'?",
+      "reason": "Enriched model requires human review; final type is Scholarships with confidence 0.99.",
+      "required_evidence": [
+        {
+          "request_id": "INV-2026-01-003-E01",
+          "tool_name": "get_full_report",
+          "parameters": {
+            "period": "2026-01"
+          },
+          "purpose": "Review the table in the context of its processed report."
+        },
+        {
+          "request_id": "INV-2026-01-003-E02",
+          "tool_name": "get_transactions",
+          "parameters": {
+            "table_id": "university_financial_report_2026_01__scholarships__table_01",
+            "limit": 100
+          },
+          "purpose": "Inspect representative processed records before schema approval."
+        }
+      ],
+      "suggested_tool": "get_full_report",
+      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "status": "planned",
+      "prioritization_factors": [
+        "missing_or_uncertain_data",
+        "final_table_type:Scholarships"
+      ]
+    }
+  ]
+}

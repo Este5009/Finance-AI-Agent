@@ -1,0 +1,25 @@
+period,month,department,revenue_category,budget_revenue,actual_revenue,variance,variance_pct
+2026-10-01,October,Engineering,Tuition,373332.96,373332.96,0,0
+2026-10-01,October,Engineering,Grants,57435.84,57435.84,0,0
+2026-10-01,October,Engineering,Auxiliary,33504.24,33504.24,0,0
+2026-10-01,October,Engineering,Donations,14358.96,14358.96,0,0
+2026-10-01,October,Business,Tuition,339393.6,339393.6,0,0
+2026-10-01,October,Business,Grants,52214.4,52214.4,0,0
+2026-10-01,October,Business,Auxiliary,30458.4,30458.4,0,0
+2026-10-01,October,Business,Donations,13053.6,13053.6,0,0
+2026-10-01,October,Health Sciences,Tuition,441211.68,441211.68,0,0
+2026-10-01,October,Health Sciences,Grants,67878.72,67878.72,0,0
+2026-10-01,October,Health Sciences,Auxiliary,39595.92,39595.92,0,0
+2026-10-01,October,Health Sciences,Donations,16969.68,16969.68,0,0
+2026-10-01,October,Arts & Humanities,Tuition,237575.52,237575.52,0,0
+2026-10-01,October,Arts & Humanities,Grants,36550.08,36550.08,0,0
+2026-10-01,October,Arts & Humanities,Auxiliary,21320.88,21320.88,0,0
+2026-10-01,October,Arts & Humanities,Donations,9137.52,9137.52,0,0
+2026-10-01,October,Student Services,Tuition,169696.8,169696.8,0,0
+2026-10-01,October,Student Services,Grants,26107.2,26107.2,0,0
+2026-10-01,October,Student Services,Auxiliary,15229.2,15229.2,0,0
+2026-10-01,October,Student Services,Donations,6526.8,6526.8,0,0
+2026-10-01,October,Administration,Tuition,135757.44,135757.44,0,0
+2026-10-01,October,Administration,Grants,20885.76,20885.76,0,0
+2026-10-01,October,Administration,Auxiliary,12183.36,12183.36,0,0
+2026-10-01,October,Administration,Donations,5221.44,5221.44,0,0

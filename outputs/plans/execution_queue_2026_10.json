@@ -1,0 +1,63 @@
+{
+  "queue_id": "QUEUE-2026-10",
+  "period_slug": "2026_10",
+  "source_plan_id": "OLLAMA-PLAN-2026-10",
+  "planner_source": "ollama",
+  "status": "pending",
+  "tools_executed": false,
+  "total_items": 3,
+  "items": [
+    {
+      "queue_position": 1,
+      "execution_id": "EXEC-2026-10-001",
+      "step_id": "STEP-001",
+      "anomaly_id": "ANOM-2026-10-001",
+      "priority": "medium",
+      "question": "What payroll components and departments caused the payroll risk in 2026-10?",
+      "tool_name": "get_payroll_history",
+      "arguments": {
+        "department": "all",
+        "months": 1
+      },
+      "reasoning": "Payroll exceeds revenue threshold (43% vs 42% max) requires department-level analysis.",
+      "expected_output": "Payroll breakdown by department and component for October 2026.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 2,
+      "execution_id": "EXEC-2026-10-002",
+      "step_id": "STEP-002",
+      "anomaly_id": "ANOM-2026-10-002",
+      "priority": "medium",
+      "question": "Why did the student collection rate miss its target in 2026-10?",
+      "tool_name": "get_transactions",
+      "arguments": {
+        "filters": {
+          "type": "student_payment",
+          "period": "2026-10"
+        }
+      },
+      "reasoning": "Collection rate at 94% vs 94% target (93.999997% actual) needs transaction-level analysis.",
+      "expected_output": "Transaction details showing payment collection patterns for October 2026.",
+      "status": "queued",
+      "dependencies": []
+    },
+    {
+      "queue_position": 3,
+      "execution_id": "EXEC-2026-10-003",
+      "step_id": "STEP-003",
+      "anomaly_id": null,
+      "priority": "medium",
+      "question": "What is the correct structure and business meaning of table 'university_financial_report_2026_10__cash_flow__table_01'? | What is the correct structure and business meaning of table 'university_financial_report_2026_10__department_summary__table_01'? | What is the correct structure and business meaning of table 'uniâ€¦",
+      "tool_name": "get_full_report",
+      "arguments": {
+        "period": "2026-10"
+      },
+      "reasoning": "Cash flow table requires validation for data quality issues. | Department summary table requires validation for data quality issues. | Scholarships table requires validation for data quality issues.",
+      "expected_output": "Full report structure and business context for cash flow table. | Full report structure and business context for department summary table. | Full report structure and business context for scholarships table.",
+      "status": "queued",
+      "dependencies": []
+    }
+  ]
+}

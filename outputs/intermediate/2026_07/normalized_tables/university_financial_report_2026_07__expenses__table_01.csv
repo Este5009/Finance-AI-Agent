@@ -1,0 +1,31 @@
+period,month,department,expense_category,budget_expense,actual_expense,variance,variance_pct
+2026-07-01,July,Engineering,Payroll,218935.96,227693.4,8757.44,0.04
+2026-07-01,July,Engineering,Supplies,82695.78,97206.78,14510.99,0.1755
+2026-07-01,July,Engineering,Services,73990.96,86974.48,12983.52,0.1755
+2026-07-01,July,Engineering,Facilities,39171.69,46045.32,6873.63,0.1755
+2026-07-01,July,Engineering,Technology,21762.05,25580.73,3818.68,0.1755
+2026-07-01,July,Business,Payroll,199032.69,206994.0,7961.31,0.04
+2026-07-01,July,Business,Supplies,75177.98,88369.8,13191.81,0.1755
+2026-07-01,July,Business,Services,67264.51,79067.71,11803.2,0.1755
+2026-07-01,July,Business,Facilities,35610.62,41859.38,6248.75,0.1755
+2026-07-01,July,Business,Technology,19783.68,23255.21,3471.53,0.1755
+2026-07-01,July,Health Sciences,Payroll,274267.05,285237.73,10970.68,0.04
+2026-07-01,July,Health Sciences,Supplies,97731.38,114880.74,17149.36,0.1755
+2026-07-01,July,Health Sciences,Services,87443.87,102788.03,15344.16,0.1755
+2026-07-01,July,Health Sciences,Facilities,46293.81,54417.19,8123.38,0.1755
+2026-07-01,July,Health Sciences,Technology,25718.78,30231.77,4512.99,0.1755
+2026-07-01,July,Arts & Humanities,Payroll,139322.88,144895.8,5572.92,0.04
+2026-07-01,July,Arts & Humanities,Supplies,52624.59,61858.86,9234.27,0.1755
+2026-07-01,July,Arts & Humanities,Services,47085.16,55347.4,8262.24,0.1755
+2026-07-01,July,Arts & Humanities,Facilities,24927.44,29301.56,4374.13,0.1755
+2026-07-01,July,Arts & Humanities,Technology,13848.58,16278.65,2430.07,0.1755
+2026-07-01,July,Student Services,Payroll,99516.35,103497.0,3980.65,0.04
+2026-07-01,July,Student Services,Supplies,37588.99,44184.9,6595.91,0.1755
+2026-07-01,July,Student Services,Services,33632.26,39533.86,5901.6,0.1755
+2026-07-01,July,Student Services,Facilities,17805.31,20929.69,3124.38,0.1755
+2026-07-01,July,Student Services,Technology,9891.84,11627.6,1735.76,0.1755
+2026-07-01,July,Administration,Payroll,79613.07,82797.59,3184.52,0.04
+2026-07-01,July,Administration,Supplies,30071.19,35347.92,5276.72,0.1755
+2026-07-01,July,Administration,Services,26905.8,31627.09,4721.28,0.1755
+2026-07-01,July,Administration,Facilities,14244.25,16743.75,2499.5,0.1755
+2026-07-01,July,Administration,Technology,7913.48,9302.06,1388.58,0.1755

@@ -1,0 +1,31 @@
+period,month,department,expense_category,budget_expense,actual_expense,variance,variance_pct
+2026-12-01,December,Engineering,Payroll,192931.2,200648.45,7717.25,0.04
+2026-12-01,December,Engineering,Supplies,97140.86,93678.62,-3462.24,-0.0356
+2026-12-01,December,Engineering,Services,86915.51,83817.71,-3097.8,-0.0356
+2026-12-01,December,Engineering,Facilities,46014.09,44374.08,-1640.01,-0.0356
+2026-12-01,December,Engineering,Technology,25563.38,24652.27,-911.12,-0.0356
+2026-12-01,December,Business,Payroll,175392.0,182407.68,7015.68,0.04
+2026-12-01,December,Business,Supplies,88309.87,85162.38,-3147.49,-0.0356
+2026-12-01,December,Business,Services,79014.1,76197.92,-2816.18,-0.0356
+2026-12-01,December,Business,Facilities,41830.99,40340.07,-1490.92,-0.0356
+2026-12-01,December,Business,Technology,23239.44,22411.15,-828.29,-0.0356
+2026-12-01,December,Health Sciences,Payroll,228009.6,237129.98,9120.38,0.04
+2026-12-01,December,Health Sciences,Supplies,114802.83,110711.09,-4091.74,-0.0356
+2026-12-01,December,Health Sciences,Services,102718.32,99057.29,-3661.03,-0.0356
+2026-12-01,December,Health Sciences,Facilities,54380.29,52442.1,-1938.19,-0.0356
+2026-12-01,December,Health Sciences,Technology,30211.27,29134.5,-1076.77,-0.0356
+2026-12-01,December,Arts & Humanities,Payroll,122774.4,127685.38,4910.98,0.04
+2026-12-01,December,Arts & Humanities,Supplies,61816.91,59613.66,-2203.25,-0.0356
+2026-12-01,December,Arts & Humanities,Services,55309.87,53338.54,-1971.33,-0.0356
+2026-12-01,December,Arts & Humanities,Facilities,29281.69,28238.05,-1043.64,-0.0356
+2026-12-01,December,Arts & Humanities,Technology,16267.61,15687.81,-579.8,-0.0356
+2026-12-01,December,Student Services,Payroll,87696.0,91203.84,3507.84,0.04
+2026-12-01,December,Student Services,Supplies,44154.94,42581.19,-1573.75,-0.0356
+2026-12-01,December,Student Services,Services,39507.05,38098.96,-1408.09,-0.0356
+2026-12-01,December,Student Services,Facilities,20915.5,20170.04,-745.46,-0.0356
+2026-12-01,December,Student Services,Technology,11619.72,11205.58,-414.14,-0.0356
+2026-12-01,December,Administration,Payroll,70156.8,72963.07,2806.27,0.04
+2026-12-01,December,Administration,Supplies,35323.95,34064.95,-1259.0,-0.0356
+2026-12-01,December,Administration,Services,31605.64,30479.17,-1126.47,-0.0356
+2026-12-01,December,Administration,Facilities,16732.4,16136.03,-596.37,-0.0356
+2026-12-01,December,Administration,Technology,9295.77,8964.44,-331.33,-0.0356

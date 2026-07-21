@@ -1,0 +1,1052 @@
+{
+  "workbook_path": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_08.xlsx",
+  "sheet_count": 11,
+  "sheet_names": [
+    "Executive_Summary",
+    "Revenue",
+    "Expenses",
+    "Budget_vs_Actual",
+    "Department_Summary",
+    "Payroll",
+    "Student_Payments",
+    "Cash_Flow",
+    "Scholarships",
+    "Vendor_Payments",
+    "Anomalies_Embedded"
+  ],
+  "sheets": [
+    {
+      "sheet_name": "Executive_Summary",
+      "row_count": 7,
+      "column_count": 6,
+      "column_names": [
+        "Metric",
+        "Actual",
+        "Goal_or_Budget",
+        "Variance",
+        "Format",
+        "Status"
+      ],
+      "inferred_data_types": {
+        "Metric": "object",
+        "Actual": "float64",
+        "Goal_or_Budget": "float64",
+        "Variance": "float64",
+        "Format": "object",
+        "Status": "object"
+      },
+      "sample_rows": [
+        {
+          "Metric": "Actual Revenue",
+          "Actual": 2072448.0,
+          "Goal_or_Budget": 2158800.0,
+          "Variance": -86352.0,
+          "Format": "Currency",
+          "Status": "Below target"
+        },
+        {
+          "Metric": "Operating Expenses",
+          "Actual": 2138448.0,
+          "Goal_or_Budget": 2007684.0,
+          "Variance": 130764.0,
+          "Format": "Currency",
+          "Status": "Over budget"
+        },
+        {
+          "Metric": "Net Operating Result",
+          "Actual": -66000.0,
+          "Goal_or_Budget": 151116.0,
+          "Variance": -217116.0,
+          "Format": "Currency",
+          "Status": "Negative"
+        },
+        {
+          "Metric": "Payroll Ratio",
+          "Actual": 0.49,
+          "Goal_or_Budget": 0.42,
+          "Variance": 0.07,
+          "Format": "Percent",
+          "Status": "High"
+        },
+        {
+          "Metric": "Collection Rate",
+          "Actual": 0.9,
+          "Goal_or_Budget": 0.93,
+          "Variance": -0.03,
+          "Format": "Percent",
+          "Status": "On target"
+        }
+      ],
+      "missing_value_counts": {
+        "Metric": 0,
+        "Actual": 0,
+        "Goal_or_Budget": 0,
+        "Variance": 0,
+        "Format": 0,
+        "Status": 0
+      }
+    },
+    {
+      "sheet_name": "Revenue",
+      "row_count": 24,
+      "column_count": 8,
+      "column_names": [
+        "Period",
+        "Month",
+        "Department",
+        "Revenue_Category",
+        "Budget_Revenue",
+        "Actual_Revenue",
+        "Variance",
+        "Variance_Pct"
+      ],
+      "inferred_data_types": {
+        "Period": "datetime64[ns]",
+        "Month": "object",
+        "Department": "object",
+        "Revenue_Category": "object",
+        "Budget_Revenue": "float64",
+        "Actual_Revenue": "float64",
+        "Variance": "float64",
+        "Variance_Pct": "float64"
+      },
+      "sample_rows": [
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Engineering",
+          "Revenue_Category": "Tuition",
+          "Budget_Revenue": 370450.08,
+          "Actual_Revenue": 355632.08,
+          "Variance": -14818.0,
+          "Variance_Pct": -0.04
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Engineering",
+          "Revenue_Category": "Grants",
+          "Budget_Revenue": 56992.32,
+          "Actual_Revenue": 54712.63,
+          "Variance": -2279.69,
+          "Variance_Pct": -0.04
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Engineering",
+          "Revenue_Category": "Auxiliary",
+          "Budget_Revenue": 33245.52,
+          "Actual_Revenue": 31915.7,
+          "Variance": -1329.82,
+          "Variance_Pct": -0.04
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Engineering",
+          "Revenue_Category": "Donations",
+          "Budget_Revenue": 14248.08,
+          "Actual_Revenue": 13678.16,
+          "Variance": -569.92,
+          "Variance_Pct": -0.04
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Business",
+          "Revenue_Category": "Tuition",
+          "Budget_Revenue": 336772.8,
+          "Actual_Revenue": 323301.89,
+          "Variance": -13470.91,
+          "Variance_Pct": -0.04
+        }
+      ],
+      "missing_value_counts": {
+        "Period": 0,
+        "Month": 0,
+        "Department": 0,
+        "Revenue_Category": 0,
+        "Budget_Revenue": 0,
+        "Actual_Revenue": 0,
+        "Variance": 0,
+        "Variance_Pct": 0
+      }
+    },
+    {
+      "sheet_name": "Expenses",
+      "row_count": 30,
+      "column_count": 8,
+      "column_names": [
+        "Period",
+        "Month",
+        "Department",
+        "Expense_Category",
+        "Budget_Expense",
+        "Actual_Expense",
+        "Variance",
+        "Variance_Pct"
+      ],
+      "inferred_data_types": {
+        "Period": "datetime64[ns]",
+        "Month": "object",
+        "Department": "object",
+        "Expense_Category": "object",
+        "Budget_Expense": "float64",
+        "Actual_Expense": "float64",
+        "Variance": "float64",
+        "Variance_Pct": "float64"
+      },
+      "sample_rows": [
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Engineering",
+          "Expense_Category": "Payroll",
+          "Budget_Expense": 213264.64,
+          "Actual_Expense": 221795.23,
+          "Variance": 8530.59,
+          "Variance_Pct": 0.04
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Engineering",
+          "Expense_Category": "Supplies",
+          "Budget_Expense": 86211.84,
+          "Actual_Expense": 93878.49,
+          "Variance": 7666.65,
+          "Variance_Pct": 0.0889
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Engineering",
+          "Expense_Category": "Services",
+          "Budget_Expense": 77136.91,
+          "Actual_Expense": 83996.55,
+          "Variance": 6859.63,
+          "Variance_Pct": 0.0889
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Engineering",
+          "Expense_Category": "Facilities",
+          "Budget_Expense": 40837.19,
+          "Actual_Expense": 44468.76,
+          "Variance": 3631.57,
+          "Variance_Pct": 0.0889
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Engineering",
+          "Expense_Category": "Technology",
+          "Budget_Expense": 22687.33,
+          "Actual_Expense": 24704.87,
+          "Variance": 2017.54,
+          "Variance_Pct": 0.0889
+        }
+      ],
+      "missing_value_counts": {
+        "Period": 0,
+        "Month": 0,
+        "Department": 0,
+        "Expense_Category": 0,
+        "Budget_Expense": 0,
+        "Actual_Expense": 0,
+        "Variance": 0,
+        "Variance_Pct": 0
+      }
+    },
+    {
+      "sheet_name": "Budget_vs_Actual",
+      "row_count": 6,
+      "column_count": 13,
+      "column_names": [
+        "Period",
+        "Month",
+        "Department",
+        "Budget_Revenue",
+        "Actual_Revenue",
+        "Budget_Expense",
+        "Actual_Expense",
+        "Revenue_Variance",
+        "Revenue_Variance_Pct",
+        "Expense_Variance",
+        "Expense_Variance_Pct",
+        "Net_Budget",
+        "Net_Actual"
+      ],
+      "inferred_data_types": {
+        "Period": "datetime64[ns]",
+        "Month": "object",
+        "Department": "object",
+        "Budget_Revenue": "int64",
+        "Actual_Revenue": "float64",
+        "Budget_Expense": "float64",
+        "Actual_Expense": "float64",
+        "Revenue_Variance": "float64",
+        "Revenue_Variance_Pct": "float64",
+        "Expense_Variance": "float64",
+        "Expense_Variance_Pct": "float64",
+        "Net_Budget": "float64",
+        "Net_Actual": "float64"
+      },
+      "sample_rows": [
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Engineering",
+          "Budget_Revenue": 474936,
+          "Actual_Revenue": 455938.57,
+          "Budget_Expense": 440137.91,
+          "Actual_Expense": 468843.9,
+          "Revenue_Variance": -18997.43,
+          "Revenue_Variance_Pct": -0.04,
+          "Expense_Variance": 28705.99,
+          "Expense_Variance_Pct": 0.0652,
+          "Net_Budget": 34798.09,
+          "Net_Actual": -12905.33
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Business",
+          "Budget_Revenue": 431760,
+          "Actual_Revenue": 414489.6,
+          "Budget_Expense": 400125.37,
+          "Actual_Expense": 426221.72,
+          "Revenue_Variance": -17270.4,
+          "Revenue_Variance_Pct": -0.04,
+          "Expense_Variance": 26096.35,
+          "Expense_Variance_Pct": 0.0652,
+          "Net_Budget": 31634.63,
+          "Net_Actual": -11732.12
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Health Sciences",
+          "Budget_Revenue": 561288,
+          "Actual_Revenue": 538836.47,
+          "Budget_Expense": 527220.11,
+          "Actual_Expense": 561427.65,
+          "Revenue_Variance": -22451.53,
+          "Revenue_Variance_Pct": -0.04,
+          "Expense_Variance": 34207.54,
+          "Expense_Variance_Pct": 0.0649,
+          "Net_Budget": 34067.89,
+          "Net_Actual": -22591.18
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Arts & Humanities",
+          "Budget_Revenue": 302232,
+          "Actual_Revenue": 290142.72,
+          "Budget_Expense": 280087.77,
+          "Actual_Expense": 298355.21,
+          "Revenue_Variance": -12089.28,
+          "Revenue_Variance_Pct": -0.04,
+          "Expense_Variance": 18267.44,
+          "Expense_Variance_Pct": 0.0652,
+          "Net_Budget": 22144.23,
+          "Net_Actual": -8212.49
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Student Services",
+          "Budget_Revenue": 215880,
+          "Actual_Revenue": 207244.8,
+          "Budget_Expense": 200062.68,
+          "Actual_Expense": 213110.85,
+          "Revenue_Variance": -8635.2,
+          "Revenue_Variance_Pct": -0.04,
+          "Expense_Variance": 13048.17,
+          "Expense_Variance_Pct": 0.0652,
+          "Net_Budget": 15817.32,
+          "Net_Actual": -5866.05
+        }
+      ],
+      "missing_value_counts": {
+        "Period": 0,
+        "Month": 0,
+        "Department": 0,
+        "Budget_Revenue": 0,
+        "Actual_Revenue": 0,
+        "Budget_Expense": 0,
+        "Actual_Expense": 0,
+        "Revenue_Variance": 0,
+        "Revenue_Variance_Pct": 0,
+        "Expense_Variance": 0,
+        "Expense_Variance_Pct": 0,
+        "Net_Budget": 0,
+        "Net_Actual": 0
+      }
+    },
+    {
+      "sheet_name": "Department_Summary",
+      "row_count": 6,
+      "column_count": 9,
+      "column_names": [
+        "Department",
+        "Budget_Revenue",
+        "Actual_Revenue",
+        "Budget_Expense",
+        "Actual_Expense",
+        "Net_Contribution",
+        "Expense_Variance",
+        "Expense_Variance_Pct",
+        "Status"
+      ],
+      "inferred_data_types": {
+        "Department": "object",
+        "Budget_Revenue": "int64",
+        "Actual_Revenue": "float64",
+        "Budget_Expense": "float64",
+        "Actual_Expense": "float64",
+        "Net_Contribution": "float64",
+        "Expense_Variance": "float64",
+        "Expense_Variance_Pct": "float64",
+        "Status": "object"
+      },
+      "sample_rows": [
+        {
+          "Department": "Engineering",
+          "Budget_Revenue": 474936,
+          "Actual_Revenue": 455938.57,
+          "Budget_Expense": 440137.91,
+          "Actual_Expense": 468843.9,
+          "Net_Contribution": -12905.33,
+          "Expense_Variance": 28705.99,
+          "Expense_Variance_Pct": 0.0652,
+          "Status": "Over budget"
+        },
+        {
+          "Department": "Business",
+          "Budget_Revenue": 431760,
+          "Actual_Revenue": 414489.6,
+          "Budget_Expense": 400125.37,
+          "Actual_Expense": 426221.72,
+          "Net_Contribution": -11732.12,
+          "Expense_Variance": 26096.35,
+          "Expense_Variance_Pct": 0.0652,
+          "Status": "Over budget"
+        },
+        {
+          "Department": "Health Sciences",
+          "Budget_Revenue": 561288,
+          "Actual_Revenue": 538836.47,
+          "Budget_Expense": 527220.11,
+          "Actual_Expense": 561427.65,
+          "Net_Contribution": -22591.18,
+          "Expense_Variance": 34207.54,
+          "Expense_Variance_Pct": 0.0649,
+          "Status": "Over budget"
+        },
+        {
+          "Department": "Arts & Humanities",
+          "Budget_Revenue": 302232,
+          "Actual_Revenue": 290142.72,
+          "Budget_Expense": 280087.77,
+          "Actual_Expense": 298355.21,
+          "Net_Contribution": -8212.49,
+          "Expense_Variance": 18267.44,
+          "Expense_Variance_Pct": 0.0652,
+          "Status": "Over budget"
+        },
+        {
+          "Department": "Student Services",
+          "Budget_Revenue": 215880,
+          "Actual_Revenue": 207244.8,
+          "Budget_Expense": 200062.68,
+          "Actual_Expense": 213110.85,
+          "Net_Contribution": -5866.05,
+          "Expense_Variance": 13048.17,
+          "Expense_Variance_Pct": 0.0652,
+          "Status": "Over budget"
+        }
+      ],
+      "missing_value_counts": {
+        "Department": 0,
+        "Budget_Revenue": 0,
+        "Actual_Revenue": 0,
+        "Budget_Expense": 0,
+        "Actual_Expense": 0,
+        "Net_Contribution": 0,
+        "Expense_Variance": 0,
+        "Expense_Variance_Pct": 0,
+        "Status": 0
+      }
+    },
+    {
+      "sheet_name": "Payroll",
+      "row_count": 6,
+      "column_count": 11,
+      "column_names": [
+        "Period",
+        "Month",
+        "Department",
+        "Headcount_FTE",
+        "Base_Salary",
+        "Benefits",
+        "Overtime",
+        "Total_Payroll",
+        "Payroll_Budget",
+        "Variance",
+        "Variance_Pct"
+      ],
+      "inferred_data_types": {
+        "Period": "datetime64[ns]",
+        "Month": "object",
+        "Department": "object",
+        "Headcount_FTE": "float64",
+        "Base_Salary": "float64",
+        "Benefits": "float64",
+        "Overtime": "float64",
+        "Total_Payroll": "float64",
+        "Payroll_Budget": "float64",
+        "Variance": "float64",
+        "Variance_Pct": "float64"
+      },
+      "sample_rows": [
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Engineering",
+          "Headcount_FTE": 44.4,
+          "Base_Salary": 161910.51,
+          "Benefits": 42141.09,
+          "Overtime": 17743.62,
+          "Total_Payroll": 221795.23,
+          "Payroll_Budget": 213264.64,
+          "Variance": 8530.59,
+          "Variance_Pct": 0.04
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Business",
+          "Headcount_FTE": 42.0,
+          "Base_Salary": 147191.38,
+          "Benefits": 38310.08,
+          "Overtime": 16130.56,
+          "Total_Payroll": 201632.02,
+          "Payroll_Budget": 193876.95,
+          "Variance": 7755.08,
+          "Variance_Pct": 0.04
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Health Sciences",
+          "Headcount_FTE": 49.2,
+          "Base_Salary": 189161.65,
+          "Benefits": 51197.6,
+          "Overtime": 29101.79,
+          "Total_Payroll": 269461.04,
+          "Payroll_Budget": 259097.15,
+          "Variance": 10363.89,
+          "Variance_Pct": 0.04
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Arts & Humanities",
+          "Headcount_FTE": 34.8,
+          "Base_Salary": 103033.96,
+          "Benefits": 26817.06,
+          "Overtime": 11291.39,
+          "Total_Payroll": 141142.42,
+          "Payroll_Budget": 135713.86,
+          "Variance": 5428.55,
+          "Variance_Pct": 0.04
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Student Services",
+          "Headcount_FTE": 30.0,
+          "Base_Salary": 73595.69,
+          "Benefits": 19155.04,
+          "Overtime": 8065.28,
+          "Total_Payroll": 100816.01,
+          "Payroll_Budget": 96938.47,
+          "Variance": 3877.54,
+          "Variance_Pct": 0.04
+        }
+      ],
+      "missing_value_counts": {
+        "Period": 0,
+        "Month": 0,
+        "Department": 0,
+        "Headcount_FTE": 0,
+        "Base_Salary": 0,
+        "Benefits": 0,
+        "Overtime": 0,
+        "Total_Payroll": 0,
+        "Payroll_Budget": 0,
+        "Variance": 0,
+        "Variance_Pct": 0
+      }
+    },
+    {
+      "sheet_name": "Student_Payments",
+      "row_count": 24,
+      "column_count": 11,
+      "column_names": [
+        "Invoice_ID",
+        "Student_ID",
+        "Department",
+        "Billing_Period",
+        "Due_Date",
+        "Payment_Date",
+        "Amount_Due",
+        "Amount_Paid",
+        "Outstanding",
+        "Status",
+        "Days_Overdue"
+      ],
+      "inferred_data_types": {
+        "Invoice_ID": "object",
+        "Student_ID": "object",
+        "Department": "object",
+        "Billing_Period": "object",
+        "Due_Date": "datetime64[ns]",
+        "Payment_Date": "datetime64[ns]",
+        "Amount_Due": "float64",
+        "Amount_Paid": "float64",
+        "Outstanding": "float64",
+        "Status": "object",
+        "Days_Overdue": "int64"
+      },
+      "sample_rows": [
+        {
+          "Invoice_ID": "INV-2026_08-001",
+          "Student_ID": "ENG-FR-001",
+          "Department": "Engineering",
+          "Billing_Period": "August",
+          "Due_Date": "2026-08-20T00:00:00.000",
+          "Payment_Date": "2026-08-25T00:00:00.000",
+          "Amount_Due": 82068.94,
+          "Amount_Paid": 73862.05,
+          "Outstanding": 8206.89,
+          "Status": "Partially collected",
+          "Days_Overdue": 0
+        },
+        {
+          "Invoice_ID": "INV-2026_08-002",
+          "Student_ID": "ENG-SO-002",
+          "Department": "Engineering",
+          "Billing_Period": "August",
+          "Due_Date": "2026-08-20T00:00:00.000",
+          "Payment_Date": "2026-08-25T00:00:00.000",
+          "Amount_Due": 82068.94,
+          "Amount_Paid": 73862.05,
+          "Outstanding": 8206.89,
+          "Status": "Partially collected",
+          "Days_Overdue": 0
+        },
+        {
+          "Invoice_ID": "INV-2026_08-003",
+          "Student_ID": "ENG-JU-003",
+          "Department": "Engineering",
+          "Billing_Period": "August",
+          "Due_Date": "2026-08-20T00:00:00.000",
+          "Payment_Date": "2026-08-25T00:00:00.000",
+          "Amount_Due": 82068.94,
+          "Amount_Paid": 73862.05,
+          "Outstanding": 8206.89,
+          "Status": "Partially collected",
+          "Days_Overdue": 0
+        },
+        {
+          "Invoice_ID": "INV-2026_08-004",
+          "Student_ID": "ENG-SE-004",
+          "Department": "Engineering",
+          "Billing_Period": "August",
+          "Due_Date": "2026-08-20T00:00:00.000",
+          "Payment_Date": "2026-08-25T00:00:00.000",
+          "Amount_Due": 82068.94,
+          "Amount_Paid": 73862.05,
+          "Outstanding": 8206.89,
+          "Status": "Partially collected",
+          "Days_Overdue": 0
+        },
+        {
+          "Invoice_ID": "INV-2026_08-005",
+          "Student_ID": "BUS-FR-005",
+          "Department": "Business",
+          "Billing_Period": "August",
+          "Due_Date": "2026-08-20T00:00:00.000",
+          "Payment_Date": "2026-08-25T00:00:00.000",
+          "Amount_Due": 74608.13,
+          "Amount_Paid": 67147.32,
+          "Outstanding": 7460.81,
+          "Status": "Partially collected",
+          "Days_Overdue": 0
+        }
+      ],
+      "missing_value_counts": {
+        "Invoice_ID": 0,
+        "Student_ID": 0,
+        "Department": 0,
+        "Billing_Period": 0,
+        "Due_Date": 0,
+        "Payment_Date": 0,
+        "Amount_Due": 0,
+        "Amount_Paid": 0,
+        "Outstanding": 0,
+        "Status": 0,
+        "Days_Overdue": 0
+      }
+    },
+    {
+      "sheet_name": "Cash_Flow",
+      "row_count": 1,
+      "column_count": 16,
+      "column_names": [
+        "Period",
+        "Month",
+        "Beginning_Cash",
+        "Budget_Cash_Inflows",
+        "Actual_Cash_Inflows",
+        "Budget_Operating_Outflows",
+        "Actual_Operating_Outflows",
+        "Budget_Scholarships",
+        "Actual_Scholarships",
+        "Budget_Capital_Outflows",
+        "Actual_Capital_Outflows",
+        "Budget_Net_Cash_Flow",
+        "Actual_Net_Cash_Flow",
+        "Budget_Ending_Cash",
+        "Actual_Ending_Cash",
+        "Ending_Cash_Variance"
+      ],
+      "inferred_data_types": {
+        "Period": "datetime64[ns]",
+        "Month": "object",
+        "Beginning_Cash": "int64",
+        "Budget_Cash_Inflows": "int64",
+        "Actual_Cash_Inflows": "float64",
+        "Budget_Operating_Outflows": "float64",
+        "Actual_Operating_Outflows": "float64",
+        "Budget_Scholarships": "float64",
+        "Actual_Scholarships": "float64",
+        "Budget_Capital_Outflows": "int64",
+        "Actual_Capital_Outflows": "int64",
+        "Budget_Net_Cash_Flow": "int64",
+        "Actual_Net_Cash_Flow": "int64",
+        "Budget_Ending_Cash": "int64",
+        "Actual_Ending_Cash": "int64",
+        "Ending_Cash_Variance": "int64"
+      },
+      "sample_rows": [
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Beginning_Cash": 1380000,
+          "Budget_Cash_Inflows": 2217684,
+          "Actual_Cash_Inflows": 2075203.2,
+          "Budget_Operating_Outflows": 1565993.52,
+          "Actual_Operating_Outflows": 1951218.56,
+          "Budget_Scholarships": 112257.6,
+          "Actual_Scholarships": 113984.64,
+          "Budget_Capital_Outflows": 123500,
+          "Actual_Capital_Outflows": 130000,
+          "Budget_Net_Cash_Flow": 170000,
+          "Actual_Net_Cash_Flow": -120000,
+          "Budget_Ending_Cash": 1550000,
+          "Actual_Ending_Cash": 1260000,
+          "Ending_Cash_Variance": -290000
+        }
+      ],
+      "missing_value_counts": {
+        "Period": 0,
+        "Month": 0,
+        "Beginning_Cash": 0,
+        "Budget_Cash_Inflows": 0,
+        "Actual_Cash_Inflows": 0,
+        "Budget_Operating_Outflows": 0,
+        "Actual_Operating_Outflows": 0,
+        "Budget_Scholarships": 0,
+        "Actual_Scholarships": 0,
+        "Budget_Capital_Outflows": 0,
+        "Actual_Capital_Outflows": 0,
+        "Budget_Net_Cash_Flow": 0,
+        "Actual_Net_Cash_Flow": 0,
+        "Budget_Ending_Cash": 0,
+        "Actual_Ending_Cash": 0,
+        "Ending_Cash_Variance": 0
+      }
+    },
+    {
+      "sheet_name": "Scholarships",
+      "row_count": 6,
+      "column_count": 9,
+      "column_names": [
+        "Period",
+        "Month",
+        "Department",
+        "Scholarship_Type",
+        "Allocated",
+        "Awarded",
+        "Remaining",
+        "Recipients",
+        "Utilization_Pct"
+      ],
+      "inferred_data_types": {
+        "Period": "datetime64[ns]",
+        "Month": "object",
+        "Department": "object",
+        "Scholarship_Type": "object",
+        "Allocated": "float64",
+        "Awarded": "float64",
+        "Remaining": "float64",
+        "Recipients": "int64",
+        "Utilization_Pct": "float64"
+      },
+      "sample_rows": [
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Engineering",
+          "Scholarship_Type": "Need-based",
+          "Allocated": 27082.75,
+          "Awarded": 25076.62,
+          "Remaining": 2006.13,
+          "Recipients": 48,
+          "Utilization_Pct": 0.9259
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Business",
+          "Scholarship_Type": "Need-based",
+          "Allocated": 24620.68,
+          "Awarded": 22796.93,
+          "Remaining": 1823.75,
+          "Recipients": 44,
+          "Utilization_Pct": 0.9259
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Health Sciences",
+          "Scholarship_Type": "Need-based",
+          "Allocated": 32006.89,
+          "Awarded": 29636.01,
+          "Remaining": 2370.88,
+          "Recipients": 57,
+          "Utilization_Pct": 0.9259
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Arts & Humanities",
+          "Scholarship_Type": "Need-based",
+          "Allocated": 17234.48,
+          "Awarded": 15957.85,
+          "Remaining": 1276.63,
+          "Recipients": 31,
+          "Utilization_Pct": 0.9259
+        },
+        {
+          "Period": "2026-08-01T00:00:00.000",
+          "Month": "August",
+          "Department": "Student Services",
+          "Scholarship_Type": "Need-based",
+          "Allocated": 12310.34,
+          "Awarded": 11398.46,
+          "Remaining": 911.88,
+          "Recipients": 22,
+          "Utilization_Pct": 0.9259
+        }
+      ],
+      "missing_value_counts": {
+        "Period": 0,
+        "Month": 0,
+        "Department": 0,
+        "Scholarship_Type": 0,
+        "Allocated": 0,
+        "Awarded": 0,
+        "Remaining": 0,
+        "Recipients": 0,
+        "Utilization_Pct": 0
+      }
+    },
+    {
+      "sheet_name": "Vendor_Payments",
+      "row_count": 8,
+      "column_count": 12,
+      "column_names": [
+        "Payment_ID",
+        "Payment_Date",
+        "Month",
+        "Department",
+        "Vendor",
+        "Invoice_Number",
+        "Expense_Category",
+        "Amount",
+        "Payment_Method",
+        "Approval_Status",
+        "Potential_Duplicate",
+        "High_Value_Flag"
+      ],
+      "inferred_data_types": {
+        "Payment_ID": "object",
+        "Payment_Date": "datetime64[ns]",
+        "Month": "object",
+        "Department": "object",
+        "Vendor": "object",
+        "Invoice_Number": "object",
+        "Expense_Category": "object",
+        "Amount": "int64",
+        "Payment_Method": "object",
+        "Approval_Status": "object",
+        "Potential_Duplicate": "bool",
+        "High_Value_Flag": "bool"
+      },
+      "sample_rows": [
+        {
+          "Payment_ID": "PAY-2026_08-001",
+          "Payment_Date": "2026-08-08T00:00:00.000",
+          "Month": "August",
+          "Department": "Engineering",
+          "Vendor": "LabSource",
+          "Invoice_Number": "LAB-2026_08-001",
+          "Expense_Category": "Services",
+          "Amount": 24969,
+          "Payment_Method": "ACH",
+          "Approval_Status": "Approved",
+          "Potential_Duplicate": false,
+          "High_Value_Flag": false
+        },
+        {
+          "Payment_ID": "PAY-2026_08-002",
+          "Payment_Date": "2026-08-11T00:00:00.000",
+          "Month": "August",
+          "Department": "Business",
+          "Vendor": "FacilitiesPlus",
+          "Invoice_Number": "FAC-2026_08-002",
+          "Expense_Category": "Services",
+          "Amount": 23962,
+          "Payment_Method": "ACH",
+          "Approval_Status": "Approved",
+          "Potential_Duplicate": false,
+          "High_Value_Flag": false
+        },
+        {
+          "Payment_ID": "PAY-2026_08-003",
+          "Payment_Date": "2026-08-14T00:00:00.000",
+          "Month": "August",
+          "Department": "Health Sciences",
+          "Vendor": "CloudEdu",
+          "Invoice_Number": "CLO-2026_08-003",
+          "Expense_Category": "Services",
+          "Amount": 24537,
+          "Payment_Method": "ACH",
+          "Approval_Status": "Approved",
+          "Potential_Duplicate": false,
+          "High_Value_Flag": false
+        },
+        {
+          "Payment_ID": "PAY-2026_08-004",
+          "Payment_Date": "2026-08-17T00:00:00.000",
+          "Month": "August",
+          "Department": "Arts & Humanities",
+          "Vendor": "LibraryHub",
+          "Invoice_Number": "LIB-2026_08-004",
+          "Expense_Category": "Services",
+          "Amount": 25276,
+          "Payment_Method": "ACH",
+          "Approval_Status": "Approved",
+          "Potential_Duplicate": false,
+          "High_Value_Flag": false
+        },
+        {
+          "Payment_ID": "PAY-2026_08-005",
+          "Payment_Date": "2026-08-20T00:00:00.000",
+          "Month": "August",
+          "Department": "Student Services",
+          "Vendor": "MedSupply Co",
+          "Invoice_Number": "MED-2026_08-005",
+          "Expense_Category": "Medical Supplies",
+          "Amount": 25523,
+          "Payment_Method": "ACH",
+          "Approval_Status": "Approved",
+          "Potential_Duplicate": false,
+          "High_Value_Flag": false
+        }
+      ],
+      "missing_value_counts": {
+        "Payment_ID": 0,
+        "Payment_Date": 0,
+        "Month": 0,
+        "Department": 0,
+        "Vendor": 0,
+        "Invoice_Number": 0,
+        "Expense_Category": 0,
+        "Amount": 0,
+        "Payment_Method": 0,
+        "Approval_Status": 0,
+        "Potential_Duplicate": 0,
+        "High_Value_Flag": 0
+      }
+    },
+    {
+      "sheet_name": "Anomalies_Embedded",
+      "row_count": 1,
+      "column_count": 9,
+      "column_names": [
+        "Anomaly_ID",
+        "Detected_Period",
+        "Department",
+        "Anomaly_Type",
+        "Severity",
+        "Description",
+        "Observed_Value",
+        "Threshold",
+        "Source_Sheet"
+      ],
+      "inferred_data_types": {
+        "Anomaly_ID": "object",
+        "Detected_Period": "object",
+        "Department": "object",
+        "Anomaly_Type": "object",
+        "Severity": "object",
+        "Description": "object",
+        "Observed_Value": "int64",
+        "Threshold": "int64",
+        "Source_Sheet": "object"
+      },
+      "sample_rows": [
+        {
+          "Anomaly_ID": "ANOM-2026_08-VENDOR",
+          "Detected_Period": "2026_08",
+          "Department": "Health Sciences",
+          "Anomaly_Type": "recurring_vendor_duplicate",
+          "Severity": "High",
+          "Description": "Recurring MedSupply Co payment shares an invoice number and high-value flag.",
+          "Observed_Value": 149000,
+          "Threshold": 50000,
+          "Source_Sheet": "Vendor_Payments"
+        }
+      ],
+      "missing_value_counts": {
+        "Anomaly_ID": 0,
+        "Detected_Period": 0,
+        "Department": 0,
+        "Anomaly_Type": 0,
+        "Severity": 0,
+        "Description": 0,
+        "Observed_Value": 0,
+        "Threshold": 0,
+        "Source_Sheet": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,2759 @@
+{
+  "model_version": "2.0",
+  "purpose": "Intermediate bridge between arbitrary financial workbooks and deterministic finance calculations.",
+  "source_workbooks": [
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx"
+  ],
+  "sheet_count": 11,
+  "table_count": 10,
+  "sheet_analyses": [
+    {
+      "sheet_name": "Executive_Summary",
+      "max_row": 12,
+      "max_column": 6,
+      "empty_separator_rows": [
+        4
+      ],
+      "merged_title_regions": [],
+      "context_regions": [
+        {
+          "start_row": 1,
+          "end_row": 3,
+          "region_type": "title_or_context",
+          "text": "Executive Summary - October 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
+        }
+      ],
+      "detected_table_ids": [
+        "university_financial_report_2026_10__executive_summary__table_01"
+      ],
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx"
+    },
+    {
+      "sheet_name": "Revenue",
+      "max_row": 29,
+      "max_column": 8,
+      "empty_separator_rows": [
+        4
+      ],
+      "merged_title_regions": [],
+      "context_regions": [
+        {
+          "start_row": 1,
+          "end_row": 3,
+          "region_type": "title_or_context",
+          "text": "Revenue - October 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
+        }
+      ],
+      "detected_table_ids": [
+        "university_financial_report_2026_10__revenue__table_01"
+      ],
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx"
+    },
+    {
+      "sheet_name": "Expenses",
+      "max_row": 35,
+      "max_column": 8,
+      "empty_separator_rows": [
+        4
+      ],
+      "merged_title_regions": [],
+      "context_regions": [
+        {
+          "start_row": 1,
+          "end_row": 3,
+          "region_type": "title_or_context",
+          "text": "Expenses - October 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
+        }
+      ],
+      "detected_table_ids": [
+        "university_financial_report_2026_10__expenses__table_01"
+      ],
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx"
+    },
+    {
+      "sheet_name": "Budget_vs_Actual",
+      "max_row": 11,
+      "max_column": 13,
+      "empty_separator_rows": [
+        4
+      ],
+      "merged_title_regions": [],
+      "context_regions": [
+        {
+          "start_row": 1,
+          "end_row": 3,
+          "region_type": "title_or_context",
+          "text": "Budget vs Actual - October 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
+        }
+      ],
+      "detected_table_ids": [
+        "university_financial_report_2026_10__budget_vs_actual__table_01"
+      ],
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx"
+    },
+    {
+      "sheet_name": "Department_Summary",
+      "max_row": 11,
+      "max_column": 9,
+      "empty_separator_rows": [
+        4
+      ],
+      "merged_title_regions": [],
+      "context_regions": [
+        {
+          "start_row": 1,
+          "end_row": 3,
+          "region_type": "title_or_context",
+          "text": "Department Summary - October 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
+        }
+      ],
+      "detected_table_ids": [
+        "university_financial_report_2026_10__department_summary__table_01"
+      ],
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx"
+    },
+    {
+      "sheet_name": "Payroll",
+      "max_row": 11,
+      "max_column": 11,
+      "empty_separator_rows": [
+        4
+      ],
+      "merged_title_regions": [],
+      "context_regions": [
+        {
+          "start_row": 1,
+          "end_row": 3,
+          "region_type": "title_or_context",
+          "text": "Payroll - October 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
+        }
+      ],
+      "detected_table_ids": [
+        "university_financial_report_2026_10__payroll__table_01"
+      ],
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx"
+    },
+    {
+      "sheet_name": "Student_Payments",
+      "max_row": 29,
+      "max_column": 11,
+      "empty_separator_rows": [
+        4
+      ],
+      "merged_title_regions": [],
+      "context_regions": [
+        {
+          "start_row": 1,
+          "end_row": 3,
+          "region_type": "title_or_context",
+          "text": "Student Payments - October 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
+        }
+      ],
+      "detected_table_ids": [
+        "university_financial_report_2026_10__student_payments__table_01"
+      ],
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx"
+    },
+    {
+      "sheet_name": "Cash_Flow",
+      "max_row": 6,
+      "max_column": 16,
+      "empty_separator_rows": [
+        4
+      ],
+      "merged_title_regions": [],
+      "context_regions": [
+        {
+          "start_row": 1,
+          "end_row": 3,
+          "region_type": "title_or_context",
+          "text": "Cash Flow - October 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
+        }
+      ],
+      "detected_table_ids": [
+        "university_financial_report_2026_10__cash_flow__table_01"
+      ],
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx"
+    },
+    {
+      "sheet_name": "Scholarships",
+      "max_row": 11,
+      "max_column": 9,
+      "empty_separator_rows": [
+        4
+      ],
+      "merged_title_regions": [],
+      "context_regions": [
+        {
+          "start_row": 1,
+          "end_row": 3,
+          "region_type": "title_or_context",
+          "text": "Scholarships - October 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
+        }
+      ],
+      "detected_table_ids": [
+        "university_financial_report_2026_10__scholarships__table_01"
+      ],
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx"
+    },
+    {
+      "sheet_name": "Vendor_Payments",
+      "max_row": 11,
+      "max_column": 12,
+      "empty_separator_rows": [
+        4
+      ],
+      "merged_title_regions": [],
+      "context_regions": [
+        {
+          "start_row": 1,
+          "end_row": 3,
+          "region_type": "title_or_context",
+          "text": "Vendor Payments - October 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
+        }
+      ],
+      "detected_table_ids": [
+        "university_financial_report_2026_10__vendor_payments__table_01"
+      ],
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx"
+    },
+    {
+      "sheet_name": "Anomalies_Embedded",
+      "max_row": 5,
+      "max_column": 1,
+      "empty_separator_rows": [
+        4
+      ],
+      "merged_title_regions": [],
+      "context_regions": [
+        {
+          "start_row": 1,
+          "end_row": 3,
+          "region_type": "title_or_context",
+          "text": "Anomalies Embedded - October 2026 | Small/medium university | Synthetic recovery history | Currency: USD | Synthetic data | Generated deterministically"
+        },
+        {
+          "start_row": 5,
+          "end_row": 5,
+          "region_type": "title_or_context",
+          "text": "No_Data"
+        }
+      ],
+      "detected_table_ids": [],
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx"
+    }
+  ],
+  "tables": [
+    {
+      "table_id": "university_financial_report_2026_10__executive_summary__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx",
+      "sheet": "Executive_Summary",
+      "table_title": "Currency: USD | Synthetic data | Generated deterministically",
+      "detected_type": "Executive_Summary",
+      "confidence": 0.99,
+      "header_confidence": 1.0,
+      "requires_future_ollama_interpretation": false,
+      "header_row": 5,
+      "table_boundaries": {
+        "start_row": 5,
+        "end_row": 12,
+        "start_column": 1,
+        "end_column": 6
+      },
+      "row_count": 7,
+      "column_count": 6,
+      "original_columns": [
+        "Metric",
+        "Actual",
+        "Goal_or_Budget",
+        "Variance",
+        "Format",
+        "Status"
+      ],
+      "normalized_columns": [
+        "metric",
+        "actual",
+        "goal_or_budget",
+        "variance",
+        "format",
+        "status"
+      ],
+      "column_mappings": [
+        {
+          "original_name": "Metric",
+          "normalized_name": "metric",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Actual",
+          "normalized_name": "actual",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Goal_or_Budget",
+          "normalized_name": "goal_or_budget",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Variance",
+          "normalized_name": "variance",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Format",
+          "normalized_name": "format",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Status",
+          "normalized_name": "status",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        }
+      ],
+      "extracted_dimensions": [
+        {
+          "original_column": "Metric",
+          "normalized_column": "metric",
+          "semantic_name": "metric",
+          "role": "dimension",
+          "confidence": 0.55
+        },
+        {
+          "original_column": "Format",
+          "normalized_column": "format",
+          "semantic_name": "format",
+          "role": "dimension",
+          "confidence": 0.55
+        },
+        {
+          "original_column": "Status",
+          "normalized_column": "status",
+          "semantic_name": "status",
+          "role": "dimension",
+          "confidence": 0.95
+        }
+      ],
+      "extracted_metrics": [
+        {
+          "original_column": "Actual",
+          "normalized_column": "actual",
+          "semantic_name": "actual",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Goal_or_Budget",
+          "normalized_column": "goal_or_budget",
+          "semantic_name": "goal_or_budget",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Variance",
+          "normalized_column": "variance",
+          "semantic_name": "variance",
+          "role": "metric",
+          "confidence": 0.95
+        }
+      ],
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_10__executive_summary__table_01.csv",
+      "sample_rows": [
+        {
+          "metric": "Actual Revenue",
+          "actual": 2175600.0,
+          "goal_or_budget": 2175600.0,
+          "variance": 0.0,
+          "format": "Currency",
+          "status": "On target"
+        },
+        {
+          "metric": "Operating Expenses",
+          "actual": 2076600.0,
+          "goal_or_budget": 2023308.0,
+          "variance": 53292.0,
+          "format": "Currency",
+          "status": "Over budget"
+        },
+        {
+          "metric": "Net Operating Result",
+          "actual": 99000.0,
+          "goal_or_budget": 152292.0,
+          "variance": -53292.0,
+          "format": "Currency",
+          "status": "Positive"
+        },
+        {
+          "metric": "Payroll Ratio",
+          "actual": 0.43,
+          "goal_or_budget": 0.42,
+          "variance": 0.01,
+          "format": "Percent",
+          "status": "Healthy"
+        },
+        {
+          "metric": "Collection Rate",
+          "actual": 0.94,
+          "goal_or_budget": 0.93,
+          "variance": 0.01,
+          "format": "Percent",
+          "status": "On target"
+        }
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__revenue__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx",
+      "sheet": "Revenue",
+      "table_title": "Currency: USD | Synthetic data | Generated deterministically",
+      "detected_type": "Revenue",
+      "confidence": 0.99,
+      "header_confidence": 1.0,
+      "requires_future_ollama_interpretation": false,
+      "header_row": 5,
+      "table_boundaries": {
+        "start_row": 5,
+        "end_row": 29,
+        "start_column": 1,
+        "end_column": 8
+      },
+      "row_count": 24,
+      "column_count": 8,
+      "original_columns": [
+        "Period",
+        "Month",
+        "Department",
+        "Revenue_Category",
+        "Budget_Revenue",
+        "Actual_Revenue",
+        "Variance",
+        "Variance_Pct"
+      ],
+      "normalized_columns": [
+        "period",
+        "month",
+        "department",
+        "revenue_category",
+        "budget_revenue",
+        "actual_revenue",
+        "variance",
+        "variance_pct"
+      ],
+      "column_mappings": [
+        {
+          "original_name": "Period",
+          "normalized_name": "period",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Month",
+          "normalized_name": "month",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Department",
+          "normalized_name": "department",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Revenue_Category",
+          "normalized_name": "revenue_category",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Budget_Revenue",
+          "normalized_name": "budget_revenue",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Actual_Revenue",
+          "normalized_name": "actual_revenue",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Variance",
+          "normalized_name": "variance",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Variance_Pct",
+          "normalized_name": "variance_pct",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        }
+      ],
+      "extracted_dimensions": [
+        {
+          "original_column": "Period",
+          "normalized_column": "period",
+          "semantic_name": "period",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Month",
+          "normalized_column": "month",
+          "semantic_name": "month",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Department",
+          "normalized_column": "department",
+          "semantic_name": "department",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Revenue_Category",
+          "normalized_column": "revenue_category",
+          "semantic_name": "revenue_category",
+          "role": "dimension",
+          "confidence": 0.95
+        }
+      ],
+      "extracted_metrics": [
+        {
+          "original_column": "Budget_Revenue",
+          "normalized_column": "budget_revenue",
+          "semantic_name": "budget_revenue",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Actual_Revenue",
+          "normalized_column": "actual_revenue",
+          "semantic_name": "actual_revenue",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Variance",
+          "normalized_column": "variance",
+          "semantic_name": "variance",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Variance_Pct",
+          "normalized_column": "variance_pct",
+          "semantic_name": "variance_pct",
+          "role": "metric",
+          "confidence": 0.95
+        }
+      ],
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_10__revenue__table_01.csv",
+      "sample_rows": [
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Engineering",
+          "revenue_category": "Tuition",
+          "budget_revenue": 373332.96,
+          "actual_revenue": 373332.96,
+          "variance": 0,
+          "variance_pct": 0
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Engineering",
+          "revenue_category": "Grants",
+          "budget_revenue": 57435.84,
+          "actual_revenue": 57435.84,
+          "variance": 0,
+          "variance_pct": 0
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Engineering",
+          "revenue_category": "Auxiliary",
+          "budget_revenue": 33504.24,
+          "actual_revenue": 33504.24,
+          "variance": 0,
+          "variance_pct": 0
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Engineering",
+          "revenue_category": "Donations",
+          "budget_revenue": 14358.96,
+          "actual_revenue": 14358.96,
+          "variance": 0,
+          "variance_pct": 0
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Business",
+          "revenue_category": "Tuition",
+          "budget_revenue": 339393.6,
+          "actual_revenue": 339393.6,
+          "variance": 0,
+          "variance_pct": 0
+        }
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__expenses__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx",
+      "sheet": "Expenses",
+      "table_title": "Currency: USD | Synthetic data | Generated deterministically",
+      "detected_type": "Expenses",
+      "confidence": 0.8375,
+      "header_confidence": 1.0,
+      "requires_future_ollama_interpretation": false,
+      "header_row": 5,
+      "table_boundaries": {
+        "start_row": 5,
+        "end_row": 35,
+        "start_column": 1,
+        "end_column": 8
+      },
+      "row_count": 30,
+      "column_count": 8,
+      "original_columns": [
+        "Period",
+        "Month",
+        "Department",
+        "Expense_Category",
+        "Budget_Expense",
+        "Actual_Expense",
+        "Variance",
+        "Variance_Pct"
+      ],
+      "normalized_columns": [
+        "period",
+        "month",
+        "department",
+        "expense_category",
+        "budget_expense",
+        "actual_expense",
+        "variance",
+        "variance_pct"
+      ],
+      "column_mappings": [
+        {
+          "original_name": "Period",
+          "normalized_name": "period",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Month",
+          "normalized_name": "month",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Department",
+          "normalized_name": "department",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Expense_Category",
+          "normalized_name": "expense_category",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Budget_Expense",
+          "normalized_name": "budget_expense",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Actual_Expense",
+          "normalized_name": "actual_expense",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Variance",
+          "normalized_name": "variance",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Variance_Pct",
+          "normalized_name": "variance_pct",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        }
+      ],
+      "extracted_dimensions": [
+        {
+          "original_column": "Period",
+          "normalized_column": "period",
+          "semantic_name": "period",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Month",
+          "normalized_column": "month",
+          "semantic_name": "month",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Department",
+          "normalized_column": "department",
+          "semantic_name": "department",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Expense_Category",
+          "normalized_column": "expense_category",
+          "semantic_name": "expense_category",
+          "role": "dimension",
+          "confidence": 0.95
+        }
+      ],
+      "extracted_metrics": [
+        {
+          "original_column": "Budget_Expense",
+          "normalized_column": "budget_expense",
+          "semantic_name": "budget_expense",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Actual_Expense",
+          "normalized_column": "actual_expense",
+          "semantic_name": "actual_expense",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Variance",
+          "normalized_column": "variance",
+          "semantic_name": "variance",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Variance_Pct",
+          "normalized_column": "variance_pct",
+          "semantic_name": "variance_pct",
+          "role": "metric",
+          "confidence": 0.95
+        }
+      ],
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_10__expenses__table_01.csv",
+      "sample_rows": [
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Engineering",
+          "expense_category": "Payroll",
+          "budget_expense": 197813.63,
+          "actual_expense": 205726.18,
+          "variance": 7912.55,
+          "variance_pct": 0.04
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Engineering",
+          "expense_category": "Supplies",
+          "budget_expense": 93948.1,
+          "actual_expense": 95395.29,
+          "variance": 1447.19,
+          "variance_pct": 0.0154
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Engineering",
+          "expense_category": "Services",
+          "budget_expense": 84058.82,
+          "actual_expense": 85353.68,
+          "variance": 1294.86,
+          "variance_pct": 0.0154
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Engineering",
+          "expense_category": "Facilities",
+          "budget_expense": 44501.73,
+          "actual_expense": 45187.24,
+          "variance": 685.51,
+          "variance_pct": 0.0154
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Engineering",
+          "expense_category": "Technology",
+          "budget_expense": 24723.18,
+          "actual_expense": 25104.02,
+          "variance": 380.84,
+          "variance_pct": 0.0154
+        }
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__budget_vs_actual__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx",
+      "sheet": "Budget_vs_Actual",
+      "table_title": "Currency: USD | Synthetic data | Generated deterministically",
+      "detected_type": "Budget_vs_Actual",
+      "confidence": 0.8375,
+      "header_confidence": 1.0,
+      "requires_future_ollama_interpretation": false,
+      "header_row": 5,
+      "table_boundaries": {
+        "start_row": 5,
+        "end_row": 11,
+        "start_column": 1,
+        "end_column": 13
+      },
+      "row_count": 6,
+      "column_count": 13,
+      "original_columns": [
+        "Period",
+        "Month",
+        "Department",
+        "Budget_Revenue",
+        "Actual_Revenue",
+        "Budget_Expense",
+        "Actual_Expense",
+        "Revenue_Variance",
+        "Revenue_Variance_Pct",
+        "Expense_Variance",
+        "Expense_Variance_Pct",
+        "Net_Budget",
+        "Net_Actual"
+      ],
+      "normalized_columns": [
+        "period",
+        "month",
+        "department",
+        "budget_revenue",
+        "actual_revenue",
+        "budget_expense",
+        "actual_expense",
+        "revenue_variance",
+        "revenue_variance_pct",
+        "expense_variance",
+        "expense_variance_pct",
+        "net_budget",
+        "net_actual"
+      ],
+      "column_mappings": [
+        {
+          "original_name": "Period",
+          "normalized_name": "period",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Month",
+          "normalized_name": "month",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Department",
+          "normalized_name": "department",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Budget_Revenue",
+          "normalized_name": "budget_revenue",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Actual_Revenue",
+          "normalized_name": "actual_revenue",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Budget_Expense",
+          "normalized_name": "budget_expense",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Actual_Expense",
+          "normalized_name": "actual_expense",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Revenue_Variance",
+          "normalized_name": "revenue_variance",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Revenue_Variance_Pct",
+          "normalized_name": "revenue_variance_pct",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Expense_Variance",
+          "normalized_name": "expense_variance",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Expense_Variance_Pct",
+          "normalized_name": "expense_variance_pct",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Net_Budget",
+          "normalized_name": "net_budget",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Net_Actual",
+          "normalized_name": "net_actual",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        }
+      ],
+      "extracted_dimensions": [
+        {
+          "original_column": "Period",
+          "normalized_column": "period",
+          "semantic_name": "period",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Month",
+          "normalized_column": "month",
+          "semantic_name": "month",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Department",
+          "normalized_column": "department",
+          "semantic_name": "department",
+          "role": "dimension",
+          "confidence": 0.95
+        }
+      ],
+      "extracted_metrics": [
+        {
+          "original_column": "Budget_Revenue",
+          "normalized_column": "budget_revenue",
+          "semantic_name": "budget_revenue",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Actual_Revenue",
+          "normalized_column": "actual_revenue",
+          "semantic_name": "actual_revenue",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Budget_Expense",
+          "normalized_column": "budget_expense",
+          "semantic_name": "budget_expense",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Actual_Expense",
+          "normalized_column": "actual_expense",
+          "semantic_name": "actual_expense",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Revenue_Variance",
+          "normalized_column": "revenue_variance",
+          "semantic_name": "revenue_variance",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Revenue_Variance_Pct",
+          "normalized_column": "revenue_variance_pct",
+          "semantic_name": "revenue_variance_pct",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Expense_Variance",
+          "normalized_column": "expense_variance",
+          "semantic_name": "expense_variance",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Expense_Variance_Pct",
+          "normalized_column": "expense_variance_pct",
+          "semantic_name": "expense_variance_pct",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Net_Budget",
+          "normalized_column": "net_budget",
+          "semantic_name": "net_budget",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Net_Actual",
+          "normalized_column": "net_actual",
+          "semantic_name": "net_actual",
+          "role": "metric",
+          "confidence": 0.85
+        }
+      ],
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_10__budget_vs_actual__table_01.csv",
+      "sample_rows": [
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Engineering",
+          "budget_revenue": 478632,
+          "actual_revenue": 478632,
+          "budget_expense": 445045.46,
+          "actual_expense": 456766.41,
+          "revenue_variance": 0,
+          "revenue_variance_pct": 0,
+          "expense_variance": 11720.95,
+          "expense_variance_pct": 0.0263,
+          "net_budget": 33586.54,
+          "net_actual": 21865.59
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Business",
+          "budget_revenue": 435120,
+          "actual_revenue": 435120,
+          "budget_expense": 404586.79,
+          "actual_expense": 415242.2,
+          "revenue_variance": 0,
+          "revenue_variance_pct": 0,
+          "expense_variance": 10655.41,
+          "expense_variance_pct": 0.0263,
+          "net_budget": 30533.21,
+          "net_actual": 19877.8
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Health Sciences",
+          "budget_revenue": 565656,
+          "actual_revenue": 565656,
+          "budget_expense": 526336.88,
+          "actual_expense": 540203.87,
+          "revenue_variance": 0,
+          "revenue_variance_pct": 0,
+          "expense_variance": 13866.99,
+          "expense_variance_pct": 0.0263,
+          "net_budget": 39319.12,
+          "net_actual": 25452.13
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Arts & Humanities",
+          "budget_revenue": 304584,
+          "actual_revenue": 304584,
+          "budget_expense": 283210.75,
+          "actual_expense": 290669.54,
+          "revenue_variance": 0,
+          "revenue_variance_pct": 0,
+          "expense_variance": 7458.79,
+          "expense_variance_pct": 0.0263,
+          "net_budget": 21373.25,
+          "net_actual": 13914.46
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Student Services",
+          "budget_revenue": 217560,
+          "actual_revenue": 217560,
+          "budget_expense": 202293.4,
+          "actual_expense": 207621.11,
+          "revenue_variance": 0,
+          "revenue_variance_pct": 0,
+          "expense_variance": 5327.71,
+          "expense_variance_pct": 0.0263,
+          "net_budget": 15266.6,
+          "net_actual": 9938.89
+        }
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__department_summary__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx",
+      "sheet": "Department_Summary",
+      "table_title": "Currency: USD | Synthetic data | Generated deterministically",
+      "detected_type": "Department_Summary",
+      "confidence": 0.87,
+      "header_confidence": 1.0,
+      "requires_future_ollama_interpretation": false,
+      "header_row": 5,
+      "table_boundaries": {
+        "start_row": 5,
+        "end_row": 11,
+        "start_column": 1,
+        "end_column": 9
+      },
+      "row_count": 6,
+      "column_count": 9,
+      "original_columns": [
+        "Department",
+        "Budget_Revenue",
+        "Actual_Revenue",
+        "Budget_Expense",
+        "Actual_Expense",
+        "Net_Contribution",
+        "Expense_Variance",
+        "Expense_Variance_Pct",
+        "Status"
+      ],
+      "normalized_columns": [
+        "department",
+        "budget_revenue",
+        "actual_revenue",
+        "budget_expense",
+        "actual_expense",
+        "net_contribution",
+        "expense_variance",
+        "expense_variance_pct",
+        "status"
+      ],
+      "column_mappings": [
+        {
+          "original_name": "Department",
+          "normalized_name": "department",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Budget_Revenue",
+          "normalized_name": "budget_revenue",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Actual_Revenue",
+          "normalized_name": "actual_revenue",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Budget_Expense",
+          "normalized_name": "budget_expense",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Actual_Expense",
+          "normalized_name": "actual_expense",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Net_Contribution",
+          "normalized_name": "net_contribution",
+          "confidence": 0.55,
+          "matched_alias": false,
+          "requires_future_interpretation": true
+        },
+        {
+          "original_name": "Expense_Variance",
+          "normalized_name": "expense_variance",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Expense_Variance_Pct",
+          "normalized_name": "expense_variance_pct",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Status",
+          "normalized_name": "status",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        }
+      ],
+      "extracted_dimensions": [
+        {
+          "original_column": "Department",
+          "normalized_column": "department",
+          "semantic_name": "department",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Status",
+          "normalized_column": "status",
+          "semantic_name": "status",
+          "role": "dimension",
+          "confidence": 0.95
+        }
+      ],
+      "extracted_metrics": [
+        {
+          "original_column": "Budget_Revenue",
+          "normalized_column": "budget_revenue",
+          "semantic_name": "budget_revenue",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Actual_Revenue",
+          "normalized_column": "actual_revenue",
+          "semantic_name": "actual_revenue",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Budget_Expense",
+          "normalized_column": "budget_expense",
+          "semantic_name": "budget_expense",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Actual_Expense",
+          "normalized_column": "actual_expense",
+          "semantic_name": "actual_expense",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Net_Contribution",
+          "normalized_column": "net_contribution",
+          "semantic_name": "net_contribution",
+          "role": "metric",
+          "confidence": 0.55
+        },
+        {
+          "original_column": "Expense_Variance",
+          "normalized_column": "expense_variance",
+          "semantic_name": "expense_variance",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Expense_Variance_Pct",
+          "normalized_column": "expense_variance_pct",
+          "semantic_name": "expense_variance_pct",
+          "role": "metric",
+          "confidence": 0.85
+        }
+      ],
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_10__department_summary__table_01.csv",
+      "sample_rows": [
+        {
+          "department": "Engineering",
+          "budget_revenue": 478632,
+          "actual_revenue": 478632,
+          "budget_expense": 445045.46,
+          "actual_expense": 456766.41,
+          "net_contribution": 21865.59,
+          "expense_variance": 11720.95,
+          "expense_variance_pct": 0.0263,
+          "status": "On track"
+        },
+        {
+          "department": "Business",
+          "budget_revenue": 435120,
+          "actual_revenue": 435120,
+          "budget_expense": 404586.79,
+          "actual_expense": 415242.2,
+          "net_contribution": 19877.8,
+          "expense_variance": 10655.41,
+          "expense_variance_pct": 0.0263,
+          "status": "On track"
+        },
+        {
+          "department": "Health Sciences",
+          "budget_revenue": 565656,
+          "actual_revenue": 565656,
+          "budget_expense": 526336.88,
+          "actual_expense": 540203.87,
+          "net_contribution": 25452.13,
+          "expense_variance": 13866.99,
+          "expense_variance_pct": 0.0263,
+          "status": "On track"
+        },
+        {
+          "department": "Arts & Humanities",
+          "budget_revenue": 304584,
+          "actual_revenue": 304584,
+          "budget_expense": 283210.75,
+          "actual_expense": 290669.54,
+          "net_contribution": 13914.46,
+          "expense_variance": 7458.79,
+          "expense_variance_pct": 0.0263,
+          "status": "On track"
+        },
+        {
+          "department": "Student Services",
+          "budget_revenue": 217560,
+          "actual_revenue": 217560,
+          "budget_expense": 202293.4,
+          "actual_expense": 207621.11,
+          "net_contribution": 9938.89,
+          "expense_variance": 5327.71,
+          "expense_variance_pct": 0.0263,
+          "status": "On track"
+        }
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__payroll__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx",
+      "sheet": "Payroll",
+      "table_title": "Currency: USD | Synthetic data | Generated deterministically",
+      "detected_type": "Payroll",
+      "confidence": 0.99,
+      "header_confidence": 1.0,
+      "requires_future_ollama_interpretation": false,
+      "header_row": 5,
+      "table_boundaries": {
+        "start_row": 5,
+        "end_row": 11,
+        "start_column": 1,
+        "end_column": 11
+      },
+      "row_count": 6,
+      "column_count": 11,
+      "original_columns": [
+        "Period",
+        "Month",
+        "Department",
+        "Headcount_FTE",
+        "Base_Salary",
+        "Benefits",
+        "Overtime",
+        "Total_Payroll",
+        "Payroll_Budget",
+        "Variance",
+        "Variance_Pct"
+      ],
+      "normalized_columns": [
+        "period",
+        "month",
+        "department",
+        "headcount_fte",
+        "base_salary",
+        "benefits",
+        "overtime",
+        "total_payroll",
+        "payroll_budget",
+        "variance",
+        "variance_pct"
+      ],
+      "column_mappings": [
+        {
+          "original_name": "Period",
+          "normalized_name": "period",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Month",
+          "normalized_name": "month",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Department",
+          "normalized_name": "department",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Headcount_FTE",
+          "normalized_name": "headcount_fte",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Base_Salary",
+          "normalized_name": "base_salary",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Benefits",
+          "normalized_name": "benefits",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Overtime",
+          "normalized_name": "overtime",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Total_Payroll",
+          "normalized_name": "total_payroll",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Payroll_Budget",
+          "normalized_name": "payroll_budget",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Variance",
+          "normalized_name": "variance",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Variance_Pct",
+          "normalized_name": "variance_pct",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        }
+      ],
+      "extracted_dimensions": [
+        {
+          "original_column": "Period",
+          "normalized_column": "period",
+          "semantic_name": "period",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Month",
+          "normalized_column": "month",
+          "semantic_name": "month",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Department",
+          "normalized_column": "department",
+          "semantic_name": "department",
+          "role": "dimension",
+          "confidence": 0.95
+        }
+      ],
+      "extracted_metrics": [
+        {
+          "original_column": "Headcount_FTE",
+          "normalized_column": "headcount_fte",
+          "semantic_name": "headcount_fte",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Base_Salary",
+          "normalized_column": "base_salary",
+          "semantic_name": "base_salary",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Benefits",
+          "normalized_column": "benefits",
+          "semantic_name": "benefits",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Overtime",
+          "normalized_column": "overtime",
+          "semantic_name": "overtime",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Total_Payroll",
+          "normalized_column": "total_payroll",
+          "semantic_name": "total_payroll",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Payroll_Budget",
+          "normalized_column": "payroll_budget",
+          "semantic_name": "payroll_budget",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Variance",
+          "normalized_column": "variance",
+          "semantic_name": "variance",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Variance_Pct",
+          "normalized_column": "variance_pct",
+          "semantic_name": "variance_pct",
+          "role": "metric",
+          "confidence": 0.95
+        }
+      ],
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_10__payroll__table_01.csv",
+      "sample_rows": [
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Engineering",
+          "headcount_fte": 44.4,
+          "base_salary": 150180.11,
+          "benefits": 39087.97,
+          "overtime": 16458.09,
+          "total_payroll": 205726.18,
+          "payroll_budget": 197813.63,
+          "variance": 7912.55,
+          "variance_pct": 0.04
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Business",
+          "headcount_fte": 42.0,
+          "base_salary": 136527.37,
+          "benefits": 35534.52,
+          "overtime": 14961.9,
+          "total_payroll": 187023.8,
+          "payroll_budget": 179830.58,
+          "variance": 7193.22,
+          "variance_pct": 0.04
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Health Sciences",
+          "headcount_fte": 49.2,
+          "base_salary": 177379.93,
+          "benefits": 46268.79,
+          "overtime": 19871.23,
+          "total_payroll": 243519.95,
+          "payroll_budget": 234153.8,
+          "variance": 9366.15,
+          "variance_pct": 0.04
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Arts & Humanities",
+          "headcount_fte": 34.8,
+          "base_salary": 95569.16,
+          "benefits": 24874.17,
+          "overtime": 10473.33,
+          "total_payroll": 130916.66,
+          "payroll_budget": 125881.4,
+          "variance": 5035.26,
+          "variance_pct": 0.04
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Student Services",
+          "headcount_fte": 30.0,
+          "base_salary": 68263.69,
+          "benefits": 17767.26,
+          "overtime": 7480.95,
+          "total_payroll": 93511.9,
+          "payroll_budget": 89915.29,
+          "variance": 3596.61,
+          "variance_pct": 0.04
+        }
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__student_payments__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx",
+      "sheet": "Student_Payments",
+      "table_title": "Currency: USD | Synthetic data | Generated deterministically",
+      "detected_type": "Student_Payments",
+      "confidence": 0.99,
+      "header_confidence": 1.0,
+      "requires_future_ollama_interpretation": false,
+      "header_row": 5,
+      "table_boundaries": {
+        "start_row": 5,
+        "end_row": 29,
+        "start_column": 1,
+        "end_column": 11
+      },
+      "row_count": 24,
+      "column_count": 11,
+      "original_columns": [
+        "Invoice_ID",
+        "Student_ID",
+        "Department",
+        "Billing_Period",
+        "Due_Date",
+        "Payment_Date",
+        "Amount_Due",
+        "Amount_Paid",
+        "Outstanding",
+        "Status",
+        "Days_Overdue"
+      ],
+      "normalized_columns": [
+        "invoice_id",
+        "student_id",
+        "department",
+        "billing_period",
+        "due_date",
+        "payment_date",
+        "amount_due",
+        "amount_paid",
+        "outstanding",
+        "status",
+        "days_overdue"
+      ],
+      "column_mappings": [
+        {
+          "original_name": "Invoice_ID",
+          "normalized_name": "invoice_id",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Student_ID",
+          "normalized_name": "student_id",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Department",
+          "normalized_name": "department",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Billing_Period",
+          "normalized_name": "billing_period",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Due_Date",
+          "normalized_name": "due_date",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Payment_Date",
+          "normalized_name": "payment_date",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Amount_Due",
+          "normalized_name": "amount_due",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Amount_Paid",
+          "normalized_name": "amount_paid",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Outstanding",
+          "normalized_name": "outstanding",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Status",
+          "normalized_name": "status",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Days_Overdue",
+          "normalized_name": "days_overdue",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        }
+      ],
+      "extracted_dimensions": [
+        {
+          "original_column": "Invoice_ID",
+          "normalized_column": "invoice_id",
+          "semantic_name": "invoice_id",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Student_ID",
+          "normalized_column": "student_id",
+          "semantic_name": "student_id",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Department",
+          "normalized_column": "department",
+          "semantic_name": "department",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Billing_Period",
+          "normalized_column": "billing_period",
+          "semantic_name": "billing_period",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Due_Date",
+          "normalized_column": "due_date",
+          "semantic_name": "due_date",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Payment_Date",
+          "normalized_column": "payment_date",
+          "semantic_name": "payment_date",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Status",
+          "normalized_column": "status",
+          "semantic_name": "status",
+          "role": "dimension",
+          "confidence": 0.95
+        }
+      ],
+      "extracted_metrics": [
+        {
+          "original_column": "Amount_Due",
+          "normalized_column": "amount_due",
+          "semantic_name": "amount_due",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Amount_Paid",
+          "normalized_column": "amount_paid",
+          "semantic_name": "amount_paid",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Outstanding",
+          "normalized_column": "outstanding",
+          "semantic_name": "outstanding",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Days_Overdue",
+          "normalized_column": "days_overdue",
+          "semantic_name": "days_overdue",
+          "role": "metric",
+          "confidence": 0.65
+        }
+      ],
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_10__student_payments__table_01.csv",
+      "sample_rows": [
+        {
+          "invoice_id": "INV-2026_10-001",
+          "student_id": "ENG-FR-001",
+          "department": "Engineering",
+          "billing_period": "October",
+          "due_date": "2026-10-20T00:00:00.000",
+          "payment_date": "2026-10-25T00:00:00.000",
+          "amount_due": 86153.76,
+          "amount_paid": 80984.53,
+          "outstanding": 5169.23,
+          "status": "Collected",
+          "days_overdue": 0
+        },
+        {
+          "invoice_id": "INV-2026_10-002",
+          "student_id": "ENG-SO-002",
+          "department": "Engineering",
+          "billing_period": "October",
+          "due_date": "2026-10-20T00:00:00.000",
+          "payment_date": "2026-10-25T00:00:00.000",
+          "amount_due": 86153.76,
+          "amount_paid": 80984.53,
+          "outstanding": 5169.23,
+          "status": "Collected",
+          "days_overdue": 0
+        },
+        {
+          "invoice_id": "INV-2026_10-003",
+          "student_id": "ENG-JU-003",
+          "department": "Engineering",
+          "billing_period": "October",
+          "due_date": "2026-10-20T00:00:00.000",
+          "payment_date": "2026-10-25T00:00:00.000",
+          "amount_due": 86153.76,
+          "amount_paid": 80984.53,
+          "outstanding": 5169.23,
+          "status": "Collected",
+          "days_overdue": 0
+        },
+        {
+          "invoice_id": "INV-2026_10-004",
+          "student_id": "ENG-SE-004",
+          "department": "Engineering",
+          "billing_period": "October",
+          "due_date": "2026-10-20T00:00:00.000",
+          "payment_date": "2026-10-25T00:00:00.000",
+          "amount_due": 86153.76,
+          "amount_paid": 80984.53,
+          "outstanding": 5169.23,
+          "status": "Collected",
+          "days_overdue": 0
+        },
+        {
+          "invoice_id": "INV-2026_10-005",
+          "student_id": "BUS-FR-005",
+          "department": "Business",
+          "billing_period": "October",
+          "due_date": "2026-10-20T00:00:00.000",
+          "payment_date": "2026-10-25T00:00:00.000",
+          "amount_due": 78321.6,
+          "amount_paid": 73622.3,
+          "outstanding": 4699.3,
+          "status": "Collected",
+          "days_overdue": 0
+        }
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__cash_flow__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx",
+      "sheet": "Cash_Flow",
+      "table_title": "Currency: USD | Synthetic data | Generated deterministically",
+      "detected_type": "Cash_Flow",
+      "confidence": 0.7833,
+      "header_confidence": 1.0,
+      "requires_future_ollama_interpretation": false,
+      "header_row": 5,
+      "table_boundaries": {
+        "start_row": 5,
+        "end_row": 6,
+        "start_column": 1,
+        "end_column": 16
+      },
+      "row_count": 1,
+      "column_count": 16,
+      "original_columns": [
+        "Period",
+        "Month",
+        "Beginning_Cash",
+        "Budget_Cash_Inflows",
+        "Actual_Cash_Inflows",
+        "Budget_Operating_Outflows",
+        "Actual_Operating_Outflows",
+        "Budget_Scholarships",
+        "Actual_Scholarships",
+        "Budget_Capital_Outflows",
+        "Actual_Capital_Outflows",
+        "Budget_Net_Cash_Flow",
+        "Actual_Net_Cash_Flow",
+        "Budget_Ending_Cash",
+        "Actual_Ending_Cash",
+        "Ending_Cash_Variance"
+      ],
+      "normalized_columns": [
+        "period",
+        "month",
+        "beginning_cash",
+        "budget_cash_inflows",
+        "actual_cash_inflows",
+        "budget_operating_outflows",
+        "actual_operating_outflows",
+        "budget_scholarships",
+        "actual_scholarships",
+        "budget_capital_outflows",
+        "actual_capital_outflows",
+        "budget_net_cash_flow",
+        "actual_net_cash_flow",
+        "budget_ending_cash",
+        "actual_ending_cash",
+        "ending_cash_variance"
+      ],
+      "column_mappings": [
+        {
+          "original_name": "Period",
+          "normalized_name": "period",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Month",
+          "normalized_name": "month",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Beginning_Cash",
+          "normalized_name": "beginning_cash",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Budget_Cash_Inflows",
+          "normalized_name": "budget_cash_inflows",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Actual_Cash_Inflows",
+          "normalized_name": "actual_cash_inflows",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Budget_Operating_Outflows",
+          "normalized_name": "budget_operating_outflows",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Actual_Operating_Outflows",
+          "normalized_name": "actual_operating_outflows",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Budget_Scholarships",
+          "normalized_name": "budget_scholarships",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Actual_Scholarships",
+          "normalized_name": "actual_scholarships",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Budget_Capital_Outflows",
+          "normalized_name": "budget_capital_outflows",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Actual_Capital_Outflows",
+          "normalized_name": "actual_capital_outflows",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Budget_Net_Cash_Flow",
+          "normalized_name": "budget_net_cash_flow",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Actual_Net_Cash_Flow",
+          "normalized_name": "actual_net_cash_flow",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Budget_Ending_Cash",
+          "normalized_name": "budget_ending_cash",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Actual_Ending_Cash",
+          "normalized_name": "actual_ending_cash",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Ending_Cash_Variance",
+          "normalized_name": "ending_cash_variance",
+          "confidence": 0.85,
+          "matched_alias": false,
+          "requires_future_interpretation": false
+        }
+      ],
+      "extracted_dimensions": [
+        {
+          "original_column": "Period",
+          "normalized_column": "period",
+          "semantic_name": "period",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Month",
+          "normalized_column": "month",
+          "semantic_name": "month",
+          "role": "dimension",
+          "confidence": 0.95
+        }
+      ],
+      "extracted_metrics": [
+        {
+          "original_column": "Beginning_Cash",
+          "normalized_column": "beginning_cash",
+          "semantic_name": "beginning_cash",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Budget_Cash_Inflows",
+          "normalized_column": "budget_cash_inflows",
+          "semantic_name": "budget_cash_inflows",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Actual_Cash_Inflows",
+          "normalized_column": "actual_cash_inflows",
+          "semantic_name": "actual_cash_inflows",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Budget_Operating_Outflows",
+          "normalized_column": "budget_operating_outflows",
+          "semantic_name": "budget_operating_outflows",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Actual_Operating_Outflows",
+          "normalized_column": "actual_operating_outflows",
+          "semantic_name": "actual_operating_outflows",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Budget_Scholarships",
+          "normalized_column": "budget_scholarships",
+          "semantic_name": "budget_scholarships",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Actual_Scholarships",
+          "normalized_column": "actual_scholarships",
+          "semantic_name": "actual_scholarships",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Budget_Capital_Outflows",
+          "normalized_column": "budget_capital_outflows",
+          "semantic_name": "budget_capital_outflows",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Actual_Capital_Outflows",
+          "normalized_column": "actual_capital_outflows",
+          "semantic_name": "actual_capital_outflows",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Budget_Net_Cash_Flow",
+          "normalized_column": "budget_net_cash_flow",
+          "semantic_name": "budget_net_cash_flow",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Actual_Net_Cash_Flow",
+          "normalized_column": "actual_net_cash_flow",
+          "semantic_name": "actual_net_cash_flow",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Budget_Ending_Cash",
+          "normalized_column": "budget_ending_cash",
+          "semantic_name": "budget_ending_cash",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Actual_Ending_Cash",
+          "normalized_column": "actual_ending_cash",
+          "semantic_name": "actual_ending_cash",
+          "role": "metric",
+          "confidence": 0.85
+        },
+        {
+          "original_column": "Ending_Cash_Variance",
+          "normalized_column": "ending_cash_variance",
+          "semantic_name": "ending_cash_variance",
+          "role": "metric",
+          "confidence": 0.85
+        }
+      ],
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_10__cash_flow__table_01.csv",
+      "sample_rows": [
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "beginning_cash": 1310000,
+          "budget_cash_inflows": 2233308,
+          "actual_cash_inflows": 2255064,
+          "budget_operating_outflows": 1578180.24,
+          "actual_operating_outflows": 1835406,
+          "budget_scholarships": 113131.2,
+          "actual_scholarships": 119658,
+          "budget_capital_outflows": 114000,
+          "actual_capital_outflows": 120000,
+          "budget_net_cash_flow": 170000,
+          "actual_net_cash_flow": 180000,
+          "budget_ending_cash": 1480000,
+          "actual_ending_cash": 1490000,
+          "ending_cash_variance": 10000
+        }
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__scholarships__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx",
+      "sheet": "Scholarships",
+      "table_title": "Currency: USD | Synthetic data | Generated deterministically",
+      "detected_type": "Scholarships",
+      "confidence": 0.99,
+      "header_confidence": 1.0,
+      "requires_future_ollama_interpretation": false,
+      "header_row": 5,
+      "table_boundaries": {
+        "start_row": 5,
+        "end_row": 11,
+        "start_column": 1,
+        "end_column": 9
+      },
+      "row_count": 6,
+      "column_count": 9,
+      "original_columns": [
+        "Period",
+        "Month",
+        "Department",
+        "Scholarship_Type",
+        "Allocated",
+        "Awarded",
+        "Remaining",
+        "Recipients",
+        "Utilization_Pct"
+      ],
+      "normalized_columns": [
+        "period",
+        "month",
+        "department",
+        "scholarship_type",
+        "allocated",
+        "awarded",
+        "remaining",
+        "recipients",
+        "utilization_pct"
+      ],
+      "column_mappings": [
+        {
+          "original_name": "Period",
+          "normalized_name": "period",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Month",
+          "normalized_name": "month",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Department",
+          "normalized_name": "department",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Scholarship_Type",
+          "normalized_name": "scholarship_type",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Allocated",
+          "normalized_name": "allocated",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Awarded",
+          "normalized_name": "awarded",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Remaining",
+          "normalized_name": "remaining",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Recipients",
+          "normalized_name": "recipients",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Utilization_Pct",
+          "normalized_name": "utilization_pct",
+          "confidence": 0.55,
+          "matched_alias": false,
+          "requires_future_interpretation": true
+        }
+      ],
+      "extracted_dimensions": [
+        {
+          "original_column": "Period",
+          "normalized_column": "period",
+          "semantic_name": "period",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Month",
+          "normalized_column": "month",
+          "semantic_name": "month",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Department",
+          "normalized_column": "department",
+          "semantic_name": "department",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Scholarship_Type",
+          "normalized_column": "scholarship_type",
+          "semantic_name": "scholarship_type",
+          "role": "dimension",
+          "confidence": 0.95
+        }
+      ],
+      "extracted_metrics": [
+        {
+          "original_column": "Allocated",
+          "normalized_column": "allocated",
+          "semantic_name": "allocated",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Awarded",
+          "normalized_column": "awarded",
+          "semantic_name": "awarded",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Remaining",
+          "normalized_column": "remaining",
+          "semantic_name": "remaining",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Recipients",
+          "normalized_column": "recipients",
+          "semantic_name": "recipients",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Utilization_Pct",
+          "normalized_column": "utilization_pct",
+          "semantic_name": "utilization_pct",
+          "role": "metric",
+          "confidence": 0.55
+        }
+      ],
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_10__scholarships__table_01.csv",
+      "sample_rows": [
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Engineering",
+          "scholarship_type": "Need-based",
+          "allocated": 28430.74,
+          "awarded": 26324.76,
+          "remaining": 2105.98,
+          "recipients": 48,
+          "utilization_pct": 0.9259
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Business",
+          "scholarship_type": "Need-based",
+          "allocated": 25846.13,
+          "awarded": 23931.6,
+          "remaining": 1914.53,
+          "recipients": 44,
+          "utilization_pct": 0.9259
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Health Sciences",
+          "scholarship_type": "Need-based",
+          "allocated": 33599.97,
+          "awarded": 31111.08,
+          "remaining": 2488.89,
+          "recipients": 57,
+          "utilization_pct": 0.9259
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Arts & Humanities",
+          "scholarship_type": "Need-based",
+          "allocated": 18092.29,
+          "awarded": 16752.12,
+          "remaining": 1340.17,
+          "recipients": 31,
+          "utilization_pct": 0.9259
+        },
+        {
+          "period": "2026-10-01T00:00:00.000",
+          "month": "October",
+          "department": "Student Services",
+          "scholarship_type": "Need-based",
+          "allocated": 12923.06,
+          "awarded": 11965.8,
+          "remaining": 957.26,
+          "recipients": 22,
+          "utilization_pct": 0.9259
+        }
+      ]
+    },
+    {
+      "table_id": "university_financial_report_2026_10__vendor_payments__table_01",
+      "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_10.xlsx",
+      "sheet": "Vendor_Payments",
+      "table_title": "Currency: USD | Synthetic data | Generated deterministically",
+      "detected_type": "Vendor_Payments",
+      "confidence": 0.99,
+      "header_confidence": 1.0,
+      "requires_future_ollama_interpretation": false,
+      "header_row": 5,
+      "table_boundaries": {
+        "start_row": 5,
+        "end_row": 11,
+        "start_column": 1,
+        "end_column": 12
+      },
+      "row_count": 6,
+      "column_count": 12,
+      "original_columns": [
+        "Payment_ID",
+        "Payment_Date",
+        "Month",
+        "Department",
+        "Vendor",
+        "Invoice_Number",
+        "Expense_Category",
+        "Amount",
+        "Payment_Method",
+        "Approval_Status",
+        "Potential_Duplicate",
+        "High_Value_Flag"
+      ],
+      "normalized_columns": [
+        "payment_id",
+        "payment_date",
+        "month",
+        "department",
+        "vendor",
+        "invoice_number",
+        "expense_category",
+        "amount",
+        "payment_method",
+        "approval_status",
+        "potential_duplicate",
+        "high_value_flag"
+      ],
+      "column_mappings": [
+        {
+          "original_name": "Payment_ID",
+          "normalized_name": "payment_id",
+          "confidence": 0.55,
+          "matched_alias": false,
+          "requires_future_interpretation": true
+        },
+        {
+          "original_name": "Payment_Date",
+          "normalized_name": "payment_date",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Month",
+          "normalized_name": "month",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Department",
+          "normalized_name": "department",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Vendor",
+          "normalized_name": "vendor",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Invoice_Number",
+          "normalized_name": "invoice_number",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Expense_Category",
+          "normalized_name": "expense_category",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Amount",
+          "normalized_name": "amount",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Payment_Method",
+          "normalized_name": "payment_method",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Approval_Status",
+          "normalized_name": "approval_status",
+          "confidence": 0.95,
+          "matched_alias": true,
+          "requires_future_interpretation": false
+        },
+        {
+          "original_name": "Potential_Duplicate",
+          "normalized_name": "potential_duplicate",
+          "confidence": 0.55,
+          "matched_alias": false,
+          "requires_future_interpretation": true
+        },
+        {
+          "original_name": "High_Value_Flag",
+          "normalized_name": "high_value_flag",
+          "confidence": 0.55,
+          "matched_alias": false,
+          "requires_future_interpretation": true
+        }
+      ],
+      "extracted_dimensions": [
+        {
+          "original_column": "Payment_ID",
+          "normalized_column": "payment_id",
+          "semantic_name": "payment_id",
+          "role": "dimension",
+          "confidence": 0.55
+        },
+        {
+          "original_column": "Payment_Date",
+          "normalized_column": "payment_date",
+          "semantic_name": "payment_date",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Month",
+          "normalized_column": "month",
+          "semantic_name": "month",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Department",
+          "normalized_column": "department",
+          "semantic_name": "department",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Vendor",
+          "normalized_column": "vendor",
+          "semantic_name": "vendor",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Invoice_Number",
+          "normalized_column": "invoice_number",
+          "semantic_name": "invoice_number",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Expense_Category",
+          "normalized_column": "expense_category",
+          "semantic_name": "expense_category",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Payment_Method",
+          "normalized_column": "payment_method",
+          "semantic_name": "payment_method",
+          "role": "dimension",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Approval_Status",
+          "normalized_column": "approval_status",
+          "semantic_name": "approval_status",
+          "role": "dimension",
+          "confidence": 0.95
+        }
+      ],
+      "extracted_metrics": [
+        {
+          "original_column": "Amount",
+          "normalized_column": "amount",
+          "semantic_name": "amount",
+          "role": "metric",
+          "confidence": 0.95
+        },
+        {
+          "original_column": "Potential_Duplicate",
+          "normalized_column": "potential_duplicate",
+          "semantic_name": "potential_duplicate",
+          "role": "metric",
+          "confidence": 0.55
+        },
+        {
+          "original_column": "High_Value_Flag",
+          "normalized_column": "high_value_flag",
+          "semantic_name": "high_value_flag",
+          "role": "metric",
+          "confidence": 0.55
+        }
+      ],
+      "normalized_table_file": "normalized_tables/university_financial_report_2026_10__vendor_payments__table_01.csv",
+      "sample_rows": [
+        {
+          "payment_id": "PAY-2026_10-001",
+          "payment_date": "2026-10-08T00:00:00.000",
+          "month": "October",
+          "department": "Engineering",
+          "vendor": "LabSource",
+          "invoice_number": "LAB-2026_10-001",
+          "expense_category": "Services",
+          "amount": 22190,
+          "payment_method": "ACH",
+          "approval_status": "Approved",
+          "potential_duplicate": false,
+          "high_value_flag": false
+        },
+        {
+          "payment_id": "PAY-2026_10-002",
+          "payment_date": "2026-10-11T00:00:00.000",
+          "month": "October",
+          "department": "Business",
+          "vendor": "FacilitiesPlus",
+          "invoice_number": "FAC-2026_10-002",
+          "expense_category": "Services",
+          "amount": 27442,
+          "payment_method": "ACH",
+          "approval_status": "Approved",
+          "potential_duplicate": false,
+          "high_value_flag": false
+        },
+        {
+          "payment_id": "PAY-2026_10-003",
+          "payment_date": "2026-10-14T00:00:00.000",
+          "month": "October",
+          "department": "Health Sciences",
+          "vendor": "CloudEdu",
+          "invoice_number": "CLO-2026_10-003",
+          "expense_category": "Services",
+          "amount": 24567,
+          "payment_method": "ACH",
+          "approval_status": "Approved",
+          "potential_duplicate": false,
+          "high_value_flag": false
+        },
+        {
+          "payment_id": "PAY-2026_10-004",
+          "payment_date": "2026-10-17T00:00:00.000",
+          "month": "October",
+          "department": "Arts & Humanities",
+          "vendor": "LibraryHub",
+          "invoice_number": "LIB-2026_10-004",
+          "expense_category": "Services",
+          "amount": 27945,
+          "payment_method": "ACH",
+          "approval_status": "Approved",
+          "potential_duplicate": false,
+          "high_value_flag": false
+        },
+        {
+          "payment_id": "PAY-2026_10-005",
+          "payment_date": "2026-10-20T00:00:00.000",
+          "month": "October",
+          "department": "Student Services",
+          "vendor": "MedSupply Co",
+          "invoice_number": "MED-2026_10-005",
+          "expense_category": "Medical Supplies",
+          "amount": 26416,
+          "payment_method": "ACH",
+          "approval_status": "Approved",
+          "potential_duplicate": false,
+          "high_value_flag": false
+        }
+      ]
+    }
+  ]
+}

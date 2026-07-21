@@ -1,0 +1,25 @@
+period,month,department,revenue_category,budget_revenue,actual_revenue,variance,variance_pct
+2026-04-01,April,Engineering,Tuition,364684.32,346450.1,-18234.22,-0.05
+2026-04-01,April,Engineering,Grants,56105.28,53300.02,-2805.26,-0.05
+2026-04-01,April,Engineering,Auxiliary,32728.08,31091.68,-1636.4,-0.05
+2026-04-01,April,Engineering,Donations,14026.32,13325.0,-701.32,-0.05
+2026-04-01,April,Business,Tuition,331531.2,314954.64,-16576.56,-0.05
+2026-04-01,April,Business,Grants,51004.8,48454.56,-2550.24,-0.05
+2026-04-01,April,Business,Auxiliary,29752.8,28265.16,-1487.64,-0.05
+2026-04-01,April,Business,Donations,12751.2,12113.64,-637.56,-0.05
+2026-04-01,April,Health Sciences,Tuition,430990.56,409441.03,-21549.53,-0.05
+2026-04-01,April,Health Sciences,Grants,66306.24,62990.93,-3315.31,-0.05
+2026-04-01,April,Health Sciences,Auxiliary,38678.64,36744.71,-1933.93,-0.05
+2026-04-01,April,Health Sciences,Donations,16576.56,15747.73,-828.83,-0.05
+2026-04-01,April,Arts & Humanities,Tuition,232071.84,220468.25,-11603.59,-0.05
+2026-04-01,April,Arts & Humanities,Grants,35703.36,33918.19,-1785.17,-0.05
+2026-04-01,April,Arts & Humanities,Auxiliary,20826.96,19785.61,-1041.35,-0.05
+2026-04-01,April,Arts & Humanities,Donations,8925.84,8479.55,-446.29,-0.05
+2026-04-01,April,Student Services,Tuition,165765.6,157477.32,-8288.28,-0.05
+2026-04-01,April,Student Services,Grants,25502.4,24227.28,-1275.12,-0.05
+2026-04-01,April,Student Services,Auxiliary,14876.4,14132.58,-743.82,-0.05
+2026-04-01,April,Student Services,Donations,6375.6,6056.82,-318.78,-0.05
+2026-04-01,April,Administration,Tuition,132612.48,125981.86,-6630.62,-0.05
+2026-04-01,April,Administration,Grants,20401.92,19381.82,-1020.1,-0.05
+2026-04-01,April,Administration,Auxiliary,11901.12,11306.06,-595.06,-0.05
+2026-04-01,April,Administration,Donations,5100.48,4845.46,-255.02,-0.05

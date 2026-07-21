@@ -1,0 +1,50 @@
+{
+  "analysis_id": "STRATEGIC-ANALYSIS-2026-01",
+  "period_slug": "2026_01",
+  "report_period": "2026-01",
+  "analysis_source": "ollama",
+  "ollama_available": true,
+  "validation_status": "accepted",
+  "analysis_generated": true,
+  "validation_errors": [],
+  "recommendation_count": 2,
+  "analysis": {
+    "executive_summary": "The January 2026 financial performance shows a net operating result of $82,500 with total revenue at $2,100,000 and expenses at $2,017,500. All departments met their revenue targets but experienced expense overruns, with payroll being the largest expense category at $798,000 (38% of revenue). The cash flow remains healthy with $150,000 net cash flow and $2,650,000 ending cash.",
+    "key_findings": [
+      "All departments achieved 100% of revenue targets but exceeded budgets on expenses, with expense variances ranging from 3.3% to 3.3% across departments.",
+      "Payroll expenses exceeded budget by $30,692 (3.99% variance), representing 38% of total revenue, within the 42% threshold but approaching the limit.",
+      "Facilities, Services, Supplies, and Technology categories all showed consistent 2.85% expense variances, suggesting systemic budgeting or cost control issues.",
+      "Collection rate of 95% meets the 94% threshold, with no overdue invoices reported."
+    ],
+    "root_causes": [
+      "Systemic budgeting gaps in expense categories (Facilities, Services, Supplies, Technology) with consistent 2.85% variance across all categories.",
+      "Payroll budgeting may be underestimating actual costs, as the 3.99% variance is higher than other expense categories.",
+      "No evidence of external factors (e.g., market changes) affecting revenue or expenses, suggesting internal process issues."
+    ],
+    "recommendations": [
+      {
+        "priority": "high",
+        "action": "Review payroll budgeting methodology to align with actual costs.",
+        "rationale": "Payroll variance (3.99%) is higher than other expense categories (2.85%), indicating potential underestimation in budgeting.",
+        "supporting_evidence": "Payroll variance_pct: 0.0399999896",
+        "expected_impact": "Reduce payroll variance to 2.85% or lower, improving budget accuracy.",
+        "confidence": 0.85
+      },
+      {
+        "priority": "medium",
+        "action": "Conduct a departmental expense review for Facilities, Services, Supplies, and Technology.",
+        "rationale": "All four expense categories show identical 2.85% variance, suggesting a systemic issue in budgeting or cost control.",
+        "supporting_evidence": "Facilities variance_pct: 0.0285130179, Services variance_pct: 0.0285130519",
+        "expected_impact": "Identify and correct budgeting errors, reducing expense variances.",
+        "confidence": 0.8
+      }
+    ],
+    "strategic_priorities": [
+      "Improve budget accuracy for payroll and recurring expense categories to maintain financial health.",
+      "Ensure all departments stay within 12% overspend threshold to avoid risk flags."
+    ],
+    "missing_information": [],
+    "confidence": 0.8,
+    "reasoning_summary": "The evidence shows consistent expense variances across multiple categories, suggesting systemic issues. Payroll variance is higher than other categories, requiring immediate attention. All revenue targets were met, but expense control needs improvement to maintain net operating results."
+  }
+}

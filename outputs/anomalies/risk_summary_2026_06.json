@@ -1,13 +1,13 @@
 {
   "report_period": "2026-06",
-  "total_anomalies": 11,
+  "total_anomalies": 15,
   "anomalies_by_severity": {
-    "critical": 2,
+    "critical": 8,
     "high": 7,
-    "medium": 2,
+    "medium": 0,
     "low": 0
   },
-  "high_priority_count": 9,
+  "high_priority_count": 15,
   "thresholds": {
     "payroll_percent_max": 42.0,
     "department_overspend_flag_percent": 12.0,
@@ -28,6 +28,22 @@
   ],
   "top_risks": [
     {
+      "anomaly_id": "ANOM-2026-06-002",
+      "title": "Tuition collection below target",
+      "severity": "critical",
+      "period": "2026-06",
+      "metric": "student_payment_collection_rate",
+      "recommended_next_check": "Inspect overdue invoices, aging buckets, and payment plans."
+    },
+    {
+      "anomaly_id": "ANOM-2026-06-003",
+      "title": "Overdue student payments above limit",
+      "severity": "critical",
+      "period": "2026-06",
+      "metric": "overdue_payment_percentage",
+      "recommended_next_check": "Review student receivables by aging and department."
+    },
+    {
       "anomaly_id": "ANOM-2026-06-004",
       "title": "Negative or zero operating result",
       "severity": "critical",
@@ -44,6 +60,38 @@
       "recommended_next_check": "Review operating, scholarship, and capital cash outflows."
     },
     {
+      "anomaly_id": "ANOM-2026-06-012",
+      "title": "Facilities category overspending",
+      "severity": "critical",
+      "period": "2026-06",
+      "metric": "category_expense_variance_pct",
+      "recommended_next_check": "Review the category by department and underlying transactions."
+    },
+    {
+      "anomaly_id": "ANOM-2026-06-013",
+      "title": "Services category overspending",
+      "severity": "critical",
+      "period": "2026-06",
+      "metric": "category_expense_variance_pct",
+      "recommended_next_check": "Review the category by department and underlying transactions."
+    },
+    {
+      "anomaly_id": "ANOM-2026-06-014",
+      "title": "Supplies category overspending",
+      "severity": "critical",
+      "period": "2026-06",
+      "metric": "category_expense_variance_pct",
+      "recommended_next_check": "Review the category by department and underlying transactions."
+    },
+    {
+      "anomaly_id": "ANOM-2026-06-015",
+      "title": "Technology category overspending",
+      "severity": "critical",
+      "period": "2026-06",
+      "metric": "category_expense_variance_pct",
+      "recommended_next_check": "Review the category by department and underlying transactions."
+    },
+    {
       "anomaly_id": "ANOM-2026-06-001",
       "title": "Payroll exceeds revenue threshold",
       "severity": "high",
@@ -52,60 +100,12 @@
       "recommended_next_check": "Review payroll by department, overtime, benefits, and headcount."
     },
     {
-      "anomaly_id": "ANOM-2026-06-002",
-      "title": "Tuition collection below target",
-      "severity": "high",
-      "period": "2026-06",
-      "metric": "student_payment_collection_rate",
-      "recommended_next_check": "Inspect overdue invoices, aging buckets, and payment plans."
-    },
-    {
-      "anomaly_id": "ANOM-2026-06-003",
-      "title": "Overdue student payments above limit",
-      "severity": "high",
-      "period": "2026-06",
-      "metric": "overdue_payment_percentage",
-      "recommended_next_check": "Review student receivables by aging and department."
-    },
-    {
       "anomaly_id": "ANOM-2026-06-006",
-      "title": "Vendor payment exceeds review threshold",
-      "severity": "high",
-      "period": "2026-06",
-      "metric": "maximum_vendor_payment",
-      "recommended_next_check": "Inspect the underlying vendor invoice, approval, and duplicate checks."
-    },
-    {
-      "anomaly_id": "ANOM-2026-06-007",
-      "title": "Engineering overspending exceeds flag threshold",
+      "title": "Administration overspending exceeds flag threshold",
       "severity": "high",
       "period": "2026-06",
       "metric": "department_expense_variance_pct",
       "recommended_next_check": "Inspect department expense categories, payroll, and vendors."
-    },
-    {
-      "anomaly_id": "ANOM-2026-06-008",
-      "title": "Health Sciences overspending exceeds flag threshold",
-      "severity": "high",
-      "period": "2026-06",
-      "metric": "department_expense_variance_pct",
-      "recommended_next_check": "Inspect department expense categories, payroll, and vendors."
-    },
-    {
-      "anomaly_id": "ANOM-2026-06-009",
-      "title": "Equipment category overspending",
-      "severity": "high",
-      "period": "2026-06",
-      "metric": "category_expense_variance_pct",
-      "recommended_next_check": "Review the category by department and underlying transactions."
-    },
-    {
-      "anomaly_id": "ANOM-2026-06-010",
-      "title": "Facilities category outside budget target",
-      "severity": "medium",
-      "period": "2026-06",
-      "metric": "category_expense_variance_pct",
-      "recommended_next_check": "Review the category by department and underlying transactions."
     }
   ],
   "detection_scope": {

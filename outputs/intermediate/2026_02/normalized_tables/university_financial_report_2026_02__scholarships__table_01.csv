@@ -1,0 +1,7 @@
+period,month,department,scholarship_type,allocated,awarded,remaining,recipients,utilization_pct
+2026-02-01,February,Engineering,Need-based,26725.99,24746.29,1979.7,48,0.9259
+2026-02-01,February,Business,Need-based,24296.36,22496.63,1799.73,44,0.9259
+2026-02-01,February,Health Sciences,Need-based,31585.27,29245.62,2339.65,57,0.9259
+2026-02-01,February,Arts & Humanities,Need-based,17007.45,15747.64,1259.81,31,0.9259
+2026-02-01,February,Student Services,Need-based,12148.18,11248.31,899.87,22,0.9259
+2026-02-01,February,Administration,Need-based,9718.54,8998.65,719.89,18,0.9259
