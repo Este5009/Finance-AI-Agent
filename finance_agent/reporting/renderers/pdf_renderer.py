@@ -371,6 +371,27 @@ def _build_story(report_model: dict[str, Any]) -> list[Any]:
         story.append(_para(recommendation_content.get("reasoning_summary"), styles["body"]))
     _add_source_note(story, recommendation_section, styles)
 
+    for section_id in (
+        "historical_summary",
+        "historical_trends",
+        "recommendation_follow_up",
+        "longitudinal_risk_assessment",
+    ):
+        if not any(
+            isinstance(section, dict) and section.get("section_id") == section_id
+            for section in report_model.get("sections", [])
+        ):
+            continue
+        historical_section = _section(report_model, section_id)
+        _add_section_title(story, section_id, styles)
+        content = historical_section.get("content", {})
+        rows = [
+            [key, str(value)[:900]]
+            for key, value in content.items()
+        ]
+        story.append(_table(["Campo", "Resumen"], rows, styles))
+        _add_source_note(story, historical_section, styles)
+
     missing_section = _section(report_model, "missing_information")
     missing = missing_section.get("content", {})
     _add_section_title(story, "missing_information", styles)

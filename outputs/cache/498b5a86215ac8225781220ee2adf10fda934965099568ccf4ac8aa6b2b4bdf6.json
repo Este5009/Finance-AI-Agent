@@ -1,0 +1,30 @@
+{
+  "cache_key": "498b5a86215ac8225781220ee2adf10fda934965099568ccf4ac8aa6b2b4bdf6",
+  "period_slug": "2026_12",
+  "output_files": [
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\inspection\\workbook_inspection_2026_12.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\inspection\\goals_text_2026_12.txt",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_12\\financial_document_model.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_12\\feature_summary.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_12\\financial_document_model_enriched.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_12.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\kpi_summary_2026_12.csv",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\department_summary_2026_12.csv",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\category_summary_2026_12.csv",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_12.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\anomaly_report_2026_12.csv",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\anomalies\\risk_summary_2026_12.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\history_reasoning\\planner_context.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\investigation_plan_2026_12.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\ollama_plan_2026_12.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\plans\\execution_queue_2026_12.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\evidence_package_2026_12.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\evidence\\retrieval_summary_2026_12.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\history_reasoning\\strategic_context.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_12.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\report_model_2026_12.json",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\financial_report_2026_12.html",
+    "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\report\\financial_report_2026_12.pdf"
+  ],
+  "cached_at_epoch": 1784649754.4851604
+}

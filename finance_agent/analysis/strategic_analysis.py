@@ -605,10 +605,11 @@ def build_strategic_analysis_prompt(
     period_slug: str,
     compact_context: bool = True,
     deduplicate_context: bool = True,
+    historical_context: dict[str, Any] | None = None,
 ) -> str:
     """Build a compact strict-JSON strategic-analysis prompt.
 
-    Inputs: processed evidence, finance, anomaly, risk artifacts, and period slug.
+    Inputs: processed evidence, finance, anomaly, risk artifacts, period slug, and history.
     Outputs: prompt string for Ollama.
     Assumptions: no raw Excel/PDF content or full evidence row sets are sent.
     """
@@ -626,10 +627,12 @@ def build_strategic_analysis_prompt(
             evidence_package,
             deduplicate_context=deduplicate_context,
         ),
+        "historical_context": historical_context or {},
         "context_policy": {
             "compact_context": True,
             "deduplicate_context": deduplicate_context,
             "no_raw_reports_or_tables": True,
+            "historical_context_compact_only": True,
         },
     }
     response_shape = {
@@ -702,10 +705,11 @@ def _build_analysis_document(
     validation_status: str,
     validation_errors: tuple[str, ...],
     analysis: dict[str, Any],
+    historical_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble one auditable strategic-analysis output document.
 
-    Inputs: metadata, validation status, errors, and accepted or empty analysis.
+    Inputs: metadata, validation status, errors, accepted/empty analysis, and history.
     Outputs: JSON-compatible document.
     Assumptions: only accepted documents should feed final reporting later.
     """
@@ -722,6 +726,8 @@ def _build_analysis_document(
         "analysis_generated": validation_status == "accepted",
         "validation_errors": list(validation_errors),
         "recommendation_count": len(recommendations),
+        "historical_context_summary": (historical_context or {}).get("summary", {}),
+        "historical_context": historical_context or {},
         "analysis": analysis,
     }
 
@@ -736,10 +742,11 @@ def create_strategic_analysis(
     period_slug: str,
     compact_context: bool = True,
     deduplicate_context: bool = True,
+    historical_context: dict[str, Any] | None = None,
 ) -> StrategicAnalysisResult:
     """Generate and validate one Ollama strategic financial analysis.
 
-    Inputs: Ollama client and processed Step 3/4/8 artifacts.
+    Inputs: Ollama client, processed Step 3/4/8 artifacts, and optional history.
     Outputs: accepted or rejected strategic-analysis result.
     Assumptions: invalid or unavailable model output is rejected, not repaired.
     """
@@ -762,6 +769,7 @@ def create_strategic_analysis(
             period_slug=period_slug,
             compact_context=compact_context,
             deduplicate_context=deduplicate_context,
+            historical_context=historical_context,
         )
         preprocessing_time = time.perf_counter() - preprocessing_started
         try:
@@ -799,6 +807,7 @@ def create_strategic_analysis(
         else ("rejected" if available else "unavailable"),
         validation_errors=errors,
         analysis=analysis,
+        historical_context=historical_context,
     )
     return StrategicAnalysisResult(
         analysis_document=document,
@@ -824,6 +833,7 @@ def create_strategic_analysis(
                             evidence_package,
                             deduplicate_context=deduplicate_context,
                         ),
+                        "historical_context": historical_context or {},
                     }
                 ),
             },

@@ -8,18 +8,331 @@
   "summary": {
     "package_id": "EVIDENCE-2026-12",
     "period_slug": "2026_12",
-    "tasks_executed": 1,
-    "successful_retrievals": 1,
+    "tasks_executed": 2,
+    "successful_retrievals": 2,
     "failed_retrievals": 0,
     "unavailable_evidence": 0
   },
   "evidence_packages": [
     {
-      "task_id": "STEP-001",
+      "task_id": "FALLBACK-001",
       "execution_id": "EXEC-2026-12-001",
-      "anomaly_id": null,
+      "anomaly_id": "DATA-TABLE-university_financial_report_2026_12__cash_flow__table_01",
       "priority": "medium",
-      "investigation_question": "What is the correct structure and business meaning of the cash flow table? | What is the correct structure and business meaning of the department summary table? | What is the correct structure and business meaning of the scholarships table?",
+      "investigation_question": "What is the correct structure and business meaning of table 'university_financial_report_2026_12__cash_flow__table_01'?",
+      "retrieved_evidence": {
+        "retrieval_name": "financial_report",
+        "success": true,
+        "data": {
+          "summary": "Retrieved processed 2026_12 finance summary.",
+          "report": {
+            "report_period": "2026-12",
+            "period_scope": {
+              "mode": "monthly",
+              "label": "2026-12",
+              "start_date": "2026-12-01",
+              "end_date": "2026-12-31"
+            },
+            "source_workbook": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\data\\synthetic_history\\recovery_2026\\reports\\university_financial_report_2026_12.xlsx",
+            "intermediate_model": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\intermediate\\2026_12\\financial_document_model.json",
+            "finance_summary": {
+              "total_revenue": 2280096.0,
+              "total_expenses": 2032596.0,
+              "net_operating_result": 247500.0,
+              "budget_vs_actual": {
+                "revenue_budget": 2192400.0,
+                "revenue_actual": 2280096.0,
+                "revenue_variance": 87696.0,
+                "revenue_variance_pct": 0.04,
+                "expense_budget": 2038932.0,
+                "expense_actual": 2032595.9999999998,
+                "expense_variance": -6336.000000000233,
+                "expense_variance_pct": -0.0031075092254181274,
+                "net_budget": 153468.0,
+                "net_actual": 247500.00000000023,
+                "net_variance": 94032.00000000023
+              },
+              "payroll_total": 912038.3999999999,
+              "payroll_percentage_of_revenue": 0.39999999999999997,
+              "student_payments": {
+                "amount_due": 1641669.12,
+                "amount_paid": 1576002.3599999999,
+                "outstanding": 65666.8,
+                "collection_rate": 0.9600000029238533,
+                "invoice_count": 24,
+                "overdue_invoice_count": 0,
+                "overdue_payment_percentage": 0.0
+              },
+              "vendor_payments": {
+                "payment_count": 6,
+                "total_amount": 158827.0,
+                "maximum_payment_amount": 30566.0
+              },
+              "scholarships": {
+                "allocated": 135437.7,
+                "awarded": 125405.28,
+                "remaining": 10032.410000000002,
+                "recipients": 220,
+                "utilization_rate": 0.9259259423336338
+              },
+              "cash_flow": {
+                "beginning_cash": 1810000.0,
+                "cash_inflows": 2398892.16,
+                "operating_outflows": 1713486.88,
+                "scholarship_outflows": 125405.28,
+                "capital_outflows": 110000.0,
+                "net_cash_flow": 450000.0,
+                "ending_cash": 2260000.0,
+                "ending_cash_variance": 280000.0
+              }
+            },
+            "kpi_summary": [
+              {
+                "metric": "total_revenue",
+                "value": 2280096.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Revenue"
+              },
+              {
+                "metric": "total_expenses",
+                "value": 2032596.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Expenses"
+              },
+              {
+                "metric": "net_operating_result",
+                "value": 247500.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Revenue - Expenses"
+              },
+              {
+                "metric": "revenue_budget_variance",
+                "value": 87696.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Budget_vs_Actual"
+              },
+              {
+                "metric": "revenue_budget_variance_pct",
+                "value": 0.04,
+                "unit": "ratio",
+                "availability": "available",
+                "source": "Budget_vs_Actual"
+              },
+              {
+                "metric": "expense_budget_variance",
+                "value": -6336.0000000002,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Budget_vs_Actual"
+              },
+              {
+                "metric": "expense_budget_variance_pct",
+                "value": -0.0031075092,
+                "unit": "ratio",
+                "availability": "available",
+                "source": "Budget_vs_Actual"
+              },
+              {
+                "metric": "payroll_total",
+                "value": 912038.3999999999,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Payroll"
+              },
+              {
+                "metric": "payroll_percentage_of_revenue",
+                "value": 0.4,
+                "unit": "ratio",
+                "availability": "available",
+                "source": "Payroll / Revenue"
+              },
+              {
+                "metric": "student_payment_collection_rate",
+                "value": 0.9600000029,
+                "unit": "ratio",
+                "availability": "available",
+                "source": "Student_Payments"
+              },
+              {
+                "metric": "overdue_payment_percentage",
+                "value": 0.0,
+                "unit": "ratio",
+                "availability": "available",
+                "source": "Student_Payments"
+              },
+              {
+                "metric": "vendor_payment_total",
+                "value": 158827.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Vendor_Payments"
+              },
+              {
+                "metric": "scholarship_awarded_total",
+                "value": 125405.28,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Scholarships"
+              },
+              {
+                "metric": "net_cash_flow",
+                "value": 450000.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Cash_Flow"
+              },
+              {
+                "metric": "ending_cash",
+                "value": 2260000.0,
+                "unit": "USD",
+                "availability": "available",
+                "source": "Cash_Flow"
+              }
+            ],
+            "department_summary": [
+              {
+                "department": "Administration",
+                "budget_revenue": 175392.0,
+                "actual_revenue": 182407.69,
+                "revenue_variance": 7015.69,
+                "revenue_variance_pct": 0.040000057,
+                "budget_expenses": 163114.56,
+                "actual_expenses": 162607.66,
+                "expense_variance": -506.9,
+                "expense_variance_pct": -0.0031076318,
+                "net_operating_result": 19800.03
+              },
+              {
+                "department": "Arts & Humanities",
+                "budget_revenue": 306936.0,
+                "actual_revenue": 319213.43,
+                "revenue_variance": 12277.43,
+                "revenue_variance_pct": 0.0399999674,
+                "budget_expenses": 285450.48,
+                "actual_expenses": 284563.44,
+                "expense_variance": -887.04,
+                "expense_variance_pct": -0.0031075092,
+                "net_operating_result": 34649.99
+              },
+              {
+                "department": "Business",
+                "budget_revenue": 438480.0,
+                "actual_revenue": 456019.2,
+                "revenue_variance": 17539.2,
+                "revenue_variance_pct": 0.04,
+                "budget_expenses": 407786.4,
+                "actual_expenses": 406519.2,
+                "expense_variance": -1267.2,
+                "expense_variance_pct": -0.0031075092,
+                "net_operating_result": 49500.0
+              },
+              {
+                "department": "Engineering",
+                "budget_revenue": 482328.0,
+                "actual_revenue": 501621.11,
+                "revenue_variance": 19293.11,
+                "revenue_variance_pct": 0.0399999793,
+                "budget_expenses": 448565.04,
+                "actual_expenses": 447171.13,
+                "expense_variance": -1393.91,
+                "expense_variance_pct": -0.0031074869,
+                "net_operating_result": 54449.98
+              },
+              {
+                "department": "Health Sciences",
+                "budget_revenue": 570024.0,
+                "actual_revenue": 592824.97,
+                "revenue_variance": 22800.97,
+                "revenue_variance_pct": 0.0400000175,
+                "budget_expenses": 530122.31,
+                "actual_expenses": 528474.96,
+                "expense_variance": -1647.3500000001,
+                "expense_variance_pct": -0.0031074904,
+                "net_operating_result": 64350.01
+              },
+              {
+                "department": "Student Services",
+                "budget_revenue": 219240.0,
+                "actual_revenue": 228009.6,
+                "revenue_variance": 8769.6,
+                "revenue_variance_pct": 0.04,
+                "budget_expenses": 203893.21,
+                "actual_expenses": 203259.61,
+                "expense_variance": -633.6,
+                "expense_variance_pct": -0.0031075091,
+                "net_operating_result": 24749.99
+              }
+            ],
+            "category_summary": [
+              {
+                "category_type": "expense",
+                "category": "Facilities",
+                "budget_amount": 209154.96,
+                "actual_amount": 201700.37,
+                "variance": -7454.59,
+                "variance_pct": -0.0356414689
+              },
+              {
+                "category_type": "expense",
+                "category": "Payroll",
+                "budget_amount": 876960.0,
+                "actual_amount": 912038.4,
+                "variance": 35078.4,
+                "variance_pct": 0.04
+              },
+              {
+                "category_type": "expense",
+                "category": "Services",
+                "budget_amount": 395070.49,
+                "actual_amount": 380989.59,
+                "variance": -14080.9,
+                "variance_pct": -0.0356414877
+              },
+              {
+                "category_type": "expense",
+                "category": "Supplies",
+                "budget_amount": 441549.36,
+                "actual_amount": 425811.89,
+                "variance": -15737.47,
+                "variance_pct": -0.0356414739
+              },
+              {
+                "category_type": "expense",
+                "category": "Technology",
+                "budget_amount": 116197.19,
+                "actual_amount": 112055.75,
+                "variance": -4141.44,
+                "variance_pct": -0.0356414815
+              }
+            ],
+            "monthly_trends": [],
+            "calculation_warnings": []
+          }
+        },
+        "source_references": [
+          "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_12.json"
+        ],
+        "warnings": [],
+        "unavailable_data": [],
+        "confidence": 0.98
+      },
+      "evidence_summary": "Retrieved processed 2026_12 finance summary.",
+      "source_references": [
+        "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_12.json"
+      ],
+      "retrieval_warnings": [],
+      "confidence": 0.98
+    },
+    {
+      "task_id": "FALLBACK-002",
+      "execution_id": "EXEC-2026-12-002",
+      "anomaly_id": "DATA-TABLE-university_financial_report_2026_12__department_summary__table_01",
+      "priority": "medium",
+      "investigation_question": "What is the correct structure and business meaning of table 'university_financial_report_2026_12__department_summary__table_01'?",
       "retrieved_evidence": {
         "retrieval_name": "financial_report",
         "success": true,

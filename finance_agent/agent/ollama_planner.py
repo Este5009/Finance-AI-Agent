@@ -300,10 +300,11 @@ def build_ollama_planner_prompt(
     max_anomalies: int = 5,
     compact_context: bool = True,
     deduplicate_context: bool = True,
+    historical_context: dict[str, Any] | None = None,
 ) -> str:
     """Build a bounded planning prompt from compressed processed summaries.
 
-    Inputs: prior-stage outputs, baseline plan, and target scope.
+    Inputs: prior-stage outputs, baseline plan, target scope, and optional history.
     Outputs: strict-JSON planning prompt.
     Assumptions: no full report, normalized table, transaction, or sample row is sent.
     """
@@ -325,6 +326,7 @@ def build_ollama_planner_prompt(
             period_slug,
         ),
         "deterministic_baseline": _compact_baseline(baseline_plan),
+        "historical_context": historical_context or {},
         "available_tool_interfaces": TOOL_INTERFACES,
         "maximum_investigation_steps": MAX_PLAN_STEPS,
         "context_policy": {
@@ -457,10 +459,11 @@ def _build_plan_document(
     repaired_text_fields: int,
     baseline_plan: InvestigationPlan,
     steps: tuple[dict[str, Any], ...],
+    historical_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble the auditable primary/fallback plan output.
 
-    Inputs: run metadata, baseline, validation result, and selected steps.
+    Inputs: run metadata, baseline, validation result, selected steps, and history.
     Outputs: JSON-compatible Ollama plan document.
     Assumptions: selected steps have either passed validation or come from Python.
     """
@@ -479,6 +482,7 @@ def _build_plan_document(
         "maximum_ollama_plan_steps": MAX_PLAN_STEPS,
         "deterministic_baseline_task_count": len(baseline_plan.tasks),
         "total_steps": len(steps),
+        "historical_context_summary": (historical_context or {}).get("summary", {}),
         "investigation_steps": list(steps),
     }
 
@@ -540,10 +544,11 @@ def create_ollama_investigation_plan(
     max_anomalies: int = 5,
     compact_context: bool = True,
     deduplicate_context: bool = True,
+    historical_context: dict[str, Any] | None = None,
 ) -> OllamaPlannerResult:
     """Create, validate, and queue a primary Ollama plan or Python fallback.
 
-    Inputs: Ollama client, compressed-source artifacts, baseline, and scope.
+    Inputs: Ollama client, compressed-source artifacts, baseline, scope, and history.
     Outputs: auditable plan result and unexecuted execution queue.
     Assumptions: any unavailability, request error, or validation error falls back.
     """
@@ -569,6 +574,7 @@ def create_ollama_investigation_plan(
             max_anomalies=max_anomalies,
             compact_context=compact_context,
             deduplicate_context=deduplicate_context,
+            historical_context=historical_context,
         )
         preprocessing_time = time.perf_counter() - preprocessing_started
         try:
@@ -618,6 +624,7 @@ def create_ollama_investigation_plan(
         repaired_text_fields=repaired_text_fields,
         baseline_plan=baseline_plan,
         steps=steps,
+        historical_context=historical_context,
     )
     return OllamaPlannerResult(
         plan_document=plan_document,
@@ -642,10 +649,13 @@ def create_ollama_investigation_plan(
                     )
                 ),
                 "compact_context_json_characters": compact_json_size(
-                    _compact_anomaly_report(
-                        anomaly_report,
-                        max_anomalies=max_anomalies,
-                    )
+                    {
+                        "anomaly_report": _compact_anomaly_report(
+                            anomaly_report,
+                            max_anomalies=max_anomalies,
+                        ),
+                        "historical_context": historical_context or {},
+                    }
                 ),
             },
             ollama_telemetry,

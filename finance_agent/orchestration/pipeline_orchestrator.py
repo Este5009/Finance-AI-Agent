@@ -39,6 +39,11 @@ from finance_agent.calculations.periods import PeriodScope
 from finance_agent.ingestion.ingestion import extract_goals_pdf, inspect_workbook, load_excel_workbook
 from finance_agent.ingestion.schema import clean_column_name
 from finance_agent.llm.ollama_client import OllamaClient
+from finance_agent.memory.context_builder import (
+    HistoricalContextCache,
+    build_historical_context,
+    save_historical_context,
+)
 from finance_agent.orchestration.pipeline_models import (
     DetectedPeriod,
     PipelineConfig,
@@ -1173,6 +1178,21 @@ def run_object_pipeline_for_report(
 
         started = time.perf_counter()
         trend_records = _records(calculation.monthly_trends)
+        history_cache = HistoricalContextCache()
+        history_dir = outputs / "history_reasoning"
+        planner_history = build_historical_context(
+            current_period=period_slug,
+            finance_summary=finance_document,
+            anomaly_report=anomaly_document,
+            database_path=config.memory_database_path
+            or config.project_root / "data" / "memory" / "finance_memory.db",
+            purpose="planner",
+            cache=history_cache,
+        )
+        planner_context_path = save_historical_context(
+            planner_history.context,
+            history_dir / "planner_context.json",
+        )
         baseline_plan = build_investigation_plan(
             finance_document=finance_document,
             anomaly_report=anomaly_document,
@@ -1203,6 +1223,7 @@ def run_object_pipeline_for_report(
             max_anomalies=config.max_planner_anomalies,
             compact_context=config.compact_context,
             deduplicate_context=config.deduplicate_context,
+            historical_context=planner_history.context,
         )
         ollama_plan_path = save_plan_json_artifact(
             planner_result.plan_document,
@@ -1218,9 +1239,12 @@ def run_object_pipeline_for_report(
                 display="Ollama investigation planner",
                 critical=True,
                 started=started,
-                outputs=(baseline_path, ollama_plan_path, queue_path),
+                outputs=(planner_context_path, baseline_path, ollama_plan_path, queue_path),
                 warnings=tuple(planner_result.validation_errors) if planner_result.fallback_used else (),
-                telemetry=planner_result.telemetry,
+                telemetry={
+                    **(planner_result.telemetry or {}),
+                    "historical_context": planner_history.telemetry,
+                },
             )
         )
 
@@ -1264,6 +1288,20 @@ def run_object_pipeline_for_report(
             config,
             "strategic_analysis",
         )
+        strategic_history = build_historical_context(
+            current_period=period_slug,
+            finance_summary=finance_document,
+            anomaly_report=anomaly_document,
+            evidence_package=evidence_package,
+            database_path=config.memory_database_path
+            or config.project_root / "data" / "memory" / "finance_memory.db",
+            purpose="strategic_analysis",
+            cache=history_cache,
+        )
+        strategic_context_path = save_historical_context(
+            strategic_history.context,
+            history_dir / "strategic_context.json",
+        )
         analysis_result = create_strategic_analysis(
             client=analysis_client,
             evidence_package=evidence_package,
@@ -1273,6 +1311,7 @@ def run_object_pipeline_for_report(
             period_slug=period_slug,
             compact_context=config.compact_context,
             deduplicate_context=config.deduplicate_context,
+            historical_context=strategic_history.context,
         )
         analysis_dir = outputs / "analysis"
         analysis_path = save_analysis_json_artifact(
@@ -1285,9 +1324,12 @@ def run_object_pipeline_for_report(
                 display="Strategic analysis",
                 critical=False,
                 started=started,
-                outputs=(analysis_path,),
+                outputs=(strategic_context_path, analysis_path),
                 warnings=tuple(analysis_result.validation_errors) if not analysis_result.accepted else (),
-                telemetry=analysis_result.telemetry,
+                telemetry={
+                    **(analysis_result.telemetry or {}),
+                    "historical_context": strategic_history.telemetry,
+                },
             )
         )
 

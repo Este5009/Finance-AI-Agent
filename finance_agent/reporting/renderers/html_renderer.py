@@ -19,6 +19,10 @@ SECTION_LABELS_ES: dict[str, str] = {
     "anomaly_summary": "Anomalías detectadas",
     "investigation_evidence": "Evidencia de investigación",
     "strategic_recommendations": "Recomendaciones estratégicas",
+    "historical_summary": "Resumen histórico",
+    "historical_trends": "Tendencias históricas",
+    "recommendation_follow_up": "Seguimiento de recomendaciones",
+    "longitudinal_risk_assessment": "Evaluación longitudinal de riesgos",
     "missing_information": "Información faltante",
     "appendix": "Apéndice",
 }
@@ -528,6 +532,44 @@ def _render_missing_and_appendix(report_model: dict[str, Any], section_id: str) 
     )
 
 
+def _render_optional_historical(report_model: dict[str, Any]) -> list[str]:
+    """Render optional historical sections when present.
+
+    Inputs: report model.
+    Outputs: list of HTML section strings.
+    Assumptions: historical sections contain compact summaries, not full reports.
+    """
+
+    rendered: list[str] = []
+    available_ids = {
+        section.get("section_id")
+        for section in report_model.get("sections", [])
+        if isinstance(section, dict)
+    }
+    for section_id in (
+        "historical_summary",
+        "historical_trends",
+        "recommendation_follow_up",
+        "longitudinal_risk_assessment",
+    ):
+        if section_id not in available_ids:
+            continue
+        section = _section(report_model, section_id)
+        content = section.get("content", {})
+        rows = [
+            [key, json.dumps(value, ensure_ascii=False)[:1200]]
+            for key, value in content.items()
+        ]
+        rendered.append(
+            f"<section id='{section_id}'>"
+            f"<h2>{SECTION_LABELS_ES[section_id]}</h2>"
+            + _html_table(["Campo", "Resumen"], rows)
+            + _source_note(section)
+            + "</section>"
+        )
+    return rendered
+
+
 def _styles() -> str:
     """Return embedded CSS for the HTML report.
 
@@ -587,6 +629,7 @@ def render_report_html(report_model: dict[str, Any]) -> str:
         _render_anomalies(report_model),
         _render_evidence(report_model),
         _render_recommendations(report_model),
+        *_render_optional_historical(report_model),
         _render_missing_and_appendix(report_model, "missing_information"),
         _render_missing_and_appendix(report_model, "appendix"),
     ]

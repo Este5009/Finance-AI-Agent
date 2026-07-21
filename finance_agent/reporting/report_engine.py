@@ -226,6 +226,83 @@ def _all_section_sources(sections: tuple[ReportSection, ...]) -> tuple[str, ...]
     )
 
 
+def _historical_sections(
+    historical_context: dict[str, Any],
+    analysis_source: tuple[str, ...],
+) -> tuple[ReportSection, ...]:
+    """Build optional historical report sections when compact history exists.
+
+    Inputs: historical context from strategic analysis and source references.
+    Outputs: optional report sections.
+    Assumptions: no sections are emitted when no historical retrieval succeeded.
+    """
+
+    if not historical_context:
+        return ()
+    summary = historical_context.get("summary", {})
+    if not isinstance(summary, dict) or not summary.get("available_retrievals"):
+        return ()
+    retrievals = [
+        item
+        for item in historical_context.get("retrievals", [])
+        if isinstance(item, dict) and item.get("success")
+    ]
+    metric_trends = [
+        item for item in retrievals if item.get("tool_name") == "get_metric_history"
+    ]
+    repeated = [
+        item for item in retrievals if item.get("tool_name") == "get_repeated_anomalies"
+    ]
+    recommendations = [
+        item for item in retrievals if item.get("tool_name") == "get_previous_recommendations"
+    ]
+    goals = [item for item in retrievals if item.get("tool_name") == "get_goal_progress"]
+    departments = [
+        item for item in retrievals if item.get("tool_name") == "get_department_history"
+    ]
+    facts = [item for item in retrievals if item.get("tool_name") == "get_memory_facts"]
+    return (
+        _section(
+            "historical_summary",
+            "Historical Summary",
+            {
+                "summary": summary,
+                "retrieval_count": len(retrievals),
+                "topics": summary.get("topics", []),
+            },
+            analysis_source,
+        ),
+        _section(
+            "historical_trends",
+            "Historical Trends",
+            {
+                "metric_trends": metric_trends,
+                "department_trends": departments,
+                "goal_progress": goals,
+            },
+            analysis_source,
+        ),
+        _section(
+            "recommendation_follow_up",
+            "Recommendation Follow-up",
+            {
+                "previous_recommendations": recommendations,
+                "goal_progress": goals,
+            },
+            analysis_source,
+        ),
+        _section(
+            "longitudinal_risk_assessment",
+            "Longitudinal Risk Assessment",
+            {
+                "repeated_anomalies": repeated,
+                "memory_facts": facts,
+            },
+            analysis_source,
+        ),
+    )
+
+
 def build_report_model(inputs: ReportInputBundle) -> ReportModel:
     """Build a renderer-agnostic report model from processed outputs.
 
@@ -236,6 +313,8 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
 
     finance = _finance(inputs.finance_summary)
     analysis = _analysis_payload(inputs.strategic_analysis)
+    historical_context = inputs.strategic_analysis.get("historical_context", {})
+    historical_context = historical_context if isinstance(historical_context, dict) else {}
     analysis_warnings = _analysis_unavailable_warnings(inputs.strategic_analysis)
     budget = finance.get("budget_vs_actual", {})
     budget = budget if isinstance(budget, dict) else {}
@@ -251,7 +330,7 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
     analysis_source = (inputs.source_files[4],)
 
     report_period = str(inputs.finance_summary.get("report_period", inputs.period_slug))
-    sections = (
+    base_sections = (
         _section(
             "cover",
             "Cover",
@@ -396,6 +475,8 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
             inputs.source_files,
         ),
     )
+    historical_sections = _historical_sections(historical_context, analysis_source)
+    sections = (*base_sections[:-2], *historical_sections, *base_sections[-2:])
     model = ReportModel(
         report_id=f"REPORT-MODEL-{inputs.period_slug.upper().replace('_', '-')}",
         period_slug=inputs.period_slug,

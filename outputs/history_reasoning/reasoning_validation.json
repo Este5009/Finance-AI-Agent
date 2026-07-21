@@ -1,0 +1,60 @@
+{
+  "valid": true,
+  "checks": {
+    "payroll_trend": true,
+    "collection_trend": true,
+    "health_sciences_recurring_overspending": true,
+    "previous_recommendations": true,
+    "recommendation_effectiveness": true,
+    "recurring_vendor_anomalies": true,
+    "goal_progress": true,
+    "cash_flow_recovery": true,
+    "report_optional_sections": true
+  },
+  "context_size": {
+    "planner_context_characters": 23585,
+    "strategic_context_characters": 23596
+  },
+  "retrieval_latency": {
+    "planner": {
+      "historical_context_available": true,
+      "planned_retrievals": 7,
+      "database_queries": 7,
+      "cache_hits": 0,
+      "artifact_reference_reads": 6,
+      "latency_seconds": 0.041991,
+      "context_characters": 14696
+    },
+    "strategic": {
+      "historical_context_available": true,
+      "planned_retrievals": 7,
+      "database_queries": 0,
+      "cache_hits": 7,
+      "artifact_reference_reads": 6,
+      "latency_seconds": 0.010081,
+      "context_characters": 14707
+    }
+  },
+  "planner_historical_summary": {
+    "available_retrievals": 6,
+    "unavailable_retrievals": 1,
+    "topics": [
+      "get_memory_facts",
+      "get_metric_history",
+      "get_previous_recommendations",
+      "get_repeated_anomalies"
+    ]
+  },
+  "analysis_historical_summary": {
+    "available_retrievals": 6,
+    "unavailable_retrievals": 1,
+    "topics": [
+      "get_memory_facts",
+      "get_metric_history",
+      "get_previous_recommendations",
+      "get_repeated_anomalies"
+    ]
+  },
+  "analysis_status": "accepted",
+  "recommendation_count": 2
+}
