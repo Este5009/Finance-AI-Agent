@@ -1,4 +1,4 @@
-"""PDF renderer for Finance AI Agent report models."""
+"""Professional PDF renderer for Finance AI Agent report models."""
 
 from __future__ import annotations
 
@@ -9,7 +9,10 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
+from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.platypus import (
+    Flowable,
+    KeepTogether,
     PageBreak,
     Paragraph,
     SimpleDocTemplate,
@@ -18,70 +21,174 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from finance_agent.reporting.renderers.html_renderer import (
-    SECTION_LABELS_ES,
-    _format_value,
-    _number,
-    _section,
-    report_strategy_warnings,
-    validate_strategy_available,
-)
+from finance_agent.reporting.presentation import SECTION_LABELS_ES, build_presentation_view, format_value
+
+
+NAVY = colors.HexColor("#17324d")
+BLUE = colors.HexColor("#245b89")
+GREEN = colors.HexColor("#1f7a5b")
+RED = colors.HexColor("#b84242")
+AMBER = colors.HexColor("#b7791f")
+LINE = colors.HexColor("#d8e1ea")
+LIGHT = colors.HexColor("#f4f7fb")
+INK = colors.HexColor("#172033")
+MUTED = colors.HexColor("#647084")
+
+
+class HorizontalBarChart(Flowable):
+    """Small vector bar chart flowable.
+
+    Inputs: display-ready chart items, title, width, and height.
+    Outputs: ReportLab flowable drawing real bars.
+    Assumptions: values were calculated upstream; this only scales them visually.
+    """
+
+    def __init__(self, items: list[dict[str, Any]], title: str, width: float = 6.8 * inch) -> None:
+        """Initialize a bar chart flowable.
+
+        Inputs: chart item dictionaries and title.
+        Outputs: configured flowable.
+        Assumptions: long labels are truncated for PDF readability.
+        """
+
+        super().__init__()
+        self.items = items
+        self.title = title
+        self.width = width
+        self.height = 32 + max(1, len(items)) * 24
+
+    def draw(self) -> None:
+        """Draw the bar chart onto the PDF canvas.
+
+        Inputs: flowable state.
+        Outputs: mutates ReportLab canvas.
+        Assumptions: canvas coordinate system starts at flowable origin.
+        """
+
+        canvas = self.canv
+        canvas.setFont("Helvetica-Bold", 9)
+        canvas.setFillColor(NAVY)
+        canvas.drawString(0, self.height - 12, self.title)
+        if not self.items:
+            canvas.setFont("Helvetica", 8)
+            canvas.setFillColor(MUTED)
+            canvas.drawString(0, self.height - 34, "Sin datos para graficar.")
+            return
+        max_value = max(abs(float(item.get("value") or 0.0)) for item in self.items) or 1.0
+        label_width = 1.75 * inch
+        value_width = 1.0 * inch
+        bar_width = self.width - label_width - value_width - 0.2 * inch
+        for index, item in enumerate(self.items):
+            y = self.height - 36 - index * 24
+            value = float(item.get("value") or 0.0)
+            label = _truncate(str(item.get("label") or ""), 24)
+            canvas.setFont("Helvetica", 7.5)
+            canvas.setFillColor(INK)
+            canvas.drawString(0, y + 3, label)
+            canvas.setFillColor(colors.HexColor("#e8eef5"))
+            canvas.roundRect(label_width, y, bar_width, 10, 4, fill=1, stroke=0)
+            canvas.setFillColor(GREEN if value >= 0 else RED)
+            scaled = max(2.0, abs(value) / max_value * bar_width)
+            canvas.roundRect(label_width, y, scaled, 10, 4, fill=1, stroke=0)
+            canvas.setFillColor(INK)
+            canvas.drawRightString(self.width, y + 2, format_value(value, item.get("unit")))
+
+
+class LineChart(Flowable):
+    """Small vector line chart flowable.
+
+    Inputs: trend series and width.
+    Outputs: ReportLab flowable drawing a line chart.
+    Assumptions: points are ordered chronologically upstream.
+    """
+
+    def __init__(self, series: dict[str, Any], width: float = 3.2 * inch) -> None:
+        """Initialize a line chart.
+
+        Inputs: trend series dictionary and width.
+        Outputs: configured flowable.
+        Assumptions: empty series will show an empty-state note.
+        """
+
+        super().__init__()
+        self.series = series
+        self.width = width
+        self.height = 1.65 * inch
+
+    def draw(self) -> None:
+        """Draw the line chart onto the PDF canvas.
+
+        Inputs: flowable state.
+        Outputs: mutates ReportLab canvas.
+        Assumptions: values are normalized only for visual scale.
+        """
+
+        canvas = self.canv
+        points = self.series.get("points", [])
+        canvas.setFillColor(NAVY)
+        canvas.setFont("Helvetica-Bold", 8)
+        canvas.drawString(0, self.height - 10, _truncate(str(self.series.get("metric") or ""), 34))
+        if not points:
+            canvas.setFont("Helvetica", 7)
+            canvas.setFillColor(MUTED)
+            canvas.drawString(0, self.height - 28, "Sin puntos históricos.")
+            return
+        values = [float(point.get("value") or 0.0) for point in points]
+        min_value = min(values)
+        max_value = max(values)
+        span = max(max_value - min_value, 1e-9)
+        left = 12
+        bottom = 24
+        chart_width = self.width - 24
+        chart_height = self.height - 52
+        coords = []
+        for index, point in enumerate(points):
+            x = left + chart_width * (index / max(1, len(points) - 1))
+            y = bottom + ((float(point.get("value") or 0.0) - min_value) / span) * chart_height
+            coords.append((x, y))
+        canvas.setStrokeColor(LINE)
+        canvas.line(left, bottom, left + chart_width, bottom)
+        canvas.setStrokeColor(BLUE)
+        canvas.setLineWidth(1.4)
+        path = canvas.beginPath()
+        path.moveTo(coords[0][0], coords[0][1])
+        for x, y in coords[1:]:
+            path.lineTo(x, y)
+        canvas.drawPath(path)
+        canvas.setFillColor(GREEN)
+        for x, y in coords:
+            canvas.circle(x, y, 2.5, fill=1, stroke=0)
+        canvas.setFont("Helvetica", 6.5)
+        canvas.setFillColor(MUTED)
+        canvas.drawString(0, 2, f"{points[0].get('period')} → {points[-1].get('period')}")
 
 
 def _styles() -> dict[str, ParagraphStyle]:
-    """Build report styles for PDF output.
+    """Build PDF paragraph styles.
 
     Inputs: none.
     Outputs: style dictionary.
-    Assumptions: built-in Helvetica supports required Spanish text.
+    Assumptions: Helvetica handles Spanish text generated here.
     """
 
     sample = getSampleStyleSheet()
     return {
-        "title": ParagraphStyle(
-            "ReportTitle",
-            parent=sample["Title"],
-            fontName="Helvetica-Bold",
-            fontSize=24,
-            leading=30,
-            textColor=colors.HexColor("#17324d"),
-            spaceAfter=18,
-        ),
-        "h1": ParagraphStyle(
-            "SectionHeading",
-            parent=sample["Heading1"],
-            fontName="Helvetica-Bold",
-            fontSize=15,
-            leading=19,
-            textColor=colors.HexColor("#17324d"),
-            spaceBefore=14,
-            spaceAfter=8,
-        ),
-        "body": ParagraphStyle(
-            "Body",
-            parent=sample["BodyText"],
-            fontName="Helvetica",
-            fontSize=9,
-            leading=12,
-            spaceAfter=6,
-        ),
-        "small": ParagraphStyle(
-            "Small",
-            parent=sample["BodyText"],
-            fontName="Helvetica",
-            fontSize=7,
-            leading=9,
-            textColor=colors.HexColor("#4c5968"),
-        ),
+        "cover_title": ParagraphStyle("CoverTitle", parent=sample["Title"], fontName="Helvetica-Bold", fontSize=30, leading=34, textColor=colors.white, spaceAfter=16),
+        "cover": ParagraphStyle("CoverText", parent=sample["BodyText"], fontName="Helvetica", fontSize=13, leading=18, textColor=colors.white),
+        "h1": ParagraphStyle("SectionHeading", parent=sample["Heading1"], fontName="Helvetica-Bold", fontSize=16, leading=20, textColor=NAVY, spaceBefore=10, spaceAfter=8, keepWithNext=True),
+        "h2": ParagraphStyle("SubHeading", parent=sample["Heading2"], fontName="Helvetica-Bold", fontSize=10.5, leading=13, textColor=NAVY, spaceBefore=8, spaceAfter=5, keepWithNext=True),
+        "body": ParagraphStyle("Body", parent=sample["BodyText"], fontName="Helvetica", fontSize=8.8, leading=11.5, textColor=INK, spaceAfter=5),
+        "small": ParagraphStyle("Small", parent=sample["BodyText"], fontName="Helvetica", fontSize=7.2, leading=9, textColor=MUTED),
+        "card_value": ParagraphStyle("CardValue", parent=sample["BodyText"], fontName="Helvetica-Bold", fontSize=13, leading=15, textColor=NAVY),
     }
 
 
 def _para(value: Any, style: ParagraphStyle) -> Paragraph:
-    """Create a ReportLab paragraph from a value.
+    """Create a safe ReportLab paragraph.
 
-    Inputs: any display value and paragraph style.
+    Inputs: scalar display value and style.
     Outputs: Paragraph flowable.
-    Assumptions: XML-sensitive characters are escaped by reportlab paragraph parser minimally.
+    Assumptions: text is plain and should be XML escaped.
     """
 
     text = "" if value is None else str(value)
@@ -89,26 +196,37 @@ def _para(value: Any, style: ParagraphStyle) -> Paragraph:
     return Paragraph(text, style)
 
 
-def _table(headers: list[str], rows: list[list[Any]], styles: dict[str, ParagraphStyle]) -> Table:
-    """Create a compact ReportLab table.
+def _truncate(text: str, limit: int) -> str:
+    """Truncate text for compact chart labels.
 
-    Inputs: headers, row values, and style dictionary.
-    Outputs: styled Table flowable.
-    Assumptions: tables are summary-sized in the report model.
+    Inputs: source text and character limit.
+    Outputs: shortened text.
+    Assumptions: full wording is available in adjacent tables/cards.
+    """
+
+    return text if len(text) <= limit else text[: max(0, limit - 1)] + "…"
+
+
+def _table(headers: list[str], rows: list[list[Any]], styles: dict[str, ParagraphStyle], *, widths: list[float] | None = None) -> Table:
+    """Create a styled PDF table with repeating headers.
+
+    Inputs: headers, rows, styles, and optional column widths.
+    Outputs: ReportLab Table.
+    Assumptions: rows are bounded for executive reports.
     """
 
     data = [[_para(header, styles["small"]) for header in headers]]
     if not rows:
-        rows = [["Sin datos disponibles"] + [""] * max(0, len(headers) - 1)]
+        rows = [["Sin datos disponibles."] + [""] * max(0, len(headers) - 1)]
     for row in rows:
         data.append([_para(value, styles["small"]) for value in row])
-    table = Table(data, repeatRows=1, hAlign="LEFT")
+    table = Table(data, repeatRows=1, hAlign="LEFT", colWidths=widths)
     table.setStyle(
         TableStyle(
             [
                 ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#eef4fb")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#17324d")),
-                ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#d8e1ea")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), NAVY),
+                ("GRID", (0, 0), (-1, -1), 0.25, LINE),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#fbfdff")]),
                 ("LEFTPADDING", (0, 0), (-1, -1), 4),
@@ -121,325 +239,279 @@ def _table(headers: list[str], rows: list[list[Any]], styles: dict[str, Paragrap
     return table
 
 
-def _metric_table(content: dict[str, Any], styles: dict[str, ParagraphStyle]) -> Table:
-    """Render key financial health values as a table.
-
-    Inputs: section content and PDF styles.
-    Outputs: ReportLab Table.
-    Assumptions: values are already calculated by upstream stages.
-    """
-
-    rows = [
-        ["Ingresos totales", _format_value(content.get("total_revenue"), "USD")],
-        ["Gastos totales", _format_value(content.get("total_expenses"), "USD")],
-        ["Resultado operativo", _format_value(content.get("net_operating_result"), "USD")],
-        ["Flujo neto de caja", _format_value(content.get("net_cash_flow"), "USD")],
-        ["Caja final", _format_value(content.get("ending_cash"), "USD")],
-        ["Cobranza", _format_value(content.get("collection_rate"), "ratio")],
-    ]
-    return _table(["Métrica", "Valor"], rows, styles)
-
-
-def _simple_bar_rows(items: list[tuple[str, float]]) -> list[list[str]]:
-    """Build text-based bar chart rows for PDF tables.
-
-    Inputs: label/value pairs.
-    Outputs: rows with ASCII bars and formatted values.
-    Assumptions: this keeps PDF dependencies simple and renderer-neutral.
-    """
-
-    if not items:
-        return [["Sin datos", "", ""]]
-    max_value = max(abs(value) for _, value in items) or 1.0
-    rows = []
-    for label, value in items:
-        bar_length = max(1, int(abs(value) / max_value * 22))
-        rows.append([label, "#" * bar_length, _format_value(value, "USD")])
-    return rows
-
-
-def _add_section_title(story: list[Any], section_id: str, styles: dict[str, ParagraphStyle]) -> None:
-    """Append a Spanish section title to the PDF story.
+def _section_title(story: list[Any], section_id: str, styles: dict[str, ParagraphStyle]) -> None:
+    """Append a section title.
 
     Inputs: story list, section ID, and styles.
-    Outputs: mutates story list.
-    Assumptions: section labels come from the shared Spanish label map.
+    Outputs: mutates story.
+    Assumptions: Spanish labels are centrally defined.
     """
 
-    story.append(_para(SECTION_LABELS_ES[section_id], styles["h1"]))
+    story.append(_para(SECTION_LABELS_ES.get(section_id, section_id), styles["h1"]))
 
 
-def _add_source_note(story: list[Any], section: dict[str, Any], styles: dict[str, ParagraphStyle]) -> None:
-    """Append compact source references for one section.
+def _bullet_list(items: list[str], styles: dict[str, ParagraphStyle], *, limit: int = 8) -> list[Any]:
+    """Build bullet paragraphs.
 
-    Inputs: story list, section dictionary, and styles.
-    Outputs: mutates story list when sources exist.
-    Assumptions: source references are processed-output paths, not raw evidence.
+    Inputs: text items, styles, and limit.
+    Outputs: paragraph flowables.
+    Assumptions: empty lists should not create empty tables.
     """
 
-    sources = section.get("source_references", [])
-    if sources:
-        story.append(_para(f"Fuentes: {'; '.join(str(source) for source in sources[:5])}", styles["small"]))
+    return [_para(f"- {item}", styles["body"]) for item in items[:limit]]
 
 
-def _add_warning_note(story: list[Any], section: dict[str, Any], styles: dict[str, ParagraphStyle]) -> None:
-    """Append visible section warnings to the PDF story.
+def _metric_cards(view: dict[str, Any], styles: dict[str, ParagraphStyle]) -> Table:
+    """Render KPI cards as a two-row table.
 
-    Inputs: story list, section dictionary, and styles.
-    Outputs: mutates story list when warnings exist.
-    Assumptions: warnings should be visible in draft reports.
+    Inputs: presentation view and styles.
+    Outputs: card-style table.
+    Assumptions: cards are display-ready.
     """
 
-    warnings = section.get("warnings", [])
-    for warning in warnings[:5]:
-        story.append(_para(f"Advertencia: {warning}", styles["small"]))
+    cells = []
+    for card in view["financial_health"]["cards"][:6]:
+        cells.append([
+            _para(card["label"], styles["small"]),
+            _para(card["value"], styles["card_value"]),
+            _para(card["description"], styles["small"]),
+        ])
+    rows = []
+    for index in range(0, len(cells), 3):
+        rows.append(cells[index:index + 3])
+    while rows and len(rows[-1]) < 3:
+        rows[-1].append([_para("", styles["small"])])
+    table = Table(rows, colWidths=[2.15 * inch, 2.15 * inch, 2.15 * inch])
+    table.setStyle(
+        TableStyle(
+            [
+                ("BOX", (0, 0), (-1, -1), 0.25, LINE),
+                ("INNERGRID", (0, 0), (-1, -1), 0.25, LINE),
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#fbfdff")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 7),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+                ("TOPPADDING", (0, 0), (-1, -1), 7),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+            ]
+        )
+    )
+    return table
 
 
-def _build_story(report_model: dict[str, Any]) -> list[Any]:
-    """Build ReportLab flowables from a report model.
+def _recommendation_cards(view: dict[str, Any], styles: dict[str, ParagraphStyle]) -> list[Any]:
+    """Render recommendations as card-like tables.
 
-    Inputs: report model dictionary.
+    Inputs: presentation view and styles.
+    Outputs: flowables.
+    Assumptions: recommendations are strategic-analysis outputs.
+    """
+
+    flowables: list[Any] = []
+    for card in view["recommendations"]["cards"][:6]:
+        data = [
+            [_para(f"Prioridad: {card['priority']}", styles["h2"])],
+            [_para(card["action"], styles["body"])],
+            [_para(f"Racional: {card['rationale']}", styles["small"])],
+            [_para(f"Impacto esperado: {card['expected_impact']}", styles["small"])],
+            [_para(f"Responsable/estado: {card['owner_status']}", styles["small"])],
+        ]
+        table = Table(data, colWidths=[6.7 * inch], hAlign="LEFT")
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BOX", (0, 0), (-1, -1), 0.5, LINE),
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#fbfdff")),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ]
+            )
+        )
+        flowables.extend([KeepTogether(table), Spacer(1, 0.08 * inch)])
+    return flowables
+
+
+def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> list[Any]:
+    """Build ReportLab flowables from a presentation view.
+
+    Inputs: report model and render mode.
     Outputs: list of ReportLab flowables.
-    Assumptions: content is summarized enough for a readable PDF.
+    Assumptions: presentation layer has already sanitized executive content.
     """
 
+    view = build_presentation_view(report_model, mode=mode)
     styles = _styles()
     story: list[Any] = []
-    cover = _section(report_model, "cover").get("content", {})
-    story.append(_para(cover.get("title", "Reporte financiero"), styles["title"]))
-    story.append(_para(f"Periodo: {report_model.get('report_period')}", styles["body"]))
-    story.append(_para("Generado por Finance AI Agent a partir de datos procesados.", styles["body"]))
-    story.append(Spacer(1, 0.18 * inch))
 
-    executive_section = _section(report_model, "executive_summary")
-    executive = executive_section.get("content", {})
-    _add_section_title(story, "executive_summary", styles)
-    _add_warning_note(story, executive_section, styles)
-    story.append(_para(executive.get("summary", "Sin resumen disponible."), styles["body"]))
-    findings = executive.get("key_findings") or ["No hay hallazgos estratégicos generados."]
-    story.append(_para("Hallazgos clave", styles["body"]))
-    for item in findings[:6]:
-        story.append(_para(f"- {item}", styles["body"]))
-    story.append(_para("Causas raíz probables", styles["body"]))
-    for item in (executive.get("root_causes") or ["Sin causas raíz estratégicas disponibles."])[:6]:
-        story.append(_para(f"- {item}", styles["body"]))
-    _add_source_note(story, executive_section, styles)
-
-    health_section = _section(report_model, "financial_health_overview")
-    health = health_section.get("content", {})
-    _add_section_title(story, "financial_health_overview", styles)
-    story.append(_metric_table(health, styles))
-    story.append(Spacer(1, 0.1 * inch))
-    story.append(
-        _table(
-            ["Concepto", "Barra", "Valor"],
-            _simple_bar_rows(
-                [
-                    ("Ingresos", _number(health.get("total_revenue")) or 0.0),
-                    ("Gastos", _number(health.get("total_expenses")) or 0.0),
-                    ("Resultado", _number(health.get("net_operating_result")) or 0.0),
-                ]
-            ),
-            styles,
-        )
-    )
-    _add_source_note(story, health_section, styles)
-
-    kpi_section = _section(report_model, "kpi_overview")
-    kpis = kpi_section.get("content", {}).get("kpis", [])
-    _add_section_title(story, "kpi_overview", styles)
-    story.append(
-        _table(
-            ["Indicador", "Valor", "Unidad", "Estado"],
-            [
-                [
-                    item.get("metric"),
-                    _format_value(item.get("value"), item.get("unit")),
-                    item.get("unit"),
-                    item.get("availability"),
-                ]
-                for item in kpis[:12]
-                if isinstance(item, dict)
-            ],
-            styles,
-        )
-    )
-    _add_source_note(story, kpi_section, styles)
-
-    for section_id in ("revenue_analysis", "expense_analysis"):
-        section = _section(report_model, section_id)
-        content = section.get("content", {})
-        _add_section_title(story, section_id, styles)
-        rows = [
-            [key, _format_value(value, "ratio" if "pct" in key else "USD")]
-            for key, value in content.items()
-            if not key.endswith("summary") and not isinstance(value, list)
-        ]
-        story.append(_table(["Métrica", "Valor"], rows, styles))
-        _add_source_note(story, section, styles)
-
-    department_section = _section(report_model, "department_analysis")
-    departments = department_section.get("content", {}).get("department_summary", [])
-    _add_section_title(story, "department_analysis", styles)
-    story.append(
-        _table(
-            ["Departamento", "Ingresos", "Gastos", "Resultado"],
-            [
-                [
-                    item.get("department"),
-                    _format_value(item.get("actual_revenue"), "USD"),
-                    _format_value(item.get("actual_expenses"), "USD"),
-                    _format_value(item.get("net_operating_result"), "USD"),
-                ]
-                for item in departments
-                if isinstance(item, dict)
-            ],
-            styles,
-        )
-    )
-    _add_source_note(story, department_section, styles)
-
-    anomaly_section = _section(report_model, "anomaly_summary")
-    anomalies = anomaly_section.get("content", {})
-    _add_section_title(story, "anomaly_summary", styles)
-    severity = anomalies.get("anomalies_by_severity", {})
-    severity = severity if isinstance(severity, dict) else {}
-    story.append(_table(["Severidad", "Cantidad"], [[k, v] for k, v in severity.items()], styles))
-    top_rows = [
-        [item.get("anomaly_id"), item.get("title"), item.get("severity")]
-        for item in anomalies.get("top_anomalies", [])[:8]
-        if isinstance(item, dict)
-    ]
-    story.append(_table(["ID", "Título", "Severidad"], top_rows, styles))
-    _add_source_note(story, anomaly_section, styles)
-
-    evidence_section = _section(report_model, "investigation_evidence")
-    evidence = evidence_section.get("content", {}).get("evidence_items", [])
-    _add_section_title(story, "investigation_evidence", styles)
-    story.append(
-        _table(
-            ["Tarea", "Prioridad", "Evidencia", "Registros"],
-            [
-                [
-                    item.get("task_id"),
-                    item.get("priority"),
-                    item.get("retrieval_name"),
-                    item.get("record_count"),
-                ]
-                for item in evidence[:12]
-                if isinstance(item, dict)
-            ],
-            styles,
-        )
-    )
-    _add_source_note(story, evidence_section, styles)
-
-    recommendation_section = _section(report_model, "strategic_recommendations")
-    recommendations = recommendation_section.get("content", {}).get("recommendations", [])
-    recommendation_content = recommendation_section.get("content", {})
-    _add_section_title(story, "strategic_recommendations", styles)
-    _add_warning_note(story, recommendation_section, styles)
-    priorities = recommendation_content.get("strategic_priorities", [])
-    story.append(_para("Prioridades estratégicas", styles["body"]))
-    story.append(
-        _table(
-            ["Prioridad"],
-            [[item] for item in priorities if isinstance(item, str)],
-            styles,
-        )
-    )
-    root_causes = recommendation_content.get("root_causes", [])
-    story.append(_para("Causas raíz", styles["body"]))
-    story.append(
-        _table(
-            ["Causa probable"],
-            [[item] for item in root_causes if isinstance(item, str)],
-            styles,
-        )
-    )
-    recommendation_rows = []
-    for item in recommendations:
-        if isinstance(item, dict):
-            recommendation_rows.append([item.get("priority", ""), item.get("action", ""), item.get("expected_impact", "")])
-        else:
-            recommendation_rows.append(["", item, ""])
-    if not recommendation_rows:
-        recommendation_rows = [["", "No hay recomendaciones estratégicas generadas.", ""]]
-    story.append(_para("Acciones recomendadas", styles["body"]))
-    story.append(_table(["Prioridad", "Acción", "Impacto"], recommendation_rows, styles))
-    if recommendation_content.get("reasoning_summary"):
-        story.append(_para(recommendation_content.get("reasoning_summary"), styles["body"]))
-    _add_source_note(story, recommendation_section, styles)
-
-    for section_id in (
-        "historical_summary",
-        "historical_trends",
-        "recommendation_follow_up",
-        "longitudinal_risk_assessment",
-    ):
-        if not any(
-            isinstance(section, dict) and section.get("section_id") == section_id
-            for section in report_model.get("sections", [])
-        ):
-            continue
-        historical_section = _section(report_model, section_id)
-        _add_section_title(story, section_id, styles)
-        content = historical_section.get("content", {})
-        rows = [
-            [key, str(value)[:900]]
-            for key, value in content.items()
-        ]
-        story.append(_table(["Campo", "Resumen"], rows, styles))
-        _add_source_note(story, historical_section, styles)
-
-    missing_section = _section(report_model, "missing_information")
-    missing = missing_section.get("content", {})
-    _add_section_title(story, "missing_information", styles)
-    missing_items = missing.get("missing_information") or ["Sin información faltante declarada."]
-    for item in missing_items[:8]:
-        story.append(_para(f"- {item}", styles["body"]))
-    _add_source_note(story, missing_section, styles)
-
+    story.append(_para(view["title"], styles["cover_title"]))
+    story.append(_para(f"Periodo: {view.get('period')}", styles["cover"]))
+    story.append(_para(view.get("organization"), styles["cover"]))
+    story.append(Spacer(1, 0.3 * inch))
+    story.append(_para("Síntesis ejecutiva generada desde salidas procesadas, validadas y trazables.", styles["cover"]))
     story.append(PageBreak())
-    appendix_section = _section(report_model, "appendix")
-    appendix = appendix_section.get("content", {})
-    _add_section_title(story, "appendix", styles)
+
+    _section_title(story, "executive_summary", styles)
+    story.append(_para(view["executive_summary"]["summary"], styles["body"]))
+    story.append(_para("Hallazgos clave", styles["h2"]))
+    story.extend(_bullet_list(view["executive_summary"]["key_findings"], styles, limit=6))
+    story.append(_para("Causas raíz probables", styles["h2"]))
+    story.extend(_bullet_list(view["executive_summary"]["root_causes"], styles, limit=6))
+    story.append(_para(f"Confianza del análisis: {view['executive_summary']['confidence']}", styles["small"]))
+
+    _section_title(story, "financial_health_overview", styles)
+    story.append(_metric_cards(view, styles))
+    chart_items = [
+        {"label": card["label"], "value": card["numeric_value"] or 0.0, "unit": card["unit"]}
+        for card in view["financial_health"]["cards"]
+        if card["id"] in {"total_revenue", "total_expenses", "net_operating_result", "net_cash_flow"}
+    ]
+    story.append(Spacer(1, 0.1 * inch))
+    story.append(HorizontalBarChart(chart_items, "Resumen financiero principal"))
+
+    _section_title(story, "kpi_overview", styles)
     story.append(
         _table(
-            ["Campo", "Detalle"],
-            [
-                [key, "; ".join(str(item) for item in value[:12]) if isinstance(value, list) else value]
-                for key, value in appendix.items()
-            ],
+            ["Indicador", "Valor", "Estado", "Descripción"],
+            [[row["indicator"], row["value"], row["status"], row["description"]] for row in view["kpis"][:10]],
             styles,
+            widths=[1.55 * inch, 0.9 * inch, 0.9 * inch, 3.15 * inch],
         )
     )
-    _add_source_note(story, appendix_section, styles)
+
+    historical = view["historical"]
+    if historical.get("available"):
+        _section_title(story, "historical_trends", styles)
+        story.extend(_bullet_list(historical.get("narrative", []), styles, limit=5))
+        chart_cells = [[LineChart(series) for series in historical.get("trends", [])[:2]]]
+        if chart_cells[0]:
+            story.append(Table(chart_cells, colWidths=[3.3 * inch] * len(chart_cells[0])))
+        _section_title(story, "recommendation_follow_up", styles)
+        story.append(
+            _table(
+                ["Recomendación", "Periodo", "Evidencia actual", "Estado"],
+                [
+                    [row["recommendation"], row["issued_period"], row["current_evidence"], row["status"]]
+                    for row in historical.get("recommendation_follow_up", [])[:6]
+                ],
+                styles,
+                widths=[1.7 * inch, 0.75 * inch, 3.0 * inch, 1.0 * inch],
+            )
+        )
+        _section_title(story, "longitudinal_risk_assessment", styles)
+        story.append(
+            _table(
+                ["Riesgo", "Departamento", "Ocurrencias", "Periodos"],
+                [
+                    [row["risk"], row["department"], row["occurrences"], row["periods"]]
+                    for row in historical.get("recurring_risks", [])[:6]
+                ],
+                styles,
+                widths=[2.1 * inch, 1.4 * inch, 0.8 * inch, 2.0 * inch],
+            )
+        )
+        story.extend(_bullet_list(historical.get("longitudinal_conclusions", []), styles, limit=4))
+
+    _section_title(story, "revenue_expense_analysis", styles)
+    story.append(HorizontalBarChart(view["revenue_expense"]["chart"], "Ingresos, gastos y resultado"))
+    story.append(HorizontalBarChart(view["revenue_expense"]["budget_chart"], "Comparación contra presupuesto"))
+    story.append(
+        _table(
+            ["Métrica", "Valor", "Descripción"],
+            [[row["metric"], row["value"], row["description"]] for row in view["revenue_expense"]["rows"]],
+            styles,
+            widths=[1.7 * inch, 1.0 * inch, 3.8 * inch],
+        )
+    )
+
+    _section_title(story, "department_analysis", styles)
+    story.append(
+        _table(
+            ["Departamento", "Ingresos", "Gastos", "Resultado", "Var. gasto"],
+            [[row["department"], row["revenue"], row["expenses"], row["result"], row["variance"]] for row in view["departments"]],
+            styles,
+            widths=[1.55 * inch, 1.0 * inch, 1.0 * inch, 1.1 * inch, 0.9 * inch],
+        )
+    )
+    story.append(HorizontalBarChart(
+        [{"label": row["department"], "value": row["numeric_result"], "unit": "USD"} for row in view["departments"][:6]],
+        "Resultado operativo por departamento",
+    ))
+
+    _section_title(story, "anomaly_summary", styles)
+    anomalies = view["anomalies"]
+    if anomalies.get("positive_status"):
+        story.append(_para(anomalies["positive_status"], styles["body"]))
+    else:
+        story.append(_table(["Severidad", "Cantidad"], [[row["severity"], row["count"]] for row in anomalies["severity_rows"]], styles))
+        story.append(
+            _table(
+                ["Anomalía", "Severidad", "Evidencia"],
+                [[row["title"], row["severity"], row["evidence"]] for row in anomalies["top_rows"]],
+                styles,
+                widths=[2.1 * inch, 0.9 * inch, 3.4 * inch],
+            )
+        )
+
+    _section_title(story, "investigation_evidence", styles)
+    story.append(
+        _table(
+            ["Prioridad", "Evidencia", "Registros", "Resumen"],
+            [[row["priority"], row["evidence"], row["records"], row["summary"]] for row in view["evidence"][:8]],
+            styles,
+            widths=[0.75 * inch, 1.35 * inch, 0.65 * inch, 3.7 * inch],
+        )
+    )
+
+    _section_title(story, "strategic_recommendations", styles)
+    story.append(_para("Prioridades estratégicas", styles["h2"]))
+    story.extend(_bullet_list(view["recommendations"]["priorities"], styles, limit=6))
+    story.extend(_recommendation_cards(view, styles))
+    if view["recommendations"]["reasoning_summary"]:
+        story.append(_para(view["recommendations"]["reasoning_summary"], styles["small"]))
+
+    _section_title(story, "missing_information", styles)
+    story.extend(_bullet_list(view["missing_information"], styles, limit=8))
+
+    _section_title(story, "appendix", styles)
+    story.append(_para("Metodología", styles["h2"]))
+    story.extend(_bullet_list(view["appendix"]["methodology"], styles, limit=6))
+    story.append(_para("Fuentes procesadas", styles["h2"]))
+    story.extend(_bullet_list(view["appendix"]["sources"], styles, limit=18))
     return story
 
 
-def _draw_footer(canvas: Any, document: Any) -> None:
-    """Draw page footer with page number.
+def _draw_page_frame(canvas: Any, document: Any) -> None:
+    """Draw page header/footer and cover background.
 
     Inputs: ReportLab canvas and document.
     Outputs: mutates PDF canvas.
-    Assumptions: footer is presentation-only metadata.
+    Assumptions: page one is the cover.
     """
 
     canvas.saveState()
-    canvas.setFont("Helvetica", 7)
-    canvas.setFillColor(colors.HexColor("#667085"))
-    canvas.drawString(0.75 * inch, 0.45 * inch, "Finance AI Agent - Reporte financiero")
-    canvas.drawRightString(7.75 * inch, 0.45 * inch, f"Página {document.page}")
+    if document.page == 1:
+        canvas.setFillColor(NAVY)
+        canvas.rect(0, 0, letter[0], letter[1], fill=1, stroke=0)
+        canvas.setFillColor(colors.HexColor("#245b89"))
+        canvas.circle(letter[0] - 80, letter[1] - 80, 120, fill=1, stroke=0)
+    else:
+        canvas.setFont("Helvetica", 7)
+        canvas.setFillColor(MUTED)
+        canvas.drawString(0.65 * inch, letter[1] - 0.4 * inch, "Reporte financiero ejecutivo")
+        canvas.drawRightString(letter[0] - 0.65 * inch, 0.42 * inch, f"Página {document.page}")
+        canvas.setStrokeColor(LINE)
+        canvas.line(0.65 * inch, letter[1] - 0.48 * inch, letter[0] - 0.65 * inch, letter[1] - 0.48 * inch)
     canvas.restoreState()
 
 
-def render_report_pdf(report_model: dict[str, Any], output_path: str | Path) -> Path:
-    """Render and save a report model as PDF.
+def render_report_pdf(report_model: dict[str, Any], output_path: str | Path, *, mode: str = "executive") -> Path:
+    """Render and save a report model as a polished PDF.
 
-    Inputs: report model dictionary and PDF output path.
+    Inputs: report model dictionary, PDF output path, and rendering mode.
     Outputs: resolved written path.
-    Assumptions: PDF is a clean summary renderer, not a pixel-perfect final design.
+    Assumptions: renderers do not change business logic or financial values.
     """
 
     path = Path(output_path).resolve()
@@ -447,10 +519,10 @@ def render_report_pdf(report_model: dict[str, Any], output_path: str | Path) -> 
     document = SimpleDocTemplate(
         str(path),
         pagesize=letter,
-        rightMargin=0.55 * inch,
-        leftMargin=0.55 * inch,
-        topMargin=0.6 * inch,
+        rightMargin=0.65 * inch,
+        leftMargin=0.65 * inch,
+        topMargin=0.72 * inch,
         bottomMargin=0.65 * inch,
     )
-    document.build(_build_story(report_model), onFirstPage=_draw_footer, onLaterPages=_draw_footer)
+    document.build(_build_story(report_model, mode=mode), onFirstPage=_draw_page_frame, onLaterPages=_draw_page_frame)
     return path

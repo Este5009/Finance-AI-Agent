@@ -13,6 +13,22 @@ from finance_agent.reporting.report_models import (
     ReportModel,
     ReportSection,
 )
+from finance_agent.reporting.presentation import (
+    build_anomaly_summary,
+    build_department_rows,
+    build_evidence_summary,
+    build_historical_presentation,
+    build_kpi_rows,
+    build_metric_cards,
+    build_missing_information,
+    build_presentation_view,
+    build_recommendation_cards,
+    build_revenue_expense_summary,
+    compact_source_label,
+    localize_items,
+    localize_text,
+    validate_presentation_view,
+)
 
 
 class ReportInputError(RuntimeError):
@@ -242,33 +258,47 @@ def _historical_sections(
     summary = historical_context.get("summary", {})
     if not isinstance(summary, dict) or not summary.get("available_retrievals"):
         return ()
-    retrievals = [
-        item
-        for item in historical_context.get("retrievals", [])
-        if isinstance(item, dict) and item.get("success")
+    presentation_seed = {
+        "report_id": "historical-context-seed",
+        "report_period": "",
+        "sections": [
+            {
+                "section_id": "historical_summary",
+                "content": {"historical_context": historical_context},
+                "source_references": list(analysis_source),
+                "warnings": [],
+            }
+        ],
+        "source_references": list(analysis_source),
+    }
+    historical = build_historical_presentation(presentation_seed)
+    trend_overview = [
+        {
+            "metric": trend.get("metric"),
+            "unit": trend.get("unit"),
+            "direction": trend.get("direction"),
+            "points": [
+                {
+                    "period": point.get("period"),
+                    "value": point.get("value"),
+                    "display": point.get("display"),
+                }
+                for point in trend.get("points", [])
+            ],
+        }
+        for trend in historical.get("trends", [])
     ]
-    metric_trends = [
-        item for item in retrievals if item.get("tool_name") == "get_metric_history"
-    ]
-    repeated = [
-        item for item in retrievals if item.get("tool_name") == "get_repeated_anomalies"
-    ]
-    recommendations = [
-        item for item in retrievals if item.get("tool_name") == "get_previous_recommendations"
-    ]
-    goals = [item for item in retrievals if item.get("tool_name") == "get_goal_progress"]
-    departments = [
-        item for item in retrievals if item.get("tool_name") == "get_department_history"
-    ]
-    facts = [item for item in retrievals if item.get("tool_name") == "get_memory_facts"]
     return (
         _section(
             "historical_summary",
             "Historical Summary",
             {
-                "summary": summary,
-                "retrieval_count": len(retrievals),
-                "topics": summary.get("topics", []),
+                "narrative": historical.get("narrative", []),
+                "retrieval_count": summary.get("available_retrievals", 0),
+                "topics": [
+                    str(topic).replace("get_", "").replace("_", " ").title()
+                    for topic in summary.get("topics", [])
+                ],
             },
             analysis_source,
         ),
@@ -276,9 +306,8 @@ def _historical_sections(
             "historical_trends",
             "Historical Trends",
             {
-                "metric_trends": metric_trends,
-                "department_trends": departments,
-                "goal_progress": goals,
+                "trend_series": trend_overview,
+                "narrative": historical.get("narrative", []),
             },
             analysis_source,
         ),
@@ -286,8 +315,7 @@ def _historical_sections(
             "recommendation_follow_up",
             "Recommendation Follow-up",
             {
-                "previous_recommendations": recommendations,
-                "goal_progress": goals,
+                "follow_up": historical.get("recommendation_follow_up", []),
             },
             analysis_source,
         ),
@@ -295,12 +323,64 @@ def _historical_sections(
             "longitudinal_risk_assessment",
             "Longitudinal Risk Assessment",
             {
-                "repeated_anomalies": repeated,
-                "memory_facts": facts,
+                "recurring_risks": historical.get("recurring_risks", []),
+                "conclusions": historical.get("longitudinal_conclusions", []),
             },
             analysis_source,
         ),
     )
+
+
+def _add_presentation_payload(model: ReportModel) -> None:
+    """Attach display-ready payloads used by executive renderers.
+
+    Inputs: report model object.
+    Outputs: mutates shallow section content dictionaries with `presentation`.
+    Assumptions: original deterministic/LLM fields remain preserved for audit and
+    backward-compatible tests; renderers prefer the presentation payload.
+    """
+
+    report_data = model.to_dict()
+    section_by_id = {section.section_id: section for section in model.sections}
+    section_by_id["executive_summary"].content["presentation"] = {
+        "summary": localize_text(section_by_id["executive_summary"].content.get("summary", "")),
+        "key_findings": localize_items(section_by_id["executive_summary"].content.get("key_findings", [])),
+        "root_causes": localize_items(section_by_id["executive_summary"].content.get("root_causes", [])),
+    }
+    section_by_id["financial_health_overview"].content["presentation"] = {
+        "metric_cards": build_metric_cards(report_data),
+    }
+    section_by_id["kpi_overview"].content["presentation"] = {"rows": build_kpi_rows(report_data)}
+    section_by_id["revenue_analysis"].content["presentation"] = build_revenue_expense_summary(report_data)
+    section_by_id["expense_analysis"].content["presentation"] = build_revenue_expense_summary(report_data)
+    section_by_id["department_analysis"].content["presentation"] = {"rows": build_department_rows(report_data)}
+    section_by_id["anomaly_summary"].content["presentation"] = build_anomaly_summary(report_data)
+    section_by_id["investigation_evidence"].content["presentation"] = {
+        "rows": build_evidence_summary(report_data),
+    }
+    section_by_id["strategic_recommendations"].content["presentation"] = {
+        "recommendations": build_recommendation_cards(report_data),
+        "priorities": localize_items(
+            section_by_id["strategic_recommendations"].content.get("strategic_priorities", [])
+        ),
+        "reasoning_summary": localize_text(
+            section_by_id["strategic_recommendations"].content.get("reasoning_summary", "")
+        ),
+    }
+    section_by_id["missing_information"].content["presentation"] = {
+        "items": build_missing_information(report_data)
+    }
+    section_by_id["appendix"].content["presentation"] = {
+        "source_files": [
+            compact_source_label(source)
+            for source in section_by_id["appendix"].content.get("source_files", [])
+        ],
+        "methodology": [
+            "Cálculos, KPIs y anomalías fueron generados por Python a partir de salidas procesadas.",
+            "El análisis estratégico fue validado antes de generar este reporte.",
+            "Las fuentes completas permanecen en los artefactos JSON/CSV del pipeline.",
+        ],
+    }
 
 
 def build_report_model(inputs: ReportInputBundle) -> ReportModel:
@@ -485,7 +565,17 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
         sections=sections,
         source_references=_all_section_sources(sections),
     )
+    _add_presentation_payload(model)
     validate_report_model(model.to_dict())
+    presentation_result = validate_presentation_view(
+        build_presentation_view(model.to_dict(), mode="executive"),
+        mode="executive",
+    )
+    if not presentation_result.is_valid:
+        raise ValueError(
+            "Report presentation validation failed: "
+            + "; ".join(presentation_result.errors)
+        )
     return model
 
 

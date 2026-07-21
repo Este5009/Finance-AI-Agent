@@ -1,4 +1,4 @@
-"""HTML renderer for Finance AI Agent report models."""
+"""Professional HTML renderer for Finance AI Agent report models."""
 
 from __future__ import annotations
 
@@ -7,162 +7,436 @@ import json
 from pathlib import Path
 from typing import Any
 
-
-SECTION_LABELS_ES: dict[str, str] = {
-    "cover": "Portada",
-    "executive_summary": "Resumen ejecutivo",
-    "financial_health_overview": "Salud financiera",
-    "kpi_overview": "KPIs principales",
-    "revenue_analysis": "Ingresos",
-    "expense_analysis": "Gastos",
-    "department_analysis": "Análisis por departamento",
-    "anomaly_summary": "Anomalías detectadas",
-    "investigation_evidence": "Evidencia de investigación",
-    "strategic_recommendations": "Recomendaciones estratégicas",
-    "historical_summary": "Resumen histórico",
-    "historical_trends": "Tendencias históricas",
-    "recommendation_follow_up": "Seguimiento de recomendaciones",
-    "longitudinal_risk_assessment": "Evaluación longitudinal de riesgos",
-    "missing_information": "Información faltante",
-    "appendix": "Apéndice",
-}
+from finance_agent.reporting.presentation import (
+    SECTION_LABELS_ES,
+    build_presentation_view,
+    format_value,
+    get_section,
+    number_value,
+)
 
 
 def _escape(value: Any) -> str:
     """Escape a value for safe HTML output.
 
-    Inputs: any scalar value from the report model.
-    Outputs: escaped string.
-    Assumptions: renderers never mutate source data.
+    Inputs: any scalar value.
+    Outputs: HTML-escaped string.
+    Assumptions: report content is plain text, not trusted markup.
     """
 
     return html.escape("" if value is None else str(value))
 
 
-def _number(value: Any) -> float | None:
-    """Convert a model value to float when possible.
+def _table(headers: list[str], rows: list[list[Any]], *, empty: str = "Sin datos disponibles.") -> str:
+    """Render a responsive HTML table.
 
-    Inputs: scalar model value.
-    Outputs: float or None.
-    Assumptions: conversion is for display scale only, not recalculation.
+    Inputs: headers, rows, and empty-state text.
+    Outputs: HTML table markup.
+    Assumptions: values are display-ready and escaped here.
     """
 
-    try:
-        return float(str(value).replace(",", ""))
-    except (TypeError, ValueError):
-        return None
-
-
-def _format_value(value: Any, unit: str | None = None) -> str:
-    """Format common report values for Spanish-facing display.
-
-    Inputs: value and optional unit label.
-    Outputs: readable text.
-    Assumptions: formatting does not change underlying calculations.
-    """
-
-    number = _number(value)
-    if number is None:
-        return _escape(value)
-    if unit == "ratio" or (abs(number) <= 1 and unit is None):
-        return f"{number:.1%}"
-    if unit == "USD":
-        return f"${number:,.0f}"
-    return f"{number:,.2f}".rstrip("0").rstrip(".")
-
-
-def _section(report_model: dict[str, Any], section_id: str) -> dict[str, Any]:
-    """Find one report section by ID.
-
-    Inputs: report model and section ID.
-    Outputs: section dictionary or an empty placeholder section.
-    Assumptions: missing sections should render gracefully for robustness.
-    """
-
-    for section in report_model.get("sections", []):
-        if isinstance(section, dict) and section.get("section_id") == section_id:
-            return section
-    return {
-        "section_id": section_id,
-        "title": SECTION_LABELS_ES.get(section_id, section_id),
-        "content": {},
-        "source_references": [],
-        "warnings": [f"Sección faltante en el modelo: {section_id}"],
-    }
-
-
-def _html_table(headers: list[str], rows: list[list[Any]]) -> str:
-    """Render a simple HTML table.
-
-    Inputs: header labels and row values.
-    Outputs: HTML table string.
-    Assumptions: all values are escaped before insertion.
-    """
-
-    header_html = "".join(f"<th>{_escape(header)}</th>" for header in headers)
-    row_html = []
     if not rows:
-        rows = [["Sin datos disponibles"] + [""] * max(0, len(headers) - 1)]
-    for row in rows:
-        row_html.append(
-            "<tr>" + "".join(f"<td>{_escape(value)}</td>" for value in row) + "</tr>"
+        return f"<div class='status-card positive'>{_escape(empty)}</div>"
+    head = "".join(f"<th>{_escape(header)}</th>" for header in headers)
+    body = "".join(
+        "<tr>" + "".join(f"<td>{_escape(value)}</td>" for value in row) + "</tr>"
+        for row in rows
+    )
+    return f"<div class='table-wrap'><table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>"
+
+
+def _source_note(labels: list[str]) -> str:
+    """Render compact source labels without local paths.
+
+    Inputs: source filenames.
+    Outputs: HTML source note.
+    Assumptions: full source references remain in report model JSON.
+    """
+
+    if not labels:
+        return ""
+    return f"<p class='sources'>Fuentes: {_escape('; '.join(labels))}</p>"
+
+
+def _status_class(status: str) -> str:
+    """Map metric status to a CSS class.
+
+    Inputs: normalized card status.
+    Outputs: CSS class suffix.
+    Assumptions: color is paired with text labels for accessibility.
+    """
+
+    return {"good": "good", "risk": "risk"}.get(status, "neutral")
+
+
+def _bar_chart(items: list[dict[str, Any]], *, title: str) -> str:
+    """Render a real SVG horizontal bar chart.
+
+    Inputs: chart item dictionaries with label/value/unit.
+    Outputs: SVG chart markup.
+    Assumptions: bars visualize existing values only; no finance math occurs.
+    """
+
+    values = [abs(float(item.get("value") or 0.0)) for item in items]
+    if not items or not any(values):
+        return f"<div class='status-card'>{_escape(title)}: sin datos para graficar.</div>"
+    width = 720
+    row_height = 34
+    label_width = 180
+    chart_width = width - label_width - 150
+    height = 42 + row_height * len(items)
+    max_value = max(values) or 1.0
+    rows = [
+        f"<text x='0' y='20' class='chart-title'>{_escape(title)}</text>"
+    ]
+    for index, item in enumerate(items):
+        y = 42 + index * row_height
+        value = float(item.get("value") or 0.0)
+        bar_width = max(2.0, abs(value) / max_value * chart_width)
+        color = "#1f7a5b" if value >= 0 else "#b84242"
+        rows.append(f"<text x='0' y='{y + 14}' class='axis-label'>{_escape(item.get('label'))}</text>")
+        rows.append(f"<rect x='{label_width}' y='{y}' width='{bar_width:.1f}' height='18' rx='5' fill='{color}' />")
+        rows.append(
+            f"<text x='{label_width + chart_width + 12}' y='{y + 14}' class='value-label'>"
+            f"{_escape(format_value(value, item.get('unit')))}</text>"
         )
-    return f"<table><thead><tr>{header_html}</tr></thead><tbody>{''.join(row_html)}</tbody></table>"
+    return f"<svg class='svg-chart' viewBox='0 0 {width} {height}' role='img' aria-label='{_escape(title)}'>{''.join(rows)}</svg>"
 
 
-def _source_note(section: dict[str, Any]) -> str:
-    """Render compact source references for a section.
+def _line_chart(series: dict[str, Any]) -> str:
+    """Render a compact SVG line chart for one historical KPI.
 
-    Inputs: one report section dictionary.
-    Outputs: HTML source note or empty string.
-    Assumptions: source references come from processed pipeline artifacts only.
+    Inputs: one trend series from presentation view.
+    Outputs: SVG line chart markup.
+    Assumptions: trend points are already sorted by historical retrieval.
     """
 
-    sources = section.get("source_references", [])
-    if not sources:
+    points = series.get("points", [])
+    if not points:
         return ""
-    visible = "; ".join(str(source) for source in sources[:6])
-    return f"<p class='sources'>Fuentes: {_escape(visible)}</p>"
+    values = [float(point.get("value") or 0.0) for point in points]
+    width = 420
+    height = 180
+    pad = 34
+    min_value = min(values)
+    max_value = max(values)
+    span = max(max_value - min_value, 1e-9)
+    coords = []
+    for index, point in enumerate(points):
+        x = pad + (width - pad * 2) * (index / max(1, len(points) - 1))
+        y = height - pad - ((float(point.get("value") or 0.0) - min_value) / span) * (height - pad * 2)
+        coords.append((x, y, point))
+    polyline = " ".join(f"{x:.1f},{y:.1f}" for x, y, _ in coords)
+    dots = "".join(
+        f"<circle cx='{x:.1f}' cy='{y:.1f}' r='3.5'><title>{_escape(point.get('period'))}: {_escape(point.get('display'))}</title></circle>"
+        for x, y, point in coords
+    )
+    return (
+        "<div class='trend-card'>"
+        f"<h4>{_escape(series.get('metric'))}</h4>"
+        f"<svg viewBox='0 0 {width} {height}' class='line-chart'>"
+        f"<polyline points='{polyline}' />{dots}</svg>"
+        f"<p class='muted'>Dirección: {_escape(series.get('direction'))}</p>"
+        "</div>"
+    )
 
 
-def _warning_note(section: dict[str, Any]) -> str:
-    """Render section warnings when strategy or source data is incomplete.
+def _render_cover(view: dict[str, Any]) -> str:
+    """Render the executive cover.
 
-    Inputs: one report section dictionary.
-    Outputs: HTML warning note or empty string.
-    Assumptions: warnings are produced by upstream validators, not renderers.
+    Inputs: presentation view.
+    Outputs: cover section HTML.
+    Assumptions: organization can be replaced by future configuration.
     """
 
-    warnings = section.get("warnings", [])
-    if not warnings:
+    return (
+        "<section class='cover' id='cover'>"
+        "<div class='cover-mark'>Finance AI Agent</div>"
+        f"<h1>{_escape(view['title'])}</h1>"
+        f"<p class='period'>Periodo: {_escape(view.get('period'))}</p>"
+        f"<p>{_escape(view.get('organization'))}</p>"
+        "<p class='cover-note'>Síntesis ejecutiva generada desde salidas procesadas, validadas y trazables.</p>"
+        "</section>"
+    )
+
+
+def _render_summary(view: dict[str, Any]) -> str:
+    """Render executive summary, findings, and root causes.
+
+    Inputs: presentation view.
+    Outputs: HTML section.
+    Assumptions: text was localized by the presentation layer.
+    """
+
+    summary = view["executive_summary"]
+    findings = "".join(f"<li>{_escape(item)}</li>" for item in summary["key_findings"])
+    roots = "".join(f"<li>{_escape(item)}</li>" for item in summary["root_causes"])
+    return (
+        "<section id='executive_summary'>"
+        f"<h2>{SECTION_LABELS_ES['executive_summary']}</h2>"
+        f"<p class='lead'>{_escape(summary['summary'])}</p>"
+        "<div class='two-col'>"
+        f"<div><h3>Hallazgos clave</h3><ul>{findings or '<li>Sin hallazgos materiales.</li>'}</ul></div>"
+        f"<div><h3>Causas raíz probables</h3><ul>{roots or '<li>Sin causas raíz materiales.</li>'}</ul></div>"
+        "</div>"
+        f"<p class='confidence'>Confianza del análisis: {_escape(summary['confidence'])}</p>"
+        "</section>"
+    )
+
+
+def _render_health(view: dict[str, Any]) -> str:
+    """Render financial health dashboard.
+
+    Inputs: presentation view.
+    Outputs: HTML section with KPI cards and chart.
+    Assumptions: card values come from finance summary outputs.
+    """
+
+    cards = "".join(
+        "<article class='kpi-card {klass}'>"
+        f"<span>{_escape(card['label'])}</span>"
+        f"<strong>{_escape(card['value'])}</strong>"
+        f"<small>{_escape(card['description'])}</small>"
+        "</article>".format(klass=_status_class(card.get("status", "neutral")))
+        for card in view["financial_health"]["cards"]
+    )
+    chart_items = [
+        {"label": card["label"], "value": card["numeric_value"] or 0.0, "unit": card["unit"]}
+        for card in view["financial_health"]["cards"]
+        if card["id"] in {"total_revenue", "total_expenses", "net_operating_result", "net_cash_flow"}
+    ]
+    return (
+        "<section id='financial_health_overview'>"
+        f"<h2>{SECTION_LABELS_ES['financial_health_overview']}</h2>"
+        f"<div class='kpi-grid'>{cards}</div>"
+        + _bar_chart(chart_items, title="Resumen financiero principal")
+        + _source_note(view["financial_health"]["sources"])
+        + "</section>"
+    )
+
+
+def _render_kpis(view: dict[str, Any]) -> str:
+    """Render KPI and goal compliance section.
+
+    Inputs: presentation view.
+    Outputs: HTML KPI table.
+    Assumptions: no KPI calculations are performed here.
+    """
+
+    rows = [
+        [item["indicator"], item["value"], item["status"], item["description"]]
+        for item in view["kpis"]
+    ]
+    return (
+        "<section id='kpi_overview'>"
+        f"<h2>{SECTION_LABELS_ES['kpi_overview']}</h2>"
+        + _table(["Indicador", "Valor", "Estado", "Descripción"], rows)
+        + "</section>"
+    )
+
+
+def _render_historical(view: dict[str, Any]) -> str:
+    """Render historical trends and longitudinal sections.
+
+    Inputs: presentation view.
+    Outputs: HTML sections or empty string.
+    Assumptions: empty history is omitted gracefully.
+    """
+
+    historical = view["historical"]
+    if not historical.get("available"):
         return ""
-    items = "".join(f"<li>{_escape(warning)}</li>" for warning in warnings[:6])
-    return f"<div class='warning'><strong>Advertencia:</strong><ul>{items}</ul></div>"
+    narrative = "".join(f"<li>{_escape(item)}</li>" for item in historical.get("narrative", []))
+    charts = "".join(_line_chart(series) for series in historical.get("trends", []))
+    risks = [
+        [row["risk"], row["department"], row["occurrences"], row["periods"]]
+        for row in historical.get("recurring_risks", [])
+    ]
+    follow = [
+        [row["recommendation"], row["issued_period"], row["current_evidence"], row["status"]]
+        for row in historical.get("recommendation_follow_up", [])
+    ]
+    conclusions = "".join(f"<li>{_escape(item)}</li>" for item in historical.get("longitudinal_conclusions", []))
+    return (
+        "<section id='historical_trends'><span id='historical_summary'></span>"
+        f"<h2>{SECTION_LABELS_ES['historical_trends']}</h2>"
+        f"<ul>{narrative}</ul><div class='trend-grid'>{charts}</div>"
+        "</section>"
+        "<section id='recommendation_follow_up'>"
+        f"<h2>{SECTION_LABELS_ES['recommendation_follow_up']}</h2>"
+        + _table(["Recomendación", "Periodo", "Evidencia actual", "Estado inferido"], follow)
+        + "</section>"
+        "<section id='longitudinal_risk_assessment'>"
+        f"<h2>Evaluación longitudinal de riesgos</h2>"
+        + _table(["Riesgo", "Departamento", "Ocurrencias", "Periodos"], risks)
+        + f"<ul>{conclusions}</ul>"
+        + "</section>"
+    )
+
+
+def _render_revenue_expense(view: dict[str, Any]) -> str:
+    """Render revenue and expense comparison.
+
+    Inputs: presentation view.
+    Outputs: HTML section.
+    Assumptions: values are from processed summaries.
+    """
+
+    data = view["revenue_expense"]
+    rows = [[row["metric"], row["value"], row["description"]] for row in data["rows"]]
+    return (
+        "<section id='revenue_expense_analysis'><span id='revenue_analysis'></span><span id='expense_analysis'></span>"
+        f"<h2>{SECTION_LABELS_ES['revenue_expense_analysis']}</h2>"
+        + _bar_chart(data["chart"], title="Ingresos, gastos y resultado")
+        + _bar_chart(data["budget_chart"], title="Comparación contra presupuesto")
+        + _table(["Métrica", "Valor", "Descripción"], rows)
+        + "</section>"
+    )
+
+
+def _render_departments(view: dict[str, Any]) -> str:
+    """Render department analysis.
+
+    Inputs: presentation view.
+    Outputs: HTML section.
+    Assumptions: department rows are pre-aggregated upstream.
+    """
+
+    rows = [
+        [item["department"], item["revenue"], item["expenses"], item["result"], item["variance"]]
+        for item in view["departments"]
+    ]
+    chart = [
+        {"label": item["department"], "value": item["numeric_result"], "unit": "USD"}
+        for item in view["departments"]
+    ]
+    return (
+        "<section id='department_analysis'>"
+        f"<h2>{SECTION_LABELS_ES['department_analysis']}</h2>"
+        + _bar_chart(chart, title="Resultado operativo por departamento")
+        + _table(["Departamento", "Ingresos", "Gastos", "Resultado", "Var. gasto"], rows)
+        + "</section>"
+    )
+
+
+def _render_anomalies(view: dict[str, Any]) -> str:
+    """Render anomalies with positive empty state.
+
+    Inputs: presentation view.
+    Outputs: HTML anomaly section.
+    Assumptions: no anomaly logic is executed here.
+    """
+
+    anomalies = view["anomalies"]
+    severity_rows = [[row["severity"], row["count"]] for row in anomalies["severity_rows"]]
+    top_rows = [[row["title"], row["severity"], row["evidence"]] for row in anomalies["top_rows"]]
+    positive = anomalies.get("positive_status")
+    if positive:
+        return (
+            "<section id='anomaly_summary'>"
+            f"<h2>{SECTION_LABELS_ES['anomaly_summary']}</h2>"
+            f"<div class='status-card positive'>{_escape(positive)}</div>"
+            "</section>"
+        )
+    return (
+        "<section id='anomaly_summary'>"
+        f"<h2>{SECTION_LABELS_ES['anomaly_summary']}</h2>"
+        + _table(["Severidad", "Cantidad"], severity_rows)
+        + _table(["Anomalía", "Severidad", "Evidencia"], top_rows)
+        + "</section>"
+    )
+
+
+def _render_evidence(view: dict[str, Any]) -> str:
+    """Render concise investigation evidence for executive readers.
+
+    Inputs: presentation view.
+    Outputs: HTML evidence section.
+    Assumptions: internal task IDs and tool names are intentionally hidden.
+    """
+
+    rows = [
+        [item["priority"], item["evidence"], item["records"], item["summary"]]
+        for item in view["evidence"]
+    ]
+    return (
+        "<section id='investigation_evidence'>"
+        f"<h2>{SECTION_LABELS_ES['investigation_evidence']}</h2>"
+        + _table(["Prioridad", "Evidencia", "Registros", "Resumen"], rows)
+        + "</section>"
+    )
+
+
+def _render_recommendations(view: dict[str, Any]) -> str:
+    """Render strategic priorities and recommendation cards.
+
+    Inputs: presentation view.
+    Outputs: HTML recommendation section.
+    Assumptions: recommendations were validated upstream.
+    """
+
+    recs = view["recommendations"]
+    priorities = "".join(f"<li>{_escape(item)}</li>" for item in recs["priorities"])
+    cards = "".join(
+        "<article class='recommendation-card'>"
+        f"<div class='badge'>{_escape(card['priority'])}</div>"
+        f"<h3>{_escape(card['action'])}</h3>"
+        f"<p><strong>Racional:</strong> {_escape(card['rationale'])}</p>"
+        f"<p><strong>Impacto esperado:</strong> {_escape(card['expected_impact'])}</p>"
+        f"<p><strong>Responsable/estado:</strong> {_escape(card['owner_status'])}</p>"
+        "</article>"
+        for card in recs["cards"]
+    )
+    return (
+        "<section id='strategic_recommendations'>"
+        f"<h2>{SECTION_LABELS_ES['strategic_recommendations']}</h2>"
+        f"<h3>Prioridades</h3><ul>{priorities}</ul>"
+        f"<div class='recommendation-grid'>{cards}</div>"
+        f"<p class='muted'>{_escape(recs['reasoning_summary'])}</p>"
+        "</section>"
+    )
+
+
+def _render_missing_and_appendix(view: dict[str, Any]) -> str:
+    """Render missing information and appendix methodology.
+
+    Inputs: presentation view.
+    Outputs: HTML sections.
+    Assumptions: appendix source labels are filenames, not local paths.
+    """
+
+    missing = "".join(f"<li>{_escape(item)}</li>" for item in view["missing_information"])
+    appendix = view["appendix"]
+    methodology = "".join(f"<li>{_escape(item)}</li>" for item in appendix["methodology"])
+    sources = "".join(f"<li>{_escape(item)}</li>" for item in appendix["sources"])
+    return (
+        "<section id='missing_information'>"
+        f"<h2>{SECTION_LABELS_ES['missing_information']}</h2>"
+        f"<ul>{missing}</ul>"
+        "</section>"
+        "<section id='appendix'>"
+        f"<h2>{SECTION_LABELS_ES['appendix']}</h2>"
+        f"<h3>Metodología</h3><ul>{methodology}</ul>"
+        f"<h3>Fuentes:</h3><ul>{sources}</ul>"
+        "</section>"
+    )
 
 
 def report_strategy_warnings(report_model: dict[str, Any]) -> list[str]:
     """Identify whether a report model lacks accepted strategic analysis.
 
     Inputs: renderer-agnostic report model dictionary.
-    Outputs: warning strings; empty when strategic analysis is ready for final rendering.
-    Assumptions: Step 9 marks accepted analysis with analysis_status='accepted'.
+    Outputs: warning strings; empty when final strategy is present.
+    Assumptions: Step 9 writes analysis_status='accepted' into executive content.
     """
 
-    executive = _section(report_model, "executive_summary")
-    recommendations = _section(report_model, "strategic_recommendations")
-    executive_content = executive.get("content", {})
-    recommendation_content = recommendations.get("content", {})
+    executive = get_section(report_model, "executive_summary").get("content", {})
+    recommendations = get_section(report_model, "strategic_recommendations").get("content", {})
     warnings: list[str] = []
-    if executive_content.get("analysis_status") != "accepted":
-        warnings.append(
-            "Strategic analysis is unavailable or not accepted for "
-            f"{report_model.get('report_id', 'report')}."
-        )
-    recs = recommendation_content.get("recommendations", [])
-    if not isinstance(recs, list) or not recs:
-        warnings.append(
-            "No accepted strategic recommendations are present in the report model."
-        )
+    if executive.get("analysis_status") != "accepted":
+        warnings.append(f"Strategic analysis is unavailable or not accepted for {report_model.get('report_id', 'report')}.")
+    if not recommendations.get("recommendations"):
+        warnings.append("No accepted strategic recommendations are present in the report model.")
     return warnings
 
 
@@ -171,7 +445,7 @@ def validate_strategy_available(report_model: dict[str, Any]) -> None:
 
     Inputs: renderer-agnostic report model dictionary.
     Outputs: None; raises ValueError on missing strategy.
-    Assumptions: callers may explicitly bypass this guard for draft reports.
+    Assumptions: draft rendering must be explicitly allowed by the caller.
     """
 
     warnings = report_strategy_warnings(report_model)
@@ -179,466 +453,85 @@ def validate_strategy_available(report_model: dict[str, Any]) -> None:
         raise ValueError("; ".join(warnings))
 
 
-def _bar_chart(items: list[tuple[str, float]], *, title: str) -> str:
-    """Render a lightweight CSS bar chart.
-
-    Inputs: label/value pairs and chart title.
-    Outputs: HTML chart markup.
-    Assumptions: values are already calculated upstream.
-    """
-
-    if not items:
-        return "<p class='muted'>Sin datos disponibles para el gráfico.</p>"
-    max_value = max(abs(value) for _, value in items) or 1.0
-    bars = []
-    for label, value in items:
-        width = max(4.0, abs(value) / max_value * 100)
-        css_class = "negative" if value < 0 else "positive"
-        bars.append(
-            "<div class='bar-row'>"
-            f"<span class='bar-label'>{_escape(label)}</span>"
-            "<div class='bar-track'>"
-            f"<div class='bar {css_class}' style='width:{width:.1f}%'></div>"
-            "</div>"
-            f"<span class='bar-value'>{_escape(_format_value(value, 'USD'))}</span>"
-            "</div>"
-        )
-    return f"<div class='chart'><h4>{_escape(title)}</h4>{''.join(bars)}</div>"
-
-
-def _render_cover(report_model: dict[str, Any]) -> str:
-    """Render the cover section.
-
-    Inputs: report model.
-    Outputs: HTML section.
-    Assumptions: cover metadata comes from the report model.
-    """
-
-    cover = _section(report_model, "cover")
-    content = cover.get("content", {})
-    return (
-        "<section class='cover' id='cover'>"
-        "<div class='eyebrow'>Finance AI Agent</div>"
-        f"<h1>{_escape(content.get('title', 'Reporte financiero'))}</h1>"
-        f"<h2>{_escape(report_model.get('report_period'))}</h2>"
-        "<p>Reporte estructurado generado a partir de salidas procesadas del pipeline.</p>"
-        "</section>"
-    )
-
-
-def _render_executive_summary(report_model: dict[str, Any]) -> str:
-    """Render executive summary content.
-
-    Inputs: report model.
-    Outputs: HTML section.
-    Assumptions: summary may be unavailable when Ollama was unavailable.
-    """
-
-    section = _section(report_model, "executive_summary")
-    content = section.get("content", {})
-    findings = content.get("key_findings") or []
-    findings_html = "".join(f"<li>{_escape(item)}</li>" for item in findings)
-    if not findings_html:
-        findings_html = "<li>No hay hallazgos estratégicos generados por LLM.</li>"
-    root_causes = content.get("root_causes") or []
-    root_html = "".join(f"<li>{_escape(item)}</li>" for item in root_causes)
-    if not root_html:
-        root_html = "<li>Sin causas raíz estratégicas disponibles.</li>"
-    return (
-        "<section id='executive_summary'>"
-        f"<h2>{SECTION_LABELS_ES['executive_summary']}</h2>"
-        f"{_warning_note(section)}"
-        f"<p>{_escape(content.get('summary', 'Sin resumen disponible.'))}</p>"
-        "<h3>Hallazgos clave</h3>"
-        f"<ul>{findings_html}</ul>"
-        "<h3>Causas raíz probables</h3>"
-        f"<ul>{root_html}</ul>"
-        f"<p class='muted'>Confianza: {_escape(content.get('confidence', 'N/D'))}</p>"
-        f"{_source_note(section)}"
-        "</section>"
-    )
-
-
-def _render_financial_health(report_model: dict[str, Any]) -> str:
-    """Render financial health overview cards and comparison chart.
-
-    Inputs: report model.
-    Outputs: HTML section.
-    Assumptions: all metrics were calculated upstream.
-    """
-
-    section = _section(report_model, "financial_health_overview")
-    content = section.get("content", {})
-    metrics = [
-        ("Ingresos totales", content.get("total_revenue"), "USD"),
-        ("Gastos totales", content.get("total_expenses"), "USD"),
-        ("Resultado operativo", content.get("net_operating_result"), "USD"),
-        ("Flujo neto de caja", content.get("net_cash_flow"), "USD"),
-        ("Caja final", content.get("ending_cash"), "USD"),
-        ("Cobranza", content.get("collection_rate"), "ratio"),
-    ]
-    cards = "".join(
-        "<div class='metric-card'>"
-        f"<span>{_escape(label)}</span><strong>{_escape(_format_value(value, unit))}</strong>"
-        "</div>"
-        for label, value, unit in metrics
-    )
-    chart = _bar_chart(
-        [
-            ("Ingresos", _number(content.get("total_revenue")) or 0.0),
-            ("Gastos", _number(content.get("total_expenses")) or 0.0),
-            ("Resultado", _number(content.get("net_operating_result")) or 0.0),
-        ],
-        title="Comparación ingresos/gastos",
-    )
-    return (
-        "<section id='financial_health_overview'>"
-        f"<h2>{SECTION_LABELS_ES['financial_health_overview']}</h2>"
-        f"<div class='metric-grid'>{cards}</div>{chart}{_source_note(section)}</section>"
-    )
-
-
-def _render_kpis(report_model: dict[str, Any]) -> str:
-    """Render KPI table.
-
-    Inputs: report model.
-    Outputs: HTML section.
-    Assumptions: KPI values are copied from processed CSV outputs.
-    """
-
-    section = _section(report_model, "kpi_overview")
-    kpis = section.get("content", {}).get("kpis", [])
-    rows = [
-        [
-            item.get("metric"),
-            _format_value(item.get("value"), item.get("unit")),
-            item.get("unit"),
-            item.get("availability"),
-            item.get("source"),
-        ]
-        for item in kpis
-        if isinstance(item, dict)
-    ]
-    return (
-        "<section id='kpi_overview'>"
-        f"<h2>{SECTION_LABELS_ES['kpi_overview']}</h2>"
-        + _html_table(["Indicador", "Valor", "Unidad", "Estado", "Fuente"], rows)
-        + _source_note(section)
-        + "</section>"
-    )
-
-
-def _render_revenue_expense(report_model: dict[str, Any], section_id: str) -> str:
-    """Render revenue or expense analysis section.
-
-    Inputs: report model and section ID.
-    Outputs: HTML section.
-    Assumptions: section content shape follows Step 10A report model.
-    """
-
-    section = _section(report_model, section_id)
-    content = section.get("content", {})
-    rows = []
-    for key, value in content.items():
-        if key.endswith("summary"):
-            continue
-        rows.append([key, _format_value(value, "USD" if "pct" not in key else "ratio")])
-    chart_items = []
-    if section_id == "revenue_analysis":
-        chart_items = [
-            ("Presupuesto", _number(content.get("revenue_budget")) or 0.0),
-            ("Actual", _number(content.get("total_revenue")) or 0.0),
-            ("Variación", _number(content.get("revenue_variance")) or 0.0),
-        ]
-    else:
-        chart_items = [
-            ("Presupuesto", _number(content.get("expense_budget")) or 0.0),
-            ("Actual", _number(content.get("total_expenses")) or 0.0),
-            ("Variación", _number(content.get("expense_variance")) or 0.0),
-        ]
-    return (
-        f"<section id='{section_id}'>"
-        f"<h2>{SECTION_LABELS_ES[section_id]}</h2>"
-        + _html_table(["Métrica", "Valor"], rows)
-        + _bar_chart(chart_items, title=SECTION_LABELS_ES[section_id])
-        + _source_note(section)
-        + "</section>"
-    )
-
-
-def _render_departments(report_model: dict[str, Any]) -> str:
-    """Render department summary table and chart.
-
-    Inputs: report model.
-    Outputs: HTML section.
-    Assumptions: department rows come from processed finance summary.
-    """
-
-    section = _section(report_model, "department_analysis")
-    rows_data = section.get("content", {}).get("department_summary", [])
-    rows = [
-        [
-            item.get("department"),
-            _format_value(item.get("actual_revenue"), "USD"),
-            _format_value(item.get("actual_expenses"), "USD"),
-            _format_value(item.get("net_operating_result"), "USD"),
-            _format_value(item.get("expense_variance_pct"), "ratio"),
-        ]
-        for item in rows_data
-        if isinstance(item, dict)
-    ]
-    chart_items = [
-        (str(item.get("department")), _number(item.get("net_operating_result")) or 0.0)
-        for item in rows_data
-        if isinstance(item, dict)
-    ]
-    return (
-        "<section id='department_analysis'>"
-        f"<h2>{SECTION_LABELS_ES['department_analysis']}</h2>"
-        + _html_table(["Departamento", "Ingresos", "Gastos", "Resultado", "Var. gastos"], rows)
-        + _bar_chart(chart_items, title="Resultado por departamento")
-        + _source_note(section)
-        + "</section>"
-    )
-
-
-def _render_anomalies(report_model: dict[str, Any]) -> str:
-    """Render anomaly severity summary and top anomaly table.
-
-    Inputs: report model.
-    Outputs: HTML section.
-    Assumptions: anomalies are copied from deterministic anomaly outputs.
-    """
-
-    section = _section(report_model, "anomaly_summary")
-    content = section.get("content", {})
-    severity = content.get("anomalies_by_severity", {})
-    severity = severity if isinstance(severity, dict) else {}
-    severity_rows = [[key, value] for key, value in severity.items()]
-    top_rows = [
-        [item.get("anomaly_id"), item.get("title"), item.get("severity"), item.get("evidence")]
-        for item in content.get("top_anomalies", [])
-        if isinstance(item, dict)
-    ]
-    return (
-        "<section id='anomaly_summary'>"
-        f"<h2>{SECTION_LABELS_ES['anomaly_summary']}</h2>"
-        + _html_table(["Severidad", "Cantidad"], severity_rows)
-        + _html_table(["ID", "Título", "Severidad", "Evidencia"], top_rows)
-        + _source_note(section)
-        + "</section>"
-    )
-
-
-def _render_evidence(report_model: dict[str, Any]) -> str:
-    """Render investigation evidence summary.
-
-    Inputs: report model.
-    Outputs: HTML section.
-    Assumptions: evidence details remain bounded in the report model.
-    """
-
-    section = _section(report_model, "investigation_evidence")
-    items = section.get("content", {}).get("evidence_items", [])
-    rows = [
-        [
-            item.get("task_id"),
-            item.get("priority"),
-            item.get("retrieval_name"),
-            item.get("record_count"),
-            item.get("evidence_summary"),
-        ]
-        for item in items
-        if isinstance(item, dict)
-    ]
-    return (
-        "<section id='investigation_evidence'>"
-        f"<h2>{SECTION_LABELS_ES['investigation_evidence']}</h2>"
-        + _html_table(["Tarea", "Prioridad", "Evidencia", "Registros", "Resumen"], rows)
-        + _source_note(section)
-        + "</section>"
-    )
-
-
-def _render_recommendations(report_model: dict[str, Any]) -> str:
-    """Render strategic recommendations.
-
-    Inputs: report model.
-    Outputs: HTML section.
-    Assumptions: recommendations may be empty if strategic analysis was unavailable.
-    """
-
-    section = _section(report_model, "strategic_recommendations")
-    content = section.get("content", {})
-    recommendations = content.get("recommendations", [])
-    root_causes = content.get("root_causes", [])
-    priorities = content.get("strategic_priorities", [])
-    rows = []
-    for item in recommendations:
-        if isinstance(item, dict):
-            rows.append([
-                item.get("priority", ""),
-                item.get("action", item.get("recommendation", "")),
-                item.get("rationale", ""),
-                item.get("expected_impact", ""),
-            ])
-        else:
-            rows.append(["", item, "", ""])
-    if not rows:
-        rows = [["", "No hay recomendaciones estratégicas generadas.", "", ""]]
-    priority_rows = [[item] for item in priorities if isinstance(item, str)]
-    root_rows = [[item] for item in root_causes if isinstance(item, str)]
-    return (
-        "<section id='strategic_recommendations'>"
-        f"<h2>{SECTION_LABELS_ES['strategic_recommendations']}</h2>"
-        f"{_warning_note(section)}"
-        "<h3>Prioridades estratégicas</h3>"
-        + _html_table(["Prioridad"], priority_rows)
-        + "<h3>Causas raíz</h3>"
-        + _html_table(["Causa probable"], root_rows)
-        + "<h3>Acciones recomendadas</h3>"
-        + _html_table(["Prioridad", "Acción", "Razonamiento", "Impacto esperado"], rows)
-        + f"<p>{_escape(content.get('reasoning_summary', ''))}</p>"
-        + _source_note(section)
-        + "</section>"
-    )
-
-
-def _render_missing_and_appendix(report_model: dict[str, Any], section_id: str) -> str:
-    """Render missing information or appendix sections.
-
-    Inputs: report model and section ID.
-    Outputs: HTML section.
-    Assumptions: generic key/value rendering is acceptable for appendix content.
-    """
-
-    section = _section(report_model, section_id)
-    content = section.get("content", {})
-    rows = []
-    for key, value in content.items():
-        if isinstance(value, list):
-            rendered = "; ".join(str(item) for item in value[:20])
-        else:
-            rendered = str(value)
-        rows.append([key, rendered])
-    if not rows:
-        rows = [["Estado", "Sin información adicional."]]
-    return (
-        f"<section id='{section_id}'>"
-        f"<h2>{SECTION_LABELS_ES[section_id]}</h2>"
-        + _html_table(["Campo", "Detalle"], rows)
-        + _source_note(section)
-        + "</section>"
-    )
-
-
-def _render_optional_historical(report_model: dict[str, Any]) -> list[str]:
-    """Render optional historical sections when present.
-
-    Inputs: report model.
-    Outputs: list of HTML section strings.
-    Assumptions: historical sections contain compact summaries, not full reports.
-    """
-
-    rendered: list[str] = []
-    available_ids = {
-        section.get("section_id")
-        for section in report_model.get("sections", [])
-        if isinstance(section, dict)
-    }
-    for section_id in (
-        "historical_summary",
-        "historical_trends",
-        "recommendation_follow_up",
-        "longitudinal_risk_assessment",
-    ):
-        if section_id not in available_ids:
-            continue
-        section = _section(report_model, section_id)
-        content = section.get("content", {})
-        rows = [
-            [key, json.dumps(value, ensure_ascii=False)[:1200]]
-            for key, value in content.items()
-        ]
-        rendered.append(
-            f"<section id='{section_id}'>"
-            f"<h2>{SECTION_LABELS_ES[section_id]}</h2>"
-            + _html_table(["Campo", "Resumen"], rows)
-            + _source_note(section)
-            + "</section>"
-        )
-    return rendered
-
-
 def _styles() -> str:
-    """Return embedded CSS for the HTML report.
+    """Return embedded CSS for a responsive printable executive report.
 
     Inputs: none.
     Outputs: CSS string.
-    Assumptions: HTML is self-contained for easy local viewing.
+    Assumptions: the HTML report is self-contained for downloads.
     """
 
     return """
-    body { font-family: Arial, Helvetica, sans-serif; margin: 0; color: #172033; background: #f5f7fb; }
-    main { max-width: 1120px; margin: 0 auto; padding: 32px; }
-    section { background: #fff; margin: 22px 0; padding: 28px; border-radius: 14px; box-shadow: 0 2px 10px rgba(23,32,51,0.08); }
-    .cover { background: linear-gradient(135deg, #17324d, #245b89); color: white; padding: 56px 36px; }
-    .eyebrow { text-transform: uppercase; letter-spacing: 0.14em; opacity: 0.8; font-size: 13px; }
-    h1 { margin: 12px 0; font-size: 40px; }
-    h2 { margin-top: 0; color: #17324d; }
-    .cover h2 { color: white; }
-    .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin: 18px 0; }
-    .metric-card { border: 1px solid #dbe4ee; padding: 14px; border-radius: 10px; background: #fbfdff; }
-    .metric-card span { display: block; color: #5f6b7a; font-size: 13px; }
-    .metric-card strong { display: block; margin-top: 6px; font-size: 20px; }
-    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
-    th { background: #eef4fb; text-align: left; color: #17324d; }
-    th, td { border: 1px solid #d8e1ea; padding: 8px; vertical-align: top; }
-    tr:nth-child(even) td { background: #fbfdff; }
-    .chart { margin: 20px 0; }
-    .bar-row { display: grid; grid-template-columns: 150px 1fr 120px; gap: 10px; align-items: center; margin: 8px 0; }
-    .bar-track { background: #e8eef5; height: 14px; border-radius: 999px; overflow: hidden; }
-    .bar { height: 14px; border-radius: 999px; }
-    .positive { background: #1f8a70; }
-    .negative { background: #c94c4c; }
-    .bar-value { text-align: right; font-variant-numeric: tabular-nums; }
-    .muted { color: #667085; }
-    .sources { color: #667085; font-size: 12px; margin-top: 12px; }
-    .warning { background: #fff7e6; border: 1px solid #ffd591; color: #5f3b00; padding: 10px 12px; border-radius: 8px; margin: 12px 0; }
-    .warning ul { margin: 6px 0 0 18px; padding: 0; }
-    footer { color: #667085; text-align: center; padding: 24px; font-size: 12px; }
+    :root { --navy:#17324d; --blue:#245b89; --green:#1f7a5b; --red:#b84242; --amber:#b7791f; --ink:#172033; --muted:#647084; --line:#d8e1ea; --bg:#f4f7fb; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Inter, Arial, Helvetica, sans-serif; color:var(--ink); background:var(--bg); line-height:1.45; }
+    main { max-width: 1180px; margin:0 auto; padding:32px; }
+    section { background:#fff; margin:22px 0; padding:30px; border-radius:18px; box-shadow:0 8px 28px rgba(23,50,77,.08); break-inside: avoid; }
+    .cover { min-height: 360px; display:flex; flex-direction:column; justify-content:center; color:#fff; background:linear-gradient(135deg,var(--navy),var(--blue)); }
+    .cover-mark { letter-spacing:.16em; text-transform:uppercase; font-size:13px; opacity:.82; }
+    h1 { margin:.35em 0; font-size:44px; line-height:1.05; }
+    h2 { margin:0 0 18px; color:var(--navy); font-size:25px; border-left:6px solid var(--blue); padding-left:12px; }
+    h3 { color:var(--navy); margin-bottom:8px; }
+    .cover h1, .cover h2 { color:#fff; border:0; padding:0; }
+    .period { font-size:22px; font-weight:700; }
+    .cover-note, .lead { font-size:18px; max-width:850px; }
+    .two-col { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; }
+    .kpi-card { border:1px solid var(--line); border-radius:14px; padding:16px; min-height:128px; background:#fbfdff; }
+    .kpi-card span { display:block; color:var(--muted); font-size:13px; }
+    .kpi-card strong { display:block; font-size:24px; margin:6px 0; }
+    .kpi-card.good { border-top:5px solid var(--green); }
+    .kpi-card.risk { border-top:5px solid var(--red); }
+    .kpi-card.neutral { border-top:5px solid var(--blue); }
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; }
+    th { background:#eef4fb; color:var(--navy); text-align:left; }
+    th, td { border:1px solid var(--line); padding:9px; vertical-align:top; }
+    tr:nth-child(even) td { background:#fbfdff; }
+    .svg-chart, .line-chart { width:100%; height:auto; margin:14px 0; background:#fbfdff; border:1px solid var(--line); border-radius:12px; padding:10px; }
+    .chart-title { font-weight:700; fill:var(--navy); font-size:16px; }
+    .axis-label, .value-label { fill:#263244; font-size:12px; }
+    .line-chart polyline { fill:none; stroke:var(--blue); stroke-width:3; }
+    .line-chart circle { fill:var(--green); stroke:#fff; stroke-width:1; }
+    .trend-grid, .recommendation-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+    .trend-card, .recommendation-card, .status-card { border:1px solid var(--line); border-radius:14px; padding:16px; background:#fbfdff; }
+    .status-card.positive { border-left:5px solid var(--green); }
+    .badge { display:inline-block; padding:4px 10px; border-radius:999px; background:#e9f2fb; color:var(--navy); font-weight:700; font-size:12px; }
+    .muted, .sources, .confidence { color:var(--muted); font-size:12px; }
+    footer { text-align:center; color:var(--muted); font-size:12px; padding:26px; }
+    @media (max-width:760px) { main { padding:14px; } .two-col { grid-template-columns:1fr; } h1 { font-size:34px; } section { padding:20px; } }
+    @media print { body { background:#fff; } main { padding:0; } section { box-shadow:none; border-radius:0; page-break-inside:avoid; } .cover { page-break-after:always; } }
     """
 
 
-def render_report_html(report_model: dict[str, Any]) -> str:
+def render_report_html(report_model: dict[str, Any], *, mode: str = "executive") -> str:
     """Render a report model to a complete Spanish HTML document.
 
-    Inputs: renderer-agnostic report model dictionary.
+    Inputs: renderer-agnostic report model dictionary and rendering mode.
     Outputs: complete HTML string.
-    Assumptions: section IDs use the Step 10A report contract.
+    Assumptions: presentation transformation handles localization and sanitizing.
     """
 
+    view = build_presentation_view(report_model, mode=mode)
     body = [
-        _render_cover(report_model),
-        _render_executive_summary(report_model),
-        _render_financial_health(report_model),
-        _render_kpis(report_model),
-        _render_revenue_expense(report_model, "revenue_analysis"),
-        _render_revenue_expense(report_model, "expense_analysis"),
-        _render_departments(report_model),
-        _render_anomalies(report_model),
-        _render_evidence(report_model),
-        _render_recommendations(report_model),
-        *_render_optional_historical(report_model),
-        _render_missing_and_appendix(report_model, "missing_information"),
-        _render_missing_and_appendix(report_model, "appendix"),
+        _render_cover(view),
+        _render_summary(view),
+        _render_health(view),
+        _render_kpis(view),
+        _render_historical(view),
+        _render_revenue_expense(view),
+        _render_departments(view),
+        _render_anomalies(view),
+        _render_evidence(view),
+        _render_recommendations(view),
+        _render_missing_and_appendix(view),
     ]
     return (
         "<!doctype html><html lang='es'><head><meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width, initial-scale=1'>"
-        f"<title>{_escape(report_model.get('report_id', 'Reporte financiero'))}</title>"
+        f"<title>{_escape(view.get('title'))} - {_escape(view.get('period'))}</title>"
         f"<style>{_styles()}</style></head><body><main>{''.join(body)}</main>"
-        "<footer>Generado por Finance AI Agent usando datos procesados existentes.</footer>"
+        "<footer>Finance AI Agent · Reporte ejecutivo generado desde datos procesados y validados.</footer>"
         "</body></html>"
     )
 
@@ -648,7 +541,7 @@ def load_report_model(path: str | Path) -> dict[str, Any]:
 
     Inputs: report model path.
     Outputs: parsed report model dictionary.
-    Assumptions: report model root is a JSON object.
+    Assumptions: root must be a JSON object.
     """
 
     value = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -657,15 +550,15 @@ def load_report_model(path: str | Path) -> dict[str, Any]:
     return value
 
 
-def save_report_html(report_model: dict[str, Any], output_path: str | Path) -> Path:
+def save_report_html(report_model: dict[str, Any], output_path: str | Path, *, mode: str = "executive") -> Path:
     """Render and save a report model as HTML.
 
-    Inputs: report model dictionary and output path.
+    Inputs: report model dictionary, output path, and rendering mode.
     Outputs: resolved written path.
     Assumptions: parent directories may be created.
     """
 
     path = Path(output_path).resolve()
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(render_report_html(report_model), encoding="utf-8")
+    path.write_text(render_report_html(report_model, mode=mode), encoding="utf-8")
     return path

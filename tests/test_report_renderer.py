@@ -10,6 +10,7 @@ from finance_agent.reporting.renderers import (
     render_report_pdf,
     save_report_html,
 )
+from finance_agent.reporting.presentation import build_presentation_view
 from finance_agent.reporting.report_quality import (
     require_report_quality,
     validate_report_artifacts,
@@ -325,6 +326,48 @@ def test_report_artifact_quality_detects_html_placeholder(tmp_path: Path) -> Non
 
     assert result.is_valid is False
     assert any("HTML contains" in error for error in result.errors)
+
+
+def test_executive_html_hides_internal_identifiers_and_paths() -> None:
+    """Verify executive HTML does not expose raw implementation details."""
+
+    model = _sample_report_model()
+    html = render_report_html(model)
+
+    assert "total_revenue" not in html
+    assert "collection_rate" not in html
+    assert "get_department_history" not in html
+    assert "C:\\" not in html
+    assert "########" not in html
+    assert "<svg" in html
+
+
+def test_presentation_view_contains_recommendation_cards() -> None:
+    """Verify the shared presentation view prepares recommendation cards."""
+
+    view = build_presentation_view(_sample_report_model())
+
+    cards = view["recommendations"]["cards"]
+    assert cards
+    assert cards[0]["action"] == "Revisar aprobaciones de gasto."
+
+
+def test_rendered_quality_rejects_internal_tool_names(tmp_path: Path) -> None:
+    """Verify artifact validation blocks tool-name leaks in executive HTML."""
+
+    import json
+
+    model_path = tmp_path / "report_model.json"
+    model_path.write_text(json.dumps(_sample_report_model()), encoding="utf-8")
+    html_path = tmp_path / "report.html"
+    html_path.write_text("Resumen get_metric_history total_revenue C:\\temp\\file.json", encoding="utf-8")
+
+    result = validate_report_artifacts(model_path, html_path=html_path)
+
+    assert result.is_valid is False
+    assert any("internal retrieval tool" in error for error in result.errors)
+    assert any("absolute Windows path" in error for error in result.errors)
+    assert any("canonical KPI" in error for error in result.errors)
 
 
 def test_require_report_quality_detects_stale_artifact(tmp_path: Path) -> None:

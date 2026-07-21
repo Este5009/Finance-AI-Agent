@@ -3,17 +3,25 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from pypdf import PdfReader
 
+from finance_agent.reporting.presentation import CANONICAL_IDENTIFIERS
+
 
 MISSING_STRATEGY_PLACEHOLDERS = (
     "Strategic analysis was unavailable",
     "No hay recomendaciones estratégicas generadas",
     "No hay recomendaciones estratÃ©gicas generadas",
+)
+EXECUTIVE_FORBIDDEN_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    ("raw Python dictionary/list text", re.compile(r"\{[^{}]*:[^{}]*\}|\[[^\[\]]*\{[^\[\]]*\}")),
+    ("absolute Windows path", re.compile(r"[A-Za-z]:\\")),
+    ("internal retrieval tool name", re.compile(r"\bget_[a-z_]+\b")),
 )
 
 
@@ -57,6 +65,26 @@ def _contains_placeholder(text: str) -> list[str]:
     return [placeholder for placeholder in MISSING_STRATEGY_PLACEHOLDERS if placeholder in text]
 
 
+def _executive_text_errors(text: str, *, source: str) -> list[str]:
+    """Find raw/internal leaks in rendered executive report text.
+
+    Inputs: extracted report text and source label.
+    Outputs: blocking quality errors.
+    Assumptions: executive reports should not expose implementation details.
+    """
+
+    errors: list[str] = []
+    for label, pattern in EXECUTIVE_FORBIDDEN_PATTERNS:
+        if pattern.search(text):
+            errors.append(f"{source} contains {label}.")
+    for identifier in CANONICAL_IDENTIFIERS:
+        if re.search(rf"\b{re.escape(identifier)}\b", text):
+            errors.append(f"{source} exposes canonical KPI identifier: {identifier}")
+    if "########" in text:
+        errors.append(f"{source} contains ASCII chart bars instead of rendered charts.")
+    return errors
+
+
 def _read_pdf_text(path: Path) -> str:
     """Extract text from a PDF for quality checks.
 
@@ -67,6 +95,20 @@ def _read_pdf_text(path: Path) -> str:
 
     reader = PdfReader(str(path))
     return "\n".join(page.extract_text() or "" for page in reader.pages)
+
+
+def _visible_html_text(html_text: str) -> str:
+    """Extract approximate visible text from self-contained HTML.
+
+    Inputs: HTML document text.
+    Outputs: text with style/script/tag syntax removed.
+    Assumptions: quality checks need visible copy, not CSS declarations.
+    """
+
+    text = re.sub(r"<style.*?</style>", " ", html_text, flags=re.IGNORECASE | re.DOTALL)
+    text = re.sub(r"<script.*?</script>", " ", text, flags=re.IGNORECASE | re.DOTALL)
+    text = re.sub(r"<[^>]+>", " ", text)
+    return re.sub(r"\s+", " ", text)
 
 
 def validate_report_model_quality(report_model: dict[str, Any]) -> ReportQualityResult:
@@ -161,17 +203,21 @@ def validate_report_artifacts(
         if not html_file.is_file():
             errors.append(f"HTML report does not exist: {html_file}")
         else:
-            placeholders = _contains_placeholder(html_file.read_text(encoding="utf-8"))
+            html_text = html_file.read_text(encoding="utf-8")
+            placeholders = _contains_placeholder(html_text)
             if placeholders:
                 errors.append(f"HTML contains missing-strategy placeholders: {placeholders}")
+            errors.extend(_executive_text_errors(_visible_html_text(html_text), source="HTML"))
     if pdf_path is not None:
         pdf_file = Path(pdf_path)
         if not pdf_file.is_file():
             errors.append(f"PDF report does not exist: {pdf_file}")
         else:
-            placeholders = _contains_placeholder(_read_pdf_text(pdf_file))
+            pdf_text = _read_pdf_text(pdf_file)
+            placeholders = _contains_placeholder(pdf_text)
             if placeholders:
                 errors.append(f"PDF contains missing-strategy placeholders: {placeholders}")
+            errors.extend(_executive_text_errors(pdf_text, source="PDF"))
     return ReportQualityResult(
         is_valid=not errors,
         errors=tuple(errors),
