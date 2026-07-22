@@ -61,13 +61,13 @@ class ReasoningState:
                 }
             )
             return
-        for key in ("validated_financial_claims", "validated_historical_claims"):
+        for key in ("claims", "validated_financial_claims", "validated_historical_claims"):
             self._extend_structured_items(self.validated_claims, result.payload.get(key), result.stage_id)
-        for key in ("identified_financial_risks", "persistent_risks"):
+        for key in ("risks", "identified_financial_risks", "persistent_risks"):
             self._extend_structured_items(self.risks, result.payload.get(key), result.stage_id)
         self._extend_structured_items(
             self.opportunities,
-            result.payload.get("financial_opportunities"),
+            result.payload.get("opportunities", result.payload.get("financial_opportunities")),
             result.stage_id,
         )
         self._extend_structured_items(

@@ -9,6 +9,7 @@ from finance_agent.reasoning.reasoning_pipeline import (
     build_financial_performance_prompt,
     build_strategic_synthesis_prompt,
     create_modular_strategic_analysis,
+    normalize_reasoning_stage_payload,
     validate_reasoning_stage_response,
 )
 from finance_agent.analysis.strategic_analysis import build_evidence_ledger
@@ -154,26 +155,29 @@ def _stage_1() -> dict[str, Any]:
     """
 
     return {
-        "validated_financial_claims": [
+        "claims": [
             {
                 "text": "El resultado operativo es positivo según la evidencia actual.",
                 "evidence_ids": ["finance.metric.net_operating_result"],
+                "confidence": 0.84,
+                "claim_type": "fact",
             }
         ],
-        "identified_financial_risks": [
+        "risks": [
             {
                 "text": "El gasto departamental requiere seguimiento ejecutivo.",
                 "evidence_ids": ["anomaly.anom_1"],
+                "confidence": 0.8,
             }
         ],
-        "financial_opportunities": [
+        "opportunities": [
             {
                 "text": "La cobranza ofrece una base favorable para sostener liquidez.",
                 "evidence_ids": ["finance.metric.collection_rate"],
+                "confidence": 0.78,
             }
         ],
         "open_questions": [],
-        "confidence": 0.84,
     }
 
 
@@ -186,27 +190,29 @@ def _stage_2() -> dict[str, Any]:
     """
 
     return {
-        "validated_historical_claims": [
+        "claims": [
             {
                 "text": "La evaluación histórica debe centrarse en el seguimiento del gasto.",
                 "evidence_ids": ["anomaly.anom_1"],
+                "confidence": 0.8,
+                "claim_type": "interpretation",
             }
         ],
-        "trend_observations": [
+        "opportunities": [
             {
                 "text": "La tendencia validada mantiene el foco en disciplina operativa.",
                 "evidence_ids": ["finance.metric.payroll_percentage_of_revenue"],
+                "confidence": 0.76,
             }
         ],
-        "persistent_risks": [
+        "risks": [
             {
                 "text": "El riesgo persistente está asociado al control departamental.",
                 "evidence_ids": ["anomaly.anom_1"],
+                "confidence": 0.77,
             }
         ],
-        "recommendation_effectiveness": [],
         "open_questions": [],
-        "confidence": 0.8,
     }
 
 
@@ -337,7 +343,7 @@ def test_independent_stage_validation_rejects_unsupported_number() -> None:
     """Verify Stage 1 validation rejects invented values before later stages."""
 
     payload = _stage_1()
-    payload["validated_financial_claims"][0]["text"] = "El resultado operativo inventado es 9999."
+    payload["claims"][0]["text"] = "El resultado operativo inventado es 9999."
     validation = validate_reasoning_stage_response(
         json.dumps(payload, ensure_ascii=False),
         stage_id="financial_performance",
@@ -348,10 +354,123 @@ def test_independent_stage_validation_rejects_unsupported_number() -> None:
     assert any("unsupported number" in error for error in validation.errors)
 
 
+def test_alias_keys_normalize_correctly() -> None:
+    """Verify safe synonymous keys normalize into the minimal schema."""
+
+    payload = {
+        "identified_risks": [{"text": "El riesgo requiere control.", "evidence_ids": ["anomaly.anom_1"], "confidence_level": 0.7}],
+        "identified_opportunities": [{"text": "La cobranza permite sostener liquidez.", "evidence_ids": ["finance.metric.collection_rate"], "confidence_level": 0.7}],
+        "financial_claims": [{"text": "El resultado operativo es positivo.", "evidence_ids": ["finance.metric.net_operating_result"], "confidence_level": 0.8, "claim_type": "fact"}],
+        "questions": [],
+    }
+
+    normalized, changes = normalize_reasoning_stage_payload(payload)
+
+    assert set(normalized) == {"claims", "risks", "opportunities", "open_questions"}
+    assert normalized["claims"][0]["confidence"] == 0.8
+    assert any(change["from"] == "identified_risks" for change in changes)
+
+
+def test_wrapper_object_unwraps_without_inventing_claims() -> None:
+    """Verify adapter unwraps one obvious wrapper and preserves item content."""
+
+    wrapped = {"financial_reasoning": {"claims": [], "risks": [], "opportunities": [], "open_questions": []}}
+    normalized, changes = normalize_reasoning_stage_payload(wrapped)
+
+    assert normalized == {"claims": [], "risks": [], "opportunities": [], "open_questions": []}
+    assert changes == [{"kind": "unwrap", "from": "financial_reasoning", "to": "root"}]
+
+
+def test_unknown_top_level_keys_rejected_after_normalization() -> None:
+    """Verify unknown model keys remain rejected after safe alias normalization."""
+
+    payload = {**_stage_1(), "unexpected": []}
+    validation = validate_reasoning_stage_response(
+        json.dumps(payload, ensure_ascii=False),
+        stage_id="financial_performance",
+        evidence_ledger=_ledger(),
+    )
+
+    assert not validation.is_valid
+    assert validation.errors[0].startswith("schema:")
+
+
+def test_stage_1_semantic_alias_output_becomes_valid() -> None:
+    """Verify observed Ollama-style aliases are accepted after normalization."""
+
+    payload = {
+        "financial_claims": [
+            {
+                "text": "El resultado operativo es positivo según la evidencia actual.",
+                "evidence_ids": ["finance.metric.net_operating_result"],
+                "confidence_level": 0.8,
+                "claim_type": "fact",
+            }
+        ],
+        "identified_risks": [
+            {
+                "text": "El gasto departamental requiere seguimiento ejecutivo.",
+                "evidence_ids": ["anomaly.anom_1"],
+                "confidence_level": 0.7,
+            }
+        ],
+        "identified_opportunities": [],
+        "questions": [],
+    }
+    validation = validate_reasoning_stage_response(
+        json.dumps(payload, ensure_ascii=False),
+        stage_id="financial_performance",
+        evidence_ledger=_ledger(),
+    )
+
+    assert validation.is_valid
+    assert validation.payload is not None
+    assert validation.payload["_schema_normalizations"]
+
+
+def test_schema_only_retry_preserves_original_fact_content() -> None:
+    """Verify schema retry can restructure aliases without adding evidence."""
+
+    aliased = {
+        "financial_claims": [
+            {
+                "text": "El resultado operativo es positivo según la evidencia actual.",
+                "evidence_ids": ["finance.metric.net_operating_result"],
+                "confidence_level": 0.8,
+                "claim_type": "fact",
+            }
+        ],
+        "identified_risks": [],
+        "identified_opportunities": [],
+        "questions": [],
+        "confidence_level": 0.8,
+    }
+    repaired = {
+        "claims": aliased["financial_claims"],
+        "risks": [],
+        "opportunities": [],
+        "open_questions": [],
+    }
+    client = FakeReasoningClient((aliased, repaired, _stage_2(), _stage_3()))
+    result = create_modular_strategic_analysis(
+        client=client,
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="2026_12",
+    )
+
+    assert result.accepted
+    first_stage = result.analysis_document["reasoning_state"]["stage_results"][0]
+    assert first_stage["telemetry"]["schema_retry_attempted"] is True
+    assert first_stage["payload"]["claims"][0]["evidence_ids"] == ["finance.metric.net_operating_result"]
+
+
 def test_stage_validation_rejection_is_telemetry_category() -> None:
     """Verify schema-invalid stage output is categorized as validation rejection."""
 
-    client = FakeReasoningClient(({"bad": "shape"},))
+    client = FakeReasoningClient(({"bad": "shape"}, {"bad": "shape"}))
     result = create_modular_strategic_analysis(
         client=client,
         evidence_package=_evidence_package(),

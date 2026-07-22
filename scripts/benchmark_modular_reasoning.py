@@ -33,6 +33,7 @@ from finance_agent.reasoning.reasoning_pipeline import (  # noqa: E402
     build_financial_performance_prompt,
     build_historical_operational_prompt,
     build_strategic_synthesis_prompt,
+    reasoning_stage_json_schema,
     validate_reasoning_stage_response,
     validate_strategic_synthesis_response,
 )
@@ -265,7 +266,22 @@ def main() -> None:
             ),
             resume=False,
             stage_timeout_seconds=args.stage_timeout,
+            response_format=reasoning_stage_json_schema("financial_performance"),
         )
+        if financial_alone.accepted:
+            _save_checkpoint(
+                ReasoningStageResult(
+                    stage_id="financial_performance",
+                    stage_name="Financial Performance Reasoning",
+                    accepted=True,
+                    payload=financial_alone.payload,
+                    validation_errors=financial_alone.validation_errors,
+                    telemetry={
+                        **financial_alone.telemetry,
+                        "checkpoint_source": "financial_performance_alone",
+                    },
+                )
+            )
 
     state = ReasoningState(period_slug=PERIOD_SLUG, evidence_ledger=ledger)
     stage_results: list[ReasoningStageResult] = []
@@ -282,8 +298,9 @@ def main() -> None:
                 stage_id="financial_performance",
                 evidence_ledger=ledger,
             ),
-            resume=args.resume,
+            resume=args.resume or bool(financial_alone and financial_alone.accepted),
             stage_timeout_seconds=args.stage_timeout,
+            response_format=reasoning_stage_json_schema("financial_performance"),
         )
         state.add_stage_result(stage1)
         stage_results.append(stage1)
@@ -306,6 +323,7 @@ def main() -> None:
                 ),
                 resume=args.resume,
                 stage_timeout_seconds=args.stage_timeout,
+                response_format=reasoning_stage_json_schema("historical_operational"),
             )
             state.add_stage_result(stage2)
             stage_results.append(stage2)

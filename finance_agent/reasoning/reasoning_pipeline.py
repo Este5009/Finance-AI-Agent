@@ -26,19 +26,41 @@ from finance_agent.reasoning.reasoning_state import ReasoningState
 
 STAGE_TEXT_FIELDS: dict[str, tuple[str, ...]] = {
     "financial_performance": (
-        "validated_financial_claims",
-        "identified_financial_risks",
-        "financial_opportunities",
+        "claims",
+        "risks",
+        "opportunities",
         "open_questions",
     ),
     "historical_operational": (
-        "validated_historical_claims",
-        "trend_observations",
-        "persistent_risks",
-        "recommendation_effectiveness",
+        "claims",
+        "risks",
+        "opportunities",
         "open_questions",
     ),
 }
+
+STAGE_TOP_LEVEL_ALIASES = {
+    "validated_financial_claims": "claims",
+    "financial_claims": "claims",
+    "validated_historical_claims": "claims",
+    "historical_claims": "claims",
+    "trend_observations": "claims",
+    "recommendation_effectiveness": "claims",
+    "identified_financial_risks": "risks",
+    "identified_risks": "risks",
+    "persistent_risks": "risks",
+    "financial_opportunities": "opportunities",
+    "identified_opportunities": "opportunities",
+    "questions": "open_questions",
+}
+STAGE_WRAPPER_KEYS = {
+    "financial_reasoning",
+    "historical_reasoning",
+    "reasoning",
+    "result",
+    "output",
+}
+CLAIM_TYPES = {"fact", "interpretation", "hypothesis"}
 
 
 def create_modular_strategic_analysis(
@@ -116,6 +138,7 @@ def create_modular_strategic_analysis(
                 stage_id="financial_performance",
                 evidence_ledger=evidence_ledger,
             ),
+            response_format=reasoning_stage_json_schema("financial_performance"),
             stage_timeout_seconds=stage_timeout_seconds,
         )
         state.add_stage_result(financial_result)
@@ -137,6 +160,7 @@ def create_modular_strategic_analysis(
                 stage_id="historical_operational",
                 evidence_ledger=evidence_ledger,
             ),
+            response_format=reasoning_stage_json_schema("historical_operational"),
             stage_timeout_seconds=stage_timeout_seconds,
         )
         state.add_stage_result(historical_result)
@@ -361,31 +385,30 @@ def validate_reasoning_stage_response(
         return ReasoningValidationResult(False, None, ("response is not strict JSON",))
     if not isinstance(payload, dict):
         return ReasoningValidationResult(False, None, ("response root must be an object",))
+    payload, normalizations = normalize_reasoning_stage_payload(payload)
     required = set(_stage_required_fields(stage_id))
     if set(payload) != required:
         return ReasoningValidationResult(
             False,
             None,
-            (f"{stage_id} must contain exactly {sorted(required)}; received {sorted(payload)}",),
+            (
+                "schema: "
+                f"{stage_id} must contain exactly {sorted(required)}; received {sorted(payload)}",
+            ),
         )
 
     errors: list[str] = []
     for field_name in STAGE_TEXT_FIELDS[stage_id]:
         _validate_reasoning_items(field_name, payload.get(field_name), evidence_ledger, errors)
-    confidence = payload.get("confidence")
-    if not isinstance(confidence, (int, float)) or isinstance(confidence, bool) or not 0 <= float(confidence) <= 1:
-        errors.append("confidence must be numeric between 0 and 1")
     if errors:
         return ReasoningValidationResult(False, None, tuple(dict.fromkeys(errors)))
 
     cleaned = {
-        key: _clean_reasoning_items(value)
-        if key in STAGE_TEXT_FIELDS[stage_id]
-        else float(value)
-        if key == "confidence"
-        else value
+        key: _clean_reasoning_items(value, field_name=key)
         for key, value in payload.items()
     }
+    if normalizations:
+        cleaned["_schema_normalizations"] = normalizations
     return ReasoningValidationResult(True, cleaned, ())
 
 
@@ -502,6 +525,38 @@ def _run_structured_stage(
     validation_started = time.perf_counter()
     validation = validator(response)
     validation_time = time.perf_counter() - validation_started
+    schema_retry_attempted = False
+    if not validation.is_valid and _is_schema_only_error(validation.errors):
+        schema_retry_attempted = True
+        retry_prompt = build_schema_repair_prompt(
+            stage_name=stage_name,
+            schema=_stage_schema_text_for_id(stage_id),
+            schema_errors=validation.errors,
+            original_response=response,
+        )
+        previous_response_format = getattr(client, "response_format", None)
+        if previous_response_format is not None:
+            setattr(client, "response_format", response_format)
+        try:
+            if hasattr(client, "generate_with_metadata"):
+                generation = client.generate_with_metadata(retry_prompt)
+                response = str(generation["response"])
+                retry_telemetry = dict(generation.get("telemetry", {}))
+                ollama_telemetry = _merge_retry_telemetry(ollama_telemetry, retry_telemetry)
+            else:
+                response = client.generate(retry_prompt)
+        except OllamaError as exc:
+            validation = ReasoningValidationResult(False, None, (str(exc),))
+            ollama_telemetry = {
+                **ollama_telemetry,
+                "schema_retry_error_category": exc.category,
+            }
+        finally:
+            if previous_response_format is not None:
+                setattr(client, "response_format", previous_response_format)
+        validation_started = time.perf_counter()
+        validation = validator(response)
+        validation_time += time.perf_counter() - validation_started
     telemetry = {
         "stage_id": stage_id,
         "prompt_characters": len(prompt),
@@ -510,6 +565,7 @@ def _run_structured_stage(
         "total_stage_time_seconds": time.perf_counter() - started,
         "error_category": None if validation.is_valid else "validation_rejection",
         "timeout_error_category": ollama_telemetry.get("timeout_error_category"),
+        "schema_retry_attempted": schema_retry_attempted,
         **ollama_telemetry,
     }
     return ReasoningStageResult(
@@ -553,10 +609,30 @@ def _validate_reasoning_items(
         if not isinstance(item, dict):
             errors.append(f"{prefix} must be an object")
             continue
+        required_keys = {"text", "evidence_ids"}
+        if field_name in {"claims", "risks", "opportunities"}:
+            required_keys.add("confidence")
+        if field_name == "claims":
+            required_keys.add("claim_type")
+        if set(item) != required_keys:
+            errors.append(
+                f"schema: {prefix} must contain exactly {sorted(required_keys)}; received {sorted(item)}"
+            )
+            continue
         text = item.get("text") or item.get("claim") or item.get("question") or item.get("risk")
         if not isinstance(text, str) or not text.strip() or len(text) > 1200:
             errors.append(f"{prefix}.text must be non-empty bounded text")
             continue
+        if field_name in {"claims", "risks", "opportunities"}:
+            confidence = item.get("confidence")
+            if (
+                not isinstance(confidence, (int, float))
+                or isinstance(confidence, bool)
+                or not 0 <= float(confidence) <= 1
+            ):
+                errors.append(f"{prefix}.confidence must be numeric between 0 and 1")
+        if field_name == "claims" and item.get("claim_type") not in CLAIM_TYPES:
+            errors.append(f"{prefix}.claim_type must be fact, interpretation, or hypothesis")
         language_errors = validate_user_facing_spanish({"key_findings": [text]})
         errors.extend(f"{prefix}: {error}" for error in language_errors)
         for number in _numbers_in_text(text):
@@ -577,7 +653,7 @@ def _validate_reasoning_items(
                     errors.append(f"{prefix} cites unknown evidence_id: {evidence_id}")
 
 
-def _clean_reasoning_items(value: Any) -> list[dict[str, Any]]:
+def _clean_reasoning_items(value: Any, *, field_name: str) -> list[dict[str, Any]]:
     """Clean validated reasoning items without altering meaning.
 
     Inputs: model item list.
@@ -595,8 +671,75 @@ def _clean_reasoning_items(value: Any) -> list[dict[str, Any]]:
         copied = dict(item)
         copied["text"] = text
         copied["evidence_ids"] = [str(evidence_id).strip() for evidence_id in item.get("evidence_ids", [])]
+        if field_name in {"claims", "risks", "opportunities"}:
+            copied["confidence"] = float(item.get("confidence"))
         cleaned.append(copied)
     return cleaned
+
+
+def normalize_reasoning_stage_payload(payload: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, str]]]:
+    """Normalize safe schema aliases without changing model-authored claims.
+
+    Inputs: parsed model JSON object.
+    Outputs: normalized payload plus audit records for each key normalization.
+    Assumptions: adapter may rename fields and unwrap one obvious wrapper only;
+    it never writes prose, adds evidence IDs, computes values, or deletes claims.
+    """
+
+    normalizations: list[dict[str, str]] = []
+    current = dict(payload)
+    if len(current) == 1:
+        wrapper_key, wrapper_value = next(iter(current.items()))
+        if wrapper_key in STAGE_WRAPPER_KEYS and isinstance(wrapper_value, dict):
+            current = dict(wrapper_value)
+            normalizations.append(
+                {"kind": "unwrap", "from": wrapper_key, "to": "root"}
+            )
+
+    normalized: dict[str, Any] = {}
+    for key, value in current.items():
+        target_key = STAGE_TOP_LEVEL_ALIASES.get(key, key)
+        if target_key != key:
+            normalizations.append({"kind": "rename", "from": key, "to": target_key})
+        if target_key in normalized and isinstance(normalized[target_key], list) and isinstance(value, list):
+            normalized[target_key] = [*normalized[target_key], *value]
+            normalizations.append({"kind": "merge", "from": key, "to": target_key})
+        else:
+            normalized[target_key] = value
+
+    for list_key in ("claims", "risks", "opportunities", "open_questions"):
+        items = normalized.get(list_key)
+        if not isinstance(items, list):
+            continue
+        converted_items = []
+        for index, item in enumerate(items):
+            if not isinstance(item, dict):
+                converted_items.append(item)
+                continue
+            converted = dict(item)
+            for alias, canonical in (("claim", "text"), ("risk", "text"), ("question", "text")):
+                if alias in converted and canonical not in converted:
+                    converted[canonical] = converted.pop(alias)
+                    normalizations.append(
+                        {
+                            "kind": "rename",
+                            "from": f"{list_key}[{index}].{alias}",
+                            "to": f"{list_key}[{index}].{canonical}",
+                        }
+                    )
+            if "confidence_level" in converted and "confidence" not in converted:
+                converted["confidence"] = converted.pop("confidence_level")
+                normalizations.append(
+                    {
+                        "kind": "rename",
+                        "from": f"{list_key}[{index}].confidence_level",
+                        "to": f"{list_key}[{index}].confidence",
+                    }
+                )
+            converted_items.append(converted)
+        normalized[list_key] = converted_items
+
+    return normalized, normalizations
 
 
 def _numbers_in_text(text: str) -> set[str]:
@@ -655,6 +798,86 @@ def _stage_prompt(*, stage_name: str, schema: str, context: dict[str, Any]) -> s
         + json.dumps(context, ensure_ascii=False, separators=(",", ":"))
     )
 
+def build_schema_repair_prompt(
+    *,
+    stage_name: str,
+    schema: str,
+    schema_errors: tuple[str, ...],
+    original_response: str,
+) -> str:
+    """Build one schema-only repair prompt for a reasoning stage.
+
+    Inputs: stage name, exact schema text, schema errors, and original output.
+    Outputs: compact prompt asking Ollama to restructure only.
+    Assumptions: the retry may rename/restructure fields but must preserve
+    original facts, numbers, Spanish text, evidence IDs, and meaning.
+    """
+
+    return (
+        f"STAGE_SCHEMA_REPAIR: {stage_name}\n"
+        "El JSON anterior fue válido, pero no cumplió la estructura requerida.\n"
+        "Reestructura el MISMO contenido para cumplir exactamente el esquema.\n"
+        "No agregues ni elimines afirmaciones, riesgos, oportunidades, preguntas, números ni evidence_ids.\n"
+        "No cambies el significado ni escribas análisis nuevo.\n"
+        "Devuelve JSON estricto únicamente.\n"
+        f"SCHEMA_ERRORS:\n{json.dumps(list(schema_errors), ensure_ascii=False)}\n"
+        f"REQUIRED_SCHEMA:\n{schema}\n"
+        "ORIGINAL_RESPONSE:\n"
+        + original_response[:20_000]
+    )
+
+
+def _is_schema_only_error(errors: tuple[str, ...]) -> bool:
+    """Return whether validation failed only because of schema shape.
+
+    Inputs: validation errors.
+    Outputs: True when a schema-only retry is safe.
+    Assumptions: evidence/language/number/entity failures must not trigger a
+    restructure retry because they require substantive correction.
+    """
+
+    return bool(errors) and all(str(error).startswith("schema:") for error in errors)
+
+
+def _merge_retry_telemetry(first: dict[str, Any], retry: dict[str, Any]) -> dict[str, Any]:
+    """Merge first-attempt and schema-retry telemetry.
+
+    Inputs: two Ollama telemetry dictionaries.
+    Outputs: combined telemetry preserving attempt details and total timings.
+    Assumptions: numeric seconds/counts may be summed for high-level totals.
+    """
+
+    merged = dict(first)
+    merged["schema_retry_telemetry"] = retry
+    for key in (
+        "http_elapsed_time_seconds",
+        "model_load_time_seconds",
+        "prompt_evaluation_time_seconds",
+        "generation_time_seconds",
+        "total_ollama_time_seconds",
+    ):
+        if isinstance(first.get(key), (int, float)) or isinstance(retry.get(key), (int, float)):
+            merged[key] = float(first.get(key) or 0) + float(retry.get(key) or 0)
+    for key in ("prompt_eval_count", "generation_eval_count"):
+        if isinstance(first.get(key), (int, float)) or isinstance(retry.get(key), (int, float)):
+            merged[key] = int(first.get(key) or 0) + int(retry.get(key) or 0)
+    return merged
+
+
+def _stage_schema_text_for_id(stage_id: str) -> str:
+    """Return the exact text schema for one modular stage ID.
+
+    Inputs: stage ID.
+    Outputs: schema text.
+    Assumptions: Stage 1 and Stage 2 share the same minimal shape.
+    """
+
+    if stage_id == "financial_performance":
+        return _financial_stage_schema_text()
+    if stage_id == "historical_operational":
+        return _historical_stage_schema_text()
+    return "Use the required strategic synthesis schema from the previous prompt."
+
 
 def _financial_stage_schema_text() -> str:
     """Return the Stage 1 JSON contract.
@@ -665,9 +888,12 @@ def _financial_stage_schema_text() -> str:
     """
 
     return (
-        "Object keys exactly: validated_financial_claims, identified_financial_risks, "
-        "financial_opportunities, open_questions, confidence. Each list item is "
-        "{text: Spanish string, evidence_ids: [ledger IDs]}. confidence is 0..1."
+        "Return exactly one JSON object with exactly these top-level keys and no others: "
+        "claims, risks, opportunities, open_questions. "
+        "claims item: {text: Spanish string, evidence_ids: [valid IDs], confidence: 0..1, claim_type: fact|interpretation|hypothesis}. "
+        "risks/opportunities item: {text: Spanish string, evidence_ids: [valid IDs], confidence: 0..1}. "
+        "open_questions item: {text: Spanish string, evidence_ids: [valid IDs]}. "
+        "Do not include examples, fake values, markdown, or prose outside JSON."
     )
 
 
@@ -680,9 +906,12 @@ def _historical_stage_schema_text() -> str:
     """
 
     return (
-        "Object keys exactly: validated_historical_claims, trend_observations, "
-        "persistent_risks, recommendation_effectiveness, open_questions, confidence. "
-        "Each list item is {text: Spanish string, evidence_ids: [ledger IDs]}. confidence is 0..1."
+        "Return exactly one JSON object with exactly these top-level keys and no others: "
+        "claims, risks, opportunities, open_questions. "
+        "claims item: {text: Spanish string, evidence_ids: [valid IDs], confidence: 0..1, claim_type: fact|interpretation|hypothesis}. "
+        "risks/opportunities item: {text: Spanish string, evidence_ids: [valid IDs], confidence: 0..1}. "
+        "open_questions item: {text: Spanish string, evidence_ids: [valid IDs]}. "
+        "Do not include examples, fake values, markdown, or prose outside JSON."
     )
 
 
@@ -694,24 +923,65 @@ def _stage_required_fields(stage_id: str) -> tuple[str, ...]:
     Assumptions: only Stage 1 and Stage 2 use this smaller contract.
     """
 
-    if stage_id == "financial_performance":
-        return (
-            "validated_financial_claims",
-            "identified_financial_risks",
-            "financial_opportunities",
-            "open_questions",
-            "confidence",
-        )
-    if stage_id == "historical_operational":
-        return (
-            "validated_historical_claims",
-            "trend_observations",
-            "persistent_risks",
-            "recommendation_effectiveness",
-            "open_questions",
-            "confidence",
-        )
+    if stage_id in {"financial_performance", "historical_operational"}:
+        return ("claims", "risks", "opportunities", "open_questions")
     raise ValueError(f"Unknown reasoning stage: {stage_id}")
+
+
+def reasoning_stage_json_schema(stage_id: str) -> dict[str, Any]:
+    """Return the provider JSON schema for Stage 1/2 reasoning.
+
+    Inputs: stage ID.
+    Outputs: JSON schema dictionary passed to Ollama's ``format`` parameter.
+    Assumptions: Stage-specific semantics are prompt-driven; the shape remains
+    minimal and stable across financial and historical reasoning.
+    """
+
+    if stage_id not in {"financial_performance", "historical_operational"}:
+        raise ValueError(f"Unknown reasoning stage schema: {stage_id}")
+    text_item = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["text", "evidence_ids"],
+        "properties": {
+            "text": {"type": "string", "minLength": 1, "maxLength": 1200},
+            "evidence_ids": {
+                "type": "array",
+                "items": {"type": "string"},
+                "minItems": 1,
+                "maxItems": 6,
+            },
+        },
+    }
+    confidence_item = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["text", "evidence_ids", "confidence"],
+        "properties": {
+            **text_item["properties"],
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        },
+    }
+    claim_item = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["text", "evidence_ids", "confidence", "claim_type"],
+        "properties": {
+            **confidence_item["properties"],
+            "claim_type": {"type": "string", "enum": sorted(CLAIM_TYPES)},
+        },
+    }
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": list(_stage_required_fields(stage_id)),
+        "properties": {
+            "claims": {"type": "array", "items": claim_item, "maxItems": 8},
+            "risks": {"type": "array", "items": confidence_item, "maxItems": 8},
+            "opportunities": {"type": "array", "items": confidence_item, "maxItems": 8},
+            "open_questions": {"type": "array", "items": text_item, "maxItems": 8},
+        },
+    }
 
 
 def _rejected_result(
