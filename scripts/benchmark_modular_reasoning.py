@@ -25,6 +25,7 @@ from finance_agent.llm.ollama_client import (  # noqa: E402
     OllamaClient,
 )
 from finance_agent.memory.context_builder import build_historical_context  # noqa: E402
+from finance_agent.reasoning.fact_registry import FactRegistry  # noqa: E402
 from finance_agent.reasoning.reasoning_models import ReasoningStageResult  # noqa: E402
 from finance_agent.reasoning.reasoning_pipeline import (  # noqa: E402
     _analysis_document,
@@ -169,6 +170,7 @@ def _run_stage_with_optional_resume(
     resume: bool,
     response_format: dict[str, Any] | str = "json",
     stage_timeout_seconds: float,
+    fact_registry: FactRegistry | None = None,
 ) -> ReasoningStageResult:
     """Run or reuse one reasoning stage checkpoint.
 
@@ -197,6 +199,7 @@ def _run_stage_with_optional_resume(
         validator=validator,
         response_format=response_format,
         stage_timeout_seconds=stage_timeout_seconds,
+        fact_registry=fact_registry,
     )
     _save_checkpoint(result)
     return result
@@ -229,6 +232,7 @@ def main() -> None:
         period_slug=PERIOD_SLUG,
         historical_context=history.context,
     )
+    fact_registry = FactRegistry.from_evidence_ledger(ledger)
     client = OllamaClient(
         endpoint=args.endpoint,
         model=args.model,
@@ -251,6 +255,7 @@ def main() -> None:
         finance_summary=finance_summary,
         anomaly_report=anomaly_report,
         period_slug=PERIOD_SLUG,
+        fact_registry=fact_registry,
     )
     financial_alone = None
     if health["available"]:
@@ -263,10 +268,12 @@ def main() -> None:
                 text,
                 stage_id="financial_performance",
                 evidence_ledger=ledger,
+                fact_registry=fact_registry,
             ),
             resume=False,
             stage_timeout_seconds=args.stage_timeout,
             response_format=reasoning_stage_json_schema("financial_performance"),
+            fact_registry=fact_registry,
         )
         if financial_alone.accepted:
             _save_checkpoint(
@@ -283,7 +290,11 @@ def main() -> None:
                 )
             )
 
-    state = ReasoningState(period_slug=PERIOD_SLUG, evidence_ledger=ledger)
+    state = ReasoningState(
+        period_slug=PERIOD_SLUG,
+        evidence_ledger=ledger,
+        fact_registry=fact_registry.to_dict(),
+    )
     stage_results: list[ReasoningStageResult] = []
     report_generated = False
     report_paths: list[str] = []
@@ -297,10 +308,12 @@ def main() -> None:
                 text,
                 stage_id="financial_performance",
                 evidence_ledger=ledger,
+                fact_registry=fact_registry,
             ),
             resume=args.resume or bool(financial_alone and financial_alone.accepted),
             stage_timeout_seconds=args.stage_timeout,
             response_format=reasoning_stage_json_schema("financial_performance"),
+            fact_registry=fact_registry,
         )
         state.add_stage_result(stage1)
         stage_results.append(stage1)
@@ -310,6 +323,7 @@ def main() -> None:
                 historical_context=history.context,
                 state=state,
                 period_slug=PERIOD_SLUG,
+                fact_registry=fact_registry,
             )
             stage2 = _run_stage_with_optional_resume(
                 stage_id="historical_operational",
@@ -320,10 +334,12 @@ def main() -> None:
                     text,
                     stage_id="historical_operational",
                     evidence_ledger=ledger,
+                    fact_registry=fact_registry,
                 ),
                 resume=args.resume,
                 stage_timeout_seconds=args.stage_timeout,
                 response_format=reasoning_stage_json_schema("historical_operational"),
+                fact_registry=fact_registry,
             )
             state.add_stage_result(stage2)
             stage_results.append(stage2)
@@ -332,6 +348,7 @@ def main() -> None:
                     state=state,
                     finance_summary=finance_summary,
                     period_slug=PERIOD_SLUG,
+                    fact_registry=fact_registry,
                 )
                 stage3 = _run_stage_with_optional_resume(
                     stage_id="strategic_synthesis",
@@ -346,10 +363,12 @@ def main() -> None:
                         risk_summary=risk_summary,
                         historical_context=history.context,
                         evidence_ledger=ledger,
+                        fact_registry=fact_registry,
                     ),
                     resume=args.resume,
                     response_format=strategic_analysis_json_schema(),
                     stage_timeout_seconds=args.stage_timeout,
+                    fact_registry=fact_registry,
                 )
                 state.add_stage_result(stage3)
                 stage_results.append(stage3)
@@ -378,6 +397,7 @@ def main() -> None:
     analysis_dir = PROJECT_ROOT / "outputs" / "analysis"
     save_json_artifact(document, analysis_dir / f"strategic_analysis_{PERIOD_SLUG}.json")
     save_json_artifact(state.to_dict(), analysis_dir / f"reasoning_state_{PERIOD_SLUG}.json")
+    save_json_artifact(fact_registry.to_dict(), analysis_dir / f"fact_registry_{PERIOD_SLUG}.json")
     outputs = state.to_dict().get("reasoning_outputs", {})
     for stage_id, stem in (
         ("financial_performance", "financial_reasoning"),
@@ -431,6 +451,10 @@ def main() -> None:
         },
         "baseline": {
             "monolithic_prompt_characters": MONOLITHIC_BASELINE_PROMPT_CHARS,
+        },
+        "fact_registry": {
+            "fact_count": len(fact_registry.facts),
+            "path": str(analysis_dir / f"fact_registry_{PERIOD_SLUG}.json"),
         },
         "financial_stage_alone": financial_alone.to_dict() if financial_alone else None,
         "full_modular_pipeline": {

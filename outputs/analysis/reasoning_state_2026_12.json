@@ -15,20 +15,2217 @@
       "stage_id": "financial_performance",
       "reason": "reasoning_stage_rejected",
       "errors": [
-        "claims[0] contains unsupported number: 2.280",
-        "claims[1] contains unsupported number: 2.032",
-        "claims[2] contains unsupported number: 247.500",
-        "claims[3] contains unsupported number: 912.038",
-        "claims[5] contains unsupported number: 87.696",
-        "claims[6] contains unsupported number: 6.336",
-        "claims[6] contains unsupported number: 0.3%",
-        "opportunities[0] contains unsupported number: 450.000",
-        "opportunities[1] contains unsupported number: 2.260"
+        "opportunities[1] cites unknown evidence_id: finance.department.arts_humanidades.net_operating_result"
       ]
     }
   ],
   "reasoning_outputs": {
     "financial_performance": {}
+  },
+  "fact_registry": {
+    "fact_count": 115,
+    "facts": [
+      {
+        "fact_id": "FACT_001",
+        "placeholder": "{{FACT_001}}",
+        "evidence_ids": [
+          "anomaly.total_count"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/anomalies/anomaly_report_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_002",
+        "placeholder": "{{FACT_002}}",
+        "evidence_ids": [
+          "anomaly.total_count"
+        ],
+        "raw_value": 0,
+        "display_value": "0",
+        "value_type": "integer",
+        "metric_name": "total_anomalies",
+        "unit": "count",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/anomalies/anomaly_report_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_003",
+        "placeholder": "{{FACT_003}}",
+        "evidence_ids": [
+          "evidence.step_001.summary"
+        ],
+        "raw_value": "financial_report",
+        "display_value": "financial_report",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "financial_report",
+        "source_metadata": {
+          "source_reference": "outputs/evidence/evidence_package_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_004",
+        "placeholder": "{{FACT_004}}",
+        "evidence_ids": [
+          "evidence.step_001.summary"
+        ],
+        "raw_value": null,
+        "display_value": "Retrieved processed 2026_12 finance summary.",
+        "value_type": "entity",
+        "metric_name": "evidence_summary",
+        "unit": "",
+        "period": "2026_12",
+        "entity": "financial_report",
+        "source_metadata": {
+          "source_reference": "outputs/evidence/evidence_package_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_005",
+        "placeholder": "{{FACT_005}}",
+        "evidence_ids": [
+          "evidence.step_001.summary"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "financial_report",
+        "source_metadata": {
+          "source_reference": "outputs/evidence/evidence_package_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_006",
+        "placeholder": "{{FACT_006}}",
+        "evidence_ids": [
+          "finance.department.administration.actual_expenses"
+        ],
+        "raw_value": 162607.66,
+        "display_value": "$162,608",
+        "value_type": "currency",
+        "metric_name": "actual_expenses",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Administration",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_007",
+        "placeholder": "{{FACT_007}}",
+        "evidence_ids": [
+          "finance.department.administration.actual_expenses"
+        ],
+        "raw_value": "Administration",
+        "display_value": "Administration",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Administration",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_008",
+        "placeholder": "{{FACT_008}}",
+        "evidence_ids": [
+          "finance.department.administration.actual_expenses"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Administration",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_009",
+        "placeholder": "{{FACT_009}}",
+        "evidence_ids": [
+          "finance.department.administration.actual_revenue"
+        ],
+        "raw_value": 182407.69,
+        "display_value": "$182,408",
+        "value_type": "currency",
+        "metric_name": "actual_revenue",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Administration",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_010",
+        "placeholder": "{{FACT_010}}",
+        "evidence_ids": [
+          "finance.department.administration.actual_revenue"
+        ],
+        "raw_value": "Administration",
+        "display_value": "Administration",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Administration",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_011",
+        "placeholder": "{{FACT_011}}",
+        "evidence_ids": [
+          "finance.department.administration.actual_revenue"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Administration",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_012",
+        "placeholder": "{{FACT_012}}",
+        "evidence_ids": [
+          "finance.department.administration.expense_variance_pct"
+        ],
+        "raw_value": "Administration",
+        "display_value": "Administration",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Administration",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_013",
+        "placeholder": "{{FACT_013}}",
+        "evidence_ids": [
+          "finance.department.administration.expense_variance_pct"
+        ],
+        "raw_value": -0.0031076318,
+        "display_value": "-0.3%",
+        "value_type": "percentage",
+        "metric_name": "expense_variance_pct",
+        "unit": "ratio",
+        "period": "2026_12",
+        "entity": "Administration",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_014",
+        "placeholder": "{{FACT_014}}",
+        "evidence_ids": [
+          "finance.department.administration.expense_variance_pct"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Administration",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_015",
+        "placeholder": "{{FACT_015}}",
+        "evidence_ids": [
+          "finance.department.administration.net_operating_result"
+        ],
+        "raw_value": "Administration",
+        "display_value": "Administration",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Administration",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_016",
+        "placeholder": "{{FACT_016}}",
+        "evidence_ids": [
+          "finance.department.administration.net_operating_result"
+        ],
+        "raw_value": 19800.03,
+        "display_value": "$19,800",
+        "value_type": "currency",
+        "metric_name": "net_operating_result",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Administration",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_017",
+        "placeholder": "{{FACT_017}}",
+        "evidence_ids": [
+          "finance.department.administration.net_operating_result"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Administration",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_018",
+        "placeholder": "{{FACT_018}}",
+        "evidence_ids": [
+          "finance.department.arts_humanities.actual_expenses"
+        ],
+        "raw_value": 284563.44,
+        "display_value": "$284,563",
+        "value_type": "currency",
+        "metric_name": "actual_expenses",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Arts & Humanities",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_019",
+        "placeholder": "{{FACT_019}}",
+        "evidence_ids": [
+          "finance.department.arts_humanities.actual_expenses"
+        ],
+        "raw_value": "Arts & Humanities",
+        "display_value": "Arts & Humanities",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Arts & Humanities",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_020",
+        "placeholder": "{{FACT_020}}",
+        "evidence_ids": [
+          "finance.department.arts_humanities.actual_expenses"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Arts & Humanities",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_021",
+        "placeholder": "{{FACT_021}}",
+        "evidence_ids": [
+          "finance.department.arts_humanities.actual_revenue"
+        ],
+        "raw_value": 319213.43,
+        "display_value": "$319,213",
+        "value_type": "currency",
+        "metric_name": "actual_revenue",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Arts & Humanities",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_022",
+        "placeholder": "{{FACT_022}}",
+        "evidence_ids": [
+          "finance.department.arts_humanities.actual_revenue"
+        ],
+        "raw_value": "Arts & Humanities",
+        "display_value": "Arts & Humanities",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Arts & Humanities",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_023",
+        "placeholder": "{{FACT_023}}",
+        "evidence_ids": [
+          "finance.department.arts_humanities.actual_revenue"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Arts & Humanities",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_024",
+        "placeholder": "{{FACT_024}}",
+        "evidence_ids": [
+          "finance.department.arts_humanities.expense_variance_pct"
+        ],
+        "raw_value": "Arts & Humanities",
+        "display_value": "Arts & Humanities",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Arts & Humanities",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_025",
+        "placeholder": "{{FACT_025}}",
+        "evidence_ids": [
+          "finance.department.arts_humanities.expense_variance_pct"
+        ],
+        "raw_value": -0.0031075092,
+        "display_value": "-0.3%",
+        "value_type": "percentage",
+        "metric_name": "expense_variance_pct",
+        "unit": "ratio",
+        "period": "2026_12",
+        "entity": "Arts & Humanities",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_026",
+        "placeholder": "{{FACT_026}}",
+        "evidence_ids": [
+          "finance.department.arts_humanities.expense_variance_pct"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Arts & Humanities",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_027",
+        "placeholder": "{{FACT_027}}",
+        "evidence_ids": [
+          "finance.department.arts_humanities.net_operating_result"
+        ],
+        "raw_value": "Arts & Humanities",
+        "display_value": "Arts & Humanities",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Arts & Humanities",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_028",
+        "placeholder": "{{FACT_028}}",
+        "evidence_ids": [
+          "finance.department.arts_humanities.net_operating_result"
+        ],
+        "raw_value": 34649.99,
+        "display_value": "$34,650",
+        "value_type": "currency",
+        "metric_name": "net_operating_result",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Arts & Humanities",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_029",
+        "placeholder": "{{FACT_029}}",
+        "evidence_ids": [
+          "finance.department.arts_humanities.net_operating_result"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Arts & Humanities",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_030",
+        "placeholder": "{{FACT_030}}",
+        "evidence_ids": [
+          "finance.department.business.actual_expenses"
+        ],
+        "raw_value": 406519.2,
+        "display_value": "$406,519",
+        "value_type": "currency",
+        "metric_name": "actual_expenses",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Business",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_031",
+        "placeholder": "{{FACT_031}}",
+        "evidence_ids": [
+          "finance.department.business.actual_expenses"
+        ],
+        "raw_value": "Business",
+        "display_value": "Business",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Business",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_032",
+        "placeholder": "{{FACT_032}}",
+        "evidence_ids": [
+          "finance.department.business.actual_expenses"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Business",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_033",
+        "placeholder": "{{FACT_033}}",
+        "evidence_ids": [
+          "finance.department.business.actual_revenue"
+        ],
+        "raw_value": 456019.2,
+        "display_value": "$456,019",
+        "value_type": "currency",
+        "metric_name": "actual_revenue",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Business",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_034",
+        "placeholder": "{{FACT_034}}",
+        "evidence_ids": [
+          "finance.department.business.actual_revenue"
+        ],
+        "raw_value": "Business",
+        "display_value": "Business",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Business",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_035",
+        "placeholder": "{{FACT_035}}",
+        "evidence_ids": [
+          "finance.department.business.actual_revenue"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Business",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_036",
+        "placeholder": "{{FACT_036}}",
+        "evidence_ids": [
+          "finance.department.business.expense_variance_pct"
+        ],
+        "raw_value": "Business",
+        "display_value": "Business",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Business",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_037",
+        "placeholder": "{{FACT_037}}",
+        "evidence_ids": [
+          "finance.department.business.expense_variance_pct"
+        ],
+        "raw_value": -0.0031075092,
+        "display_value": "-0.3%",
+        "value_type": "percentage",
+        "metric_name": "expense_variance_pct",
+        "unit": "ratio",
+        "period": "2026_12",
+        "entity": "Business",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_038",
+        "placeholder": "{{FACT_038}}",
+        "evidence_ids": [
+          "finance.department.business.expense_variance_pct"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Business",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_039",
+        "placeholder": "{{FACT_039}}",
+        "evidence_ids": [
+          "finance.department.business.net_operating_result"
+        ],
+        "raw_value": "Business",
+        "display_value": "Business",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Business",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_040",
+        "placeholder": "{{FACT_040}}",
+        "evidence_ids": [
+          "finance.department.business.net_operating_result"
+        ],
+        "raw_value": 49500.0,
+        "display_value": "$49,500",
+        "value_type": "currency",
+        "metric_name": "net_operating_result",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Business",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_041",
+        "placeholder": "{{FACT_041}}",
+        "evidence_ids": [
+          "finance.department.business.net_operating_result"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Business",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_042",
+        "placeholder": "{{FACT_042}}",
+        "evidence_ids": [
+          "finance.department.engineering.actual_expenses"
+        ],
+        "raw_value": 447171.13,
+        "display_value": "$447,171",
+        "value_type": "currency",
+        "metric_name": "actual_expenses",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Engineering",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_043",
+        "placeholder": "{{FACT_043}}",
+        "evidence_ids": [
+          "finance.department.engineering.actual_expenses"
+        ],
+        "raw_value": "Engineering",
+        "display_value": "Engineering",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Engineering",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_044",
+        "placeholder": "{{FACT_044}}",
+        "evidence_ids": [
+          "finance.department.engineering.actual_expenses"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Engineering",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_045",
+        "placeholder": "{{FACT_045}}",
+        "evidence_ids": [
+          "finance.department.engineering.actual_revenue"
+        ],
+        "raw_value": 501621.11,
+        "display_value": "$501,621",
+        "value_type": "currency",
+        "metric_name": "actual_revenue",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Engineering",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_046",
+        "placeholder": "{{FACT_046}}",
+        "evidence_ids": [
+          "finance.department.engineering.actual_revenue"
+        ],
+        "raw_value": "Engineering",
+        "display_value": "Engineering",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Engineering",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_047",
+        "placeholder": "{{FACT_047}}",
+        "evidence_ids": [
+          "finance.department.engineering.actual_revenue"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Engineering",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_048",
+        "placeholder": "{{FACT_048}}",
+        "evidence_ids": [
+          "finance.department.engineering.expense_variance_pct"
+        ],
+        "raw_value": "Engineering",
+        "display_value": "Engineering",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Engineering",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_049",
+        "placeholder": "{{FACT_049}}",
+        "evidence_ids": [
+          "finance.department.engineering.expense_variance_pct"
+        ],
+        "raw_value": -0.0031074869,
+        "display_value": "-0.3%",
+        "value_type": "percentage",
+        "metric_name": "expense_variance_pct",
+        "unit": "ratio",
+        "period": "2026_12",
+        "entity": "Engineering",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_050",
+        "placeholder": "{{FACT_050}}",
+        "evidence_ids": [
+          "finance.department.engineering.expense_variance_pct"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Engineering",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_051",
+        "placeholder": "{{FACT_051}}",
+        "evidence_ids": [
+          "finance.department.engineering.net_operating_result"
+        ],
+        "raw_value": "Engineering",
+        "display_value": "Engineering",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Engineering",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_052",
+        "placeholder": "{{FACT_052}}",
+        "evidence_ids": [
+          "finance.department.engineering.net_operating_result"
+        ],
+        "raw_value": 54449.98,
+        "display_value": "$54,450",
+        "value_type": "currency",
+        "metric_name": "net_operating_result",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Engineering",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_053",
+        "placeholder": "{{FACT_053}}",
+        "evidence_ids": [
+          "finance.department.engineering.net_operating_result"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Engineering",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_054",
+        "placeholder": "{{FACT_054}}",
+        "evidence_ids": [
+          "finance.department.health_sciences.actual_expenses"
+        ],
+        "raw_value": 528474.96,
+        "display_value": "$528,475",
+        "value_type": "currency",
+        "metric_name": "actual_expenses",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_055",
+        "placeholder": "{{FACT_055}}",
+        "evidence_ids": [
+          "finance.department.health_sciences.actual_expenses"
+        ],
+        "raw_value": "Health Sciences",
+        "display_value": "Health Sciences",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_056",
+        "placeholder": "{{FACT_056}}",
+        "evidence_ids": [
+          "finance.department.health_sciences.actual_expenses"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_057",
+        "placeholder": "{{FACT_057}}",
+        "evidence_ids": [
+          "finance.department.health_sciences.actual_revenue"
+        ],
+        "raw_value": 592824.97,
+        "display_value": "$592,825",
+        "value_type": "currency",
+        "metric_name": "actual_revenue",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_058",
+        "placeholder": "{{FACT_058}}",
+        "evidence_ids": [
+          "finance.department.health_sciences.actual_revenue"
+        ],
+        "raw_value": "Health Sciences",
+        "display_value": "Health Sciences",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_059",
+        "placeholder": "{{FACT_059}}",
+        "evidence_ids": [
+          "finance.department.health_sciences.actual_revenue"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_060",
+        "placeholder": "{{FACT_060}}",
+        "evidence_ids": [
+          "finance.department.health_sciences.expense_variance_pct"
+        ],
+        "raw_value": "Health Sciences",
+        "display_value": "Health Sciences",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_061",
+        "placeholder": "{{FACT_061}}",
+        "evidence_ids": [
+          "finance.department.health_sciences.expense_variance_pct"
+        ],
+        "raw_value": -0.0031074904,
+        "display_value": "-0.3%",
+        "value_type": "percentage",
+        "metric_name": "expense_variance_pct",
+        "unit": "ratio",
+        "period": "2026_12",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_062",
+        "placeholder": "{{FACT_062}}",
+        "evidence_ids": [
+          "finance.department.health_sciences.expense_variance_pct"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_063",
+        "placeholder": "{{FACT_063}}",
+        "evidence_ids": [
+          "finance.department.health_sciences.net_operating_result"
+        ],
+        "raw_value": "Health Sciences",
+        "display_value": "Health Sciences",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_064",
+        "placeholder": "{{FACT_064}}",
+        "evidence_ids": [
+          "finance.department.health_sciences.net_operating_result"
+        ],
+        "raw_value": 64350.01,
+        "display_value": "$64,350",
+        "value_type": "currency",
+        "metric_name": "net_operating_result",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_065",
+        "placeholder": "{{FACT_065}}",
+        "evidence_ids": [
+          "finance.department.health_sciences.net_operating_result"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_066",
+        "placeholder": "{{FACT_066}}",
+        "evidence_ids": [
+          "finance.department.student_services.actual_expenses"
+        ],
+        "raw_value": 203259.61,
+        "display_value": "$203,260",
+        "value_type": "currency",
+        "metric_name": "actual_expenses",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Student Services",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_067",
+        "placeholder": "{{FACT_067}}",
+        "evidence_ids": [
+          "finance.department.student_services.actual_expenses"
+        ],
+        "raw_value": "Student Services",
+        "display_value": "Student Services",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Student Services",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_068",
+        "placeholder": "{{FACT_068}}",
+        "evidence_ids": [
+          "finance.department.student_services.actual_expenses"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Student Services",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_069",
+        "placeholder": "{{FACT_069}}",
+        "evidence_ids": [
+          "finance.department.student_services.actual_revenue"
+        ],
+        "raw_value": 228009.6,
+        "display_value": "$228,010",
+        "value_type": "currency",
+        "metric_name": "actual_revenue",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Student Services",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_070",
+        "placeholder": "{{FACT_070}}",
+        "evidence_ids": [
+          "finance.department.student_services.actual_revenue"
+        ],
+        "raw_value": "Student Services",
+        "display_value": "Student Services",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Student Services",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_071",
+        "placeholder": "{{FACT_071}}",
+        "evidence_ids": [
+          "finance.department.student_services.actual_revenue"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Student Services",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_072",
+        "placeholder": "{{FACT_072}}",
+        "evidence_ids": [
+          "finance.department.student_services.expense_variance_pct"
+        ],
+        "raw_value": "Student Services",
+        "display_value": "Student Services",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Student Services",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_073",
+        "placeholder": "{{FACT_073}}",
+        "evidence_ids": [
+          "finance.department.student_services.expense_variance_pct"
+        ],
+        "raw_value": -0.0031075091,
+        "display_value": "-0.3%",
+        "value_type": "percentage",
+        "metric_name": "expense_variance_pct",
+        "unit": "ratio",
+        "period": "2026_12",
+        "entity": "Student Services",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_074",
+        "placeholder": "{{FACT_074}}",
+        "evidence_ids": [
+          "finance.department.student_services.expense_variance_pct"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Student Services",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_075",
+        "placeholder": "{{FACT_075}}",
+        "evidence_ids": [
+          "finance.department.student_services.net_operating_result"
+        ],
+        "raw_value": "Student Services",
+        "display_value": "Student Services",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_12",
+        "entity": "Student Services",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_076",
+        "placeholder": "{{FACT_076}}",
+        "evidence_ids": [
+          "finance.department.student_services.net_operating_result"
+        ],
+        "raw_value": 24749.99,
+        "display_value": "$24,750",
+        "value_type": "currency",
+        "metric_name": "net_operating_result",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "Student Services",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_077",
+        "placeholder": "{{FACT_077}}",
+        "evidence_ids": [
+          "finance.department.student_services.net_operating_result"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "Student Services",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_078",
+        "placeholder": "{{FACT_078}}",
+        "evidence_ids": [
+          "finance.metric.collection_rate"
+        ],
+        "raw_value": 0.9600000029238533,
+        "display_value": "96.0%",
+        "value_type": "percentage",
+        "metric_name": "collection_rate",
+        "unit": "ratio",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_079",
+        "placeholder": "{{FACT_079}}",
+        "evidence_ids": [
+          "finance.metric.collection_rate"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_080",
+        "placeholder": "{{FACT_080}}",
+        "evidence_ids": [
+          "finance.metric.ending_cash"
+        ],
+        "raw_value": 2260000.0,
+        "display_value": "$2,260,000",
+        "value_type": "currency",
+        "metric_name": "ending_cash",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_081",
+        "placeholder": "{{FACT_081}}",
+        "evidence_ids": [
+          "finance.metric.ending_cash"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_082",
+        "placeholder": "{{FACT_082}}",
+        "evidence_ids": [
+          "finance.metric.expense_variance"
+        ],
+        "raw_value": -6336.000000000233,
+        "display_value": "-$6,336",
+        "value_type": "currency",
+        "metric_name": "expense_variance",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_083",
+        "placeholder": "{{FACT_083}}",
+        "evidence_ids": [
+          "finance.metric.expense_variance"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_084",
+        "placeholder": "{{FACT_084}}",
+        "evidence_ids": [
+          "finance.metric.expense_variance_pct"
+        ],
+        "raw_value": -0.0031075092254181274,
+        "display_value": "-0.3%",
+        "value_type": "percentage",
+        "metric_name": "expense_variance_pct",
+        "unit": "ratio",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_085",
+        "placeholder": "{{FACT_085}}",
+        "evidence_ids": [
+          "finance.metric.expense_variance_pct"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_086",
+        "placeholder": "{{FACT_086}}",
+        "evidence_ids": [
+          "finance.metric.net_cash_flow"
+        ],
+        "raw_value": 450000.0,
+        "display_value": "$450,000",
+        "value_type": "currency",
+        "metric_name": "net_cash_flow",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_087",
+        "placeholder": "{{FACT_087}}",
+        "evidence_ids": [
+          "finance.metric.net_cash_flow"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_088",
+        "placeholder": "{{FACT_088}}",
+        "evidence_ids": [
+          "finance.metric.net_operating_result"
+        ],
+        "raw_value": 247500.0,
+        "display_value": "$247,500",
+        "value_type": "currency",
+        "metric_name": "net_operating_result",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_089",
+        "placeholder": "{{FACT_089}}",
+        "evidence_ids": [
+          "finance.metric.net_operating_result"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_090",
+        "placeholder": "{{FACT_090}}",
+        "evidence_ids": [
+          "finance.metric.overdue_invoice_count"
+        ],
+        "raw_value": 0,
+        "display_value": "0",
+        "value_type": "integer",
+        "metric_name": "overdue_invoice_count",
+        "unit": "count",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_091",
+        "placeholder": "{{FACT_091}}",
+        "evidence_ids": [
+          "finance.metric.overdue_invoice_count"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_092",
+        "placeholder": "{{FACT_092}}",
+        "evidence_ids": [
+          "finance.metric.payroll_percentage_of_revenue"
+        ],
+        "raw_value": 0.39999999999999997,
+        "display_value": "40.0%",
+        "value_type": "percentage",
+        "metric_name": "payroll_percentage_of_revenue",
+        "unit": "ratio",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_093",
+        "placeholder": "{{FACT_093}}",
+        "evidence_ids": [
+          "finance.metric.payroll_percentage_of_revenue"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_094",
+        "placeholder": "{{FACT_094}}",
+        "evidence_ids": [
+          "finance.metric.payroll_total"
+        ],
+        "raw_value": 912038.3999999999,
+        "display_value": "$912,038",
+        "value_type": "currency",
+        "metric_name": "payroll_total",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_095",
+        "placeholder": "{{FACT_095}}",
+        "evidence_ids": [
+          "finance.metric.payroll_total"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_096",
+        "placeholder": "{{FACT_096}}",
+        "evidence_ids": [
+          "finance.metric.revenue_variance"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_097",
+        "placeholder": "{{FACT_097}}",
+        "evidence_ids": [
+          "finance.metric.revenue_variance"
+        ],
+        "raw_value": 87696.0,
+        "display_value": "$87,696",
+        "value_type": "currency",
+        "metric_name": "revenue_variance",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_098",
+        "placeholder": "{{FACT_098}}",
+        "evidence_ids": [
+          "finance.metric.revenue_variance_pct"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_099",
+        "placeholder": "{{FACT_099}}",
+        "evidence_ids": [
+          "finance.metric.revenue_variance_pct"
+        ],
+        "raw_value": 0.04,
+        "display_value": "4.0%",
+        "value_type": "percentage",
+        "metric_name": "revenue_variance_pct",
+        "unit": "ratio",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_100",
+        "placeholder": "{{FACT_100}}",
+        "evidence_ids": [
+          "finance.metric.total_expenses"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_101",
+        "placeholder": "{{FACT_101}}",
+        "evidence_ids": [
+          "finance.metric.total_expenses"
+        ],
+        "raw_value": 2032596.0,
+        "display_value": "$2,032,596",
+        "value_type": "currency",
+        "metric_name": "total_expenses",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_102",
+        "placeholder": "{{FACT_102}}",
+        "evidence_ids": [
+          "finance.metric.total_revenue"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_103",
+        "placeholder": "{{FACT_103}}",
+        "evidence_ids": [
+          "finance.metric.total_revenue"
+        ],
+        "raw_value": 2280096.0,
+        "display_value": "$2,280,096",
+        "value_type": "currency",
+        "metric_name": "total_revenue",
+        "unit": "USD",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "outputs/calculations/finance_summary_2026_12.json",
+          "category": "current_finding",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_104",
+        "placeholder": "{{FACT_104}}",
+        "evidence_ids": [
+          "history.recommendation.1"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "data/memory/recovery_2026_memory.db",
+          "category": "prior_recommendation",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_105",
+        "placeholder": "{{FACT_105}}",
+        "evidence_ids": [
+          "history.recommendation.2"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "data/memory/recovery_2026_memory.db",
+          "category": "prior_recommendation",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_106",
+        "placeholder": "{{FACT_106}}",
+        "evidence_ids": [
+          "history.recommendation.3"
+        ],
+        "raw_value": "2026_12",
+        "display_value": "2026_12",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_12",
+        "entity": "",
+        "source_metadata": {
+          "source_reference": "data/memory/recovery_2026_memory.db",
+          "category": "prior_recommendation",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_107",
+        "placeholder": "{{FACT_107}}",
+        "evidence_ids": [
+          "history.recurring_anomaly.1"
+        ],
+        "raw_value": "Health Sciences",
+        "display_value": "Health Sciences",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_04, 2026_05, 2026_06, 2026_07",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "data/memory/recovery_2026_memory.db",
+          "category": "recurring_anomaly",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_108",
+        "placeholder": "{{FACT_108}}",
+        "evidence_ids": [
+          "history.recurring_anomaly.1"
+        ],
+        "raw_value": "2026_04, 2026_05, 2026_06, 2026_07",
+        "display_value": "2026_04, 2026_05, 2026_06, 2026_07",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_04, 2026_05, 2026_06, 2026_07",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "data/memory/recovery_2026_memory.db",
+          "category": "recurring_anomaly",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_109",
+        "placeholder": "{{FACT_109}}",
+        "evidence_ids": [
+          "history.recurring_anomaly.1"
+        ],
+        "raw_value": 4,
+        "display_value": "4",
+        "value_type": "integer",
+        "metric_name": "recurring_anomaly",
+        "unit": "count",
+        "period": "2026_04, 2026_05, 2026_06, 2026_07",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "data/memory/recovery_2026_memory.db",
+          "category": "recurring_anomaly",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_110",
+        "placeholder": "{{FACT_110}}",
+        "evidence_ids": [
+          "history.recurring_anomaly.2"
+        ],
+        "raw_value": "Health Sciences",
+        "display_value": "Health Sciences",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_07, 2026_08, 2026_09",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "data/memory/recovery_2026_memory.db",
+          "category": "recurring_anomaly",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_111",
+        "placeholder": "{{FACT_111}}",
+        "evidence_ids": [
+          "history.recurring_anomaly.2"
+        ],
+        "raw_value": "2026_07, 2026_08, 2026_09",
+        "display_value": "2026_07, 2026_08, 2026_09",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_07, 2026_08, 2026_09",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "data/memory/recovery_2026_memory.db",
+          "category": "recurring_anomaly",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_112",
+        "placeholder": "{{FACT_112}}",
+        "evidence_ids": [
+          "history.recurring_anomaly.2"
+        ],
+        "raw_value": 3,
+        "display_value": "3",
+        "value_type": "integer",
+        "metric_name": "recurring_anomaly",
+        "unit": "count",
+        "period": "2026_07, 2026_08, 2026_09",
+        "entity": "Health Sciences",
+        "source_metadata": {
+          "source_reference": "data/memory/recovery_2026_memory.db",
+          "category": "recurring_anomaly",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_113",
+        "placeholder": "{{FACT_113}}",
+        "evidence_ids": [
+          "history.recurring_anomaly.3"
+        ],
+        "raw_value": "University",
+        "display_value": "University",
+        "value_type": "entity",
+        "metric_name": "entity",
+        "unit": "entity",
+        "period": "2026_06, 2026_07",
+        "entity": "University",
+        "source_metadata": {
+          "source_reference": "data/memory/recovery_2026_memory.db",
+          "category": "recurring_anomaly",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_114",
+        "placeholder": "{{FACT_114}}",
+        "evidence_ids": [
+          "history.recurring_anomaly.3"
+        ],
+        "raw_value": "2026_06, 2026_07",
+        "display_value": "2026_06, 2026_07",
+        "value_type": "period",
+        "metric_name": "period",
+        "unit": "period",
+        "period": "2026_06, 2026_07",
+        "entity": "University",
+        "source_metadata": {
+          "source_reference": "data/memory/recovery_2026_memory.db",
+          "category": "recurring_anomaly",
+          "claim": ""
+        }
+      },
+      {
+        "fact_id": "FACT_115",
+        "placeholder": "{{FACT_115}}",
+        "evidence_ids": [
+          "history.recurring_anomaly.3"
+        ],
+        "raw_value": 2,
+        "display_value": "2",
+        "value_type": "integer",
+        "metric_name": "recurring_anomaly",
+        "unit": "count",
+        "period": "2026_06, 2026_07",
+        "entity": "University",
+        "source_metadata": {
+          "source_reference": "data/memory/recovery_2026_memory.db",
+          "category": "recurring_anomaly",
+          "claim": ""
+        }
+      }
+    ]
+  },
+  "raw_placeholder_outputs": {
+    "financial_performance": {}
+  },
+  "substituted_outputs": {
+    "financial_performance": {}
+  },
+  "placeholder_validation_results": {
+    "financial_performance": {}
+  },
+  "substitution_audit_log": {
+    "financial_performance": []
+  },
+  "normalization_log": {
+    "financial_performance": []
   },
   "evidence_references": {
     "finance.metric.total_revenue": {
@@ -1306,37 +3503,30 @@
       "accepted": false,
       "payload": {},
       "validation_errors": [
-        "claims[0] contains unsupported number: 2.280",
-        "claims[1] contains unsupported number: 2.032",
-        "claims[2] contains unsupported number: 247.500",
-        "claims[3] contains unsupported number: 912.038",
-        "claims[5] contains unsupported number: 87.696",
-        "claims[6] contains unsupported number: 6.336",
-        "claims[6] contains unsupported number: 0.3%",
-        "opportunities[0] contains unsupported number: 450.000",
-        "opportunities[1] contains unsupported number: 2.260"
+        "opportunities[1] cites unknown evidence_id: finance.department.arts_humanidades.net_operating_result"
       ],
       "telemetry": {
         "stage_id": "financial_performance",
-        "prompt_characters": 8726,
-        "prompt_token_estimate": 2181,
-        "json_validation_time_seconds": 0.0005040999967604876,
-        "total_stage_time_seconds": 50.970140199991874,
+        "prompt_characters": 10305,
+        "prompt_token_estimate": 2576,
+        "json_validation_time_seconds": 0.0004387999651953578,
+        "total_stage_time_seconds": 50.14854289998766,
         "error_category": "validation_rejection",
         "timeout_error_category": null,
         "schema_retry_attempted": false,
+        "placeholder_retry_attempted": false,
         "model": "qwen3:30b-a3b",
         "reasoning_enabled": true,
-        "request_start_utc": "2026-07-22T17:21:12.418728+00:00",
-        "request_end_utc": "2026-07-22T17:22:03.388310+00:00",
-        "http_elapsed_time_seconds": 50.96958580001956,
-        "model_load_time_seconds": 0.2092387,
-        "prompt_evaluation_time_seconds": 0.244614,
-        "generation_time_seconds": 46.385349,
-        "total_ollama_time_seconds": 46.8533719,
-        "prompt_eval_count": 2868,
-        "generation_eval_count": 901,
-        "thinking_characters": 2860,
+        "request_start_utc": "2026-07-22T19:58:26.807061+00:00",
+        "request_end_utc": "2026-07-22T19:59:16.955106+00:00",
+        "http_elapsed_time_seconds": 50.148047299997415,
+        "model_load_time_seconds": 0.2195344,
+        "prompt_evaluation_time_seconds": 0.171887,
+        "generation_time_seconds": 45.683685,
+        "total_ollama_time_seconds": 46.089962,
+        "prompt_eval_count": 2953,
+        "generation_eval_count": 815,
+        "thinking_characters": 3059,
         "connect_timeout_seconds": 10.0,
         "read_timeout_seconds": 600.0,
         "keep_alive": "15m"

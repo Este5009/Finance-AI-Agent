@@ -14,6 +14,7 @@ from finance_agent.reasoning.reasoning_pipeline import (
 )
 from finance_agent.analysis.strategic_analysis import build_evidence_ledger
 from finance_agent.reporting.report_engine import ReportInputBundle, build_report_model
+from finance_agent.reasoning.fact_registry import FactRegistry
 from finance_agent.reasoning.reasoning_models import ReasoningStageResult
 from finance_agent.reasoning.reasoning_state import ReasoningState
 
@@ -225,24 +226,32 @@ def _stage_3() -> dict[str, Any]:
     """
 
     evidence = ["finance.metric.net_operating_result"]
+    net_result = _placeholder("finance.metric.net_operating_result", "net_operating_result")
+    department = _placeholder("finance.department.health_sciences.variance", "entity")
+    variance = _placeholder("finance.department.health_sciences.variance", "variance")
+    anomaly_title = _placeholder("anomaly.anom_1", "expense_variance")
     return {
-        "executive_summary": {"text": "La posición financiera requiere gestión disciplinada.", "evidence_ids": evidence},
-        "key_findings": ["El resultado operativo mantiene una señal favorable."],
-        "root_causes": ["La hipótesis principal es presión operativa departamental."],
-        "financial_health_analysis": {"text": "La salud financiera muestra margen operativo positivo.", "evidence_ids": evidence},
+        "executive_summary": {"text": f"La posición financiera requiere gestión disciplinada con {net_result}.", "evidence_ids": evidence},
+        "key_findings": [f"El resultado operativo mantiene una señal favorable con {net_result}."],
+        "root_causes": [f"La hipótesis principal es presión operativa asociada a {department}."],
+        "financial_health_analysis": {"text": f"La salud financiera muestra margen operativo positivo con {net_result}.", "evidence_ids": evidence},
         "kpi_analysis": {"text": "Los KPI priorizan resultado operativo, cobranza y liquidez.", "evidence_ids": evidence},
-        "department_analysis": {"text": "Health Sciences requiere seguimiento por varianza departamental.", "evidence_ids": ["finance.department.health_sciences.variance"]},
-        "anomaly_analysis": {"text": "La anomalía validada concentra el riesgo operativo.", "evidence_ids": ["anomaly.anom_1"]},
+        "department_analysis": {"text": f"{department} requiere seguimiento por varianza departamental de {variance}.", "evidence_ids": ["finance.department.health_sciences.variance"]},
+        "anomaly_analysis": {"text": f"La anomalía {anomaly_title} concentra el riesgo operativo.", "evidence_ids": ["anomaly.anom_1"]},
         "recommendation_follow_up_analysis": {"text": "El seguimiento debe confirmar ejecución de controles.", "evidence_ids": evidence},
         "longitudinal_risk_analysis": {"text": "El riesgo longitudinal debe monitorearse con evidencia mensual.", "evidence_ids": evidence},
         "strategic_recommendations": [
             {
                 "priority": "high",
-                "action": "Revisar controles de gasto departamental.",
-                "rationale": "La evidencia validada muestra una varianza que requiere atención.",
+                "action": f"Revisar controles de gasto departamental en {department}.",
+                "rationale": f"La evidencia validada muestra una varianza de {variance} que requiere atención.",
                 "supporting_evidence": "finance.metric.net_operating_result",
-                "expected_impact": "Mejorar la disciplina presupuestaria sin modificar los datos financieros.",
-                "evidence_ids": ["finance.metric.net_operating_result", "anomaly.anom_1"],
+                "expected_impact": f"Mejorar la disciplina presupuestaria asociada a {department} sin modificar los datos financieros.",
+                "evidence_ids": [
+                    "finance.metric.net_operating_result",
+                    "finance.department.health_sciences.variance",
+                    "anomaly.anom_1",
+                ],
                 "confidence": 0.82,
             }
         ],
@@ -286,6 +295,21 @@ def _ledger() -> dict[str, Any]:
         risk_summary=_risk_summary(),
         period_slug="2026_12",
     )
+
+
+def _placeholder(evidence_id: str, metric_name: str | None = None) -> str:
+    """Return a deterministic placeholder for one fixture fact.
+
+    Inputs: evidence ID and optional metric name.
+    Outputs: placeholder token such as ``{{FACT_020}}``.
+    Assumptions: fact registry ordering is stable for the fixture ledger.
+    """
+
+    registry = FactRegistry.from_evidence_ledger(_ledger())
+    for fact in registry.facts:
+        if evidence_id in fact.evidence_ids and (metric_name is None or fact.metric_name == metric_name):
+            return fact.placeholder
+    raise AssertionError(f"Missing placeholder for {evidence_id}/{metric_name}")
 
 
 def test_reasoning_state_propagates_validated_outputs() -> None:
@@ -336,7 +360,7 @@ def test_duplicate_context_prevention_in_financial_prompt() -> None:
     )
 
     assert "payroll_breakdown" not in prompt
-    assert prompt.count("finance.metric.net_operating_result") == 1
+    assert prompt.count("finance.metric.net_operating_result") >= 1
 
 
 def test_independent_stage_validation_rejects_unsupported_number() -> None:

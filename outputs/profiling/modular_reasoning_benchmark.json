@@ -5,22 +5,22 @@
     "available": true,
     "error": null,
     "error_category": null,
-    "elapsed_seconds": 4.092703600006644
+    "elapsed_seconds": 4.059567199961748
   },
   "warm_up": {
     "response": "{\"ok\": true}",
     "telemetry": {
       "model": "qwen3:30b-a3b",
       "reasoning_enabled": true,
-      "request_start_utc": "2026-07-22T17:19:03.242230+00:00",
-      "request_end_utc": "2026-07-22T17:19:30.978719+00:00",
-      "http_elapsed_time_seconds": 27.73649139999179,
+      "request_start_utc": "2026-07-22T19:57:32.028078+00:00",
+      "request_end_utc": "2026-07-22T19:57:37.033254+00:00",
+      "http_elapsed_time_seconds": 5.005177200015169,
       "prompt_characters": 38,
       "prompt_token_estimate": 9,
-      "model_load_time_seconds": 22.9333475,
-      "prompt_evaluation_time_seconds": 0.474471,
-      "generation_time_seconds": 0.268863,
-      "total_ollama_time_seconds": 23.684221,
+      "model_load_time_seconds": 0.2214626,
+      "prompt_evaluation_time_seconds": 0.198543,
+      "generation_time_seconds": 0.267101,
+      "total_ollama_time_seconds": 0.9382635,
       "prompt_eval_count": 22,
       "generation_eval_count": 6,
       "thinking_characters": 12,
@@ -42,43 +42,40 @@
   "baseline": {
     "monolithic_prompt_characters": 25283
   },
+  "fact_registry": {
+    "fact_count": 115,
+    "path": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\fact_registry_2026_12.json"
+  },
   "financial_stage_alone": {
     "stage_id": "financial_performance_alone",
     "stage_name": "Financial Performance Reasoning Alone",
     "accepted": false,
     "payload": {},
     "validation_errors": [
-      "claims[0] contains unsupported number: 2.280",
-      "claims[1] contains unsupported number: 2.032",
-      "claims[2] contains unsupported number: 247.500",
-      "claims[3] contains unsupported number: 912.038",
-      "claims[5] contains unsupported number: 87.696",
-      "claims[6] contains unsupported number: 6.336",
-      "claims[6] contains unsupported number: 0.3%",
-      "opportunities[0] contains unsupported number: 247.500",
-      "open_questions[0] contains unsupported number: 0.3%"
+      "opportunities[1] cites unknown evidence_id: finance.department.arts_humanidades.net_operating_result"
     ],
     "telemetry": {
       "stage_id": "financial_performance_alone",
-      "prompt_characters": 8726,
-      "prompt_token_estimate": 2181,
-      "json_validation_time_seconds": 0.0006522000185213983,
-      "total_stage_time_seconds": 101.43600180000067,
+      "prompt_characters": 10305,
+      "prompt_token_estimate": 2576,
+      "json_validation_time_seconds": 0.0005757999606430531,
+      "total_stage_time_seconds": 49.76514329999918,
       "error_category": "validation_rejection",
       "timeout_error_category": null,
       "schema_retry_attempted": false,
+      "placeholder_retry_attempted": false,
       "model": "qwen3:30b-a3b",
       "reasoning_enabled": true,
-      "request_start_utc": "2026-07-22T17:19:30.978889+00:00",
-      "request_end_utc": "2026-07-22T17:21:12.414191+00:00",
-      "http_elapsed_time_seconds": 101.43530589999864,
-      "model_load_time_seconds": 0.220003,
-      "prompt_evaluation_time_seconds": 53.993296,
-      "generation_time_seconds": 43.106438,
-      "total_ollama_time_seconds": 97.3384838,
-      "prompt_eval_count": 2868,
-      "generation_eval_count": 856,
-      "thinking_characters": 2759,
+      "request_start_utc": "2026-07-22T19:57:37.033581+00:00",
+      "request_end_utc": "2026-07-22T19:58:26.798093+00:00",
+      "http_elapsed_time_seconds": 49.76451690000249,
+      "model_load_time_seconds": 0.2166053,
+      "prompt_evaluation_time_seconds": 0.146828,
+      "generation_time_seconds": 45.168135,
+      "total_ollama_time_seconds": 45.6989113,
+      "prompt_eval_count": 2953,
+      "generation_eval_count": 815,
+      "thinking_characters": 3059,
       "connect_timeout_seconds": 10.0,
       "read_timeout_seconds": 600.0,
       "keep_alive": "15m"
@@ -87,15 +84,7 @@
   "full_modular_pipeline": {
     "accepted": false,
     "validation_errors": [
-      "claims[0] contains unsupported number: 2.280",
-      "claims[1] contains unsupported number: 2.032",
-      "claims[2] contains unsupported number: 247.500",
-      "claims[3] contains unsupported number: 912.038",
-      "claims[5] contains unsupported number: 87.696",
-      "claims[6] contains unsupported number: 6.336",
-      "claims[6] contains unsupported number: 0.3%",
-      "opportunities[0] contains unsupported number: 450.000",
-      "opportunities[1] contains unsupported number: 2.260"
+      "opportunities[1] cites unknown evidence_id: finance.department.arts_humanidades.net_operating_result"
     ],
     "stage_results": [
       {
@@ -104,37 +93,30 @@
         "accepted": false,
         "payload": {},
         "validation_errors": [
-          "claims[0] contains unsupported number: 2.280",
-          "claims[1] contains unsupported number: 2.032",
-          "claims[2] contains unsupported number: 247.500",
-          "claims[3] contains unsupported number: 912.038",
-          "claims[5] contains unsupported number: 87.696",
-          "claims[6] contains unsupported number: 6.336",
-          "claims[6] contains unsupported number: 0.3%",
-          "opportunities[0] contains unsupported number: 450.000",
-          "opportunities[1] contains unsupported number: 2.260"
+          "opportunities[1] cites unknown evidence_id: finance.department.arts_humanidades.net_operating_result"
         ],
         "telemetry": {
           "stage_id": "financial_performance",
-          "prompt_characters": 8726,
-          "prompt_token_estimate": 2181,
-          "json_validation_time_seconds": 0.0005040999967604876,
-          "total_stage_time_seconds": 50.970140199991874,
+          "prompt_characters": 10305,
+          "prompt_token_estimate": 2576,
+          "json_validation_time_seconds": 0.0004387999651953578,
+          "total_stage_time_seconds": 50.14854289998766,
           "error_category": "validation_rejection",
           "timeout_error_category": null,
           "schema_retry_attempted": false,
+          "placeholder_retry_attempted": false,
           "model": "qwen3:30b-a3b",
           "reasoning_enabled": true,
-          "request_start_utc": "2026-07-22T17:21:12.418728+00:00",
-          "request_end_utc": "2026-07-22T17:22:03.388310+00:00",
-          "http_elapsed_time_seconds": 50.96958580001956,
-          "model_load_time_seconds": 0.2092387,
-          "prompt_evaluation_time_seconds": 0.244614,
-          "generation_time_seconds": 46.385349,
-          "total_ollama_time_seconds": 46.8533719,
-          "prompt_eval_count": 2868,
-          "generation_eval_count": 901,
-          "thinking_characters": 2860,
+          "request_start_utc": "2026-07-22T19:58:26.807061+00:00",
+          "request_end_utc": "2026-07-22T19:59:16.955106+00:00",
+          "http_elapsed_time_seconds": 50.148047299997415,
+          "model_load_time_seconds": 0.2195344,
+          "prompt_evaluation_time_seconds": 0.171887,
+          "generation_time_seconds": 45.683685,
+          "total_ollama_time_seconds": 46.089962,
+          "prompt_eval_count": 2953,
+          "generation_eval_count": 815,
+          "thinking_characters": 3059,
           "connect_timeout_seconds": 10.0,
           "read_timeout_seconds": 600.0,
           "keep_alive": "15m"
@@ -148,5 +130,5 @@
     "generated": false,
     "paths": []
   },
-  "runtime_seconds": 184.28251950000413
+  "runtime_seconds": 109.04530210001394
 }

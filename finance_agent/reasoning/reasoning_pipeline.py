@@ -17,6 +17,11 @@ from finance_agent.analysis.strategic_analysis import (
     validate_user_facing_spanish,
 )
 from finance_agent.llm.ollama_client import OllamaError
+from finance_agent.reasoning.fact_registry import (
+    FactRegistry,
+    PLACEHOLDER_PATTERN,
+    validate_placeholders_in_payload,
+)
 from finance_agent.reasoning.reasoning_models import (
     ReasoningStageResult,
     ReasoningValidationResult,
@@ -97,7 +102,12 @@ def create_modular_strategic_analysis(
         period_slug=period_slug,
         historical_context=historical_context,
     )
-    state = ReasoningState(period_slug=period_slug, evidence_ledger=evidence_ledger)
+    fact_registry = FactRegistry.from_evidence_ledger(evidence_ledger)
+    state = ReasoningState(
+        period_slug=period_slug,
+        evidence_ledger=evidence_ledger,
+        fact_registry=fact_registry.to_dict(),
+    )
     telemetry: dict[str, Any] = {
         "reasoning_pipeline": "modular_multi_stage",
         "stage_count": 3,
@@ -132,14 +142,17 @@ def create_modular_strategic_analysis(
                 finance_summary=finance_summary,
                 anomaly_report=anomaly_report,
                 period_slug=period_slug,
+                fact_registry=fact_registry,
             ),
             validator=lambda text: validate_reasoning_stage_response(
                 text,
                 stage_id="financial_performance",
                 evidence_ledger=evidence_ledger,
+                fact_registry=fact_registry,
             ),
             response_format=reasoning_stage_json_schema("financial_performance"),
             stage_timeout_seconds=stage_timeout_seconds,
+            fact_registry=fact_registry,
         )
         state.add_stage_result(financial_result)
         if not financial_result.accepted:
@@ -154,14 +167,17 @@ def create_modular_strategic_analysis(
                 historical_context=historical_context,
                 state=state,
                 period_slug=period_slug,
+                fact_registry=fact_registry,
             ),
             validator=lambda text: validate_reasoning_stage_response(
                 text,
                 stage_id="historical_operational",
                 evidence_ledger=evidence_ledger,
+                fact_registry=fact_registry,
             ),
             response_format=reasoning_stage_json_schema("historical_operational"),
             stage_timeout_seconds=stage_timeout_seconds,
+            fact_registry=fact_registry,
         )
         state.add_stage_result(historical_result)
         if not historical_result.accepted:
@@ -171,6 +187,7 @@ def create_modular_strategic_analysis(
             state=state,
             finance_summary=finance_summary,
             period_slug=period_slug,
+            fact_registry=fact_registry,
         )
         strategic_result = _run_structured_stage(
             client=client,
@@ -185,9 +202,11 @@ def create_modular_strategic_analysis(
                 risk_summary=risk_summary,
                 historical_context=historical_context,
                 evidence_ledger=evidence_ledger,
+                fact_registry=fact_registry,
             ),
             response_format=strategic_analysis_json_schema(),
             stage_timeout_seconds=stage_timeout_seconds,
+            fact_registry=fact_registry,
         )
         state.add_stage_result(strategic_result)
     except OllamaError as exc:
@@ -244,6 +263,7 @@ def build_financial_performance_prompt(
     finance_summary: dict[str, Any],
     anomaly_report: dict[str, Any],
     period_slug: str,
+    fact_registry: FactRegistry | None = None,
 ) -> str:
     """Build the Stage 1 financial-performance prompt.
 
@@ -252,23 +272,17 @@ def build_financial_performance_prompt(
     Assumptions: prompt includes only current financial facts and top anomalies.
     """
 
+    registry = fact_registry or FactRegistry.from_evidence_ledger(evidence_ledger)
     facts = [
-        _prompt_fact(fact)
-        for fact in evidence_ledger.get("facts", [])
-        if isinstance(fact, dict)
-        and fact.get("category") == "current_finding"
-        and (
-            str(fact.get("evidence_id", "")).startswith("finance.")
-            or str(fact.get("evidence_id", "")).startswith("anomaly.")
-        )
+        fact
+        for fact in registry.prompt_facts()
+        if str(fact.get("evidence_ids", [""])[0]).startswith(("finance.", "anomaly."))
     ][:28]
     context = {
         "period_slug": period_slug,
         "objective": "Qué está ocurriendo financieramente en el periodo actual.",
         "facts": facts,
-        "approved_numbers": evidence_ledger.get("approved_numbers", []),
-        "approved_periods": evidence_ledger.get("approved_periods", []),
-        "approved_entities": evidence_ledger.get("approved_entities", []),
+        "allowed_placeholders": [fact["placeholder"] for fact in facts],
         "report_period": finance_summary.get("report_period"),
         "anomaly_count": anomaly_report.get("total_anomalies"),
     }
@@ -285,6 +299,7 @@ def build_historical_operational_prompt(
     historical_context: dict[str, Any] | None,
     state: ReasoningState,
     period_slug: str,
+    fact_registry: FactRegistry | None = None,
 ) -> str:
     """Build the Stage 2 historical/operational prompt.
 
@@ -293,11 +308,11 @@ def build_historical_operational_prompt(
     Assumptions: only historical facts plus Stage 1 validated reasoning are sent.
     """
 
+    registry = fact_registry or FactRegistry.from_evidence_ledger(evidence_ledger)
     facts = [
-        _prompt_fact(fact)
-        for fact in evidence_ledger.get("facts", [])
-        if isinstance(fact, dict)
-        and str(fact.get("category", "")).startswith(("kpi_trend", "recurring", "prior"))
+        fact
+        for fact in registry.prompt_facts()
+        if str(fact.get("evidence_ids", [""])[0]).startswith(("history.", "anomaly.", "finance."))
     ][:30]
     context = {
         "period_slug": period_slug,
@@ -312,9 +327,7 @@ def build_historical_operational_prompt(
         "history_summary": (historical_context or {}).get("summary", {})
         if isinstance(historical_context, dict)
         else {},
-        "approved_numbers": evidence_ledger.get("approved_numbers", []),
-        "approved_periods": evidence_ledger.get("approved_periods", []),
-        "approved_entities": evidence_ledger.get("approved_entities", []),
+        "allowed_placeholders": [fact["placeholder"] for fact in facts],
     }
     return _stage_prompt(
         stage_name="Historical & Operational Reasoning",
@@ -328,6 +341,7 @@ def build_strategic_synthesis_prompt(
     state: ReasoningState,
     finance_summary: dict[str, Any],
     period_slug: str,
+    fact_registry: FactRegistry | None = None,
 ) -> str:
     """Build the Stage 3 strategic-synthesis prompt.
 
@@ -343,9 +357,13 @@ def build_strategic_synthesis_prompt(
         "objective": "Qué debe hacer la dirección universitaria.",
         "validated_reasoning_state": state.to_prompt_context(),
         "allowed_evidence_ids": sorted(state.evidence_references)[:80],
+        "allowed_placeholders": [
+            fact["placeholder"]
+            for fact in (fact_registry.prompt_facts() if fact_registry else [])
+        ][:80],
         "rules": (
             "Usa solo afirmaciones validadas en validated_reasoning_state.",
-            "Copia números exactamente como aparecen en esas afirmaciones.",
+            "Conserva los placeholders {{FACT_###}} de esas afirmaciones; no escribas literales deterministas.",
             "Cita evidence_ids ya presentes en las afirmaciones validadas.",
         ),
     }
@@ -371,6 +389,7 @@ def validate_reasoning_stage_response(
     *,
     stage_id: str,
     evidence_ledger: dict[str, Any],
+    fact_registry: FactRegistry | None = None,
 ) -> ReasoningValidationResult:
     """Validate Stage 1 or Stage 2 strict JSON output.
 
@@ -402,13 +421,27 @@ def validate_reasoning_stage_response(
         _validate_reasoning_items(field_name, payload.get(field_name), evidence_ledger, errors)
     if errors:
         return ReasoningValidationResult(False, None, tuple(dict.fromkeys(errors)))
+    registry = fact_registry or FactRegistry.from_evidence_ledger(evidence_ledger)
+    placeholder_validation = validate_placeholders_in_payload(payload, registry)
+    if not placeholder_validation.is_valid:
+        return ReasoningValidationResult(False, None, placeholder_validation.errors)
 
     cleaned = {
         key: _clean_reasoning_items(value, field_name=key)
         for key, value in payload.items()
     }
+    raw_placeholder_payload = json.loads(json.dumps(cleaned, ensure_ascii=False))
+    substituted, substitution_audit = registry.substitute(cleaned)
     if normalizations:
         cleaned["_schema_normalizations"] = normalizations
+    cleaned["_raw_placeholder_payload"] = raw_placeholder_payload
+    cleaned["_substituted_payload"] = substituted
+    cleaned["_placeholder_validation"] = {
+        "is_valid": True,
+        "placeholder_count": placeholder_validation.placeholder_count,
+        "audit": list(placeholder_validation.audit),
+    }
+    cleaned["_substitution_audit"] = substitution_audit
     return ReasoningValidationResult(True, cleaned, ())
 
 
@@ -421,6 +454,7 @@ def validate_strategic_synthesis_response(
     risk_summary: dict[str, Any],
     historical_context: dict[str, Any] | None,
     evidence_ledger: dict[str, Any],
+    fact_registry: FactRegistry | None = None,
 ) -> ReasoningValidationResult:
     """Validate Stage 3 final synthesis against existing Step-9 guards.
 
@@ -433,8 +467,13 @@ def validate_strategic_synthesis_response(
     validation = validate_strategic_analysis_response(response_text)
     if not validation.is_valid or validation.analysis is None:
         return ReasoningValidationResult(False, None, validation.errors)
+    registry = fact_registry or FactRegistry.from_evidence_ledger(evidence_ledger)
+    placeholder_validation = validate_placeholders_in_payload(validation.analysis, registry)
+    if not placeholder_validation.is_valid:
+        return ReasoningValidationResult(False, None, placeholder_validation.errors)
+    substituted_analysis, substitution_audit = registry.substitute(validation.analysis)
     claim_errors = validate_evidence_bound_claims(
-        validation.analysis,
+        substituted_analysis,
         finance_summary=finance_summary,
         anomaly_report=anomaly_report,
         evidence_package=evidence_package,
@@ -444,7 +483,19 @@ def validate_strategic_synthesis_response(
     )
     if claim_errors:
         return ReasoningValidationResult(False, None, claim_errors)
-    return ReasoningValidationResult(True, validation.analysis, ())
+    substituted_analysis["_raw_placeholder_payload"] = validation.analysis
+    substituted_analysis["_substituted_payload"] = {
+        key: value
+        for key, value in substituted_analysis.items()
+        if not str(key).startswith("_")
+    }
+    substituted_analysis["_placeholder_validation"] = {
+        "is_valid": True,
+        "placeholder_count": placeholder_validation.placeholder_count,
+        "audit": list(placeholder_validation.audit),
+    }
+    substituted_analysis["_substitution_audit"] = substitution_audit
+    return ReasoningValidationResult(True, substituted_analysis, ())
 
 
 def _run_structured_stage(
@@ -456,6 +507,7 @@ def _run_structured_stage(
     validator: Any,
     response_format: dict[str, Any] | str = "json",
     stage_timeout_seconds: float | None = None,
+    fact_registry: FactRegistry | None = None,
 ) -> ReasoningStageResult:
     """Call Ollama once and validate one reasoning stage.
 
@@ -526,6 +578,7 @@ def _run_structured_stage(
     validation = validator(response)
     validation_time = time.perf_counter() - validation_started
     schema_retry_attempted = False
+    placeholder_retry_attempted = False
     if not validation.is_valid and _is_schema_only_error(validation.errors):
         schema_retry_attempted = True
         retry_prompt = build_schema_repair_prompt(
@@ -557,6 +610,37 @@ def _run_structured_stage(
         validation_started = time.perf_counter()
         validation = validator(response)
         validation_time += time.perf_counter() - validation_started
+    if not validation.is_valid and _is_placeholder_error(validation.errors) and fact_registry is not None:
+        placeholder_retry_attempted = True
+        retry_prompt = build_placeholder_repair_prompt(
+            stage_name=stage_name,
+            placeholder_errors=validation.errors,
+            original_response=response,
+            fact_registry=fact_registry,
+        )
+        previous_response_format = getattr(client, "response_format", None)
+        if previous_response_format is not None:
+            setattr(client, "response_format", response_format)
+        try:
+            if hasattr(client, "generate_with_metadata"):
+                generation = client.generate_with_metadata(retry_prompt)
+                response = str(generation["response"])
+                retry_telemetry = dict(generation.get("telemetry", {}))
+                ollama_telemetry = _merge_retry_telemetry(ollama_telemetry, retry_telemetry)
+            else:
+                response = client.generate(retry_prompt)
+        except OllamaError as exc:
+            validation = ReasoningValidationResult(False, None, (str(exc),))
+            ollama_telemetry = {
+                **ollama_telemetry,
+                "placeholder_retry_error_category": exc.category,
+            }
+        finally:
+            if previous_response_format is not None:
+                setattr(client, "response_format", previous_response_format)
+        validation_started = time.perf_counter()
+        validation = validator(response)
+        validation_time += time.perf_counter() - validation_started
     telemetry = {
         "stage_id": stage_id,
         "prompt_characters": len(prompt),
@@ -566,6 +650,7 @@ def _run_structured_stage(
         "error_category": None if validation.is_valid else "validation_rejection",
         "timeout_error_category": ollama_telemetry.get("timeout_error_category"),
         "schema_retry_attempted": schema_retry_attempted,
+        "placeholder_retry_attempted": placeholder_retry_attempted,
         **ollama_telemetry,
     }
     return ReasoningStageResult(
@@ -635,14 +720,15 @@ def _validate_reasoning_items(
             errors.append(f"{prefix}.claim_type must be fact, interpretation, or hypothesis")
         language_errors = validate_user_facing_spanish({"key_findings": [text]})
         errors.extend(f"{prefix}: {error}" for error in language_errors)
-        for number in _numbers_in_text(text):
+        text_without_placeholders = PLACEHOLDER_PATTERN.sub("", text)
+        for number in _numbers_in_text(text_without_placeholders):
             if number not in approved_numbers and number not in approved_periods:
                 errors.append(f"{prefix} contains unsupported number: {number}")
-        for period in set(re.findall(r"20\d{2}[-_]\d{2}|20\d{2}", text)):
+        for period in set(re.findall(r"20\d{2}[-_]\d{2}|20\d{2}", text_without_placeholders)):
             if period not in approved_periods:
                 errors.append(f"{prefix} contains unsupported period: {period}")
         for entity in approved_entities:
-            if entity and entity in text:
+            if entity and entity in text_without_placeholders:
                 break
         evidence_ids = item.get("evidence_ids")
         if not isinstance(evidence_ids, list) or not evidence_ids:
@@ -788,6 +874,9 @@ def _stage_prompt(*, stage_name: str, schema: str, context: dict[str, Any]) -> s
 
     return (
         f"STAGE: {stage_name}\n"
+        "Usa placeholders {{FACT_###}} exactamente para todo hecho determinista disponible.\n"
+        "No escribas literales numéricos, montos, porcentajes, periodos o entidades deterministas en campos text.\n"
+        "No modifiques, traduzcas, dividas ni inventes placeholders; Python hará la sustitución final.\n"
         "Escribe todo texto de usuario en español profesional.\n"
         "Usa solo hechos, números, periodos, entidades y evidence_ids presentes en el contexto.\n"
         "No calcules, no estimes, no redondees, no inventes causas ni resultados.\n"
@@ -837,6 +926,55 @@ def _is_schema_only_error(errors: tuple[str, ...]) -> bool:
     """
 
     return bool(errors) and all(str(error).startswith("schema:") for error in errors)
+
+
+def build_placeholder_repair_prompt(
+    *,
+    stage_name: str,
+    placeholder_errors: tuple[str, ...],
+    original_response: str,
+    fact_registry: FactRegistry,
+) -> str:
+    """Build one placeholder-only repair prompt for a reasoning stage.
+
+    Inputs: stage name, validation errors, original response and fact registry.
+    Outputs: compact prompt asking Ollama to replace deterministic literals with
+    approved placeholders only.
+    Assumptions: retry must preserve claims, evidence IDs, priorities, numbers,
+    and meaning; Python still validates again afterwards.
+    """
+
+    return (
+        f"STAGE_PLACEHOLDER_REPAIR: {stage_name}\n"
+        "El JSON anterior fue estructuralmente válido, pero incumplió el contrato de placeholders.\n"
+        "Reescribe el MISMO JSON usando solo placeholders {{FACT_###}} para hechos deterministas.\n"
+        "No agregues ni elimines afirmaciones, riesgos, oportunidades, preguntas, recomendaciones ni evidence_ids.\n"
+        "No calcules, no redondees, no cambies significado y no escribas literales numéricos, periodos o entidades.\n"
+        "Devuelve JSON estricto únicamente.\n"
+        f"PLACEHOLDER_ERRORS:\n{json.dumps(list(placeholder_errors), ensure_ascii=False)}\n"
+        "ALLOWED_FACTS:\n"
+        f"{json.dumps(fact_registry.prompt_facts()[:120], ensure_ascii=False, separators=(',', ':'))}\n"
+        "ORIGINAL_RESPONSE:\n"
+        + original_response[:20_000]
+    )
+
+
+def _is_placeholder_error(errors: tuple[str, ...]) -> bool:
+    """Return whether a placeholder-compliance retry is safe.
+
+    Inputs: validation errors.
+    Outputs: True when errors are limited to placeholder/literal formatting.
+    Assumptions: schema, language, evidence, causal, and unsupported claim
+    failures remain rejected without this repair path.
+    """
+
+    markers = (
+        "placeholder",
+        "unsupported numeric literal",
+        "deterministic literal",
+        "without supporting evidence_ids",
+    )
+    return bool(errors) and all(any(marker in str(error) for marker in markers) for error in errors)
 
 
 def _merge_retry_telemetry(first: dict[str, Any], retry: dict[str, Any]) -> dict[str, Any]:

@@ -20,12 +20,18 @@ class ReasoningState:
 
     period_slug: str
     evidence_ledger: dict[str, Any]
+    fact_registry: dict[str, Any] | None = None
     validated_claims: list[dict[str, Any]] = field(default_factory=list)
     risks: list[dict[str, Any]] = field(default_factory=list)
     opportunities: list[dict[str, Any]] = field(default_factory=list)
     open_questions: list[dict[str, Any]] = field(default_factory=list)
     unresolved_conflicts: list[dict[str, Any]] = field(default_factory=list)
     reasoning_outputs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    raw_placeholder_outputs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    substituted_outputs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    placeholder_validation_results: dict[str, dict[str, Any]] = field(default_factory=dict)
+    substitution_audit_log: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
+    normalization_log: dict[str, list[dict[str, str]]] = field(default_factory=dict)
     evidence_references: dict[str, dict[str, Any]] = field(default_factory=dict)
     cross_stage_dependencies: list[dict[str, Any]] = field(default_factory=list)
     stage_results: list[ReasoningStageResult] = field(default_factory=list)
@@ -51,7 +57,19 @@ class ReasoningState:
         """
 
         self.stage_results.append(result)
-        self.reasoning_outputs[result.stage_id] = result.payload
+        raw_payload = result.payload.get("_raw_placeholder_payload", result.payload)
+        substituted_payload = result.payload.get("_substituted_payload", result.payload)
+        self.raw_placeholder_outputs[result.stage_id] = raw_payload
+        self.substituted_outputs[result.stage_id] = substituted_payload
+        self.placeholder_validation_results[result.stage_id] = result.payload.get("_placeholder_validation", {})
+        self.substitution_audit_log[result.stage_id] = list(result.payload.get("_substitution_audit", []))
+        self.normalization_log[result.stage_id] = list(result.payload.get("_schema_normalizations", []))
+        # Earlier stages are passed forward with placeholders intact.  The final
+        # synthesis is stored substituted so existing report generation receives
+        # deterministic Spanish prose with Python-owned values.
+        self.reasoning_outputs[result.stage_id] = (
+            substituted_payload if result.stage_id == "strategic_synthesis" else raw_payload
+        )
         if not result.accepted:
             self.unresolved_conflicts.append(
                 {
@@ -62,17 +80,17 @@ class ReasoningState:
             )
             return
         for key in ("claims", "validated_financial_claims", "validated_historical_claims"):
-            self._extend_structured_items(self.validated_claims, result.payload.get(key), result.stage_id)
+            self._extend_structured_items(self.validated_claims, raw_payload.get(key), result.stage_id)
         for key in ("risks", "identified_financial_risks", "persistent_risks"):
-            self._extend_structured_items(self.risks, result.payload.get(key), result.stage_id)
+            self._extend_structured_items(self.risks, raw_payload.get(key), result.stage_id)
         self._extend_structured_items(
             self.opportunities,
-            result.payload.get("opportunities", result.payload.get("financial_opportunities")),
+            raw_payload.get("opportunities", raw_payload.get("financial_opportunities")),
             result.stage_id,
         )
         self._extend_structured_items(
             self.open_questions,
-            result.payload.get("open_questions"),
+            raw_payload.get("open_questions"),
             result.stage_id,
         )
 
@@ -121,6 +139,12 @@ class ReasoningState:
             "open_questions": self.open_questions,
             "unresolved_conflicts": self.unresolved_conflicts,
             "reasoning_outputs": self.reasoning_outputs,
+            "fact_registry": self.fact_registry or {},
+            "raw_placeholder_outputs": self.raw_placeholder_outputs,
+            "substituted_outputs": self.substituted_outputs,
+            "placeholder_validation_results": self.placeholder_validation_results,
+            "substitution_audit_log": self.substitution_audit_log,
+            "normalization_log": self.normalization_log,
             "evidence_references": self.evidence_references,
             "cross_stage_dependencies": self.cross_stage_dependencies,
             "stage_results": [stage.to_dict() for stage in self.stage_results],
