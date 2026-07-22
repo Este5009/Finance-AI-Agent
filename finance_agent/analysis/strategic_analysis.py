@@ -27,6 +27,38 @@ MAX_RESPONSE_CHARACTERS = 80_000
 MAX_TEXT_LENGTH = 1_200
 MAX_LIST_ITEMS = 8
 MAX_RECOMMENDATIONS = 8
+NARRATIVE_SCALAR_FIELDS = (
+    "executive_summary",
+    "financial_health_analysis",
+    "kpi_analysis",
+    "historical_summary",
+    "historical_trend_analysis",
+    "department_analysis",
+    "anomaly_analysis",
+    "recommendation_follow_up_analysis",
+    "longitudinal_risk_analysis",
+    "reasoning_summary",
+)
+NARRATIVE_LIST_FIELDS = (
+    "key_findings",
+    "root_causes",
+    "strategic_priorities",
+    "missing_information",
+)
+GENERAL_FACT_SUPPORTS = (
+    "executive_summary",
+    "key_findings",
+    "root_causes",
+    "financial_health_analysis",
+    "kpi_analysis",
+    "historical_summary",
+    "historical_trend_analysis",
+    "recommendation_follow_up_analysis",
+    "longitudinal_risk_analysis",
+    "strategic_priorities",
+    "strategic_recommendations",
+    "reasoning_summary",
+)
 REQUIRED_ANALYSIS_FIELDS = frozenset(
     {
         "executive_summary",
@@ -80,7 +112,6 @@ SPANISH_TEXT_FIELDS = frozenset(
         "reasoning_summary",
         "strategic_recommendations.action",
         "strategic_recommendations.rationale",
-        "strategic_recommendations.supporting_evidence",
         "strategic_recommendations.expected_impact",
     }
 )
@@ -216,6 +247,337 @@ def _iter_nested_values(value: Any) -> list[Any]:
     return [value]
 
 
+def _slug(value: Any) -> str:
+    """Create a stable compact identifier fragment.
+
+    Inputs: arbitrary value.
+    Outputs: lowercase alphanumeric/underscore slug.
+    Assumptions: slugs are used only for evidence IDs, not display text.
+    """
+
+    text = str(value or "unknown").strip().casefold()
+    slug = re.sub(r"[^a-z0-9]+", "_", text).strip("_")
+    return slug or "unknown"
+
+
+def _display_fact_value(value: Any, unit: str | None = None) -> str:
+    """Format one approved evidence value for model-safe display.
+
+    Inputs: raw value and optional unit.
+    Outputs: exact display string that Ollama may copy verbatim.
+    Assumptions: this is presentation formatting, not calculation.
+    """
+
+    if value is None or value == "":
+        return ""
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return str(value)
+    if unit == "ratio":
+        return f"{number:.1%}"
+    if unit == "USD":
+        sign = "-" if number < 0 else ""
+        return f"{sign}${abs(number):,.0f}"
+    if float(number).is_integer():
+        return f"{int(number)}"
+    return f"{number:.4f}".rstrip("0").rstrip(".")
+
+
+def _number_variants_for_ledger(value: Any, display_value: str, unit: str | None = None) -> set[str]:
+    """Return exact numeric tokens approved by one ledger fact.
+
+    Inputs: raw value, display value, and unit.
+    Outputs: normalized number tokens.
+    Assumptions: percentages are approved only at ledger display precision.
+    """
+
+    variants = {
+        _normalize_claim_number(match.group(0))
+        for match in re.finditer(r"-?\d+(?:[\.,]\d+)?%?", str(display_value))
+    }
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return variants
+    variants.add(_normalize_claim_number(str(value)))
+    if unit == "ratio":
+        variants.add(f"{number:.1%}")
+    return variants
+
+
+def build_evidence_ledger(
+    *,
+    finance_summary: dict[str, Any],
+    anomaly_report: dict[str, Any],
+    evidence_package: dict[str, Any],
+    risk_summary: dict[str, Any],
+    period_slug: str,
+    historical_context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build the compact allowed-facts ledger for strategic analysis.
+
+    Inputs: processed finance/anomaly/evidence/risk outputs, current period, and
+    optional compact historical context.
+    Outputs: ledger with exact facts, approved values, periods, entities, and
+    evidence IDs.
+    Assumptions: ledger facts are Python-authored source-of-truth; Ollama may
+    only reference them, never calculate new facts.
+    """
+
+    facts: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    def add_fact(
+        *,
+        evidence_id: str,
+        category: str,
+        field: str,
+        metric: str | None = None,
+        value: Any = None,
+        unit: str | None = None,
+        display_value: str | None = None,
+        period: Any = None,
+        entity: Any = None,
+        source_reference: str = "",
+        supports: tuple[str, ...] = (),
+        claim: str = "",
+    ) -> None:
+        """Append one deduplicated fact to the ledger.
+
+        Inputs: fact metadata and optional scalar value.
+        Outputs: mutates the local fact list.
+        Assumptions: identical evidence IDs represent the same approved fact.
+        """
+
+        if evidence_id in seen:
+            return
+        seen.add(evidence_id)
+        display = display_value if display_value is not None else _display_fact_value(value, unit)
+        facts.append(
+            {
+                "evidence_id": evidence_id,
+                "category": category,
+                "field": field,
+                "metric": metric or field,
+                "display_value": display,
+                "raw_value": value,
+                "unit": unit,
+                "period": str(period or period_slug),
+                "entity": str(entity or ""),
+                "source_reference": source_reference,
+                "supports_sections": list(supports),
+                "claim": claim,
+            }
+        )
+
+    finance = finance_summary.get("finance_summary", {})
+    finance = finance if isinstance(finance, dict) else {}
+    budget = finance.get("budget_vs_actual", {})
+    budget = budget if isinstance(budget, dict) else {}
+    payments = finance.get("student_payments", {})
+    payments = payments if isinstance(payments, dict) else {}
+    cash = finance.get("cash_flow", {})
+    cash = cash if isinstance(cash, dict) else {}
+    finance_source = f"outputs/calculations/finance_summary_{period_slug}.json"
+    metric_specs = {
+        "total_revenue": (finance.get("total_revenue"), "USD"),
+        "total_expenses": (finance.get("total_expenses"), "USD"),
+        "net_operating_result": (finance.get("net_operating_result"), "USD"),
+        "payroll_total": (finance.get("payroll_total"), "USD"),
+        "payroll_percentage_of_revenue": (finance.get("payroll_percentage_of_revenue"), "ratio"),
+        "revenue_variance": (budget.get("revenue_variance"), "USD"),
+        "revenue_variance_pct": (budget.get("revenue_variance_pct"), "ratio"),
+        "expense_variance": (budget.get("expense_variance"), "USD"),
+        "expense_variance_pct": (budget.get("expense_variance_pct"), "ratio"),
+        "collection_rate": (payments.get("collection_rate"), "ratio"),
+        "overdue_invoice_count": (payments.get("overdue_invoice_count"), "count"),
+        "net_cash_flow": (cash.get("net_cash_flow"), "USD"),
+        "ending_cash": (cash.get("ending_cash"), "USD"),
+    }
+    for metric, (value, unit) in metric_specs.items():
+        if value is not None:
+            add_fact(
+                evidence_id=f"finance.metric.{metric}",
+                category="current_finding",
+                field=metric,
+                metric=metric,
+                value=value,
+                unit=unit,
+                source_reference=finance_source,
+                supports=(*GENERAL_FACT_SUPPORTS, "revenue_expense_analysis"),
+            )
+
+    for row in (finance_summary.get("department_summary", []) or [])[:8]:
+        if not isinstance(row, dict):
+            continue
+        department = row.get("department")
+        for metric in ("actual_revenue", "actual_expenses", "net_operating_result", "variance", "expense_variance_pct"):
+            if row.get(metric) is None:
+                continue
+            add_fact(
+                evidence_id=f"finance.department.{_slug(department)}.{metric}",
+                category="current_finding",
+                field=metric,
+                metric=metric,
+                value=row.get(metric),
+                unit="ratio" if metric.endswith("_pct") else "USD",
+                entity=department,
+                source_reference=finance_source,
+                supports=(*GENERAL_FACT_SUPPORTS, "department_analysis"),
+            )
+
+    anomaly_source = f"outputs/anomalies/anomaly_report_{period_slug}.json"
+    add_fact(
+        evidence_id="anomaly.total_count",
+        category="current_finding",
+        field="total_anomalies",
+        value=anomaly_report.get("total_anomalies"),
+        unit="count",
+            source_reference=anomaly_source,
+            supports=(*GENERAL_FACT_SUPPORTS, "anomaly_analysis"),
+    )
+    source_anomalies = anomaly_report.get("anomalies", [])
+    source_anomalies = source_anomalies if isinstance(source_anomalies, list) else []
+    ranked_anomalies = rank_anomalies(
+        source_anomalies,
+        allowed_severities={"critical", "high"},
+        max_count=8,
+    ) or rank_anomalies(source_anomalies, max_count=8)
+    for anomaly in ranked_anomalies[:8]:
+        if not isinstance(anomaly, dict):
+            continue
+        anomaly_id = str(anomaly.get("anomaly_id") or _slug(anomaly.get("title")))
+        add_fact(
+            evidence_id=f"anomaly.{_slug(anomaly_id)}",
+            category="current_finding",
+            field=str(anomaly.get("metric") or "anomaly"),
+            metric=str(anomaly.get("metric") or "anomaly"),
+            value=anomaly.get("observed_value"),
+            display_value=str(anomaly.get("evidence") or anomaly.get("title") or anomaly_id)[:220],
+            period=anomaly.get("period") or period_slug,
+            entity=anomaly.get("department") or "",
+            source_reference=anomaly_source,
+            supports=(*GENERAL_FACT_SUPPORTS, "anomaly_analysis"),
+            claim=str(anomaly.get("title") or anomaly.get("evidence") or ""),
+        )
+
+    evidence_source = f"outputs/evidence/evidence_package_{period_slug}.json"
+    for package in (evidence_package.get("evidence_packages", []) or [])[:12]:
+        if not isinstance(package, dict):
+            continue
+        task_id = str(package.get("task_id") or _slug(package.get("investigation_question")))
+        evidence = package.get("retrieved_evidence", {})
+        evidence = evidence if isinstance(evidence, dict) else {}
+        data = evidence.get("data", {})
+        data = data if isinstance(data, dict) else {}
+        add_fact(
+            evidence_id=f"evidence.{_slug(task_id)}.summary",
+            category="current_finding",
+            field="evidence_summary",
+            display_value=str(package.get("evidence_summary") or "")[:240],
+            entity=evidence.get("retrieval_name") or "",
+            source_reference=evidence_source,
+            supports=(*GENERAL_FACT_SUPPORTS, "missing_information"),
+        )
+        for row in (data.get("payroll_breakdown", []) or [])[-8:]:
+            if not isinstance(row, dict):
+                continue
+            department = row.get("department")
+            for metric in ("payroll_amount", "budget", "variance", "overtime", "benefits", "headcount_fte"):
+                if row.get(metric) in (None, ""):
+                    continue
+                add_fact(
+                    evidence_id=f"evidence.{_slug(task_id)}.{_slug(department)}.{metric}",
+                    category="current_finding",
+                    field=metric,
+                    metric=metric,
+                    value=row.get(metric),
+                    unit="count" if metric == "headcount_fte" else "USD",
+                    period=row.get("period") or period_slug,
+                    entity=department,
+                    source_reference=evidence_source,
+                    supports=(*GENERAL_FACT_SUPPORTS, "department_analysis", "recommendation_follow_up_analysis"),
+                )
+
+    history = historical_context or {}
+    derived = history.get("derived_context", {}) if isinstance(history, dict) else {}
+    for trend in (derived.get("kpi_trends", []) if isinstance(derived, dict) else []) or []:
+        if not isinstance(trend, dict):
+            continue
+        metric = trend.get("metric")
+        for point in (trend.get("points", []) or [])[-6:]:
+            if not isinstance(point, dict):
+                continue
+            add_fact(
+                evidence_id=f"history.metric.{_slug(metric)}.{_slug(point.get('period'))}",
+                category="kpi_trend",
+                field="trend_point",
+                metric=str(metric or ""),
+                value=point.get("value"),
+                unit="ratio" if "rate" in str(metric) or "percentage" in str(metric) else "USD",
+                period=point.get("period"),
+                source_reference="data/memory/recovery_2026_memory.db",
+                supports=(*GENERAL_FACT_SUPPORTS, "historical_summary", "historical_trend_analysis", "longitudinal_risk_analysis"),
+            )
+    for index, item in enumerate((derived.get("artifact_anomaly_patterns", []) if isinstance(derived, dict) else []) or []):
+        if not isinstance(item, dict):
+            continue
+        add_fact(
+            evidence_id=f"history.recurring_anomaly.{index + 1}",
+            category="recurring_anomaly",
+            field=str(item.get("pattern") or "recurring_anomaly"),
+            value=item.get("occurrences"),
+            unit="count",
+            period=", ".join(str(period) for period in item.get("periods", [])[:6]),
+            entity=item.get("department") or "",
+            source_reference="data/memory/recovery_2026_memory.db",
+            supports=(*GENERAL_FACT_SUPPORTS, "historical_summary", "longitudinal_risk_analysis", "anomaly_analysis"),
+            claim=str(item.get("pattern") or ""),
+        )
+    for index, item in enumerate((derived.get("recommendation_effectiveness", []) if isinstance(derived, dict) else []) or []):
+        if not isinstance(item, dict):
+            continue
+        add_fact(
+            evidence_id=f"history.recommendation.{index + 1}",
+            category="prior_recommendation",
+            field=str(item.get("topic") or "recommendation"),
+            display_value=str(item.get("evidence") or item.get("inferred_status") or "")[:220],
+            period=item.get("issued_period") or period_slug,
+            source_reference="data/memory/recovery_2026_memory.db",
+            supports=(*GENERAL_FACT_SUPPORTS, "recommendation_follow_up_analysis"),
+        )
+
+    approved_numbers: set[str] = set()
+    approved_periods: set[str] = {str(period_slug), str(period_slug).replace("_", "-")}
+    approved_periods.update(re.findall(r"20\d{2}", str(period_slug)))
+    approved_entities: set[str] = set()
+    evidence_ids: set[str] = set()
+    for fact in facts:
+        evidence_ids.add(str(fact["evidence_id"]))
+        approved_numbers.update(
+            _number_variants_for_ledger(fact.get("raw_value"), str(fact.get("display_value") or ""), fact.get("unit"))
+        )
+        if fact.get("period"):
+            approved_periods.update(re.findall(r"20\d{2}[-_]\d{2}|20\d{2}", str(fact["period"])))
+            approved_periods.add(str(fact["period"]))
+        if fact.get("entity"):
+            approved_entities.add(str(fact["entity"]))
+    return {
+        "period_slug": period_slug,
+        "facts": facts[:80],
+        "approved_numbers": sorted(approved_numbers),
+        "approved_periods": sorted(approved_periods),
+        "approved_entities": sorted(approved_entities),
+        "evidence_ids": sorted(evidence_ids),
+        "rules": {
+            "numbers_must_be_copied_verbatim": True,
+            "claims_require_evidence_ids": True,
+            "hypotheses_must_be_labeled": True,
+        },
+    }
+
+
 def _normalize_claim_number(token: str) -> str:
     """Normalize a prose/context number token for comparison.
 
@@ -321,6 +683,12 @@ def strategic_analysis_json_schema() -> dict[str, Any]:
     """
 
     string_schema = {"type": "string", "minLength": 1, "maxLength": MAX_TEXT_LENGTH}
+    narrative_block = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["text", "evidence_ids"],
+        "properties": {"text": string_schema, "evidence_ids": {"type": "array", "minItems": 1, "maxItems": MAX_LIST_ITEMS, "items": {"type": "string", "minLength": 1, "maxLength": 160}}},
+    }
     string_array = {
         "type": "array",
         "minItems": 0,
@@ -371,17 +739,17 @@ def strategic_analysis_json_schema() -> dict[str, Any]:
         "additionalProperties": False,
         "required": sorted(REQUIRED_ANALYSIS_FIELDS),
         "properties": {
-            "executive_summary": string_schema,
+            "executive_summary": narrative_block,
             "key_findings": string_array,
             "root_causes": string_array,
-            "financial_health_analysis": string_schema,
-            "kpi_analysis": string_schema,
-            "historical_summary": string_schema,
-            "historical_trend_analysis": string_schema,
-            "department_analysis": string_schema,
-            "anomaly_analysis": string_schema,
-            "recommendation_follow_up_analysis": string_schema,
-            "longitudinal_risk_analysis": string_schema,
+            "financial_health_analysis": narrative_block,
+            "kpi_analysis": narrative_block,
+            "historical_summary": narrative_block,
+            "historical_trend_analysis": narrative_block,
+            "department_analysis": narrative_block,
+            "anomaly_analysis": narrative_block,
+            "recommendation_follow_up_analysis": narrative_block,
+            "longitudinal_risk_analysis": narrative_block,
             "strategic_recommendations": {
                 "type": "array",
                 "minItems": 1,
@@ -397,9 +765,31 @@ def strategic_analysis_json_schema() -> dict[str, Any]:
                 "properties": narrative_properties,
             },
             "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-            "reasoning_summary": string_schema,
+            "reasoning_summary": narrative_block,
         },
     }
+
+
+def _coerce_section_narrative_blocks(payload: dict[str, Any]) -> dict[str, Any]:
+    """Normalize new section narrative blocks into existing analysis fields.
+
+    Inputs: raw model payload.
+    Outputs: payload with scalar text fields plus narrative_evidence entries.
+    Assumptions: public downstream analysis fields remain English-keyed strings.
+    """
+
+    normalized = dict(payload)
+    narrative_evidence = normalized.get("narrative_evidence")
+    narrative_evidence = dict(narrative_evidence) if isinstance(narrative_evidence, dict) else {}
+    for field_name in NARRATIVE_SCALAR_FIELDS:
+        value = normalized.get(field_name)
+        if isinstance(value, dict):
+            normalized[field_name] = value.get("text", "")
+            evidence_ids = value.get("evidence_ids")
+            if isinstance(evidence_ids, list):
+                narrative_evidence[field_name] = evidence_ids
+    normalized["narrative_evidence"] = narrative_evidence
+    return normalized
 
 
 def validate_evidence_bound_claims(
@@ -410,6 +800,7 @@ def validate_evidence_bound_claims(
     evidence_package: dict[str, Any],
     risk_summary: dict[str, Any],
     historical_context: dict[str, Any] | None = None,
+    evidence_ledger: dict[str, Any] | None = None,
 ) -> tuple[str, ...]:
     """Validate narrative claims stay bound to supplied evidence.
 
@@ -419,13 +810,24 @@ def validate_evidence_bound_claims(
     department names, generic filler, and missing narrative evidence IDs.
     """
 
-    supported = _extract_supported_claim_tokens(
-        finance_summary,
-        anomaly_report,
-        evidence_package,
-        risk_summary,
-        historical_context or {},
+    ledger = evidence_ledger or build_evidence_ledger(
+        finance_summary=finance_summary,
+        anomaly_report=anomaly_report,
+        evidence_package=evidence_package,
+        risk_summary=risk_summary,
+        period_slug=str(finance_summary.get("period_slug") or evidence_package.get("period_slug") or "unknown"),
+        historical_context=historical_context,
     )
+    supported = {
+        "numbers": set(str(item) for item in ledger.get("approved_numbers", [])),
+        "periods": set(str(item) for item in ledger.get("approved_periods", [])),
+        "departments": set(str(item) for item in ledger.get("approved_entities", [])),
+    }
+    facts_by_id = {
+        str(fact.get("evidence_id")): fact
+        for fact in ledger.get("facts", [])
+        if isinstance(fact, dict) and fact.get("evidence_id")
+    }
     errors: list[str] = []
     narrative_evidence = analysis.get("narrative_evidence", {})
     narrative_evidence = narrative_evidence if isinstance(narrative_evidence, dict) else {}
@@ -434,6 +836,8 @@ def validate_evidence_bound_claims(
         if any(phrase in lowered for phrase in GENERIC_PLACEHOLDER_PHRASES):
             errors.append(f"{field_name} contains generic placeholder prose")
         for number in {_normalize_claim_number(match.group(0)) for match in re.finditer(r"-?\d+(?:[\.,]\d+)?%?", text)}:
+            if number in supported["periods"]:
+                continue
             if number not in supported["numbers"]:
                 errors.append(f"{field_name} contains unsupported number: {number}")
         for period in set(re.findall(r"20\d{2}[-_]\d{2}|20\d{2}", text)):
@@ -460,11 +864,44 @@ def validate_evidence_bound_claims(
             errors.append(f"{field_name} contains unsupported named entity: {candidate}")
         base = field_name.split("[")[0]
         if base != "strategic_recommendations" and base in SPANISH_TEXT_FIELDS:
-            if not narrative_evidence.get(base):
+            evidence_ids = narrative_evidence.get(base)
+            if not evidence_ids:
                 errors.append(f"{base} must retain source/evidence IDs")
+            elif isinstance(evidence_ids, list):
+                for evidence_id in evidence_ids:
+                    fact = facts_by_id.get(str(evidence_id))
+                    if fact is None:
+                        errors.append(f"{base} cites unknown evidence_id: {evidence_id}")
+                    elif base not in set(fact.get("supports_sections", [])):
+                        errors.append(f"{base} cites evidence_id not supporting section: {evidence_id}")
+        causal_markers = (
+            "causó",
+            "causado por",
+            "causa ",
+            "causas ",
+            "debido a",
+            "provocado por",
+            "generado por",
+            "resultado de",
+            "se explica por",
+        )
+        hypothesis_markers = ("hipótesis", "probable", "posible", "podría", "parece", "sugiere")
+        if any(marker in lowered for marker in causal_markers) and not any(marker in lowered for marker in hypothesis_markers):
+            errors.append(f"{field_name} contains unsupported causal claim stated as fact")
     for index, recommendation in enumerate(analysis.get("strategic_recommendations", [])):
-        if isinstance(recommendation, dict) and not recommendation.get("evidence_ids"):
-            errors.append(f"strategic_recommendations[{index}] must retain source/evidence IDs")
+        if isinstance(recommendation, dict):
+            evidence_ids = recommendation.get("evidence_ids")
+            if not evidence_ids:
+                errors.append(f"strategic_recommendations[{index}] must retain source/evidence IDs")
+            elif isinstance(evidence_ids, list):
+                for evidence_id in evidence_ids:
+                    fact = facts_by_id.get(str(evidence_id))
+                    if fact is None:
+                        errors.append(f"strategic_recommendations[{index}] cites unknown evidence_id: {evidence_id}")
+                    elif "strategic_recommendations" not in set(fact.get("supports_sections", [])):
+                        errors.append(
+                            f"strategic_recommendations[{index}] cites evidence_id not supporting recommendations: {evidence_id}"
+                        )
     return tuple(dict.fromkeys(errors))
 
 
@@ -593,7 +1030,11 @@ def validate_user_facing_spanish(analysis: dict[str, Any]) -> tuple[str, ...]:
         for index, recommendation in enumerate(recommendations):
             if not isinstance(recommendation, dict):
                 continue
-            for field_name in ("action", "rationale", "supporting_evidence", "expected_impact"):
+            # ``supporting_evidence`` is retained for backward-compatible JSON
+            # shape, but Step 13+ uses evidence_ids as the authoritative
+            # citation layer. Validate only recommendation prose rendered to
+            # executives as Spanish narrative.
+            for field_name in ("action", "rationale", "expected_impact"):
                 _validate_spanish_text_field(
                     f"recommendations[{index}].{field_name}",
                     recommendation.get(field_name),
@@ -707,6 +1148,7 @@ def validate_strategic_analysis_response(
     # exact non-semantic case, then validate the inner object normally.
     if set(payload) == {"analysis"} and isinstance(payload.get("analysis"), dict):
         payload = payload["analysis"]
+    payload = _coerce_section_narrative_blocks(payload)
     if set(payload) != REQUIRED_ANALYSIS_FIELDS:
         return AnalysisValidationResult(
             False,
@@ -1167,6 +1609,113 @@ def _compact_evidence_package(
     }
 
 
+def _compact_historical_context(historical_context: dict[str, Any] | None) -> dict[str, Any]:
+    """Compact historical context for strategic-analysis prompts.
+
+    Inputs: full compact-memory context from the historical context builder.
+    Outputs: bounded context retaining trends, repeated risks, recommendations,
+    goal progress, and tiny retrieval descriptors.
+    Assumptions: full historical records remain in SQLite/artifact references.
+    """
+
+    if not isinstance(historical_context, dict):
+        return {}
+
+    def bounded_items(value: Any, limit: int = 5) -> list[Any]:
+        """Return a bounded JSON-compatible list from a list or mapping.
+
+        Inputs: historical derived-context value and item limit.
+        Outputs: list preserving deterministic insertion order.
+        Assumptions: mappings from memory context are already compact summaries.
+        """
+
+        if isinstance(value, list):
+            return value[:limit]
+        if isinstance(value, dict):
+            return [
+                {"key": key, "value": item}
+                for key, item in list(value.items())[:limit]
+            ]
+        return []
+
+    derived = historical_context.get("derived_context", {})
+    derived = derived if isinstance(derived, dict) else {}
+    retrievals = historical_context.get("retrievals", [])
+    retrievals = retrievals if isinstance(retrievals, list) else []
+    compact_retrievals = []
+    for retrieval in retrievals[:8]:
+        if not isinstance(retrieval, dict):
+            continue
+        records = retrieval.get("records", [])
+        compact_retrievals.append(
+            {
+                "tool_name": retrieval.get("tool_name"),
+                "metric": retrieval.get("metric") or (retrieval.get("arguments", {}) or {}).get("metric"),
+                "department": retrieval.get("department") or (retrieval.get("arguments", {}) or {}).get("department"),
+                "record_count": retrieval.get("record_count") or (len(records) if isinstance(records, list) else None),
+                # The evidence ledger already carries approved historical
+                # values; retrieval descriptors avoid duplicating row payloads.
+                "records": [],
+                "summary": str(retrieval.get("summary") or "")[:220],
+            }
+        )
+    return {
+        "current_period": historical_context.get("current_period"),
+        "purpose": historical_context.get("purpose"),
+        "summary": historical_context.get("summary", {}),
+        "retrievals": compact_retrievals,
+        "derived_context": {
+            "kpi_trends": bounded_items(derived.get("kpi_trends")),
+            "goal_progress": bounded_items(derived.get("goal_progress")),
+            "previous_recommendation_count": derived.get("previous_recommendation_count"),
+            "recommendation_effectiveness": bounded_items(
+                derived.get("recommendation_effectiveness")
+            ),
+            "artifact_anomaly_patterns": bounded_items(
+                derived.get("artifact_anomaly_patterns")
+            ),
+        },
+    }
+
+
+def _prompt_evidence_ledger(evidence_ledger: dict[str, Any]) -> dict[str, Any]:
+    """Build the compact ledger variant sent to Ollama.
+
+    Inputs: full Python validation ledger.
+    Outputs: prompt-sized ledger with exact IDs, values, periods, entities and
+    source references, without repeated validator-only section metadata.
+    Assumptions: Python keeps the full ledger for support validation after model
+    generation; the prompt only needs approved fact surfaces.
+    """
+
+    prompt_facts: list[dict[str, Any]] = []
+    for fact in evidence_ledger.get("facts", []):
+        if not isinstance(fact, dict):
+            continue
+        prompt_facts.append(
+            {
+                "evidence_id": fact.get("evidence_id"),
+                "category": fact.get("category"),
+                "metric": fact.get("metric") or fact.get("field"),
+                "display_value": fact.get("display_value"),
+                "raw_value": fact.get("raw_value"),
+                "unit": fact.get("unit"),
+                "period": fact.get("period"),
+                "entity": fact.get("entity"),
+                "claim": fact.get("claim"),
+                "source_reference": fact.get("source_reference"),
+            }
+        )
+    return {
+        "facts": prompt_facts,
+        "approved_numbers": evidence_ledger.get("approved_numbers", []),
+        "approved_periods": evidence_ledger.get("approved_periods", []),
+        "approved_entities": evidence_ledger.get("approved_entities", []),
+        "evidence_ids": evidence_ledger.get("evidence_ids", []),
+        "rules": evidence_ledger.get("rules", []),
+    }
+
+
 def build_strategic_analysis_prompt(
     *,
     evidence_package: dict[str, Any],
@@ -1186,19 +1735,50 @@ def build_strategic_analysis_prompt(
     """
 
     del compact_context  # Strategic prompt always uses compact processed summaries.
+    evidence_ledger = build_evidence_ledger(
+        finance_summary=finance_summary,
+        anomaly_report=anomaly_report,
+        evidence_package=evidence_package,
+        risk_summary=risk_summary,
+        period_slug=period_slug,
+        historical_context=historical_context,
+    )
+    anomaly_items = anomaly_report.get("anomalies", [])
+    anomaly_items = anomaly_items if isinstance(anomaly_items, list) else []
+    ranked_anomaly_items = rank_anomalies(anomaly_items)
+    high_value_anomaly_items = [
+        item
+        for item in ranked_anomaly_items
+        if isinstance(item, dict)
+        and str(item.get("severity", "")).casefold() in {"critical", "high"}
+    ]
+    prompt_anomaly_items = high_value_anomaly_items[:5] or ranked_anomaly_items[:5]
     context = {
         "period_slug": period_slug,
-        "finance_summary": _compact_finance_summary(
-            finance_summary,
-            deduplicate_context=deduplicate_context,
-        ),
-        "anomaly_report": _compact_anomalies(anomaly_report),
-        "risk_summary": _compact_risk_summary(risk_summary),
-        "evidence_package": _compact_evidence_package(
-            evidence_package,
-            deduplicate_context=deduplicate_context,
-        ),
-        "historical_context": historical_context or {},
+        "evidence_ledger": _prompt_evidence_ledger(evidence_ledger),
+        "historical_context": _compact_historical_context(historical_context),
+        "compact_supporting_context": {
+            "finance_summary": {
+                "report_period": finance_summary.get("report_period"),
+                "period_slug": period_slug,
+            },
+            "anomaly_report": {
+                "anomaly_count": len(anomaly_items),
+                "top_anomaly_ids": [
+                    str(item.get("anomaly_id", item.get("id", "")))
+                    for item in prompt_anomaly_items
+                    if isinstance(item, dict)
+                ],
+            },
+            "risk_summary": {
+                "overall_risk_level": risk_summary.get("overall_risk_level")
+                or risk_summary.get("risk_level"),
+                "critical_count": risk_summary.get("critical_count"),
+                "high_count": risk_summary.get("high_count"),
+            },
+            "evidence_package_summary": evidence_package.get("summary", {}),
+            "historical_context_summary": _compact_historical_context(historical_context).get("summary", {}),
+        },
         "context_policy": {
             "compact_context": True,
             "deduplicate_context": deduplicate_context,
@@ -1208,28 +1788,28 @@ def build_strategic_analysis_prompt(
     }
     schema_text = (
         "Required exact JSON keys and types:\n"
-        "- executive_summary: Spanish string.\n"
+        "- executive_summary: object {text: Spanish string, evidence_ids: list of ledger evidence IDs}.\n"
         "- key_findings: list of 1-8 Spanish strings.\n"
         "- root_causes: list of 1-8 Spanish strings.\n"
-        "- financial_health_analysis: Spanish string.\n"
-        "- kpi_analysis: Spanish string.\n"
-        "- historical_summary: Spanish string.\n"
-        "- historical_trend_analysis: Spanish string.\n"
-        "- department_analysis: Spanish string.\n"
-        "- anomaly_analysis: Spanish string.\n"
-        "- recommendation_follow_up_analysis: Spanish string.\n"
-        "- longitudinal_risk_analysis: Spanish string.\n"
-        "- strategic_recommendations: list of 1-8 objects with keys priority, action, rationale, supporting_evidence, expected_impact, evidence_ids, confidence.\n"
+        "- financial_health_analysis: object {text, evidence_ids}.\n"
+        "- kpi_analysis: object {text, evidence_ids}.\n"
+        "- historical_summary: object {text, evidence_ids}.\n"
+        "- historical_trend_analysis: object {text, evidence_ids}.\n"
+        "- department_analysis: object {text, evidence_ids}.\n"
+        "- anomaly_analysis: object {text, evidence_ids}.\n"
+        "- recommendation_follow_up_analysis: object {text, evidence_ids}.\n"
+        "- longitudinal_risk_analysis: object {text, evidence_ids}.\n"
+        "- strategic_recommendations: list of 1-8 objects with keys priority, action, rationale, supporting_evidence, expected_impact, evidence_ids, confidence. supporting_evidence is legacy metadata; evidence_ids are authoritative citations.\n"
         "- strategic_priorities: list of 1-8 Spanish strings.\n"
         "- missing_information: list of Spanish strings, or [] only when no material evidence gap exists.\n"
-        "- narrative_evidence: object mapping every narrative/list field except strategic_recommendations to a non-empty list of context path IDs.\n"
+        "- narrative_evidence: object mapping every narrative/list field except strategic_recommendations to non-empty ledger evidence IDs.\n"
         "- confidence: number from 0 to 1.\n"
-        "- reasoning_summary: Spanish string.\n"
+        "- reasoning_summary: object {text, evidence_ids}.\n"
     )
     return (
         "INSTRUCTIONS_BEFORE_CONTEXT:\n"
         "You are the strategic financial analyst stage of a Python-first finance "
-        "agent. Use only the processed context supplied below. Do not calculate "
+        "agent. Use only the EVIDENCE_LEDGER facts supplied below. Do not calculate "
         "new financial values, alter any metric, invent source data, execute tools, "
         "or draft a report. Explain the most important financial issues, likely "
         "root causes, annual-goal implications, prioritized risks, concrete "
@@ -1238,10 +1818,14 @@ def build_strategic_analysis_prompt(
         "headcount, salary, benefits, overtime, department, or source-table "
         "breakdowns as missing when they appear in payroll_breakdown or "
         "sample_records. Every narrative field must cite its source/evidence IDs "
-        "in narrative_evidence using compact IDs from the context path, and each "
-        "strategic recommendation must include evidence_ids. Do not include "
-        "numbers, periods, departments, vendors or claims unless they appear in "
-        "the supplied context. Omit or keep concise any section whose evidence is "
+        "in narrative_evidence using IDs from evidence_ledger.facts, and each "
+        "strategic recommendation must include evidence_ids from that ledger. "
+        "Use only exact display_value strings from the evidence ledger for numeric "
+        "values; never round, reformat, change signs, derive percentages, estimate, "
+        "interpolate, or calculate. Do not include numbers, periods, departments, vendors "
+        "or claims unless they appear in evidence_ledger.approved_numbers, "
+        "evidence_ledger.approved_periods, evidence_ledger.approved_entities, or "
+        "evidence_ledger.facts. Omit or keep concise any section whose evidence is "
         "absent rather than inventing content. Avoid generic filler such as "
         "'se requiere más información' unless it names the specific missing "
         "evidence. Return STRICT JSON only, with exactly the fields listed in "
@@ -1256,7 +1840,6 @@ def build_strategic_analysis_prompt(
         "department_analysis, anomaly_analysis, recommendation_follow_up_analysis, "
         "longitudinal_risk_analysis, strategic_priorities, "
         "strategic_recommendations.action, strategic_recommendations.rationale, "
-        "strategic_recommendations.supporting_evidence, "
         "strategic_recommendations.expected_impact, missing_information, and "
         "reasoning_summary. Common acronyms such as KPI, USD, EBITDA, PDF, HTML, "
         "JSON and CSV are allowed. Keep every string under 1200 characters. Use no more than "
@@ -1269,7 +1852,8 @@ def build_strategic_analysis_prompt(
         + json.dumps(context, ensure_ascii=False, separators=(",", ":"))
         + "\n\nINSTRUCTIONS_FINAL_OUTPUT_REMINDER:\n"
         "Return only the final JSON analysis object with the exact required keys. "
-        "Do not return any object copied from STRATEGIC_ANALYSIS_CONTEXT."
+        "Do not return any object copied from STRATEGIC_ANALYSIS_CONTEXT. "
+        "If a cause is uncertain, label it as hipótesis and cite supporting evidence IDs."
     )
 
 
@@ -1296,7 +1880,9 @@ def build_spanish_rewrite_prompt(
         "Spanish for university leadership. Preserve all numbers, priorities, "
         "confidence values, evidence references, canonical metric names, IDs, and "
         "meaning. Do not recalculate, add claims, remove claims, or change list "
-        "lengths. Common acronyms KPI, USD, EBITDA, PDF, HTML, JSON and CSV are "
+        "lengths. Rewrite every recommendation action, rationale, "
+        "supporting_evidence, and expected_impact into Spanish prose; evidence_ids "
+        "remain unchanged as IDs. Common acronyms KPI, USD, EBITDA, PDF, HTML, JSON and CSV are "
         "allowed."
     )
 
@@ -1305,11 +1891,7 @@ def build_evidence_repair_prompt(
     analysis: dict[str, Any],
     *,
     claim_errors: tuple[str, ...],
-    finance_summary: dict[str, Any],
-    anomaly_report: dict[str, Any],
-    evidence_package: dict[str, Any],
-    risk_summary: dict[str, Any],
-    historical_context: dict[str, Any] | None = None,
+    evidence_ledger: dict[str, Any],
 ) -> str:
     """Build one bounded prompt to remove unsupported narrative claims.
 
@@ -1322,13 +1904,7 @@ def build_evidence_repair_prompt(
     repair_context = {
         "analysis_to_repair": analysis,
         "claim_errors": list(claim_errors),
-        "allowed_evidence": {
-            "finance_summary": _compact_finance_summary(finance_summary),
-            "anomaly_report": _compact_anomalies(anomaly_report),
-            "risk_summary": _compact_risk_summary(risk_summary),
-            "evidence_package": _compact_evidence_package(evidence_package),
-            "historical_context": historical_context or {},
-        },
+        "allowed_evidence_ledger": evidence_ledger,
     }
     return (
         "EVIDENCE_REPAIR_TASK:\n"
@@ -1338,8 +1914,10 @@ def build_evidence_repair_prompt(
         "Rewrite only the user-facing Spanish prose needed to remove claim_errors. "
         "Preserve priorities, evidence_ids, confidence values, canonical IDs, and "
         "strategic meaning. Do not calculate or introduce new numbers, periods, "
-        "departments, vendors, or claims. If a numeric claim is not present in "
-        "allowed_evidence, omit the number and describe the issue qualitatively. "
+        "departments, vendors, or claims. Numeric values may only be copied "
+        "verbatim from allowed_evidence_ledger.facts.display_value. If a numeric "
+        "claim is not present in the ledger, omit the number and describe the "
+        "issue qualitatively. "
         "Return JSON only."
     )
 
@@ -1403,6 +1981,7 @@ def _build_analysis_document(
     validation_errors: tuple[str, ...],
     analysis: dict[str, Any],
     historical_context: dict[str, Any] | None = None,
+    evidence_ledger: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble one auditable strategic-analysis output document.
 
@@ -1425,6 +2004,12 @@ def _build_analysis_document(
         "recommendation_count": len(recommendations),
         "historical_context_summary": (historical_context or {}).get("summary", {}),
         "historical_context": historical_context or {},
+        "evidence_ledger_summary": {
+            "fact_count": len((evidence_ledger or {}).get("facts", [])),
+            "approved_number_count": len((evidence_ledger or {}).get("approved_numbers", [])),
+            "approved_period_count": len((evidence_ledger or {}).get("approved_periods", [])),
+            "approved_entity_count": len((evidence_ledger or {}).get("approved_entities", [])),
+        },
         "analysis": analysis,
     }
 
@@ -1458,6 +2043,15 @@ def create_strategic_analysis(
     ollama_telemetry: dict[str, Any] = {}
     validation_time = 0.0
     spanish_rewrite_attempted = False
+    evidence_repair_attempted = False
+    evidence_ledger = build_evidence_ledger(
+        finance_summary=finance_summary,
+        anomaly_report=anomaly_report,
+        evidence_package=evidence_package,
+        risk_summary=risk_summary,
+        period_slug=period_slug,
+        historical_context=historical_context,
+    )
     if available:
         prompt = build_strategic_analysis_prompt(
             evidence_package=evidence_package,
@@ -1515,16 +2109,14 @@ def create_strategic_analysis(
                     evidence_package=evidence_package,
                     risk_summary=risk_summary,
                     historical_context=historical_context,
+                    evidence_ledger=evidence_ledger,
                 )
                 if claim_errors:
+                    evidence_repair_attempted = True
                     repair_prompt = build_evidence_repair_prompt(
                         validation.analysis,
                         claim_errors=claim_errors,
-                        finance_summary=finance_summary,
-                        anomaly_report=anomaly_report,
-                        evidence_package=evidence_package,
-                        risk_summary=risk_summary,
-                        historical_context=historical_context,
+                        evidence_ledger=evidence_ledger,
                     )
                     if hasattr(client, "generate_with_metadata"):
                         generation = client.generate_with_metadata(repair_prompt)  # type: ignore[attr-defined]
@@ -1546,6 +2138,7 @@ def create_strategic_analysis(
                             evidence_package=evidence_package,
                             risk_summary=risk_summary,
                             historical_context=historical_context,
+                            evidence_ledger=evidence_ledger,
                         )
                         if repaired_claim_errors:
                             validation = AnalysisValidationResult(False, None, repaired_claim_errors)
@@ -1581,6 +2174,7 @@ def create_strategic_analysis(
                                     evidence_package=evidence_package,
                                     risk_summary=risk_summary,
                                     historical_context=historical_context,
+                                    evidence_ledger=evidence_ledger,
                                 )
                                 if claim_errors:
                                     validation = AnalysisValidationResult(False, None, claim_errors)
@@ -1620,6 +2214,7 @@ def create_strategic_analysis(
         validation_errors=errors,
         analysis=analysis,
         historical_context=historical_context,
+        evidence_ledger=evidence_ledger,
     )
     return StrategicAnalysisResult(
         analysis_document=document,
@@ -1635,6 +2230,8 @@ def create_strategic_analysis(
                 "compact_context": compact_context,
                 "deduplicate_context": deduplicate_context,
                 "spanish_rewrite_attempted": spanish_rewrite_attempted,
+                "evidence_repair_attempted": evidence_repair_attempted,
+                "evidence_ledger_fact_count": len(evidence_ledger.get("facts", [])),
                 "compact_context_json_characters": compact_json_size(
                     {
                         "finance_summary": _compact_finance_summary(

@@ -126,6 +126,7 @@ from finance_agent.analysis.strategic_analysis import (
     create_strategic_analysis,
     validate_strategic_analysis_response,
 )
+from finance_agent.reasoning.reasoning_pipeline import create_modular_strategic_analysis
 from finance_agent.understanding.structure_fallback import (
     FallbackSummary,
     detect_low_confidence_items,
@@ -185,6 +186,7 @@ __all__ = [
     "build_strategic_analysis_prompt",
     "clean_column_name",
     "create_default_registry",
+    "create_modular_strategic_analysis",
     "create_strategic_analysis",
     "extract_goals_pdf",
     "execute_retrieval_queue",

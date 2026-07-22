@@ -17,10 +17,7 @@ from finance_agent.agent.ollama_planner import (
     create_ollama_investigation_plan,
     save_json_artifact as save_plan_json_artifact,
 )
-from finance_agent.analysis.strategic_analysis import (
-    create_strategic_analysis,
-    save_json_artifact as save_analysis_json_artifact,
-)
+from finance_agent.analysis.strategic_analysis import save_json_artifact as save_analysis_json_artifact
 from finance_agent.anomalies.anomaly_config import AnomalyThresholds
 from finance_agent.anomalies.anomaly_engine import (
     build_risk_summary,
@@ -55,6 +52,7 @@ from finance_agent.orchestration.pipeline_models import (
 from finance_agent.reporting.report_engine import ReportInputBundle, build_report_model, save_report_model
 from finance_agent.reporting.report_quality import validate_report_artifacts
 from finance_agent.reporting.renderers import render_report_pdf, save_report_html
+from finance_agent.reasoning.reasoning_pipeline import create_modular_strategic_analysis
 from finance_agent.retrieval.retrieval_engine import (
     RetrievalContext,
     build_retrieval_summary,
@@ -1302,7 +1300,7 @@ def run_object_pipeline_for_report(
             strategic_history.context,
             history_dir / "strategic_context.json",
         )
-        analysis_result = create_strategic_analysis(
+        analysis_result = create_modular_strategic_analysis(
             client=analysis_client,
             evidence_package=evidence_package,
             finance_summary=finance_document,
@@ -1318,13 +1316,54 @@ def run_object_pipeline_for_report(
             analysis_result.analysis_document,
             analysis_dir / f"strategic_analysis_{period_slug}.json",
         )
+        reasoning_state = analysis_result.analysis_document.get("reasoning_state", {})
+        reasoning_outputs = (
+            reasoning_state.get("reasoning_outputs", {})
+            if isinstance(reasoning_state, dict)
+            else {}
+        )
+        financial_reasoning_path = save_analysis_json_artifact(
+            {
+                "period_slug": period_slug,
+                "stage_id": "financial_performance",
+                "reasoning_output": reasoning_outputs.get("financial_performance", {}),
+            },
+            analysis_dir / f"financial_reasoning_{period_slug}.json",
+        )
+        historical_reasoning_path = save_analysis_json_artifact(
+            {
+                "period_slug": period_slug,
+                "stage_id": "historical_operational",
+                "reasoning_output": reasoning_outputs.get("historical_operational", {}),
+            },
+            analysis_dir / f"historical_reasoning_{period_slug}.json",
+        )
+        strategic_reasoning_path = save_analysis_json_artifact(
+            {
+                "period_slug": period_slug,
+                "stage_id": "strategic_synthesis",
+                "reasoning_output": reasoning_outputs.get("strategic_synthesis", {}),
+            },
+            analysis_dir / f"strategic_reasoning_{period_slug}.json",
+        )
+        reasoning_state_path = save_analysis_json_artifact(
+            reasoning_state if isinstance(reasoning_state, dict) else {},
+            analysis_dir / f"reasoning_state_{period_slug}.json",
+        )
         stages.append(
             _stage_result(
                 name="strategic_analysis",
                 display="Strategic analysis",
                 critical=False,
                 started=started,
-                outputs=(strategic_context_path, analysis_path),
+                outputs=(
+                    strategic_context_path,
+                    financial_reasoning_path,
+                    historical_reasoning_path,
+                    strategic_reasoning_path,
+                    reasoning_state_path,
+                    analysis_path,
+                ),
                 warnings=tuple(analysis_result.validation_errors) if not analysis_result.accepted else (),
                 telemetry={
                     **(analysis_result.telemetry or {}),

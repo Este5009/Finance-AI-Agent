@@ -145,9 +145,17 @@ def _analysis_payload(document: dict[str, Any]) -> dict[str, Any]:
 
     Inputs: strategic analysis output document.
     Outputs: analysis dictionary.
-    Assumptions: unavailable analysis outputs still contain the empty analysis shape.
+    Assumptions: Phase 14 modular runs expose the final validated synthesis in
+    ReasoningState; legacy runs still expose the same payload under ``analysis``.
     """
 
+    state = document.get("reasoning_state", {})
+    state = state if isinstance(state, dict) else {}
+    outputs = state.get("reasoning_outputs", {})
+    outputs = outputs if isinstance(outputs, dict) else {}
+    synthesis = outputs.get("strategic_synthesis")
+    if isinstance(synthesis, dict) and synthesis:
+        return synthesis
     value = document.get("analysis", {})
     return value if isinstance(value, dict) else {}
 

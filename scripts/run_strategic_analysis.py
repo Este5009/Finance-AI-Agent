@@ -17,13 +17,13 @@ from finance_agent.llm.ollama_client import (  # noqa: E402
     DEFAULT_OLLAMA_MODEL,
     OllamaClient,
 )
+from finance_agent.analysis.analysis_models import StrategicAnalysisResult  # noqa: E402
 from finance_agent.analysis.strategic_analysis import (  # noqa: E402
-    StrategicAnalysisResult,
     build_analysis_summary,
-    create_strategic_analysis,
     load_json_artifact,
     save_json_artifact,
 )
+from finance_agent.reasoning.reasoning_pipeline import create_modular_strategic_analysis  # noqa: E402
 
 
 OUTPUT_DIRECTORY = PROJECT_ROOT / "outputs" / "analysis"
@@ -67,6 +67,51 @@ def _print_result(label: str, result: StrategicAnalysisResult) -> None:
         print(f"  Validation error: {error}")
 
 
+def _save_reasoning_artifacts(result: StrategicAnalysisResult, period_slug: str) -> list[Path]:
+    """Save modular reasoning stage outputs for one analysis.
+
+    Inputs: strategic-analysis result and period slug.
+    Outputs: paths written for financial, historical, strategic, and state dumps.
+    Assumptions: rejected runs still write auditable empty/partial artifacts.
+    """
+
+    state = result.analysis_document.get("reasoning_state", {})
+    state = state if isinstance(state, dict) else {}
+    outputs = state.get("reasoning_outputs", {})
+    outputs = outputs if isinstance(outputs, dict) else {}
+    paths = [
+        save_json_artifact(
+            {
+                "period_slug": period_slug,
+                "stage_id": "financial_performance",
+                "reasoning_output": outputs.get("financial_performance", {}),
+            },
+            OUTPUT_DIRECTORY / f"financial_reasoning_{period_slug}.json",
+        ),
+        save_json_artifact(
+            {
+                "period_slug": period_slug,
+                "stage_id": "historical_operational",
+                "reasoning_output": outputs.get("historical_operational", {}),
+            },
+            OUTPUT_DIRECTORY / f"historical_reasoning_{period_slug}.json",
+        ),
+        save_json_artifact(
+            {
+                "period_slug": period_slug,
+                "stage_id": "strategic_synthesis",
+                "reasoning_output": outputs.get("strategic_synthesis", {}),
+            },
+            OUTPUT_DIRECTORY / f"strategic_reasoning_{period_slug}.json",
+        ),
+        save_json_artifact(
+            state,
+            OUTPUT_DIRECTORY / f"reasoning_state_{period_slug}.json",
+        ),
+    ]
+    return paths
+
+
 def main() -> None:
     """Generate June and annual strategic analysis artifacts.
 
@@ -104,7 +149,7 @@ def main() -> None:
         PROJECT_ROOT / "outputs" / "anomalies" / "risk_summary_2026.json"
     )
 
-    june_result = create_strategic_analysis(
+    june_result = create_modular_strategic_analysis(
         client=client,
         evidence_package=evidence_june,
         finance_summary=finance_june,
@@ -112,7 +157,7 @@ def main() -> None:
         risk_summary=risk_summary,
         period_slug="june_2026",
     )
-    annual_result = create_strategic_analysis(
+    annual_result = create_modular_strategic_analysis(
         client=client,
         evidence_package=evidence_annual,
         finance_summary=finance_annual,
@@ -138,6 +183,8 @@ def main() -> None:
             OUTPUT_DIRECTORY / "analysis_summary_2026.json",
         ),
     ]
+    paths.extend(_save_reasoning_artifacts(june_result, "june_2026"))
+    paths.extend(_save_reasoning_artifacts(annual_result, "2026"))
 
     results = [june_result, annual_result]
     print("Finance AI Agent - Step 9 Ollama Strategic Analysis")

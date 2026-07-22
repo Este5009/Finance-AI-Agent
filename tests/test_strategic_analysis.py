@@ -6,6 +6,7 @@ import json
 from dataclasses import dataclass
 
 from finance_agent.analysis.strategic_analysis import (
+    build_evidence_ledger,
     build_strategic_analysis_prompt,
     create_strategic_analysis,
     validate_strategic_analysis_response,
@@ -89,7 +90,7 @@ def _valid_analysis() -> dict[str, object]:
                 "rationale": "La evidencia procesada muestra presión por departamento y categoría.",
                 "supporting_evidence": "El paquete de evidencia incluye recuperación departamental y del reporte.",
                 "expected_impact": "Reducir variaciones prevenibles en el próximo ciclo de reporte.",
-                "evidence_ids": ["evidence_package.evidence_items", "finance_summary.department_summary"],
+                "evidence_ids": ["evidence.step_001.summary", "finance.metric.total_expenses"],
                 "confidence": 0.78,
             },
             {
@@ -98,7 +99,7 @@ def _valid_analysis() -> dict[str, object]:
                 "rationale": "Las anomalías de cobranza y la evidencia vencida indican riesgo de cuentas por cobrar.",
                 "supporting_evidence": "Las transacciones de pagos estudiantiles incluyen registros vencidos.",
                 "expected_impact": "Mejorar la conversión de caja y reducir saldos pendientes.",
-                "evidence_ids": ["finance_summary.finance_summary.student_payments.collection_rate"],
+                "evidence_ids": ["finance.metric.collection_rate"],
                 "confidence": 0.74,
             },
         ],
@@ -108,20 +109,20 @@ def _valid_analysis() -> dict[str, object]:
         ],
         "missing_information": ["Notas de aprobación para pagos de proveedores marcados."],
         "narrative_evidence": {
-            "executive_summary": ["finance_summary.finance_summary"],
-            "key_findings": ["finance_summary.finance_summary", "anomaly_report.anomalies"],
-            "root_causes": ["finance_summary.finance_summary", "evidence_package.evidence_items"],
-            "financial_health_analysis": ["finance_summary.finance_summary"],
-            "kpi_analysis": ["finance_summary.finance_summary.student_payments.collection_rate"],
-            "historical_summary": ["historical_context.summary"],
-            "historical_trend_analysis": ["historical_context.derived_context.kpi_trends"],
-            "department_analysis": ["finance_summary.department_summary"],
-            "anomaly_analysis": ["anomaly_report.anomalies"],
-            "recommendation_follow_up_analysis": ["historical_context.derived_context.recommendation_effectiveness"],
-            "longitudinal_risk_analysis": ["historical_context.derived_context.artifact_anomaly_patterns"],
-            "strategic_priorities": ["risk_summary.top_risks"],
-            "missing_information": ["evidence_package.summary"],
-            "reasoning_summary": ["finance_summary", "anomaly_report", "evidence_package"],
+            "executive_summary": ["finance.metric.net_operating_result", "finance.metric.net_cash_flow"],
+            "key_findings": ["finance.metric.net_operating_result", "anomaly.anom_1"],
+            "root_causes": ["finance.metric.total_expenses", "evidence.step_001.summary"],
+            "financial_health_analysis": ["finance.metric.net_operating_result", "finance.metric.payroll_percentage_of_revenue"],
+            "kpi_analysis": ["finance.metric.collection_rate"],
+            "historical_summary": ["finance.metric.net_cash_flow"],
+            "historical_trend_analysis": ["finance.metric.collection_rate"],
+            "department_analysis": ["finance.department.engineering.variance"],
+            "anomaly_analysis": ["anomaly.total_count", "anomaly.anom_1"],
+            "recommendation_follow_up_analysis": ["evidence.step_001.summary"],
+            "longitudinal_risk_analysis": ["finance.metric.net_cash_flow"],
+            "strategic_priorities": ["finance.metric.net_cash_flow", "finance.metric.total_expenses"],
+            "missing_information": ["evidence.step_001.summary"],
+            "reasoning_summary": ["finance.metric.net_operating_result", "anomaly.anom_1", "evidence.step_001.summary"],
         },
         "confidence": 0.76,
         "reasoning_summary": (
@@ -258,6 +259,27 @@ def test_analysis_wrapper_is_safely_unwrapped() -> None:
     assert validation.is_valid is True
     assert validation.analysis is not None
     assert validation.analysis["executive_summary"]
+
+
+def test_section_narrative_blocks_are_normalized() -> None:
+    """Verify new section output blocks become compatible string fields."""
+
+    payload = _valid_analysis()
+    payload["executive_summary"] = {
+        "text": payload["executive_summary"],
+        "evidence_ids": ["finance.metric.net_cash_flow"],
+    }
+    payload["financial_health_analysis"] = {
+        "text": payload["financial_health_analysis"],
+        "evidence_ids": ["finance.metric.net_operating_result"],
+    }
+
+    validation = validate_strategic_analysis_response(json.dumps(payload, ensure_ascii=False))
+
+    assert validation.is_valid is True
+    assert validation.analysis is not None
+    assert isinstance(validation.analysis["executive_summary"], str)
+    assert validation.analysis["narrative_evidence"]["executive_summary"] == ["finance.metric.net_cash_flow"]
 
 
 def test_english_user_facing_response_is_rejected() -> None:
@@ -596,6 +618,90 @@ def test_evidence_bound_validation_accepts_spanish_number_formats() -> None:
     )
 
     assert not any("52.0%" in error or "1200" in error for error in errors)
+
+
+def test_evidence_bound_validation_rejects_rounding_or_derived_values() -> None:
+    """Verify only exact ledger display/raw values are allowed."""
+
+    validation = validate_strategic_analysis_response(json.dumps(_valid_analysis(), ensure_ascii=False))
+    assert validation.analysis is not None
+    validation.analysis["financial_health_analysis"] = "La nómina representa 52% de ingresos."
+
+    errors = validate_evidence_bound_claims(
+        validation.analysis,
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        evidence_package=_evidence_package(),
+        risk_summary=_risk_summary(),
+    )
+
+    assert any("unsupported number: 52%" in error for error in errors)
+
+
+def test_evidence_bound_validation_requires_valid_evidence_ids() -> None:
+    """Verify all cited evidence IDs must exist in the ledger."""
+
+    validation = validate_strategic_analysis_response(json.dumps(_valid_analysis(), ensure_ascii=False))
+    assert validation.analysis is not None
+    validation.analysis["narrative_evidence"]["kpi_analysis"] = ["fake.metric"]
+
+    errors = validate_evidence_bound_claims(
+        validation.analysis,
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        evidence_package=_evidence_package(),
+        risk_summary=_risk_summary(),
+    )
+
+    assert any("cites unknown evidence_id: fake.metric" in error for error in errors)
+
+
+def test_causal_claims_require_hypothesis_language_and_evidence() -> None:
+    """Verify unsupported factual causes fail while labeled hypotheses pass."""
+
+    validation = validate_strategic_analysis_response(json.dumps(_valid_analysis(), ensure_ascii=False))
+    assert validation.analysis is not None
+    validation.analysis["root_causes"] = ["El déficit fue causado por mala gestión."]
+
+    errors = validate_evidence_bound_claims(
+        validation.analysis,
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        evidence_package=_evidence_package(),
+        risk_summary=_risk_summary(),
+    )
+
+    assert any("unsupported causal claim" in error for error in errors)
+    validation.analysis["root_causes"] = [
+        "Como hipótesis, la presión de gastos parece asociarse con el déficit observado."
+    ]
+    errors = validate_evidence_bound_claims(
+        validation.analysis,
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        evidence_package=_evidence_package(),
+        risk_summary=_risk_summary(),
+    )
+    assert not any("unsupported causal claim" in error for error in errors)
+
+
+def test_evidence_ledger_contains_approved_fact_structure() -> None:
+    """Verify ledger facts expose exact values, IDs, period/entity, and sources."""
+
+    ledger = build_evidence_ledger(
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        evidence_package=_evidence_package(),
+        risk_summary=_risk_summary(),
+        period_slug="june_2026",
+    )
+
+    fact = next(item for item in ledger["facts"] if item["evidence_id"] == "finance.metric.collection_rate")
+    assert fact["display_value"] == "84.0%"
+    assert fact["raw_value"] == 0.84
+    assert fact["period"] == "june_2026"
+    assert fact["source_reference"].endswith("finance_summary_june_2026.json")
+    assert "finance.metric.collection_rate" in ledger["evidence_ids"]
 
 
 def test_prompt_is_compact_and_omits_full_evidence_rows() -> None:
