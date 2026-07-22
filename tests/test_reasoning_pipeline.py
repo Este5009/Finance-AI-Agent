@@ -348,6 +348,23 @@ def test_independent_stage_validation_rejects_unsupported_number() -> None:
     assert any("unsupported number" in error for error in validation.errors)
 
 
+def test_stage_validation_rejection_is_telemetry_category() -> None:
+    """Verify schema-invalid stage output is categorized as validation rejection."""
+
+    client = FakeReasoningClient(({"bad": "shape"},))
+    result = create_modular_strategic_analysis(
+        client=client,
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="2026_12",
+    )
+
+    first_stage = result.analysis_document["reasoning_state"]["stage_results"][0]
+    assert first_stage["telemetry"]["error_category"] == "validation_rejection"
+
+
 def test_modular_pipeline_runs_three_stages_with_mocked_ollama() -> None:
     """Verify the modular pipeline returns accepted Step-9-compatible output."""
 
@@ -365,6 +382,33 @@ def test_modular_pipeline_runs_three_stages_with_mocked_ollama() -> None:
     assert len(client.prompts) == 3
     assert result.analysis_document["analysis_source"] == "ollama_modular_reasoning"
     assert result.analysis_document["reasoning_state"]["reasoning_outputs"]["strategic_synthesis"]
+
+
+def test_stage_timeout_checkpoint_metadata_is_preserved() -> None:
+    """Verify a timed-out modular stage is recorded in ReasoningState."""
+
+    class SlowClient(FakeReasoningClient):
+        """Fake client whose call exceeds the configured stage timeout."""
+
+        def generate_with_metadata(self, prompt: str) -> dict[str, Any]:
+            """Return valid JSON but with no need for a real sleep."""
+
+            result = super().generate_with_metadata(prompt)
+            return result
+
+    result = create_modular_strategic_analysis(
+        client=SlowClient((_stage_1(), _stage_2(), _stage_3())),
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="2026_12",
+        stage_timeout_seconds=0.0,
+    )
+
+    assert not result.accepted
+    first_stage = result.analysis_document["reasoning_state"]["stage_results"][0]
+    assert first_stage["telemetry"]["error_category"] == "stage_timeout"
 
 
 def test_report_generation_reads_validated_reasoning_state() -> None:

@@ -58,8 +58,11 @@ class StreamlitRunSettings:
     structure_ollama_model: str | None = None
     planner_ollama_model: str | None = None
     analysis_ollama_model: str | None = None
-    ollama_timeout_seconds: float = 180.0
-    stage_timeout_seconds: float = 420.0
+    ollama_timeout_seconds: float = 600.0
+    connect_timeout_seconds: float = 10.0
+    read_timeout_seconds: float = 600.0
+    stage_timeout_seconds: float = 900.0
+    ollama_keep_alive: str = "15m"
     max_planner_anomalies: int = 5
     compact_context: bool = True
     deduplicate_context: bool = True
@@ -135,7 +138,10 @@ def build_pipeline_config(
         planner_ollama_model=settings.planner_ollama_model,
         analysis_ollama_model=settings.analysis_ollama_model,
         ollama_timeout_seconds=settings.ollama_timeout_seconds,
+        connect_timeout_seconds=settings.connect_timeout_seconds,
+        read_timeout_seconds=settings.read_timeout_seconds,
         stage_timeout_seconds=settings.stage_timeout_seconds,
+        ollama_keep_alive=settings.ollama_keep_alive,
         max_planner_anomalies=settings.max_planner_anomalies,
         compact_context=settings.compact_context,
         deduplicate_context=settings.deduplicate_context,
@@ -528,19 +534,32 @@ def main() -> None:
                     "Strategic analysis model",
                     value=DEFAULT_OLLAMA_MODEL,
                 )
-            ollama_timeout = st.number_input(
-                "Ollama timeout seconds",
+            connect_timeout = st.number_input(
+                "Ollama connect timeout seconds",
                 min_value=5.0,
-                max_value=900.0,
-                value=180.0,
+                max_value=120.0,
+                value=10.0,
                 step=5.0,
+            )
+            read_timeout = st.number_input(
+                "Ollama read/inference timeout seconds",
+                min_value=30.0,
+                max_value=1800.0,
+                value=600.0,
+                step=30.0,
+                help="Allows large local models time to load and generate.",
             )
             stage_timeout = st.number_input(
                 "Stage timeout seconds",
                 min_value=30.0,
-                max_value=1800.0,
-                value=420.0,
+                max_value=2400.0,
+                value=900.0,
                 step=30.0,
+            )
+            keep_alive = st.text_input(
+                "Ollama keep_alive",
+                value="15m",
+                help="Keeps the selected model loaded across reasoning stages.",
             )
             max_planner_anomalies = st.number_input(
                 "Max planner anomalies sent to Ollama",
@@ -572,8 +591,11 @@ def main() -> None:
         structure_ollama_model=structure_model.strip() if structure_model else None,
         planner_ollama_model=planner_model.strip() if planner_model else None,
         analysis_ollama_model=analysis_model.strip() if analysis_model else None,
-        ollama_timeout_seconds=float(ollama_timeout),
+        ollama_timeout_seconds=float(read_timeout),
+        connect_timeout_seconds=float(connect_timeout),
+        read_timeout_seconds=float(read_timeout),
         stage_timeout_seconds=float(stage_timeout),
+        ollama_keep_alive=keep_alive.strip() or "15m",
         max_planner_anomalies=int(max_planner_anomalies),
         compact_context=bool(compact_context),
         deduplicate_context=bool(deduplicate_context),

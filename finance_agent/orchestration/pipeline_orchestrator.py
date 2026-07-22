@@ -541,7 +541,10 @@ def _ollama_client_for_stage(config: PipelineConfig, stage_name: str) -> OllamaC
     return OllamaClient(
         endpoint=config.ollama_endpoint,
         model=config.model_for_stage(stage_name),
-        timeout_seconds=config.ollama_timeout_seconds,
+        timeout_seconds=config.read_timeout_seconds,
+        connect_timeout_seconds=config.connect_timeout_seconds,
+        read_timeout_seconds=config.read_timeout_seconds,
+        keep_alive=config.ollama_keep_alive,
         reasoning_enabled=stage_name
         in {"ollama_investigation_planner", "planner", "strategic_analysis", "analysis"},
     )
@@ -1310,6 +1313,7 @@ def run_object_pipeline_for_report(
             compact_context=config.compact_context,
             deduplicate_context=config.deduplicate_context,
             historical_context=strategic_history.context,
+            stage_timeout_seconds=config.stage_timeout_seconds,
         )
         analysis_dir = outputs / "analysis"
         analysis_path = save_analysis_json_artifact(

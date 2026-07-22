@@ -52,6 +52,7 @@ def create_modular_strategic_analysis(
     historical_context: dict[str, Any] | None = None,
     compact_context: bool = True,
     deduplicate_context: bool = True,
+    stage_timeout_seconds: float | None = None,
 ) -> StrategicAnalysisResult:
     """Run the three-stage reasoning pipeline and return Step-9-compatible output.
 
@@ -115,6 +116,7 @@ def create_modular_strategic_analysis(
                 stage_id="financial_performance",
                 evidence_ledger=evidence_ledger,
             ),
+            stage_timeout_seconds=stage_timeout_seconds,
         )
         state.add_stage_result(financial_result)
         if not financial_result.accepted:
@@ -135,6 +137,7 @@ def create_modular_strategic_analysis(
                 stage_id="historical_operational",
                 evidence_ledger=evidence_ledger,
             ),
+            stage_timeout_seconds=stage_timeout_seconds,
         )
         state.add_stage_result(historical_result)
         if not historical_result.accepted:
@@ -160,6 +163,7 @@ def create_modular_strategic_analysis(
                 evidence_ledger=evidence_ledger,
             ),
             response_format=strategic_analysis_json_schema(),
+            stage_timeout_seconds=stage_timeout_seconds,
         )
         state.add_stage_result(strategic_result)
     except OllamaError as exc:
@@ -428,6 +432,7 @@ def _run_structured_stage(
     prompt: str,
     validator: Any,
     response_format: dict[str, Any] | str = "json",
+    stage_timeout_seconds: float | None = None,
 ) -> ReasoningStageResult:
     """Call Ollama once and validate one reasoning stage.
 
@@ -448,9 +453,51 @@ def _run_structured_stage(
         else:
             response = client.generate(prompt)
             ollama_telemetry = {}
+    except OllamaError as exc:
+        telemetry = {
+            "stage_id": stage_id,
+            "prompt_characters": len(prompt),
+            "prompt_token_estimate": estimate_tokens_from_text(prompt),
+            "json_validation_time_seconds": 0.0,
+            "total_stage_time_seconds": time.perf_counter() - started,
+            "timeout_error_category": exc.category,
+            "error_category": exc.category,
+            **getattr(exc, "telemetry", {}),
+        }
+        return ReasoningStageResult(
+            stage_id=stage_id,
+            stage_name=stage_name,
+            accepted=False,
+            payload={},
+            validation_errors=(str(exc),),
+            telemetry=telemetry,
+        )
     finally:
         if previous_response_format is not None:
             setattr(client, "response_format", previous_response_format)
+
+    elapsed_after_generation = time.perf_counter() - started
+    if stage_timeout_seconds is not None and elapsed_after_generation > stage_timeout_seconds:
+        telemetry = {
+            "stage_id": stage_id,
+            "prompt_characters": len(prompt),
+            "prompt_token_estimate": estimate_tokens_from_text(prompt),
+            "json_validation_time_seconds": 0.0,
+            "total_stage_time_seconds": elapsed_after_generation,
+            "timeout_error_category": "stage_timeout",
+            "error_category": "stage_timeout",
+            **ollama_telemetry,
+        }
+        return ReasoningStageResult(
+            stage_id=stage_id,
+            stage_name=stage_name,
+            accepted=False,
+            payload={},
+            validation_errors=(
+                f"{stage_name} exceeded stage timeout of {stage_timeout_seconds:.1f}s.",
+            ),
+            telemetry=telemetry,
+        )
 
     validation_started = time.perf_counter()
     validation = validator(response)
@@ -461,6 +508,8 @@ def _run_structured_stage(
         "prompt_token_estimate": estimate_tokens_from_text(prompt),
         "json_validation_time_seconds": validation_time,
         "total_stage_time_seconds": time.perf_counter() - started,
+        "error_category": None if validation.is_valid else "validation_rejection",
+        "timeout_error_category": ollama_telemetry.get("timeout_error_category"),
         **ollama_telemetry,
     }
     return ReasoningStageResult(

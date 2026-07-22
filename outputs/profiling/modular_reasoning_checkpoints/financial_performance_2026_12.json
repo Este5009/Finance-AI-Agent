@@ -1,0 +1,33 @@
+{
+  "stage_id": "financial_performance",
+  "stage_name": "Financial Performance Reasoning",
+  "accepted": false,
+  "payload": {},
+  "validation_errors": [
+    "financial_performance must contain exactly ['confidence', 'financial_opportunities', 'identified_financial_risks', 'open_questions', 'validated_financial_claims']; received ['anomaly_count', 'confidence_level', 'identified_opportunities', 'identified_risks', 'validated_financial_claims']"
+  ],
+  "telemetry": {
+    "stage_id": "financial_performance",
+    "prompt_characters": 8456,
+    "prompt_token_estimate": 2114,
+    "json_validation_time_seconds": 5.889998283237219e-05,
+    "total_stage_time_seconds": 159.4686434000032,
+    "error_category": "validation_rejection",
+    "timeout_error_category": null,
+    "model": "qwen3:30b-a3b",
+    "reasoning_enabled": true,
+    "request_start_utc": "2026-07-22T16:59:35.810824+00:00",
+    "request_end_utc": "2026-07-22T17:02:15.279349+00:00",
+    "http_elapsed_time_seconds": 159.4685285000014,
+    "model_load_time_seconds": 0.2022627,
+    "prompt_evaluation_time_seconds": 56.927107,
+    "generation_time_seconds": 98.201113,
+    "total_ollama_time_seconds": 155.3468725,
+    "prompt_eval_count": 2802,
+    "generation_eval_count": 1741,
+    "thinking_characters": 5846,
+    "connect_timeout_seconds": 10.0,
+    "read_timeout_seconds": 600.0,
+    "keep_alive": "15m"
+  }
+}

@@ -36,8 +36,16 @@ def build_argument_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--endpoint", default=DEFAULT_OLLAMA_ENDPOINT)
     parser.add_argument("--model", default=DEFAULT_OLLAMA_MODEL)
-    parser.add_argument("--ollama-timeout", type=float, default=180.0)
-    parser.add_argument("--stage-timeout", type=float, default=420.0)
+    parser.add_argument(
+        "--ollama-timeout",
+        type=float,
+        default=600.0,
+        help="Backward-compatible alias for Ollama read/inference timeout.",
+    )
+    parser.add_argument("--connect-timeout", type=float, default=10.0)
+    parser.add_argument("--read-timeout", type=float, default=None)
+    parser.add_argument("--stage-timeout", type=float, default=900.0)
+    parser.add_argument("--keep-alive", default="15m")
     parser.add_argument(
         "--summary-output",
         type=Path,
@@ -79,7 +87,10 @@ def main() -> None:
         ollama_endpoint=args.endpoint,
         ollama_model=args.model,
         ollama_timeout_seconds=args.ollama_timeout,
+        connect_timeout_seconds=args.connect_timeout,
+        read_timeout_seconds=args.read_timeout,
         stage_timeout_seconds=args.stage_timeout,
+        ollama_keep_alive=args.keep_alive,
     )
     result = run_full_pipeline(config)
     summary_path = _save_summary(result.to_dict(), args.summary_output)

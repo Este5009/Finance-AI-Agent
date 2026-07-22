@@ -1,0 +1,126 @@
+{
+  "benchmark_id": "modular_reasoning_2026_12",
+  "period_slug": "2026_12",
+  "ollama_health": {
+    "available": true,
+    "error": null,
+    "error_category": null,
+    "elapsed_seconds": 4.1124999999883585
+  },
+  "warm_up": {
+    "response": "{\"ok\": true}",
+    "telemetry": {
+      "model": "qwen3:30b-a3b",
+      "reasoning_enabled": true,
+      "request_start_utc": "2026-07-22T16:56:52.179794+00:00",
+      "request_end_utc": "2026-07-22T16:56:57.142912+00:00",
+      "http_elapsed_time_seconds": 4.963123300054576,
+      "prompt_characters": 38,
+      "prompt_token_estimate": 9,
+      "model_load_time_seconds": 0.2203846,
+      "prompt_evaluation_time_seconds": 0.161171,
+      "generation_time_seconds": 0.337839,
+      "total_ollama_time_seconds": 0.8944303,
+      "prompt_eval_count": 22,
+      "generation_eval_count": 6,
+      "thinking_characters": 12,
+      "connect_timeout_seconds": 10.0,
+      "read_timeout_seconds": 600.0,
+      "keep_alive": "15m",
+      "timeout_error_category": null
+    }
+  },
+  "configuration": {
+    "endpoint": "http://localhost:11434",
+    "model": "qwen3:30b-a3b",
+    "connect_timeout_seconds": 10.0,
+    "read_timeout_seconds": 600.0,
+    "stage_timeout_seconds": 900.0,
+    "keep_alive": "15m",
+    "resume": false
+  },
+  "baseline": {
+    "monolithic_prompt_characters": 25283
+  },
+  "financial_stage_alone": {
+    "stage_id": "financial_performance_alone",
+    "stage_name": "Financial Performance Reasoning Alone",
+    "accepted": false,
+    "payload": {},
+    "validation_errors": [
+      "financial_performance must contain exactly ['confidence', 'financial_opportunities', 'identified_financial_risks', 'open_questions', 'validated_financial_claims']; received ['anomaly_count', 'confidence_level', 'confidence_scores', 'hypothesized_anomalies', 'hypothesized_causes', 'identified_anomalies', 'recommendations', 'report_period', 'validated_financial_claims']"
+    ],
+    "telemetry": {
+      "stage_id": "financial_performance_alone",
+      "prompt_characters": 8456,
+      "prompt_token_estimate": 2114,
+      "json_validation_time_seconds": 5.8999983593821526e-05,
+      "total_stage_time_seconds": 158.6644550000201,
+      "error_category": "validation_rejection",
+      "timeout_error_category": null,
+      "model": "qwen3:30b-a3b",
+      "reasoning_enabled": true,
+      "request_start_utc": "2026-07-22T16:56:57.143128+00:00",
+      "request_end_utc": "2026-07-22T16:59:35.807468+00:00",
+      "http_elapsed_time_seconds": 158.6643449999974,
+      "model_load_time_seconds": 0.1984322,
+      "prompt_evaluation_time_seconds": 57.313842,
+      "generation_time_seconds": 97.022169,
+      "total_ollama_time_seconds": 154.5545125,
+      "prompt_eval_count": 2802,
+      "generation_eval_count": 1751,
+      "thinking_characters": 5699,
+      "connect_timeout_seconds": 10.0,
+      "read_timeout_seconds": 600.0,
+      "keep_alive": "15m"
+    }
+  },
+  "full_modular_pipeline": {
+    "accepted": false,
+    "validation_errors": [
+      "financial_performance must contain exactly ['confidence', 'financial_opportunities', 'identified_financial_risks', 'open_questions', 'validated_financial_claims']; received ['anomaly_count', 'confidence_level', 'identified_opportunities', 'identified_risks', 'validated_financial_claims']"
+    ],
+    "stage_results": [
+      {
+        "stage_id": "financial_performance",
+        "stage_name": "Financial Performance Reasoning",
+        "accepted": false,
+        "payload": {},
+        "validation_errors": [
+          "financial_performance must contain exactly ['confidence', 'financial_opportunities', 'identified_financial_risks', 'open_questions', 'validated_financial_claims']; received ['anomaly_count', 'confidence_level', 'identified_opportunities', 'identified_risks', 'validated_financial_claims']"
+        ],
+        "telemetry": {
+          "stage_id": "financial_performance",
+          "prompt_characters": 8456,
+          "prompt_token_estimate": 2114,
+          "json_validation_time_seconds": 5.889998283237219e-05,
+          "total_stage_time_seconds": 159.4686434000032,
+          "error_category": "validation_rejection",
+          "timeout_error_category": null,
+          "model": "qwen3:30b-a3b",
+          "reasoning_enabled": true,
+          "request_start_utc": "2026-07-22T16:59:35.810824+00:00",
+          "request_end_utc": "2026-07-22T17:02:15.279349+00:00",
+          "http_elapsed_time_seconds": 159.4685285000014,
+          "model_load_time_seconds": 0.2022627,
+          "prompt_evaluation_time_seconds": 56.927107,
+          "generation_time_seconds": 98.201113,
+          "total_ollama_time_seconds": 155.3468725,
+          "prompt_eval_count": 2802,
+          "generation_eval_count": 1741,
+          "thinking_characters": 5846,
+          "connect_timeout_seconds": 10.0,
+          "read_timeout_seconds": 600.0,
+          "keep_alive": "15m"
+        }
+      }
+    ],
+    "reasoning_state_path": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\reasoning_state_2026_12.json",
+    "strategic_analysis_path": "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_12.json"
+  },
+  "report_generation": {
+    "generated": false,
+    "paths": []
+  },
+  "runtime_seconds": 327.2592406999902
+}

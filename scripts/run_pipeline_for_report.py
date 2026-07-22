@@ -60,8 +60,16 @@ def build_argument_parser() -> argparse.ArgumentParser:
         default=None,
         help="Experimental override for strategic analysis only.",
     )
-    parser.add_argument("--ollama-timeout", type=float, default=180.0)
-    parser.add_argument("--stage-timeout", type=float, default=420.0)
+    parser.add_argument(
+        "--ollama-timeout",
+        type=float,
+        default=600.0,
+        help="Backward-compatible alias for Ollama read/inference timeout.",
+    )
+    parser.add_argument("--connect-timeout", type=float, default=10.0)
+    parser.add_argument("--read-timeout", type=float, default=None)
+    parser.add_argument("--stage-timeout", type=float, default=900.0)
+    parser.add_argument("--keep-alive", default="15m")
     parser.add_argument(
         "--memory-database",
         type=Path,
@@ -128,7 +136,10 @@ def main() -> None:
         planner_ollama_model=args.planner_model,
         analysis_ollama_model=args.analysis_model,
         ollama_timeout_seconds=args.ollama_timeout,
+        connect_timeout_seconds=args.connect_timeout,
+        read_timeout_seconds=args.read_timeout,
         stage_timeout_seconds=args.stage_timeout,
+        ollama_keep_alive=args.keep_alive,
         input_model=input_model,
         max_planner_anomalies=args.max_planner_anomalies,
         compact_context=not args.no_compact_context,

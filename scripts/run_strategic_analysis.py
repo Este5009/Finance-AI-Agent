@@ -42,7 +42,17 @@ def build_argument_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--endpoint", default=DEFAULT_OLLAMA_ENDPOINT)
     parser.add_argument("--model", default=DEFAULT_OLLAMA_MODEL)
-    parser.add_argument("--timeout", type=float, default=180.0)
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=600.0,
+        help="Backward-compatible alias for Ollama read/inference timeout.",
+    )
+    parser.add_argument("--connect-timeout", type=float, default=10.0)
+    parser.add_argument("--read-timeout", type=float, default=None)
+    parser.add_argument("--stage-timeout", type=float, default=900.0)
+    parser.add_argument("--keep-alive", default="15m")
+    parser.add_argument("--warm-up", action="store_true")
     return parser
 
 
@@ -124,8 +134,14 @@ def main() -> None:
     client = OllamaClient(
         endpoint=args.endpoint,
         model=args.model,
-        timeout_seconds=args.timeout,
+        timeout_seconds=args.read_timeout if args.read_timeout is not None else args.timeout,
+        connect_timeout_seconds=args.connect_timeout,
+        read_timeout_seconds=args.read_timeout if args.read_timeout is not None else args.timeout,
+        keep_alive=args.keep_alive,
     )
+    if args.warm_up:
+        print("Warming Ollama model...")
+        client.warm_up()
 
     evidence_june = load_json_artifact(
         PROJECT_ROOT / "outputs" / "evidence" / "evidence_package_june_2026.json"
@@ -156,6 +172,7 @@ def main() -> None:
         anomaly_report=anomaly_june,
         risk_summary=risk_summary,
         period_slug="june_2026",
+        stage_timeout_seconds=args.stage_timeout,
     )
     annual_result = create_modular_strategic_analysis(
         client=client,
@@ -164,6 +181,7 @@ def main() -> None:
         anomaly_report=anomaly_annual,
         risk_summary=risk_summary,
         period_slug="2026",
+        stage_timeout_seconds=args.stage_timeout,
     )
     summary = build_analysis_summary(
         (june_result.analysis_document, annual_result.analysis_document)

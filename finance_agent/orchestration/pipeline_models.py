@@ -13,6 +13,10 @@ SUPPORTED_PERIOD_TYPES = frozenset(
 
 EXPERIMENTAL_FAST_OLLAMA_MODEL = "qwen3:latest"
 DEFAULT_OLLAMA_MODEL = "qwen3:30b-a3b"
+DEFAULT_OLLAMA_CONNECT_TIMEOUT_SECONDS = 10.0
+DEFAULT_OLLAMA_READ_TIMEOUT_SECONDS = 600.0
+DEFAULT_OLLAMA_STAGE_TIMEOUT_SECONDS = 900.0
+DEFAULT_OLLAMA_KEEP_ALIVE = "15m"
 
 
 @dataclass(frozen=True)
@@ -182,8 +186,11 @@ class PipelineConfig:
     structure_ollama_model: str | None = None
     planner_ollama_model: str | None = None
     analysis_ollama_model: str | None = None
-    ollama_timeout_seconds: float = 180.0
+    ollama_timeout_seconds: float = DEFAULT_OLLAMA_READ_TIMEOUT_SECONDS
+    connect_timeout_seconds: float = DEFAULT_OLLAMA_CONNECT_TIMEOUT_SECONDS
+    read_timeout_seconds: float = DEFAULT_OLLAMA_READ_TIMEOUT_SECONDS
     stage_timeout_seconds: float = 420.0
+    ollama_keep_alive: str = DEFAULT_OLLAMA_KEEP_ALIVE
     input_model: PipelineInputModel | None = None
     structure_fallback_table_threshold: float = 0.75
     structure_fallback_column_threshold: float = 0.70
@@ -206,8 +213,11 @@ class PipelineConfig:
         structure_ollama_model: str | None = None,
         planner_ollama_model: str | None = None,
         analysis_ollama_model: str | None = None,
-        ollama_timeout_seconds: float = 180.0,
-        stage_timeout_seconds: float = 420.0,
+        ollama_timeout_seconds: float = DEFAULT_OLLAMA_READ_TIMEOUT_SECONDS,
+        connect_timeout_seconds: float = DEFAULT_OLLAMA_CONNECT_TIMEOUT_SECONDS,
+        read_timeout_seconds: float | None = None,
+        stage_timeout_seconds: float = DEFAULT_OLLAMA_STAGE_TIMEOUT_SECONDS,
+        ollama_keep_alive: str = DEFAULT_OLLAMA_KEEP_ALIVE,
         input_model: PipelineInputModel | None = None,
         structure_fallback_table_threshold: float = 0.75,
         structure_fallback_column_threshold: float = 0.70,
@@ -242,7 +252,14 @@ class PipelineConfig:
             planner_ollama_model=planner_ollama_model,
             analysis_ollama_model=analysis_ollama_model,
             ollama_timeout_seconds=ollama_timeout_seconds,
+            connect_timeout_seconds=connect_timeout_seconds,
+            read_timeout_seconds=(
+                float(read_timeout_seconds)
+                if read_timeout_seconds is not None
+                else float(ollama_timeout_seconds)
+            ),
             stage_timeout_seconds=stage_timeout_seconds,
+            ollama_keep_alive=ollama_keep_alive,
             input_model=input_model,
             structure_fallback_table_threshold=structure_fallback_table_threshold,
             structure_fallback_column_threshold=structure_fallback_column_threshold,
