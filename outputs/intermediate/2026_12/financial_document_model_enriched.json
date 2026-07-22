@@ -2994,7 +2994,7 @@
   ],
   "enrichment": {
     "stage": "ollama_structure_fallback",
-    "generated_at_utc": "2026-07-21T16:07:15.333748+00:00",
+    "generated_at_utc": "2026-07-21T20:02:59.463634+00:00",
     "ollama_available": true,
     "items_detected": 4,
     "acceptance_threshold": 0.75,

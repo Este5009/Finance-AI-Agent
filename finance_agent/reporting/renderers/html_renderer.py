@@ -1,4 +1,4 @@
-"""Professional HTML renderer for Finance AI Agent report models."""
+﻿"""Professional HTML renderer for Finance AI Agent report models."""
 
 from __future__ import annotations
 
@@ -69,6 +69,18 @@ def _status_class(status: str) -> str:
     return {"good": "good", "risk": "risk"}.get(status, "neutral")
 
 
+def _narrative(view: dict[str, Any], section_id: str) -> str:
+    """Render model-authored section narrative when present.
+
+    Inputs: presentation view and section ID.
+    Outputs: HTML paragraph or empty string.
+    Assumptions: Step 9 generated and validated narrative in Spanish.
+    """
+
+    text = view.get("section_narratives", {}).get(section_id, "")
+    return f"<p class='section-analysis'>{_escape(text)}</p>" if text else ""
+
+
 def _bar_chart(items: list[dict[str, Any]], *, title: str) -> str:
     """Render a real SVG horizontal bar chart.
 
@@ -136,7 +148,7 @@ def _line_chart(series: dict[str, Any]) -> str:
         f"<h4>{_escape(series.get('metric'))}</h4>"
         f"<svg viewBox='0 0 {width} {height}' class='line-chart'>"
         f"<polyline points='{polyline}' />{dots}</svg>"
-        f"<p class='muted'>Dirección: {_escape(series.get('direction'))}</p>"
+        f"<p class='muted'>DirecciÃ³n: {_escape(series.get('direction'))}</p>"
         "</div>"
     )
 
@@ -155,7 +167,7 @@ def _render_cover(view: dict[str, Any]) -> str:
         f"<h1>{_escape(view['title'])}</h1>"
         f"<p class='period'>Periodo: {_escape(view.get('period'))}</p>"
         f"<p>{_escape(view.get('organization'))}</p>"
-        "<p class='cover-note'>Síntesis ejecutiva generada desde salidas procesadas, validadas y trazables.</p>"
+        "<p class='cover-note'>SÃ­ntesis ejecutiva generada desde salidas procesadas, validadas y trazables.</p>"
         "</section>"
     )
 
@@ -177,9 +189,9 @@ def _render_summary(view: dict[str, Any]) -> str:
         f"<p class='lead'>{_escape(summary['summary'])}</p>"
         "<div class='two-col'>"
         f"<div><h3>Hallazgos clave</h3><ul>{findings or '<li>Sin hallazgos materiales.</li>'}</ul></div>"
-        f"<div><h3>Causas raíz probables</h3><ul>{roots or '<li>Sin causas raíz materiales.</li>'}</ul></div>"
+        f"<div><h3>Causas raÃ­z probables</h3><ul>{roots or '<li>Sin causas raÃ­z materiales.</li>'}</ul></div>"
         "</div>"
-        f"<p class='confidence'>Confianza del análisis: {_escape(summary['confidence'])}</p>"
+        f"<p class='confidence'>Confianza del anÃ¡lisis: {_escape(summary['confidence'])}</p>"
         "</section>"
     )
 
@@ -208,7 +220,8 @@ def _render_health(view: dict[str, Any]) -> str:
     return (
         "<section id='financial_health_overview'>"
         f"<h2>{SECTION_LABELS_ES['financial_health_overview']}</h2>"
-        f"<div class='kpi-grid'>{cards}</div>"
+        + _narrative(view, "financial_health_overview")
+        + f"<div class='kpi-grid'>{cards}</div>"
         + _bar_chart(chart_items, title="Resumen financiero principal")
         + _source_note(view["financial_health"]["sources"])
         + "</section>"
@@ -230,7 +243,8 @@ def _render_kpis(view: dict[str, Any]) -> str:
     return (
         "<section id='kpi_overview'>"
         f"<h2>{SECTION_LABELS_ES['kpi_overview']}</h2>"
-        + _table(["Indicador", "Valor", "Estado", "Descripción"], rows)
+        + _narrative(view, "kpi_overview")
+        + _table(["Indicador", "Valor", "Estado", "DescripciÃ³n"], rows)
         + "</section>"
     )
 
@@ -246,7 +260,6 @@ def _render_historical(view: dict[str, Any]) -> str:
     historical = view["historical"]
     if not historical.get("available"):
         return ""
-    narrative = "".join(f"<li>{_escape(item)}</li>" for item in historical.get("narrative", []))
     charts = "".join(_line_chart(series) for series in historical.get("trends", []))
     risks = [
         [row["risk"], row["department"], row["occurrences"], row["periods"]]
@@ -256,20 +269,22 @@ def _render_historical(view: dict[str, Any]) -> str:
         [row["recommendation"], row["issued_period"], row["current_evidence"], row["status"]]
         for row in historical.get("recommendation_follow_up", [])
     ]
-    conclusions = "".join(f"<li>{_escape(item)}</li>" for item in historical.get("longitudinal_conclusions", []))
     return (
         "<section id='historical_trends'><span id='historical_summary'></span>"
         f"<h2>{SECTION_LABELS_ES['historical_trends']}</h2>"
-        f"<ul>{narrative}</ul><div class='trend-grid'>{charts}</div>"
+        + _narrative(view, "historical_summary")
+        + _narrative(view, "historical_trends")
+        + f"<div class='trend-grid'>{charts}</div>"
         "</section>"
         "<section id='recommendation_follow_up'>"
         f"<h2>{SECTION_LABELS_ES['recommendation_follow_up']}</h2>"
-        + _table(["Recomendación", "Periodo", "Evidencia actual", "Estado inferido"], follow)
+        + _narrative(view, "recommendation_follow_up")
+        + _table(["RecomendaciÃ³n", "Periodo", "Evidencia actual", "Estado inferido"], follow)
         + "</section>"
         "<section id='longitudinal_risk_assessment'>"
-        f"<h2>Evaluación longitudinal de riesgos</h2>"
+        f"<h2>EvaluaciÃ³n longitudinal de riesgos</h2>"
+        + _narrative(view, "longitudinal_risk_assessment")
         + _table(["Riesgo", "Departamento", "Ocurrencias", "Periodos"], risks)
-        + f"<ul>{conclusions}</ul>"
         + "</section>"
     )
 
@@ -287,9 +302,10 @@ def _render_revenue_expense(view: dict[str, Any]) -> str:
     return (
         "<section id='revenue_expense_analysis'><span id='revenue_analysis'></span><span id='expense_analysis'></span>"
         f"<h2>{SECTION_LABELS_ES['revenue_expense_analysis']}</h2>"
+        + _narrative(view, "revenue_expense_analysis")
         + _bar_chart(data["chart"], title="Ingresos, gastos y resultado")
-        + _bar_chart(data["budget_chart"], title="Comparación contra presupuesto")
-        + _table(["Métrica", "Valor", "Descripción"], rows)
+        + _bar_chart(data["budget_chart"], title="ComparaciÃ³n contra presupuesto")
+        + _table(["MÃ©trica", "Valor", "DescripciÃ³n"], rows)
         + "</section>"
     )
 
@@ -313,6 +329,7 @@ def _render_departments(view: dict[str, Any]) -> str:
     return (
         "<section id='department_analysis'>"
         f"<h2>{SECTION_LABELS_ES['department_analysis']}</h2>"
+        + _narrative(view, "department_analysis")
         + _bar_chart(chart, title="Resultado operativo por departamento")
         + _table(["Departamento", "Ingresos", "Gastos", "Resultado", "Var. gasto"], rows)
         + "</section>"
@@ -335,14 +352,16 @@ def _render_anomalies(view: dict[str, Any]) -> str:
         return (
             "<section id='anomaly_summary'>"
             f"<h2>{SECTION_LABELS_ES['anomaly_summary']}</h2>"
-            f"<div class='status-card positive'>{_escape(positive)}</div>"
+            + _narrative(view, "anomaly_summary")
+            + f"<div class='status-card positive'>{_escape(positive)}</div>"
             "</section>"
         )
     return (
         "<section id='anomaly_summary'>"
         f"<h2>{SECTION_LABELS_ES['anomaly_summary']}</h2>"
+        + _narrative(view, "anomaly_summary")
         + _table(["Severidad", "Cantidad"], severity_rows)
-        + _table(["Anomalía", "Severidad", "Evidencia"], top_rows)
+        + _table(["AnomalÃ­a", "Severidad", "Evidencia"], top_rows)
         + "</section>"
     )
 
@@ -390,10 +409,11 @@ def _render_recommendations(view: dict[str, Any]) -> str:
     return (
         "<section id='strategic_recommendations'>"
         f"<h2>{SECTION_LABELS_ES['strategic_recommendations']}</h2>"
-        f"<h3>Prioridades</h3><ul>{priorities}</ul>"
-        f"<div class='recommendation-grid'>{cards}</div>"
-        f"<p class='muted'>{_escape(recs['reasoning_summary'])}</p>"
-        "</section>"
+        + _narrative(view, "strategic_recommendations")
+        + f"<h3>Prioridades</h3><ul>{priorities}</ul>"
+        + f"<div class='recommendation-grid'>{cards}</div>"
+        + f"<p class='muted'>{_escape(recs['reasoning_summary'])}</p>"
+        + "</section>"
     )
 
 
@@ -412,11 +432,12 @@ def _render_missing_and_appendix(view: dict[str, Any]) -> str:
     return (
         "<section id='missing_information'>"
         f"<h2>{SECTION_LABELS_ES['missing_information']}</h2>"
-        f"<ul>{missing}</ul>"
-        "</section>"
-        "<section id='appendix'>"
+        + _narrative(view, "missing_information")
+        + f"<ul>{missing}</ul>"
+        + "</section>"
+        + "<section id='appendix'>"
         f"<h2>{SECTION_LABELS_ES['appendix']}</h2>"
-        f"<h3>Metodología</h3><ul>{methodology}</ul>"
+        f"<h3>MetodologÃ­a</h3><ul>{methodology}</ul>"
         f"<h3>Fuentes:</h3><ul>{sources}</ul>"
         "</section>"
     )
@@ -475,6 +496,7 @@ def _styles() -> str:
     .cover h1, .cover h2 { color:#fff; border:0; padding:0; }
     .period { font-size:22px; font-weight:700; }
     .cover-note, .lead { font-size:18px; max-width:850px; }
+    .section-analysis { font-size:15px; color:#263244; background:#fbfdff; border-left:4px solid var(--blue); padding:10px 12px; border-radius:8px; }
     .two-col { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
     .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; }
     .kpi-card { border:1px solid var(--line); border-radius:14px; padding:16px; min-height:128px; background:#fbfdff; }
@@ -531,7 +553,7 @@ def render_report_html(report_model: dict[str, Any], *, mode: str = "executive")
         "<meta name='viewport' content='width=device-width, initial-scale=1'>"
         f"<title>{_escape(view.get('title'))} - {_escape(view.get('period'))}</title>"
         f"<style>{_styles()}</style></head><body><main>{''.join(body)}</main>"
-        "<footer>Finance AI Agent · Reporte ejecutivo generado desde datos procesados y validados.</footer>"
+        "<footer>Finance AI Agent Â· Reporte ejecutivo generado desde datos procesados y validados.</footer>"
         "</body></html>"
     )
 
@@ -562,3 +584,4 @@ def save_report_html(report_model: dict[str, Any], output_path: str | Path, *, m
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(render_report_html(report_model, mode=mode), encoding="utf-8")
     return path
+

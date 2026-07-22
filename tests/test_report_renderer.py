@@ -1,8 +1,9 @@
-"""Tests for Spanish HTML and PDF report renderers."""
+﻿"""Tests for Spanish HTML and PDF report renderers."""
 
 from __future__ import annotations
 
 from pathlib import Path
+import inspect
 
 from finance_agent.reporting.renderers import (
     load_report_model,
@@ -10,7 +11,8 @@ from finance_agent.reporting.renderers import (
     render_report_pdf,
     save_report_html,
 )
-from finance_agent.reporting.presentation import build_presentation_view
+from finance_agent.reporting.presentation import REPORT_SECTION_TEMPLATES, build_presentation_view
+import finance_agent.reporting.presentation as presentation
 from finance_agent.reporting.report_quality import (
     require_report_quality,
     validate_report_artifacts,
@@ -39,9 +41,9 @@ def _sample_report_model() -> dict[str, object]:
             "section_id": "executive_summary",
             "title": "Executive summary",
             "content": {
-                "summary": "La operación requiere atención ejecutiva.",
+                "summary": "La operaciÃ³n requiere atenciÃ³n ejecutiva.",
                 "key_findings": ["El resultado operativo es negativo."],
-                "root_causes": ["El gasto creció más rápido que los ingresos."],
+                "root_causes": ["El gasto creciÃ³ mÃ¡s rÃ¡pido que los ingresos."],
                 "confidence": 0.8,
                 "analysis_status": "accepted",
             },
@@ -137,7 +139,7 @@ def _sample_report_model() -> dict[str, object]:
                         "priority": "critical",
                         "retrieval_name": "department_history",
                         "record_count": 3,
-                        "evidence_summary": "Se recuperó evidencia departamental.",
+                        "evidence_summary": "Se recuperÃ³ evidencia departamental.",
                     }
                 ]
             },
@@ -148,7 +150,7 @@ def _sample_report_model() -> dict[str, object]:
             "section_id": "strategic_recommendations",
             "title": "Recommendations",
             "content": {
-                "root_causes": ["El gasto creció más rápido que los ingresos."],
+                "root_causes": ["El gasto creciÃ³ mÃ¡s rÃ¡pido que los ingresos."],
                 "strategic_priorities": ["Estabilizar el flujo de caja."],
                 "reasoning_summary": "La evidencia soporta acciones de control de gasto.",
                 "recommendations": [
@@ -208,12 +210,75 @@ def test_html_generation_renders_strategic_analysis_fields() -> None:
 
     html = render_report_html(_sample_report_model())
 
-    assert "La operación requiere atención ejecutiva." in html
+    assert "La operaciÃ³n requiere atenciÃ³n ejecutiva." in html
     assert "El resultado operativo es negativo." in html
-    assert "El gasto creció más rápido que los ingresos." in html
+    assert "El gasto creciÃ³ mÃ¡s rÃ¡pido que los ingresos." in html
     assert "Estabilizar el flujo de caja." in html
     assert "Revisar aprobaciones de gasto." in html
-    assert "No hay recomendaciones estratégicas generadas." not in html
+    assert "No hay recomendaciones estratÃ©gicas generadas." not in html
+
+
+def test_section_templates_define_evidence_contracts() -> None:
+    """Verify section templates define objectives and required evidence."""
+
+    expected = {
+        "executive_summary",
+        "financial_health_overview",
+        "kpi_overview",
+        "historical_summary",
+        "historical_trends",
+        "revenue_expense_analysis",
+        "department_analysis",
+        "anomaly_summary",
+        "recommendation_follow_up",
+        "longitudinal_risk_assessment",
+        "strategic_recommendations",
+        "missing_information",
+        "appendix",
+    }
+
+    assert expected.issubset(REPORT_SECTION_TEMPLATES)
+    for template in REPORT_SECTION_TEMPLATES.values():
+        assert template.objective
+        assert template.visibility_rule
+        assert template.narrative_fields or template.section_id == "appendix"
+
+
+def test_presentation_layer_has_no_analytical_sentence_generator() -> None:
+    """Verify presentation.py does not hardcode analytical conclusions."""
+
+    source = inspect.getsource(presentation)
+
+    forbidden_fragments = (
+        "Strategic analysis was unavailable",
+        "No hay recomendaciones estratégicas generadas",
+        "se deterioró de",
+        "mejoró de",
+        "Las tendencias históricas",
+        "hardcoded_values",
+    )
+    for fragment in forbidden_fragments:
+        assert fragment not in source
+
+
+def test_ollama_section_narrative_populates_html_sections() -> None:
+    """Verify final HTML displays section narrative from the report model."""
+
+    model = _sample_report_model()
+    section_content = {
+        section["section_id"]: section["content"]
+        for section in model["sections"]  # type: ignore[index]
+        if isinstance(section, dict)
+    }
+    section_content["financial_health_overview"]["analysis"] = "La salud financiera se deteriora por un resultado operativo negativo de -200."
+    section_content["kpi_overview"]["analysis"] = "La tasa de cobranza de 90.0% exige seguimiento ejecutivo."
+    section_content["department_analysis"]["analysis"] = "Engineering concentra un déficit departamental de -150."
+
+    html = render_report_html(model)
+
+    assert "La salud financiera se deteriora por un resultado operativo negativo de -200." in html
+    assert "La tasa de cobranza de 90.0% exige seguimiento ejecutivo." in html
+    assert "Engineering concentra un déficit departamental de -150." in html
 
 
 def test_report_model_quality_accepts_strategy_backed_model() -> None:
@@ -272,7 +337,7 @@ def test_missing_and_empty_sections_render_gracefully(tmp_path: Path) -> None:
     html = render_report_html(model)
     pdf_path = render_report_pdf(model, tmp_path / "missing.pdf")
 
-    assert "Sección faltante en el modelo: kpi_overview" not in html
+    assert "SecciÃ³n faltante en el modelo: kpi_overview" not in html
     assert "Sin datos disponibles" in html
     assert pdf_path.read_bytes().startswith(b"%PDF")
 
@@ -352,6 +417,17 @@ def test_presentation_view_contains_recommendation_cards() -> None:
     assert cards[0]["action"] == "Revisar aprobaciones de gasto."
 
 
+def test_presentation_layer_has_no_narrative_translation_dictionary() -> None:
+    """Verify presentation does not contain report-specific translation mappings."""
+
+    source = inspect.getsource(presentation)
+
+    assert "The financial performance shows mixed results" not in source
+    assert "Payroll variance shows" not in source
+    assert "+4%" not in source
+    assert "replacements =" not in source
+
+
 def test_rendered_quality_rejects_internal_tool_names(tmp_path: Path) -> None:
     """Verify artifact validation blocks tool-name leaks in executive HTML."""
 
@@ -390,3 +466,4 @@ def test_require_report_quality_detects_stale_artifact(tmp_path: Path) -> None:
         assert "older than report model" in str(exc)
     else:
         raise AssertionError("Expected ValueError for stale artifact")
+

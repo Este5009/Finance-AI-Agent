@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import time
 from pathlib import Path
 from typing import Any, Protocol
@@ -31,9 +32,18 @@ REQUIRED_ANALYSIS_FIELDS = frozenset(
         "executive_summary",
         "key_findings",
         "root_causes",
-        "recommendations",
+        "financial_health_analysis",
+        "kpi_analysis",
+        "department_analysis",
+        "anomaly_analysis",
+        "recommendation_follow_up_analysis",
+        "longitudinal_risk_analysis",
+        "strategic_recommendations",
         "strategic_priorities",
         "missing_information",
+        "historical_summary",
+        "historical_trend_analysis",
+        "narrative_evidence",
         "confidence",
         "reasoning_summary",
     }
@@ -45,12 +55,417 @@ RECOMMENDATION_FIELDS = frozenset(
         "rationale",
         "supporting_evidence",
         "expected_impact",
+        "evidence_ids",
         "confidence",
     }
 )
 ALLOWED_RECOMMENDATION_PRIORITIES = frozenset(
     {"critical", "high", "medium", "low"}
 )
+SPANISH_TEXT_FIELDS = frozenset(
+    {
+        "executive_summary",
+        "key_findings",
+        "root_causes",
+        "strategic_priorities",
+        "missing_information",
+        "historical_summary",
+        "historical_trend_analysis",
+        "financial_health_analysis",
+        "kpi_analysis",
+        "department_analysis",
+        "anomaly_analysis",
+        "recommendation_follow_up_analysis",
+        "longitudinal_risk_analysis",
+        "reasoning_summary",
+        "strategic_recommendations.action",
+        "strategic_recommendations.rationale",
+        "strategic_recommendations.supporting_evidence",
+        "strategic_recommendations.expected_impact",
+    }
+)
+ALLOWED_ENGLISH_ACRONYMS = frozenset({"KPI", "USD", "EBITDA", "PDF", "HTML", "JSON", "CSV", "LLM"})
+COMMON_ENGLISH_WORDS = frozenset(
+    {
+        "the",
+        "and",
+        "with",
+        "without",
+        "cash",
+        "flow",
+        "payroll",
+        "budget",
+        "revenue",
+        "expense",
+        "expenses",
+        "collection",
+        "collections",
+        "rate",
+        "risk",
+        "risks",
+        "recommendation",
+        "recommendations",
+        "department",
+        "departments",
+        "evidence",
+        "analysis",
+        "shows",
+        "indicate",
+        "indicates",
+        "improve",
+        "improved",
+        "review",
+        "requires",
+        "required",
+        "management",
+        "operational",
+        "financial",
+        "performance",
+        "variance",
+        "variances",
+        "target",
+        "targets",
+        "root",
+        "cause",
+        "causes",
+    }
+)
+COMMON_SPANISH_WORDS = frozenset(
+    {
+        "el",
+        "la",
+        "los",
+        "las",
+        "de",
+        "del",
+        "en",
+        "con",
+        "sin",
+        "para",
+        "por",
+        "que",
+        "y",
+        "o",
+        "financiero",
+        "financiera",
+        "nómina",
+        "ingresos",
+        "gastos",
+        "cobranza",
+        "riesgo",
+        "riesgos",
+        "presupuesto",
+        "presupuestario",
+        "evidencia",
+        "recomendación",
+        "recomendaciones",
+        "departamento",
+        "departamentos",
+        "flujo",
+        "caja",
+        "meta",
+        "metas",
+        "mejorar",
+        "revisar",
+        "control",
+        "gestión",
+        "análisis",
+        "causa",
+        "causas",
+    }
+)
+GENERIC_PLACEHOLDER_PHRASES = frozenset(
+    {
+        "no se encontraron datos históricos disponibles",
+        "sin datos suficientes para analizar",
+        "se requiere más información",
+        "análisis no disponible",
+        "información no disponible",
+        "análisis español",
+        "acción concreta en español",
+        "racional en español",
+        "referencia breve a evidencia",
+        "impacto esperado en español",
+        "hallazgo específico en español",
+        "causa probable en español",
+        "prioridad ejecutiva en español",
+        "evidencia faltante en español",
+        "resumen breve en español",
+    }
+)
+
+
+def _iter_nested_values(value: Any) -> list[Any]:
+    """Flatten nested JSON-compatible values.
+
+    Inputs: arbitrary nested context value.
+    Outputs: scalar-ish values found recursively.
+    Assumptions: used only for validation token extraction, not rendering.
+    """
+
+    if isinstance(value, dict):
+        values: list[Any] = []
+        for child in value.values():
+            values.extend(_iter_nested_values(child))
+        return values
+    if isinstance(value, list):
+        values = []
+        for child in value:
+            values.extend(_iter_nested_values(child))
+        return values
+    return [value]
+
+
+def _normalize_claim_number(token: str) -> str:
+    """Normalize a prose/context number token for comparison.
+
+    Inputs: raw number token, possibly with decimal comma or percent sign.
+    Outputs: normalized token using dot decimals.
+    Assumptions: this is only for validation equality, not calculation.
+    """
+
+    text = token.strip()
+    suffix = "%" if text.endswith("%") else ""
+    core = text[:-1] if suffix else text
+    if "," in core and "." not in core:
+        parts = core.split(",")
+        if len(parts) == 2 and len(parts[1]) == 3 and suffix != "%":
+            core = "".join(parts)
+        else:
+            core = core.replace(",", ".")
+    else:
+        core = core.replace(",", "")
+    return f"{core}{suffix}"
+
+
+def _extract_supported_claim_tokens(*contexts: dict[str, Any]) -> dict[str, set[str]]:
+    """Extract numbers, periods, and department names supported by evidence.
+
+    Inputs: processed context dictionaries.
+    Outputs: token sets used for conservative claim validation.
+    Assumptions: supported facts must appear somewhere in processed context.
+    """
+
+    text = json.dumps(contexts, ensure_ascii=False)
+    numbers = {_normalize_claim_number(match.group(0)) for match in re.finditer(r"-?\d+(?:[\.,]\d+)?%?", text)}
+    # Ratios are stored as decimals in processed JSON, while executive prose may
+    # cite the equivalent percentage. Allow both forms without allowing new math.
+    for number in list(numbers):
+        if number.endswith("%"):
+            continue
+        try:
+            value = float(number)
+        except ValueError:
+            continue
+        if 0 <= value <= 1:
+            numbers.add(f"{value:.0%}")
+            numbers.add(f"{value:.1%}")
+            numbers.add(f"{value:.2%}")
+    periods = set(re.findall(r"20\d{2}[-_]\d{2}|20\d{2}", text))
+    departments: set[str] = set()
+    for context in contexts:
+        for value in _iter_nested_values(context):
+            if isinstance(value, str) and value.strip() and len(value.strip()) <= 80:
+                lowered = value.casefold()
+                if any(term in lowered for term in ("sciences", "engineering", "business", "administration", "services", "humanities", "tecnología", "instalaciones")):
+                    departments.add(value.strip())
+    return {"numbers": numbers, "periods": periods, "departments": departments}
+
+
+def _analysis_visible_text_by_field(analysis: dict[str, Any]) -> dict[str, str]:
+    """Return user-facing narrative text grouped by field.
+
+    Inputs: accepted/cleaned analysis payload.
+    Outputs: mapping of field path to text.
+    Assumptions: internal JSON keys and numeric confidence fields are excluded.
+    """
+
+    fields: dict[str, str] = {}
+    for field_name in (
+        "executive_summary",
+        "key_findings",
+        "root_causes",
+        "financial_health_analysis",
+        "kpi_analysis",
+        "historical_summary",
+        "historical_trend_analysis",
+        "department_analysis",
+        "anomaly_analysis",
+        "recommendation_follow_up_analysis",
+        "longitudinal_risk_analysis",
+        "strategic_priorities",
+        "missing_information",
+        "reasoning_summary",
+    ):
+        value = analysis.get(field_name)
+        if isinstance(value, list):
+            fields[field_name] = ". ".join(str(item) for item in value)
+        elif isinstance(value, str):
+            fields[field_name] = value
+    for index, recommendation in enumerate(analysis.get("strategic_recommendations", [])):
+        if isinstance(recommendation, dict):
+            fields[f"strategic_recommendations[{index}]"] = " ".join(
+                str(recommendation.get(field_name, ""))
+                for field_name in ("action", "rationale", "supporting_evidence", "expected_impact")
+            )
+    return fields
+
+
+def strategic_analysis_json_schema() -> dict[str, Any]:
+    """Return the strict JSON schema requested from Ollama when supported.
+
+    Inputs: none.
+    Outputs: JSON-schema-like dictionary for Ollama's format parameter.
+    Assumptions: Python validation below remains authoritative even when model
+    decoding is schema-constrained.
+    """
+
+    string_schema = {"type": "string", "minLength": 1, "maxLength": MAX_TEXT_LENGTH}
+    string_array = {
+        "type": "array",
+        "minItems": 0,
+        "maxItems": MAX_LIST_ITEMS,
+        "items": string_schema,
+    }
+    evidence_array = {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": MAX_LIST_ITEMS,
+        "items": {"type": "string", "minLength": 1, "maxLength": 160},
+    }
+    recommendation_schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": sorted(RECOMMENDATION_FIELDS),
+        "properties": {
+            "priority": {"type": "string", "enum": sorted(ALLOWED_RECOMMENDATION_PRIORITIES)},
+            "action": string_schema,
+            "rationale": string_schema,
+            "supporting_evidence": string_schema,
+            "expected_impact": string_schema,
+            "evidence_ids": evidence_array,
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        },
+    }
+    narrative_properties = {
+        field: evidence_array
+        for field in (
+            "executive_summary",
+            "key_findings",
+            "root_causes",
+            "financial_health_analysis",
+            "kpi_analysis",
+            "historical_summary",
+            "historical_trend_analysis",
+            "department_analysis",
+            "anomaly_analysis",
+            "recommendation_follow_up_analysis",
+            "longitudinal_risk_analysis",
+            "strategic_priorities",
+            "missing_information",
+            "reasoning_summary",
+        )
+    }
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": sorted(REQUIRED_ANALYSIS_FIELDS),
+        "properties": {
+            "executive_summary": string_schema,
+            "key_findings": string_array,
+            "root_causes": string_array,
+            "financial_health_analysis": string_schema,
+            "kpi_analysis": string_schema,
+            "historical_summary": string_schema,
+            "historical_trend_analysis": string_schema,
+            "department_analysis": string_schema,
+            "anomaly_analysis": string_schema,
+            "recommendation_follow_up_analysis": string_schema,
+            "longitudinal_risk_analysis": string_schema,
+            "strategic_recommendations": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": MAX_RECOMMENDATIONS,
+                "items": recommendation_schema,
+            },
+            "strategic_priorities": string_array,
+            "missing_information": string_array,
+            "narrative_evidence": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": sorted(narrative_properties),
+                "properties": narrative_properties,
+            },
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+            "reasoning_summary": string_schema,
+        },
+    }
+
+
+def validate_evidence_bound_claims(
+    analysis: dict[str, Any],
+    *,
+    finance_summary: dict[str, Any],
+    anomaly_report: dict[str, Any],
+    evidence_package: dict[str, Any],
+    risk_summary: dict[str, Any],
+    historical_context: dict[str, Any] | None = None,
+) -> tuple[str, ...]:
+    """Validate narrative claims stay bound to supplied evidence.
+
+    Inputs: analysis and processed evidence contexts.
+    Outputs: field-specific claim validation errors.
+    Assumptions: this guard checks unsupported explicit numbers, periods,
+    department names, generic filler, and missing narrative evidence IDs.
+    """
+
+    supported = _extract_supported_claim_tokens(
+        finance_summary,
+        anomaly_report,
+        evidence_package,
+        risk_summary,
+        historical_context or {},
+    )
+    errors: list[str] = []
+    narrative_evidence = analysis.get("narrative_evidence", {})
+    narrative_evidence = narrative_evidence if isinstance(narrative_evidence, dict) else {}
+    for field_name, text in _analysis_visible_text_by_field(analysis).items():
+        lowered = text.casefold()
+        if any(phrase in lowered for phrase in GENERIC_PLACEHOLDER_PHRASES):
+            errors.append(f"{field_name} contains generic placeholder prose")
+        for number in {_normalize_claim_number(match.group(0)) for match in re.finditer(r"-?\d+(?:[\.,]\d+)?%?", text)}:
+            if number not in supported["numbers"]:
+                errors.append(f"{field_name} contains unsupported number: {number}")
+        for period in set(re.findall(r"20\d{2}[-_]\d{2}|20\d{2}", text)):
+            if period not in supported["periods"]:
+                errors.append(f"{field_name} contains unsupported period: {period}")
+        named_entities = set(re.findall(r"\b[A-Z][A-Za-z]+(?:\s+[A-Z&][A-Za-z&]+){0,2}\b", text))
+        named_entities.update(re.findall(r"\b(?:El|La|Los|Las)\s+[A-Z][A-Za-z]+(?:\s+(?:de|del)\s+[A-Z][A-Za-z]+)+\b", text))
+        for department in named_entities:
+            words = department.split()
+            candidate = " ".join(words[1:]) if words and words[0] in {"El", "La", "Los", "Las"} else department
+            if any(word in ALLOWED_ENGLISH_ACRONYMS for word in words):
+                continue
+            if department in supported["departments"] or candidate in supported["departments"]:
+                continue
+            if department in {"Ollama", "Python", "KPI", "USD", "PDF", "HTML", "JSON", "CSV"}:
+                continue
+            # Avoid treating sentence-start Spanish words as departments.
+            if department.casefold() in COMMON_SPANISH_WORDS:
+                continue
+            if department in {"El", "La", "Los", "Las", "No", "Sin"}:
+                continue
+            if len(candidate.split()) == 1:
+                continue
+            errors.append(f"{field_name} contains unsupported named entity: {candidate}")
+        base = field_name.split("[")[0]
+        if base != "strategic_recommendations" and base in SPANISH_TEXT_FIELDS:
+            if not narrative_evidence.get(base):
+                errors.append(f"{base} must retain source/evidence IDs")
+    for index, recommendation in enumerate(analysis.get("strategic_recommendations", [])):
+        if isinstance(recommendation, dict) and not recommendation.get("evidence_ids"):
+            errors.append(f"strategic_recommendations[{index}] must retain source/evidence IDs")
+    return tuple(dict.fromkeys(errors))
 
 
 class StrategicAnalysisClient(Protocol):
@@ -89,6 +504,104 @@ def _valid_confidence(value: Any) -> bool:
     )
 
 
+def _language_tokens(text: str) -> list[str]:
+    """Return alphabetic language tokens from user-facing prose.
+
+    Inputs: user-facing text.
+    Outputs: lowercase tokens excluding allowed acronyms.
+    Assumptions: numeric values and common finance acronyms are language-neutral.
+    """
+
+    tokens = re.findall(r"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+", text)
+    return [
+        token.casefold()
+        for token in tokens
+        if token.upper() not in ALLOWED_ENGLISH_ACRONYMS and len(token) > 2
+    ]
+
+
+def _looks_professional_spanish(text: str) -> bool:
+    """Heuristically validate that substantial prose is Spanish.
+
+    Inputs: one user-facing text field.
+    Outputs: True when text is short/neutral or Spanish-dominant.
+    Assumptions: this is a conservative guard, not a full language detector.
+    """
+
+    stripped = text.strip()
+    tokens = _language_tokens(stripped)
+    if len(tokens) < 4:
+        return True
+    english_hits = sum(1 for token in tokens if token in COMMON_ENGLISH_WORDS)
+    spanish_hits = sum(1 for token in tokens if token in COMMON_SPANISH_WORDS)
+    accented = bool(re.search(r"[áéíóúÁÉÍÓÚñÑ]", stripped))
+    if english_hits >= 3 and english_hits > spanish_hits:
+        return False
+    if english_hits >= 2 and not accented and spanish_hits == 0:
+        return False
+    return True
+
+
+def _validate_spanish_text_field(
+    field_path: str,
+    value: Any,
+    errors: list[str],
+) -> None:
+    """Validate one user-facing field is Spanish.
+
+    Inputs: field path, value, and mutable error list.
+    Outputs: appends field-specific errors.
+    Assumptions: internal JSON keys remain English and are not checked here.
+    """
+
+    if isinstance(value, str):
+        if value.strip() and not _looks_professional_spanish(value):
+            errors.append(f"{field_path} must be professional Spanish")
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            _validate_spanish_text_field(f"{field_path}[{index}]", item, errors)
+
+
+def validate_user_facing_spanish(analysis: dict[str, Any]) -> tuple[str, ...]:
+    """Validate all model-authored user-facing analysis text is Spanish.
+
+    Inputs: cleaned strategic analysis payload.
+    Outputs: tuple of field-specific language errors.
+    Assumptions: common acronyms such as KPI, USD, PDF, HTML and JSON are allowed.
+    """
+
+    errors: list[str] = []
+    for field_name in (
+        "executive_summary",
+        "key_findings",
+        "root_causes",
+        "strategic_priorities",
+        "missing_information",
+        "historical_summary",
+        "historical_trend_analysis",
+        "financial_health_analysis",
+        "kpi_analysis",
+        "department_analysis",
+        "anomaly_analysis",
+        "recommendation_follow_up_analysis",
+        "longitudinal_risk_analysis",
+        "reasoning_summary",
+    ):
+        _validate_spanish_text_field(field_name, analysis.get(field_name), errors)
+    recommendations = analysis.get("strategic_recommendations", analysis.get("recommendations", []))
+    if isinstance(recommendations, list):
+        for index, recommendation in enumerate(recommendations):
+            if not isinstance(recommendation, dict):
+                continue
+            for field_name in ("action", "rationale", "supporting_evidence", "expected_impact"):
+                _validate_spanish_text_field(
+                    f"recommendations[{index}].{field_name}",
+                    recommendation.get(field_name),
+                    errors,
+                )
+    return tuple(errors)
+
+
 def _validate_string_list(
     payload: dict[str, Any],
     field_name: str,
@@ -122,18 +635,18 @@ def _validate_recommendations(payload: dict[str, Any], errors: list[str]) -> Non
     Assumptions: recommendations are actions, not financial data mutations.
     """
 
-    recommendations = payload.get("recommendations")
+    recommendations = payload.get("strategic_recommendations")
     if not isinstance(recommendations, list):
-        errors.append("recommendations must be a list")
+        errors.append("strategic_recommendations must be a list")
         return
     if not recommendations:
-        errors.append("recommendations must contain at least one item")
+        errors.append("strategic_recommendations must contain at least one item")
     if len(recommendations) > MAX_RECOMMENDATIONS:
         errors.append(
-            f"recommendations may contain at most {MAX_RECOMMENDATIONS} items"
+            f"strategic_recommendations may contain at most {MAX_RECOMMENDATIONS} items"
         )
     for index, recommendation in enumerate(recommendations):
-        prefix = f"recommendations[{index}]"
+        prefix = f"strategic_recommendations[{index}]"
         if not isinstance(recommendation, dict):
             errors.append(f"{prefix} must be an object")
             continue
@@ -154,14 +667,24 @@ def _validate_recommendations(payload: dict[str, Any], errors: list[str]) -> Non
                 errors.append(
                     f"{prefix}.{field_name} must be non-empty text up to {MAX_TEXT_LENGTH} characters"
                 )
+        if not isinstance(recommendation["evidence_ids"], list):
+            errors.append(f"{prefix}.evidence_ids must be a list")
+        else:
+            for evidence_index, evidence_id in enumerate(recommendation["evidence_ids"]):
+                if not _bounded_string(evidence_id, maximum=160):
+                    errors.append(f"{prefix}.evidence_ids[{evidence_index}] must be bounded text")
         if not _valid_confidence(recommendation["confidence"]):
             errors.append(f"{prefix}.confidence must be between 0 and 1")
 
 
-def validate_strategic_analysis_response(response_text: str) -> AnalysisValidationResult:
+def validate_strategic_analysis_response(
+    response_text: str,
+    *,
+    require_spanish: bool = True,
+) -> AnalysisValidationResult:
     """Parse and validate strict JSON returned by Ollama.
 
-    Inputs: raw model response text.
+    Inputs: raw model response text and Spanish validation flag.
     Outputs: validation result with accepted analysis or rejection errors.
     Assumptions: markdown fences/prose are invalid because strict JSON is required.
     """
@@ -180,6 +703,10 @@ def validate_strategic_analysis_response(response_text: str) -> AnalysisValidati
         return AnalysisValidationResult(False, None, ("response is not strict JSON",))
     if not isinstance(payload, dict):
         return AnalysisValidationResult(False, None, ("response root must be an object",))
+    # Some local models add a harmless top-level envelope. Unwrap only this
+    # exact non-semantic case, then validate the inner object normally.
+    if set(payload) == {"analysis"} and isinstance(payload.get("analysis"), dict):
+        payload = payload["analysis"]
     if set(payload) != REQUIRED_ANALYSIS_FIELDS:
         return AnalysisValidationResult(
             False,
@@ -196,12 +723,38 @@ def validate_strategic_analysis_response(response_text: str) -> AnalysisValidati
     if not _bounded_string(payload["reasoning_summary"]):
         errors.append("reasoning_summary must be non-empty bounded text")
     for field_name in (
+        "financial_health_analysis",
+        "kpi_analysis",
+        "historical_summary",
+        "historical_trend_analysis",
+        "department_analysis",
+        "anomaly_analysis",
+        "recommendation_follow_up_analysis",
+        "longitudinal_risk_analysis",
+    ):
+        if not _bounded_string(payload[field_name]):
+            errors.append(f"{field_name} must be non-empty bounded text")
+    for field_name in (
         "key_findings",
         "root_causes",
         "strategic_priorities",
         "missing_information",
     ):
         _validate_string_list(payload, field_name, errors)
+    if not isinstance(payload["narrative_evidence"], dict):
+        errors.append("narrative_evidence must be an object")
+    else:
+        for field_name in SPANISH_TEXT_FIELDS:
+            base = field_name.split(".")[0]
+            if base == "strategic_recommendations":
+                continue
+            evidence_ids = payload["narrative_evidence"].get(base)
+            if not isinstance(evidence_ids, list):
+                errors.append(f"narrative_evidence.{base} must be a list")
+            else:
+                for index, evidence_id in enumerate(evidence_ids):
+                    if not _bounded_string(evidence_id, maximum=160):
+                        errors.append(f"narrative_evidence.{base}[{index}] must be bounded text")
     _validate_recommendations(payload, errors)
     if not _valid_confidence(payload["confidence"]):
         errors.append("confidence must be numeric between 0 and 1")
@@ -214,24 +767,42 @@ def validate_strategic_analysis_response(response_text: str) -> AnalysisValidati
         "executive_summary": payload["executive_summary"].strip(),
         "key_findings": [item.strip() for item in payload["key_findings"]],
         "root_causes": [item.strip() for item in payload["root_causes"]],
-        "recommendations": [
+        "strategic_recommendations": [
             {
                 "priority": item["priority"],
                 "action": item["action"].strip(),
                 "rationale": item["rationale"].strip(),
                 "supporting_evidence": item["supporting_evidence"].strip(),
                 "expected_impact": item["expected_impact"].strip(),
+                "evidence_ids": [str(evidence_id).strip() for evidence_id in item["evidence_ids"]],
                 "confidence": float(item["confidence"]),
             }
-            for item in payload["recommendations"]
+            for item in payload["strategic_recommendations"]
         ],
         "strategic_priorities": [
             item.strip() for item in payload["strategic_priorities"]
         ],
         "missing_information": [item.strip() for item in payload["missing_information"]],
+        "financial_health_analysis": payload["financial_health_analysis"].strip(),
+        "kpi_analysis": payload["kpi_analysis"].strip(),
+        "historical_summary": payload["historical_summary"].strip(),
+        "historical_trend_analysis": payload["historical_trend_analysis"].strip(),
+        "department_analysis": payload["department_analysis"].strip(),
+        "anomaly_analysis": payload["anomaly_analysis"].strip(),
+        "recommendation_follow_up_analysis": payload["recommendation_follow_up_analysis"].strip(),
+        "longitudinal_risk_analysis": payload["longitudinal_risk_analysis"].strip(),
+        "narrative_evidence": {
+            key: [str(evidence_id).strip() for evidence_id in value]
+            for key, value in payload["narrative_evidence"].items()
+            if isinstance(value, list)
+        },
         "confidence": float(payload["confidence"]),
         "reasoning_summary": payload["reasoning_summary"].strip(),
     }
+    cleaned["recommendations"] = cleaned["strategic_recommendations"]
+    language_errors = validate_user_facing_spanish(cleaned) if require_spanish else ()
+    if language_errors:
+        return AnalysisValidationResult(False, None, language_errors)
     return AnalysisValidationResult(True, cleaned, ())
 
 
@@ -356,18 +927,18 @@ def _remove_false_missing_information(
         # availability claims; they do not edit findings or recommendations.
         if has_anomaly_data and "anomal" in lowered:
             continue
-        cash_flow_terms = ("cash flow", "cash-flow", "cashflow")
+        cash_flow_terms = ("cash flow", "cash-flow", "cashflow", "flujo de caja", "caja")
         if has_cash_flow and any(term in lowered for term in cash_flow_terms):
             continue
-        if has_headcount and "headcount" in lowered:
+        if has_headcount and ("headcount" in lowered or "plantilla" in lowered):
             continue
         if has_payroll_amount and "payroll breakdown" in lowered:
             continue
         if has_payroll_amount and "payroll amount" in lowered:
             continue
-        if has_overtime and "overtime" in lowered:
+        if has_overtime and ("overtime" in lowered or "horas extra" in lowered):
             continue
-        if has_benefits and "benefit" in lowered:
+        if has_benefits and ("benefit" in lowered or "beneficio" in lowered):
             continue
         cleaned_missing.append(item)
     return {**analysis, "missing_information": cleaned_missing}
@@ -635,31 +1206,30 @@ def build_strategic_analysis_prompt(
             "historical_context_compact_only": True,
         },
     }
-    response_shape = {
-        "executive_summary": "Two to four concise sentences.",
-        "key_findings": ["Finding supported by processed evidence."],
-        "root_causes": ["Likely cause, framed as likely when evidence is incomplete."],
-        "recommendations": [
-            {
-                "priority": "high",
-                "action": "Concrete management action.",
-                "rationale": "Why this action follows from the evidence.",
-                "supporting_evidence": "Evidence reference or metric.",
-                "expected_impact": "Operational or financial outcome to monitor.",
-                "confidence": 0.75,
-            }
-        ],
-        "strategic_priorities": ["Priority to manage next."],
-        "missing_information": ["Evidence still needed, or [] if none."],
-        "confidence": 0.75,
-        "reasoning_summary": "Short explanation of how evidence supports the conclusions.",
-    }
+    schema_text = (
+        "Required exact JSON keys and types:\n"
+        "- executive_summary: Spanish string.\n"
+        "- key_findings: list of 1-8 Spanish strings.\n"
+        "- root_causes: list of 1-8 Spanish strings.\n"
+        "- financial_health_analysis: Spanish string.\n"
+        "- kpi_analysis: Spanish string.\n"
+        "- historical_summary: Spanish string.\n"
+        "- historical_trend_analysis: Spanish string.\n"
+        "- department_analysis: Spanish string.\n"
+        "- anomaly_analysis: Spanish string.\n"
+        "- recommendation_follow_up_analysis: Spanish string.\n"
+        "- longitudinal_risk_analysis: Spanish string.\n"
+        "- strategic_recommendations: list of 1-8 objects with keys priority, action, rationale, supporting_evidence, expected_impact, evidence_ids, confidence.\n"
+        "- strategic_priorities: list of 1-8 Spanish strings.\n"
+        "- missing_information: list of Spanish strings, or [] only when no material evidence gap exists.\n"
+        "- narrative_evidence: object mapping every narrative/list field except strategic_recommendations to a non-empty list of context path IDs.\n"
+        "- confidence: number from 0 to 1.\n"
+        "- reasoning_summary: Spanish string.\n"
+    )
     return (
-        "STRATEGIC_ANALYSIS_CONTEXT:\n"
-        + json.dumps(context, ensure_ascii=False, separators=(",", ":"))
-        + "\n\nINSTRUCTIONS_AFTER_CONTEXT:\n"
+        "INSTRUCTIONS_BEFORE_CONTEXT:\n"
         "You are the strategic financial analyst stage of a Python-first finance "
-        "agent. Use only the processed context supplied above. Do not calculate "
+        "agent. Use only the processed context supplied below. Do not calculate "
         "new financial values, alter any metric, invent source data, execute tools, "
         "or draft a report. Explain the most important financial issues, likely "
         "root causes, annual-goal implications, prioritized risks, concrete "
@@ -667,14 +1237,131 @@ def build_strategic_analysis_prompt(
         "evidence is incomplete. Do not list payroll amount, budget, variance, "
         "headcount, salary, benefits, overtime, department, or source-table "
         "breakdowns as missing when they appear in payroll_breakdown or "
-        "sample_records. Return STRICT JSON only, with exactly the fields "
-        "shown below. Keep every string under 1200 characters. Use no more than "
+        "sample_records. Every narrative field must cite its source/evidence IDs "
+        "in narrative_evidence using compact IDs from the context path, and each "
+        "strategic recommendation must include evidence_ids. Do not include "
+        "numbers, periods, departments, vendors or claims unless they appear in "
+        "the supplied context. Omit or keep concise any section whose evidence is "
+        "absent rather than inventing content. Avoid generic filler such as "
+        "'se requiere más información' unless it names the specific missing "
+        "evidence. Return STRICT JSON only, with exactly the fields listed in "
+        "REQUIRED_SCHEMA below. Do not return examples, empty strings, type "
+        "labels, placeholder text, markdown, or prose outside JSON. Every value "
+        "must be evidence-specific analysis from the supplied context. All user-facing string values MUST be written directly in "
+        "professional Spanish for university leadership. Keep internal JSON keys, "
+        "canonical metric names, IDs, and numeric evidence unchanged in English "
+        "where they appear as data. The Spanish-only requirement applies to: "
+        "executive_summary, key_findings, root_causes, financial_health_analysis, "
+        "kpi_analysis, historical_summary, historical_trend_analysis, "
+        "department_analysis, anomaly_analysis, recommendation_follow_up_analysis, "
+        "longitudinal_risk_analysis, strategic_priorities, "
+        "strategic_recommendations.action, strategic_recommendations.rationale, "
+        "strategic_recommendations.supporting_evidence, "
+        "strategic_recommendations.expected_impact, missing_information, and "
+        "reasoning_summary. Common acronyms such as KPI, USD, EBITDA, PDF, HTML, "
+        "JSON and CSV are allowed. Keep every string under 1200 characters. Use no more than "
         f"{MAX_LIST_ITEMS} items in each list and no more than "
         f"{MAX_RECOMMENDATIONS} recommendations. Recommendation priority must be "
         "critical, high, medium, or low. Confidence values must be 0..1.\n"
-        "VALID_RESPONSE_SHAPE:\n"
-        + json.dumps(response_shape, ensure_ascii=False, separators=(",", ":"))
+        "REQUIRED_SCHEMA:\n"
+        + schema_text
+        + "\nSTRATEGIC_ANALYSIS_CONTEXT:\n"
+        + json.dumps(context, ensure_ascii=False, separators=(",", ":"))
+        + "\n\nINSTRUCTIONS_FINAL_OUTPUT_REMINDER:\n"
+        "Return only the final JSON analysis object with the exact required keys. "
+        "Do not return any object copied from STRATEGIC_ANALYSIS_CONTEXT."
     )
+
+
+def build_spanish_rewrite_prompt(
+    analysis: dict[str, Any],
+    *,
+    language_errors: tuple[str, ...],
+) -> str:
+    """Build one bounded rewrite prompt for Spanish-language correction.
+
+    Inputs: schema-valid analysis payload and Spanish validation errors.
+    Outputs: compact strict-JSON rewrite prompt.
+    Assumptions: Ollama must preserve numbers, priorities, evidence and meaning.
+    """
+
+    return (
+        "SPANISH_REWRITE_INPUT:\n"
+        + json.dumps(analysis, ensure_ascii=False, separators=(",", ":"))
+        + "\n\nLANGUAGE_ERRORS:\n"
+        + json.dumps(list(language_errors), ensure_ascii=False, separators=(",", ":"))
+        + "\n\nINSTRUCTIONS:\n"
+        "Return STRICT JSON with the exact same keys and structure as "
+        "SPANISH_REWRITE_INPUT. Rewrite only user-facing prose into professional "
+        "Spanish for university leadership. Preserve all numbers, priorities, "
+        "confidence values, evidence references, canonical metric names, IDs, and "
+        "meaning. Do not recalculate, add claims, remove claims, or change list "
+        "lengths. Common acronyms KPI, USD, EBITDA, PDF, HTML, JSON and CSV are "
+        "allowed."
+    )
+
+
+def build_evidence_repair_prompt(
+    analysis: dict[str, Any],
+    *,
+    claim_errors: tuple[str, ...],
+    finance_summary: dict[str, Any],
+    anomaly_report: dict[str, Any],
+    evidence_package: dict[str, Any],
+    risk_summary: dict[str, Any],
+    historical_context: dict[str, Any] | None = None,
+) -> str:
+    """Build one bounded prompt to remove unsupported narrative claims.
+
+    Inputs: schema-valid analysis, claim-validation errors, and compact evidence.
+    Outputs: strict-JSON repair prompt.
+    Assumptions: the model may rewrite prose but must not add claims or alter
+    processed financial data.
+    """
+
+    repair_context = {
+        "analysis_to_repair": analysis,
+        "claim_errors": list(claim_errors),
+        "allowed_evidence": {
+            "finance_summary": _compact_finance_summary(finance_summary),
+            "anomaly_report": _compact_anomalies(anomaly_report),
+            "risk_summary": _compact_risk_summary(risk_summary),
+            "evidence_package": _compact_evidence_package(evidence_package),
+            "historical_context": historical_context or {},
+        },
+    }
+    return (
+        "EVIDENCE_REPAIR_TASK:\n"
+        + json.dumps(repair_context, ensure_ascii=False, separators=(",", ":"))
+        + "\n\nINSTRUCTIONS:\n"
+        "Return STRICT JSON with exactly the same schema as analysis_to_repair. "
+        "Rewrite only the user-facing Spanish prose needed to remove claim_errors. "
+        "Preserve priorities, evidence_ids, confidence values, canonical IDs, and "
+        "strategic meaning. Do not calculate or introduce new numbers, periods, "
+        "departments, vendors, or claims. If a numeric claim is not present in "
+        "allowed_evidence, omit the number and describe the issue qualitatively. "
+        "Return JSON only."
+    )
+
+
+def _schema_valid_but_not_spanish(response_text: str) -> tuple[dict[str, Any] | None, tuple[str, ...]]:
+    """Detect whether a response only failed Spanish-language validation.
+
+    Inputs: raw model response text.
+    Outputs: schema-valid analysis payload and language errors, or None/errors.
+    Assumptions: retry is allowed only when JSON/schema are otherwise valid.
+    """
+
+    schema_validation = validate_strategic_analysis_response(
+        response_text,
+        require_spanish=False,
+    )
+    if not schema_validation.is_valid or schema_validation.analysis is None:
+        return None, schema_validation.errors
+    language_errors = validate_user_facing_spanish(schema_validation.analysis)
+    if language_errors:
+        return schema_validation.analysis, language_errors
+    return None, ()
 
 
 def _empty_rejected_analysis() -> dict[str, Any]:
@@ -689,9 +1376,19 @@ def _empty_rejected_analysis() -> dict[str, Any]:
         "executive_summary": "",
         "key_findings": [],
         "root_causes": [],
+        "financial_health_analysis": "",
+        "kpi_analysis": "",
+        "department_analysis": "",
+        "anomaly_analysis": "",
+        "recommendation_follow_up_analysis": "",
+        "longitudinal_risk_analysis": "",
+        "strategic_recommendations": [],
         "recommendations": [],
         "strategic_priorities": [],
         "missing_information": [],
+        "historical_summary": "",
+        "historical_trend_analysis": "",
+        "narrative_evidence": {},
         "confidence": None,
         "reasoning_summary": "",
     }
@@ -760,6 +1457,7 @@ def create_strategic_analysis(
     prompt = ""
     ollama_telemetry: dict[str, Any] = {}
     validation_time = 0.0
+    spanish_rewrite_attempted = False
     if available:
         prompt = build_strategic_analysis_prompt(
             evidence_package=evidence_package,
@@ -772,6 +1470,11 @@ def create_strategic_analysis(
             historical_context=historical_context,
         )
         preprocessing_time = time.perf_counter() - preprocessing_started
+        previous_response_format = getattr(client, "response_format", None)
+        if previous_response_format is not None:
+            # Ask supporting Ollama clients for schema-constrained JSON. Python
+            # validation remains the source of truth after generation.
+            setattr(client, "response_format", strategic_analysis_json_schema())
         try:
             if hasattr(client, "generate_with_metadata"):
                 generation = client.generate_with_metadata(prompt)  # type: ignore[attr-defined]
@@ -783,8 +1486,117 @@ def create_strategic_analysis(
             validation = validate_strategic_analysis_response(response)
             errors = validation.errors
             validation_time = time.perf_counter() - validation_started
+            if not validation.is_valid:
+                schema_analysis, language_errors = _schema_valid_but_not_spanish(response)
+                if schema_analysis is not None and language_errors:
+                    spanish_rewrite_attempted = True
+                    rewrite_prompt = build_spanish_rewrite_prompt(
+                        schema_analysis,
+                        language_errors=language_errors,
+                    )
+                    if hasattr(client, "generate_with_metadata"):
+                        generation = client.generate_with_metadata(rewrite_prompt)  # type: ignore[attr-defined]
+                        response = str(generation["response"])
+                        ollama_telemetry = merge_telemetry(
+                            ollama_telemetry,
+                            dict(generation.get("telemetry", {})),
+                        )
+                    else:
+                        response = client.generate(rewrite_prompt)
+                    validation_started = time.perf_counter()
+                    validation = validate_strategic_analysis_response(response)
+                    errors = validation.errors
+                    validation_time += time.perf_counter() - validation_started
+            if validation.is_valid and validation.analysis is not None:
+                claim_errors = validate_evidence_bound_claims(
+                    validation.analysis,
+                    finance_summary=finance_summary,
+                    anomaly_report=anomaly_report,
+                    evidence_package=evidence_package,
+                    risk_summary=risk_summary,
+                    historical_context=historical_context,
+                )
+                if claim_errors:
+                    repair_prompt = build_evidence_repair_prompt(
+                        validation.analysis,
+                        claim_errors=claim_errors,
+                        finance_summary=finance_summary,
+                        anomaly_report=anomaly_report,
+                        evidence_package=evidence_package,
+                        risk_summary=risk_summary,
+                        historical_context=historical_context,
+                    )
+                    if hasattr(client, "generate_with_metadata"):
+                        generation = client.generate_with_metadata(repair_prompt)  # type: ignore[attr-defined]
+                        response = str(generation["response"])
+                        ollama_telemetry = merge_telemetry(
+                            ollama_telemetry,
+                            dict(generation.get("telemetry", {})),
+                        )
+                    else:
+                        response = client.generate(repair_prompt)
+                    validation_started = time.perf_counter()
+                    repaired_validation = validate_strategic_analysis_response(response)
+                    validation_time += time.perf_counter() - validation_started
+                    if repaired_validation.is_valid and repaired_validation.analysis is not None:
+                        repaired_claim_errors = validate_evidence_bound_claims(
+                            repaired_validation.analysis,
+                            finance_summary=finance_summary,
+                            anomaly_report=anomaly_report,
+                            evidence_package=evidence_package,
+                            risk_summary=risk_summary,
+                            historical_context=historical_context,
+                        )
+                        if repaired_claim_errors:
+                            validation = AnalysisValidationResult(False, None, repaired_claim_errors)
+                            errors = repaired_claim_errors
+                        else:
+                            validation = repaired_validation
+                            errors = ()
+                    else:
+                        schema_analysis, language_errors = _schema_valid_but_not_spanish(response)
+                        if schema_analysis is not None and language_errors:
+                            spanish_rewrite_attempted = True
+                            rewrite_prompt = build_spanish_rewrite_prompt(
+                                schema_analysis,
+                                language_errors=language_errors,
+                            )
+                            if hasattr(client, "generate_with_metadata"):
+                                generation = client.generate_with_metadata(rewrite_prompt)  # type: ignore[attr-defined]
+                                response = str(generation["response"])
+                                ollama_telemetry = merge_telemetry(
+                                    ollama_telemetry,
+                                    dict(generation.get("telemetry", {})),
+                                )
+                            else:
+                                response = client.generate(rewrite_prompt)
+                            validation_started = time.perf_counter()
+                            validation = validate_strategic_analysis_response(response)
+                            validation_time += time.perf_counter() - validation_started
+                            if validation.is_valid and validation.analysis is not None:
+                                claim_errors = validate_evidence_bound_claims(
+                                    validation.analysis,
+                                    finance_summary=finance_summary,
+                                    anomaly_report=anomaly_report,
+                                    evidence_package=evidence_package,
+                                    risk_summary=risk_summary,
+                                    historical_context=historical_context,
+                                )
+                                if claim_errors:
+                                    validation = AnalysisValidationResult(False, None, claim_errors)
+                                    errors = claim_errors
+                                else:
+                                    errors = ()
+                            else:
+                                errors = validation.errors
+                        else:
+                            validation = repaired_validation
+                            errors = repaired_validation.errors
         except OllamaError as exc:
             errors = (str(exc),)
+        finally:
+            if previous_response_format is not None:
+                setattr(client, "response_format", previous_response_format)
     else:
         preprocessing_time = time.perf_counter() - preprocessing_started
         errors = ("Ollama is unavailable.",)
@@ -822,6 +1634,7 @@ def create_strategic_analysis(
                 "context_token_estimate": estimate_tokens_from_text(prompt),
                 "compact_context": compact_context,
                 "deduplicate_context": deduplicate_context,
+                "spanish_rewrite_attempted": spanish_rewrite_attempted,
                 "compact_context_json_characters": compact_json_size(
                     {
                         "finance_summary": _compact_finance_summary(

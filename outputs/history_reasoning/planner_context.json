@@ -31,71 +31,15 @@
         "before_period": "2026_12"
       },
       "success": true,
-      "summary": "Retrieved 11 payroll_percentage_of_revenue point(s).",
-      "record_count": 11,
+      "summary": "Retrieved 1 payroll_percentage_of_revenue point(s).",
+      "record_count": 1,
       "metric": "payroll_percentage_of_revenue",
       "department": null,
       "records": [
         {
-          "period": "2026_04",
-          "metric": "payroll_percentage_of_revenue",
-          "value": 0.45000000000000007,
-          "unit": "ratio",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_05",
-          "metric": "payroll_percentage_of_revenue",
-          "value": 0.47,
-          "unit": "ratio",
-          "status": "available",
-          "department": null
-        },
-        {
           "period": "2026_06",
           "metric": "payroll_percentage_of_revenue",
-          "value": 0.53,
-          "unit": "ratio",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_07",
-          "metric": "payroll_percentage_of_revenue",
-          "value": 0.52,
-          "unit": "ratio",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_08",
-          "metric": "payroll_percentage_of_revenue",
-          "value": 0.4900000000000001,
-          "unit": "ratio",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_09",
-          "metric": "payroll_percentage_of_revenue",
-          "value": 0.46,
-          "unit": "ratio",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_10",
-          "metric": "payroll_percentage_of_revenue",
-          "value": 0.43,
-          "unit": "ratio",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_11",
-          "metric": "payroll_percentage_of_revenue",
-          "value": 0.41,
+          "value": 0.5310162728920758,
           "unit": "ratio",
           "status": "available",
           "department": null
@@ -113,71 +57,15 @@
         "before_period": "2026_12"
       },
       "success": true,
-      "summary": "Retrieved 11 student_payment_collection_rate point(s).",
-      "record_count": 11,
+      "summary": "Retrieved 1 student_payment_collection_rate point(s).",
+      "record_count": 1,
       "metric": "student_payment_collection_rate",
       "department": null,
       "records": [
         {
-          "period": "2026_04",
-          "metric": "student_payment_collection_rate",
-          "value": 0.890000033020628,
-          "unit": "ratio",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_05",
-          "metric": "student_payment_collection_rate",
-          "value": 0.8599999911358599,
-          "unit": "ratio",
-          "status": "available",
-          "department": null
-        },
-        {
           "period": "2026_06",
           "metric": "student_payment_collection_rate",
-          "value": 0.8399999944223008,
-          "unit": "ratio",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_07",
-          "metric": "student_payment_collection_rate",
-          "value": 0.8499999821353819,
-          "unit": "ratio",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_08",
-          "metric": "student_payment_collection_rate",
-          "value": 0.9000000375294229,
-          "unit": "ratio",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_09",
-          "metric": "student_payment_collection_rate",
-          "value": 0.9199999665179234,
-          "unit": "ratio",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_10",
-          "metric": "student_payment_collection_rate",
-          "value": 0.9399999744642602,
-          "unit": "ratio",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_11",
-          "metric": "student_payment_collection_rate",
-          "value": 0.9500000000000002,
+          "value": 0.8444563489064443,
           "unit": "ratio",
           "status": "available",
           "department": null
@@ -195,71 +83,15 @@
         "before_period": "2026_12"
       },
       "success": true,
-      "summary": "Retrieved 11 net_cash_flow point(s).",
-      "record_count": 11,
+      "summary": "Retrieved 1 net_cash_flow point(s).",
+      "record_count": 1,
       "metric": "net_cash_flow",
       "department": null,
       "records": [
         {
-          "period": "2026_04",
-          "metric": "net_cash_flow",
-          "value": -120000.0,
-          "unit": "USD",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_05",
-          "metric": "net_cash_flow",
-          "value": -220000.0,
-          "unit": "USD",
-          "status": "available",
-          "department": null
-        },
-        {
           "period": "2026_06",
           "metric": "net_cash_flow",
-          "value": -680000.0,
-          "unit": "USD",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_07",
-          "metric": "net_cash_flow",
-          "value": -350000.0,
-          "unit": "USD",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_08",
-          "metric": "net_cash_flow",
-          "value": -120000.0,
-          "unit": "USD",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_09",
-          "metric": "net_cash_flow",
-          "value": 50000.0,
-          "unit": "USD",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_10",
-          "metric": "net_cash_flow",
-          "value": 180000.0,
-          "unit": "USD",
-          "status": "available",
-          "department": null
-        },
-        {
-          "period": "2026_11",
-          "metric": "net_cash_flow",
-          "value": 320000.0,
+          "value": -685996.0,
           "unit": "USD",
           "status": "available",
           "department": null
@@ -276,125 +108,17 @@
         "min_occurrences": 2,
         "before_period": "2026_12"
       },
-      "success": true,
-      "summary": "Retrieved 8 repeated anomaly group(s).",
-      "record_count": 8,
+      "success": false,
+      "summary": "No repeated anomalies found",
+      "record_count": null,
       "metric": null,
       "department": null,
-      "records": [
-        {
-          "department": null,
-          "type": "TUITION_COLLECTION_MIN",
-          "metric": "student_payment_collection_rate",
-          "occurrences": 9,
-          "periods": [
-            "2026_02",
-            "2026_03",
-            "2026_04",
-            "2026_05",
-            "2026_06",
-            "2026_07",
-            "2026_08",
-            "2026_09",
-            "2026_10"
-          ],
-          "latest_severity": "medium"
-        },
-        {
-          "department": null,
-          "type": "PAYROLL_RATIO_MAX",
-          "metric": "payroll_percentage_of_revenue",
-          "occurrences": 7,
-          "periods": [
-            "2026_04",
-            "2026_05",
-            "2026_06",
-            "2026_07",
-            "2026_08",
-            "2026_09",
-            "2026_10"
-          ],
-          "latest_severity": "medium"
-        },
-        {
-          "department": null,
-          "type": "NET_CASH_FLOW_MIN",
-          "metric": "net_cash_flow",
-          "occurrences": 5,
-          "periods": [
-            "2026_04",
-            "2026_05",
-            "2026_06",
-            "2026_07",
-            "2026_08"
-          ],
-          "latest_severity": "high"
-        },
-        {
-          "department": null,
-          "type": "OPERATING_RESULT_MIN",
-          "metric": "net_operating_result",
-          "occurrences": 5,
-          "periods": [
-            "2026_04",
-            "2026_05",
-            "2026_06",
-            "2026_07",
-            "2026_08"
-          ],
-          "latest_severity": "high"
-        },
-        {
-          "department": null,
-          "type": "OVERDUE_PAYMENT_MAX",
-          "metric": "overdue_payment_percentage",
-          "occurrences": 4,
-          "periods": [
-            "2026_04",
-            "2026_05",
-            "2026_06",
-            "2026_07"
-          ],
-          "latest_severity": "critical"
-        },
-        {
-          "department": null,
-          "type": "VENDOR_PAYMENT_REVIEW",
-          "metric": "maximum_vendor_payment",
-          "occurrences": 3,
-          "periods": [
-            "2026_07",
-            "2026_08",
-            "2026_09"
-          ],
-          "latest_severity": "high"
-        },
-        {
-          "department": null,
-          "type": "CATEGORY_BUDGET_RANGE",
-          "metric": "category_expense_variance_pct",
-          "occurrences": 2,
-          "periods": [
-            "2026_05",
-            "2026_08"
-          ],
-          "latest_severity": "medium"
-        },
-        {
-          "department": null,
-          "type": "CATEGORY_OVERSPEND_FLAG",
-          "metric": "category_expense_variance_pct",
-          "occurrences": 2,
-          "periods": [
-            "2026_06",
-            "2026_07"
-          ],
-          "latest_severity": "high"
-        }
+      "records": [],
+      "unavailable_data": [
+        "No repeated anomalies found"
       ],
-      "unavailable_data": [],
       "warnings": [],
-      "confidence": 0.95
+      "confidence": 0.0
     },
     {
       "tool_name": "get_previous_recommendations",
@@ -403,105 +127,45 @@
         "before_period": "2026_12"
       },
       "success": true,
-      "summary": "Retrieved 31 previous recommendation(s).",
-      "record_count": 31,
+      "summary": "Retrieved 3 previous recommendation(s).",
+      "record_count": 3,
       "metric": null,
       "department": null,
       "records": [
         {
           "recommendation_id": "REC-001",
-          "run_id": "RUN-a3b60191e32469b472a83179",
+          "run_id": "RUN-25f02a5d2c700090ef33f6c2",
           "priority": "high",
           "department": null,
-          "action": "Review overtime and benefits allocation in Health Sciences and Arts & Humanities departments.",
-          "expected_impact": "Reduce payroll overruns by 20% within Q4.",
+          "action": "Conduct departmental review of Health Sciences payroll and vendor spending.",
+          "expected_impact": "Reduce overspending by 50% in next quarter.",
           "status": "unknown",
           "follow_up_required": 1,
-          "run_period": "2026_09",
+          "run_period": "2026_06",
           "period_type": "unknown"
         },
         {
           "recommendation_id": "REC-002",
-          "run_id": "RUN-a3b60191e32469b472a83179",
+          "run_id": "RUN-25f02a5d2c700090ef33f6c2",
           "priority": "high",
           "department": null,
-          "action": "Implement automated student payment tracking system to improve collection rates.",
-          "expected_impact": "Achieve 98% collection rate by Q1 2027.",
+          "action": "Investigate student payment processing delays and implement tracking system.",
+          "expected_impact": "Achieve 95% collection rate by July 2026.",
           "status": "unknown",
           "follow_up_required": 1,
-          "run_period": "2026_09",
+          "run_period": "2026_06",
           "period_type": "unknown"
         },
         {
           "recommendation_id": "REC-003",
-          "run_id": "RUN-a3b60191e32469b472a83179",
-          "priority": "high",
-          "department": null,
-          "action": "Audit vendor payment process to verify invoice and approval documentation.",
-          "expected_impact": "Ensure compliance and prevent duplicate payments.",
-          "status": "unknown",
-          "follow_up_required": 1,
-          "run_period": "2026_09",
-          "period_type": "unknown"
-        },
-        {
-          "recommendation_id": "REC-001",
-          "run_id": "RUN-09e919710170a2baedf1da8e",
-          "priority": "high",
-          "department": null,
-          "action": "Review payroll by department, overtime, benefits, and headcount.",
-          "expected_impact": "Reduce payroll costs to meet 42% target, improving net operating result.",
-          "status": "unknown",
-          "follow_up_required": 1,
-          "run_period": "2026_10",
-          "period_type": "unknown"
-        },
-        {
-          "recommendation_id": "REC-002",
-          "run_id": "RUN-09e919710170a2baedf1da8e",
+          "run_id": "RUN-25f02a5d2c700090ef33f6c2",
           "priority": "medium",
           "department": null,
-          "action": "Inspect overdue invoices, aging buckets, and payment plans.",
-          "expected_impact": "Improve collection rate to 94%+ and reduce overdue invoices.",
+          "action": "Review vendor payment filters to ensure all transactions are processed.",
+          "expected_impact": "Ensure 100% of vendor payments are recorded and auditable.",
           "status": "unknown",
           "follow_up_required": 0,
-          "run_period": "2026_10",
-          "period_type": "unknown"
-        },
-        {
-          "recommendation_id": "REC-001",
-          "run_id": "RUN-7109a9c9391c6b3f9efb873e",
-          "priority": "high",
-          "department": null,
-          "action": "Conduct payroll cost analysis to identify headcount/salary drivers.",
-          "expected_impact": "Reduce payroll costs to align with budget, improving net operating result.",
-          "status": "unknown",
-          "follow_up_required": 1,
-          "run_period": "2026_11",
-          "period_type": "unknown"
-        },
-        {
-          "recommendation_id": "REC-002",
-          "run_id": "RUN-7109a9c9391c6b3f9efb873e",
-          "priority": "medium",
-          "department": null,
-          "action": "Review departmental expense variances to identify overspending patterns.",
-          "expected_impact": "Improve budget adherence and reduce unnecessary spending.",
-          "status": "unknown",
-          "follow_up_required": 0,
-          "run_period": "2026_11",
-          "period_type": "unknown"
-        },
-        {
-          "recommendation_id": "REC-003",
-          "run_id": "RUN-7109a9c9391c6b3f9efb873e",
-          "priority": "low",
-          "department": null,
-          "action": "Analyze facilities and technology under-spending to optimize resource allocation.",
-          "expected_impact": "Increase utilization of allocated resources, improving operational efficiency.",
-          "status": "unknown",
-          "follow_up_required": 0,
-          "run_period": "2026_11",
+          "run_period": "2026_06",
           "period_type": "unknown"
         }
       ],
@@ -515,17 +179,60 @@
         "periods": 12,
         "before_period": "2026_12"
       },
-      "success": false,
-      "summary": "No goal progress found",
-      "record_count": null,
+      "success": true,
+      "summary": "Retrieved 4 goal progress row(s).",
+      "record_count": 4,
       "metric": null,
       "department": null,
-      "records": [],
-      "unavailable_data": [
-        "No goal progress found"
+      "records": [
+        {
+          "goal_id": "GOAL-ANNUAL-REVENUE",
+          "run_id": "RUN-25f02a5d2c700090ef33f6c2",
+          "metric": "total_revenue",
+          "target": 26000000.0,
+          "actual": 1877724.0,
+          "unit": "USD",
+          "progress_status": null,
+          "run_period": "2026_06",
+          "period_type": "unknown"
+        },
+        {
+          "goal_id": "GOAL-COLLECTION-RATE",
+          "run_id": "RUN-25f02a5d2c700090ef33f6c2",
+          "metric": "collection_rate",
+          "target": 0.94,
+          "actual": 0.8444563489064443,
+          "unit": "ratio",
+          "progress_status": null,
+          "run_period": "2026_06",
+          "period_type": "unknown"
+        },
+        {
+          "goal_id": "GOAL-EXPENSE-VARIANCE",
+          "run_id": "RUN-25f02a5d2c700090ef33f6c2",
+          "metric": "expense_variance",
+          "target": 0.0,
+          "actual": 222970.0,
+          "unit": "USD",
+          "progress_status": null,
+          "run_period": "2026_06",
+          "period_type": "unknown"
+        },
+        {
+          "goal_id": "GOAL-PAYROLL-RATIO",
+          "run_id": "RUN-25f02a5d2c700090ef33f6c2",
+          "metric": "payroll_percentage_of_revenue",
+          "target": 0.42,
+          "actual": 0.5310162728920758,
+          "unit": "ratio",
+          "progress_status": null,
+          "run_period": "2026_06",
+          "period_type": "unknown"
+        }
       ],
+      "unavailable_data": [],
       "warnings": [],
-      "confidence": 0.0
+      "confidence": 0.95
     },
     {
       "tool_name": "get_memory_facts",
@@ -534,89 +241,89 @@
         "before_period": "2026_12"
       },
       "success": true,
-      "summary": "Retrieved 200 memory fact(s).",
-      "record_count": 200,
+      "summary": "Retrieved 28 memory fact(s).",
+      "record_count": 28,
       "metric": null,
       "department": null,
       "records": [
         {
-          "fact_id": 804,
-          "run_id": "RUN-7109a9c9391c6b3f9efb873e",
-          "category": "key_finding",
-          "subject": "key_findings_3",
-          "fact": "Facilities, Supplies, and Technology categories show negative variances (under budget), while Payroll shows a significant +4% variance.",
-          "confidence": 0.75,
-          "run_period": "2026_11",
-          "period_type": "unknown"
-        },
-        {
-          "fact_id": 805,
-          "run_id": "RUN-7109a9c9391c6b3f9efb873e",
-          "category": "key_finding",
-          "subject": "key_findings_4",
-          "fact": "Collection rate is 95%, meeting the 94% threshold, but no overdue invoices are reported.",
-          "confidence": 0.75,
-          "run_period": "2026_11",
-          "period_type": "unknown"
-        },
-        {
-          "fact_id": 806,
-          "run_id": "RUN-7109a9c9391c6b3f9efb873e",
-          "category": "root_cause",
-          "subject": "root_causes_1",
-          "fact": "Payroll expense growth may be driven by headcount increases or salary adjustments not reflected in budget planning.",
-          "confidence": 0.75,
-          "run_period": "2026_11",
-          "period_type": "unknown"
-        },
-        {
-          "fact_id": 807,
-          "run_id": "RUN-7109a9c9391c6b3f9efb873e",
+          "fact_id": 34,
+          "run_id": "RUN-25f02a5d2c700090ef33f6c2",
           "category": "root_cause",
           "subject": "root_causes_2",
-          "fact": "Departmental expense variances suggest inconsistent budget adherence across departments.",
-          "confidence": 0.75,
-          "run_period": "2026_11",
+          "fact": "Unplanned vendor payments in Engineering for supplies and services exceeding budget allocations.",
+          "confidence": 0.8,
+          "run_period": "2026_06",
           "period_type": "unknown"
         },
         {
-          "fact_id": 808,
-          "run_id": "RUN-7109a9c9391c6b3f9efb873e",
+          "fact_id": 35,
+          "run_id": "RUN-25f02a5d2c700090ef33f6c2",
           "category": "root_cause",
           "subject": "root_causes_3",
-          "fact": "Facilities and Technology under-spending may indicate inefficient resource allocation or delayed spending.",
-          "confidence": 0.75,
-          "run_period": "2026_11",
+          "fact": "Incomplete transaction processing for student payments leading to collection rate shortfall.",
+          "confidence": 0.8,
+          "run_period": "2026_06",
           "period_type": "unknown"
         },
         {
-          "fact_id": 809,
-          "run_id": "RUN-7109a9c9391c6b3f9efb873e",
+          "fact_id": 36,
+          "run_id": "RUN-25f02a5d2c700090ef33f6c2",
+          "category": "root_cause",
+          "subject": "root_causes_4",
+          "fact": "Data filtering issues causing missing vendor payment evidence for flagged transactions.",
+          "confidence": 0.8,
+          "run_period": "2026_06",
+          "period_type": "unknown"
+        },
+        {
+          "fact_id": 37,
+          "run_id": "RUN-25f02a5d2c700090ef33f6c2",
           "category": "strategic_priority",
           "subject": "strategic_priorities_1",
-          "fact": "Maintain payroll cost control to stay within 42% threshold.",
-          "confidence": 0.75,
-          "run_period": "2026_11",
+          "fact": "Address Health Sciences overspending to align with annual budget goals.",
+          "confidence": 0.8,
+          "run_period": "2026_06",
           "period_type": "unknown"
         },
         {
-          "fact_id": 810,
-          "run_id": "RUN-7109a9c9391c6b3f9efb873e",
+          "fact_id": 38,
+          "run_id": "RUN-25f02a5d2c700090ef33f6c2",
           "category": "strategic_priority",
           "subject": "strategic_priorities_2",
-          "fact": "Improve departmental budget adherence to reduce expense variances.",
-          "confidence": 0.75,
-          "run_period": "2026_11",
+          "fact": "Improve student payment collection rate to meet financial targets.",
+          "confidence": 0.8,
+          "run_period": "2026_06",
           "period_type": "unknown"
         },
         {
-          "fact_id": 811,
-          "run_id": "RUN-7109a9c9391c6b3f9efb873e",
+          "fact_id": 39,
+          "run_id": "RUN-25f02a5d2c700090ef33f6c2",
           "category": "strategic_priority",
           "subject": "strategic_priorities_3",
-          "fact": "Optimize underutilized resources in Facilities and Technology.",
-          "confidence": 0.75,
-          "run_period": "2026_11",
+          "fact": "Fix data processing gaps for vendor payments to ensure auditability.",
+          "confidence": 0.8,
+          "run_period": "2026_06",
+          "period_type": "unknown"
+        },
+        {
+          "fact_id": 40,
+          "run_id": "RUN-25f02a5d2c700090ef33f6c2",
+          "category": "unresolved_issue",
+          "subject": "missing_information_1",
+          "fact": "Details on Engineering vendor payment categories exceeding budget.",
+          "confidence": 0.8,
+          "run_period": "2026_06",
+          "period_type": "unknown"
+        },
+        {
+          "fact_id": 41,
+          "run_id": "RUN-25f02a5d2c700090ef33f6c2",
+          "category": "unresolved_issue",
+          "subject": "missing_information_2",
+          "fact": "Specific cause of student payment processing delays.",
+          "confidence": 0.8,
+          "run_period": "2026_06",
           "period_type": "unknown"
         }
       ],
@@ -629,160 +336,94 @@
     "kpi_trends": {
       "payroll_percentage_of_revenue": {
         "periods": [
-          "2026_04",
-          "2026_05",
-          "2026_06",
-          "2026_07",
-          "2026_08",
-          "2026_09",
-          "2026_10",
-          "2026_11"
+          "2026_06"
         ],
-        "first_value": 0.45000000000000007,
-        "latest_value": 0.41,
-        "direction": "worsening"
+        "first_value": 0.5310162728920758,
+        "latest_value": 0.5310162728920758,
+        "direction": "stable"
       },
       "student_payment_collection_rate": {
         "periods": [
-          "2026_04",
-          "2026_05",
-          "2026_06",
-          "2026_07",
-          "2026_08",
-          "2026_09",
-          "2026_10",
-          "2026_11"
+          "2026_06"
         ],
-        "first_value": 0.890000033020628,
-        "latest_value": 0.9500000000000002,
-        "direction": "improving"
+        "first_value": 0.8444563489064443,
+        "latest_value": 0.8444563489064443,
+        "direction": "stable"
       },
       "net_cash_flow": {
         "periods": [
-          "2026_04",
-          "2026_05",
-          "2026_06",
-          "2026_07",
-          "2026_08",
-          "2026_09",
-          "2026_10",
-          "2026_11"
+          "2026_06"
         ],
-        "first_value": -120000.0,
-        "latest_value": 320000.0,
-        "direction": "improving"
+        "first_value": -685996.0,
+        "latest_value": -685996.0,
+        "direction": "stable"
       }
     },
     "goal_progress": [
       {
         "metric": "payroll_percentage_of_revenue",
         "target": 0.42,
-        "latest_value": 0.41,
-        "status": "met",
-        "trend_direction": "worsening"
+        "latest_value": 0.5310162728920758,
+        "status": "not_met",
+        "trend_direction": "stable"
       },
       {
         "metric": "student_payment_collection_rate",
         "target": 0.94,
-        "latest_value": 0.9500000000000002,
-        "status": "met",
-        "trend_direction": "improving"
+        "latest_value": 0.8444563489064443,
+        "status": "not_met",
+        "trend_direction": "stable"
       },
       {
         "metric": "net_cash_flow",
         "target": 0.0,
-        "latest_value": 320000.0,
-        "status": "met",
-        "trend_direction": "improving"
+        "latest_value": -685996.0,
+        "status": "not_met",
+        "trend_direction": "stable"
       }
     ],
-    "previous_recommendation_count": 8,
+    "previous_recommendation_count": 3,
     "recommendation_effectiveness": [
       {
         "topic": "payroll_overtime",
-        "recommendation_count": 3,
+        "recommendation_count": 1,
         "related_trend": {
           "periods": [
-            "2026_04",
-            "2026_05",
-            "2026_06",
-            "2026_07",
-            "2026_08",
-            "2026_09",
-            "2026_10",
-            "2026_11"
+            "2026_06"
           ],
-          "first_value": 0.45000000000000007,
-          "latest_value": 0.41,
-          "direction": "worsening"
+          "first_value": 0.5310162728920758,
+          "latest_value": 0.5310162728920758,
+          "direction": "stable"
         }
       },
       {
         "topic": "collections",
-        "recommendation_count": 3,
+        "recommendation_count": 2,
         "related_trend": {
           "periods": [
-            "2026_04",
-            "2026_05",
-            "2026_06",
-            "2026_07",
-            "2026_08",
-            "2026_09",
-            "2026_10",
-            "2026_11"
+            "2026_06"
           ],
-          "first_value": 0.890000033020628,
-          "latest_value": 0.9500000000000002,
-          "direction": "improving"
+          "first_value": 0.8444563489064443,
+          "latest_value": 0.8444563489064443,
+          "direction": "stable"
         }
       },
       {
         "topic": "vendor_controls",
-        "recommendation_count": 1,
+        "recommendation_count": 2,
         "related_trend": null
       }
     ],
-    "artifact_anomaly_patterns": [
-      {
-        "department": "Health Sciences",
-        "anomaly_type": "payroll_overtime_overspend",
-        "periods": [
-          "2026_04",
-          "2026_05",
-          "2026_06",
-          "2026_07"
-        ],
-        "occurrences": 4
-      },
-      {
-        "department": "Health Sciences",
-        "anomaly_type": "recurring_vendor_duplicate",
-        "periods": [
-          "2026_07",
-          "2026_08",
-          "2026_09"
-        ],
-        "occurrences": 3
-      },
-      {
-        "department": "University",
-        "anomaly_type": "negative_cash_flow",
-        "periods": [
-          "2026_06",
-          "2026_07"
-        ],
-        "occurrences": 2
-      }
-    ]
+    "artifact_anomaly_patterns": []
   },
   "summary": {
     "available_retrievals": 6,
     "unavailable_retrievals": 1,
     "topics": [
+      "get_goal_progress",
       "get_memory_facts",
       "get_metric_history",
-      "get_previous_recommendations",
-      "get_repeated_anomalies"
+      "get_previous_recommendations"
     ]
   }
 }

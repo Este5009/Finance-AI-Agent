@@ -2,40 +2,24 @@
   "queue_id": "QUEUE-2026-12",
   "period_slug": "2026_12",
   "source_plan_id": "OLLAMA-PLAN-2026-12",
-  "planner_source": "deterministic_fallback",
+  "planner_source": "ollama",
   "status": "pending",
   "tools_executed": false,
-  "total_items": 2,
+  "total_items": 1,
   "items": [
     {
       "queue_position": 1,
       "execution_id": "EXEC-2026-12-001",
-      "step_id": "FALLBACK-001",
-      "anomaly_id": "DATA-TABLE-university_financial_report_2026_12__cash_flow__table_01",
-      "priority": "medium",
-      "question": "What is the correct structure and business meaning of table 'university_financial_report_2026_12__cash_flow__table_01'?",
+      "step_id": "STEP-001",
+      "anomaly_id": null,
+      "priority": "high",
+      "question": "What evidence explains the prioritized financial risk?",
       "tool_name": "get_full_report",
       "arguments": {
-        "period": "2026-12"
+        "period": "2026_06"
       },
-      "reasoning": "Deterministic baseline selected this task: Enriched model requires human review; final type is Cash_Flow with confidence 0.7833.",
-      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
-      "status": "queued",
-      "dependencies": []
-    },
-    {
-      "queue_position": 2,
-      "execution_id": "EXEC-2026-12-002",
-      "step_id": "FALLBACK-002",
-      "anomaly_id": "DATA-TABLE-university_financial_report_2026_12__department_summary__table_01",
-      "priority": "medium",
-      "question": "What is the correct structure and business meaning of table 'university_financial_report_2026_12__department_summary__table_01'?",
-      "tool_name": "get_full_report",
-      "arguments": {
-        "period": "2026-12"
-      },
-      "reasoning": "Deterministic baseline selected this task: Enriched model requires human review; final type is Department_Summary with confidence 0.87.",
-      "expected_output": "Confirmed table type, canonical column mappings, and review decision.",
+      "reasoning": "The processed report is needed to isolate the drivers.",
+      "expected_output": "Evidence breakdown of the primary risk drivers.",
       "status": "queued",
       "dependencies": []
     }

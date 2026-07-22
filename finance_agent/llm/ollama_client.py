@@ -25,6 +25,7 @@ class OllamaClient:
     model: str = DEFAULT_OLLAMA_MODEL
     timeout_seconds: float = 90.0
     reasoning_enabled: bool = False
+    response_format: str | dict[str, Any] = "json"
 
     def _request(
         self,
@@ -94,7 +95,7 @@ class OllamaClient:
                 "model": self.model,
                 "prompt": prompt,
                 "stream": False,
-                "format": "json",
+                "format": self.response_format,
                 # Structure fallback stays non-thinking for strict schema mapping,
                 # while planner/analysis clients can explicitly enable reasoning.
                 "think": self.reasoning_enabled,

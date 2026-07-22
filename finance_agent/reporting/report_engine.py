@@ -25,8 +25,8 @@ from finance_agent.reporting.presentation import (
     build_recommendation_cards,
     build_revenue_expense_summary,
     compact_source_label,
-    localize_items,
-    localize_text,
+    sanitize_items,
+    sanitize_text,
     validate_presentation_view,
 )
 
@@ -152,6 +152,23 @@ def _analysis_payload(document: dict[str, Any]) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
+def _analysis_text(analysis: dict[str, Any], field_name: str, fallback: str = "") -> str:
+    """Return a model-authored section narrative.
+
+    Inputs: strategic analysis payload, preferred field, and fallback field.
+    Outputs: narrative text.
+    Assumptions: Step 9 validated the prose as Spanish and evidence-bound.
+    """
+
+    value = analysis.get(field_name)
+    if isinstance(value, str):
+        return value
+    fallback_value = analysis.get(fallback) if fallback else ""
+    if isinstance(fallback_value, str):
+        return fallback_value
+    return ""
+
+
 def _analysis_unavailable_warnings(document: dict[str, Any]) -> tuple[str, ...]:
     """Return report warnings when strategic analysis is not accepted.
 
@@ -244,6 +261,7 @@ def _all_section_sources(sections: tuple[ReportSection, ...]) -> tuple[str, ...]
 
 def _historical_sections(
     historical_context: dict[str, Any],
+    analysis: dict[str, Any],
     analysis_source: tuple[str, ...],
 ) -> tuple[ReportSection, ...]:
     """Build optional historical report sections when compact history exists.
@@ -293,6 +311,7 @@ def _historical_sections(
             "historical_summary",
             "Historical Summary",
             {
+                "analysis": _analysis_text(analysis, "historical_summary"),
                 "narrative": historical.get("narrative", []),
                 "retrieval_count": summary.get("available_retrievals", 0),
                 "topics": [
@@ -306,6 +325,7 @@ def _historical_sections(
             "historical_trends",
             "Historical Trends",
             {
+                "analysis": _analysis_text(analysis, "historical_trend_analysis"),
                 "trend_series": trend_overview,
                 "narrative": historical.get("narrative", []),
             },
@@ -315,6 +335,7 @@ def _historical_sections(
             "recommendation_follow_up",
             "Recommendation Follow-up",
             {
+                "analysis": _analysis_text(analysis, "recommendation_follow_up_analysis"),
                 "follow_up": historical.get("recommendation_follow_up", []),
             },
             analysis_source,
@@ -323,6 +344,7 @@ def _historical_sections(
             "longitudinal_risk_assessment",
             "Longitudinal Risk Assessment",
             {
+                "analysis": _analysis_text(analysis, "longitudinal_risk_analysis"),
                 "recurring_risks": historical.get("recurring_risks", []),
                 "conclusions": historical.get("longitudinal_conclusions", []),
             },
@@ -343,9 +365,9 @@ def _add_presentation_payload(model: ReportModel) -> None:
     report_data = model.to_dict()
     section_by_id = {section.section_id: section for section in model.sections}
     section_by_id["executive_summary"].content["presentation"] = {
-        "summary": localize_text(section_by_id["executive_summary"].content.get("summary", "")),
-        "key_findings": localize_items(section_by_id["executive_summary"].content.get("key_findings", [])),
-        "root_causes": localize_items(section_by_id["executive_summary"].content.get("root_causes", [])),
+        "summary": sanitize_text(section_by_id["executive_summary"].content.get("summary", "")),
+        "key_findings": sanitize_items(section_by_id["executive_summary"].content.get("key_findings", [])),
+        "root_causes": sanitize_items(section_by_id["executive_summary"].content.get("root_causes", [])),
     }
     section_by_id["financial_health_overview"].content["presentation"] = {
         "metric_cards": build_metric_cards(report_data),
@@ -360,10 +382,10 @@ def _add_presentation_payload(model: ReportModel) -> None:
     }
     section_by_id["strategic_recommendations"].content["presentation"] = {
         "recommendations": build_recommendation_cards(report_data),
-        "priorities": localize_items(
+        "priorities": sanitize_items(
             section_by_id["strategic_recommendations"].content.get("strategic_priorities", [])
         ),
-        "reasoning_summary": localize_text(
+        "reasoning_summary": sanitize_text(
             section_by_id["strategic_recommendations"].content.get("reasoning_summary", "")
         ),
     }
@@ -427,7 +449,7 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
             "executive_summary",
             "Executive Summary",
             {
-                "summary": analysis.get("executive_summary") or "Strategic analysis was unavailable; use processed metrics and anomalies.",
+                "summary": analysis.get("executive_summary") or "",
                 "key_findings": analysis.get("key_findings", []),
                 "root_causes": analysis.get("root_causes", []),
                 "confidence": analysis.get("confidence"),
@@ -447,13 +469,17 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "ending_cash": cash_flow.get("ending_cash"),
                 "payroll_percentage_of_revenue": finance.get("payroll_percentage_of_revenue"),
                 "collection_rate": payments.get("collection_rate"),
+                "analysis": _analysis_text(analysis, "financial_health_analysis"),
             },
             finance_source,
         ),
         _section(
             "kpi_overview",
             "KPI Overview",
-            {"kpis": list(inputs.kpi_summary)},
+            {
+                "kpis": list(inputs.kpi_summary),
+                "analysis": _analysis_text(analysis, "kpi_analysis"),
+            },
             kpi_source,
         ),
         _section(
@@ -465,6 +491,7 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "revenue_variance": budget.get("revenue_variance"),
                 "revenue_variance_pct": budget.get("revenue_variance_pct"),
                 "department_summary": inputs.finance_summary.get("department_summary", []),
+                "analysis": _analysis_text(analysis, "financial_health_analysis"),
             },
             finance_source,
         ),
@@ -478,6 +505,7 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "expense_variance_pct": budget.get("expense_variance_pct"),
                 "payroll_total": finance.get("payroll_total"),
                 "category_summary": inputs.finance_summary.get("category_summary", []),
+                "analysis": _analysis_text(analysis, "financial_health_analysis"),
             },
             finance_source,
         ),
@@ -491,6 +519,7 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                     for item in _evidence_items(inputs.evidence_package)
                     if item.get("retrieval_name") == "department_history"
                 ],
+                "analysis": _analysis_text(analysis, "department_analysis"),
             },
             (inputs.source_files[0], inputs.source_files[3]),
         ),
@@ -501,6 +530,7 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "total_anomalies": inputs.anomaly_report.get("total_anomalies"),
                 "anomalies_by_severity": inputs.anomaly_report.get("anomalies_by_severity", {}),
                 "top_anomalies": inputs.anomaly_report.get("anomalies", [])[:10],
+                "analysis": _analysis_text(analysis, "anomaly_analysis"),
             },
             anomaly_source,
         ),
@@ -517,10 +547,11 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
             "strategic_recommendations",
             "Strategic Recommendations",
             {
-                "recommendations": analysis.get("recommendations", []),
+                "recommendations": analysis.get("strategic_recommendations", analysis.get("recommendations", [])),
                 "root_causes": analysis.get("root_causes", []),
                 "strategic_priorities": analysis.get("strategic_priorities", []),
                 "reasoning_summary": analysis.get("reasoning_summary", ""),
+                "analysis": _analysis_text(analysis, "longitudinal_risk_analysis"),
             },
             analysis_source,
             analysis_warnings,
@@ -555,7 +586,7 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
             inputs.source_files,
         ),
     )
-    historical_sections = _historical_sections(historical_context, analysis_source)
+    historical_sections = _historical_sections(historical_context, analysis, analysis_source)
     sections = (*base_sections[:-2], *historical_sections, *base_sections[-2:])
     model = ReportModel(
         report_id=f"REPORT-MODEL-{inputs.period_slug.upper().replace('_', '-')}",

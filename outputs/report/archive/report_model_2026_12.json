@@ -24,30 +24,22 @@
       "section_id": "executive_summary",
       "title": "Executive Summary",
       "content": {
-        "summary": "The financial performance shows mixed results with payroll costs under control but departmental budget adherence issues and underutilized resources in Facilities and Technology. Collection rates meet targets, but no overdue invoices reported may indicate potential cash flow risks.",
+        "summary": "Resumen ejecutivo en español, con valores/periodos específicos cuando aplique.",
         "key_findings": [
-          "Payroll variance shows a significant +4% over budget, while Facilities, Supplies, and Technology categories show negative variances (under budget).",
-          "Collection rate is 95%, meeting the 94% threshold, but no overdue invoices are reported, suggesting possible cash flow management issues.",
-          "Departmental expense variances indicate inconsistent budget adherence across departments."
+          "Hallazgo específico en español respaldado por evidencia."
         ],
         "root_causes": [
-          "Payroll expense growth may be driven by headcount increases or salary adjustments not reflected in budget planning.",
-          "Facilities and Technology under-spending may indicate inefficient resource allocation or delayed spending.",
-          "Inconsistent budget adherence across departments suggests possible lack of oversight or planning gaps."
+          "Causa probable en español, con cautela si falta evidencia."
         ],
         "confidence": 0.75,
         "analysis_status": "accepted",
         "presentation": {
-          "summary": "El desempeño financiero muestra resultados mixtos: la nómina está bajo control, pero persisten brechas de cumplimiento presupuestario por departamento y recursos subutilizados en Instalaciones y Tecnología. La cobranza cumple la meta, aunque la ausencia de facturas vencidas reportadas debe revisarse para confirmar la salud del flujo de caja.",
+          "summary": "Resumen ejecutivo en español, con valores/periodos específicos cuando aplique.",
           "key_findings": [
-            "La nómina presenta una variación significativa de +4% sobre el presupuesto, mientras Instalaciones, Suministros y Tecnología muestran variaciones negativas frente al presupuesto.",
-            "La tasa de cobranza es 95% y supera el umbral de 94%; sin embargo, la falta de facturas vencidas reportadas amerita validación operativa del flujo de caja.",
-            "Las variaciones de gasto por departamento indican cumplimiento presupuestario inconsistente."
+            "Hallazgo específico en español respaldado por evidencia."
           ],
           "root_causes": [
-            "El crecimiento del gasto de nómina puede estar asociado a aumentos de plantilla o ajustes salariales no reflejados en la planificación presupuestaria.",
-            "La subejecución en Instalaciones y Tecnología puede indicar asignación ineficiente de recursos o gasto diferido.",
-            "El cumplimiento presupuestario inconsistente por departamento sugiere brechas de supervisión o planificación."
+            "Causa probable en español, con cautela si falta evidencia."
           ]
         }
       },
@@ -67,6 +59,7 @@
         "ending_cash": 2260000.0,
         "payroll_percentage_of_revenue": 0.39999999999999997,
         "collection_rate": 0.9600000029238533,
+        "analysis": "Análisis español de salud financiera basado en KPIs principales.",
         "presentation": {
           "metric_cards": [
             {
@@ -116,11 +109,11 @@
             },
             {
               "id": "payroll_percentage_of_revenue",
-              "label": "Nómina / ingresos",
+              "label": "NÃ³mina / ingresos",
               "value": "40.0%",
               "numeric_value": 0.39999999999999997,
               "unit": "ratio",
-              "description": "Peso de la nómina sobre ingresos.",
+              "description": "Peso de la nÃ³mina sobre ingresos.",
               "status": "good"
             },
             {
@@ -182,35 +175,35 @@
           },
           {
             "metric": "expense_budget_variance",
-            "value": -6336.000000000233,
+            "value": -6336.0000000002,
             "unit": "USD",
             "availability": "available",
             "source": "Budget_vs_Actual"
           },
           {
             "metric": "expense_budget_variance_pct",
-            "value": -0.0031075092254181,
+            "value": -0.0031075092,
             "unit": "ratio",
             "availability": "available",
             "source": "Budget_vs_Actual"
           },
           {
             "metric": "payroll_total",
-            "value": 912038.4,
+            "value": 912038.3999999999,
             "unit": "USD",
             "availability": "available",
             "source": "Payroll"
           },
           {
             "metric": "payroll_percentage_of_revenue",
-            "value": 0.3999999999999999,
+            "value": 0.4,
             "unit": "ratio",
             "availability": "available",
             "source": "Payroll / Revenue"
           },
           {
             "metric": "student_payment_collection_rate",
-            "value": 0.9600000029238532,
+            "value": 0.9600000029,
             "unit": "ratio",
             "availability": "available",
             "source": "Student_Payments"
@@ -251,6 +244,7 @@
             "source": "Cash_Flow"
           }
         ],
+        "analysis": "Análisis español de KPIs y metas.",
         "presentation": {
           "rows": [
             {
@@ -272,40 +266,40 @@
               "description": "Diferencia entre ingresos y gastos operativos."
             },
             {
-              "indicator": "Variación presupuestaria de ingresos",
+              "indicator": "VariaciÃ³n presupuestaria de ingresos",
               "value": "$87,696",
               "status": "Disponible",
               "description": "Diferencia entre ingresos reales y presupuesto."
             },
             {
-              "indicator": "Variación presupuestaria de ingresos",
+              "indicator": "VariaciÃ³n presupuestaria de ingresos",
               "value": "4.0%",
               "status": "Disponible",
               "description": "Diferencia porcentual entre ingresos reales y presupuesto."
             },
             {
-              "indicator": "Variación presupuestaria de gastos",
+              "indicator": "VariaciÃ³n presupuestaria de gastos",
               "value": "-$6,336",
               "status": "Disponible",
               "description": "Diferencia entre gastos reales y presupuesto."
             },
             {
-              "indicator": "Variación presupuestaria de gastos",
+              "indicator": "VariaciÃ³n presupuestaria de gastos",
               "value": "-0.3%",
               "status": "Disponible",
               "description": "Diferencia porcentual entre gastos reales y presupuesto."
             },
             {
-              "indicator": "Nómina total",
+              "indicator": "NÃ³mina total",
               "value": "$912,038",
               "status": "Disponible",
-              "description": "Gasto total de nómina."
+              "description": "Gasto total de nÃ³mina."
             },
             {
-              "indicator": "Nómina / ingresos",
+              "indicator": "NÃ³mina / ingresos",
               "value": "40.0%",
               "status": "Disponible",
-              "description": "Peso de la nómina sobre ingresos."
+              "description": "Peso de la nÃ³mina sobre ingresos."
             },
             {
               "indicator": "Tasa de cobranza",
@@ -433,6 +427,7 @@
             "net_operating_result": 24749.99
           }
         ],
+        "analysis": "Análisis español de salud financiera basado en KPIs principales.",
         "presentation": {
           "rows": [
             {
@@ -446,14 +441,14 @@
               "description": "Meta presupuestada de ingresos."
             },
             {
-              "metric": "Variación de ingresos",
+              "metric": "VariaciÃ³n de ingresos",
               "value": "$87,696",
               "description": "Diferencia entre ingreso actual y presupuesto."
             },
             {
-              "metric": "Variación de ingresos",
+              "metric": "VariaciÃ³n de ingresos",
               "value": "4.0%",
-              "description": "Variación porcentual contra presupuesto."
+              "description": "VariaciÃ³n porcentual contra presupuesto."
             },
             {
               "metric": "Gastos totales",
@@ -466,19 +461,19 @@
               "description": "Meta presupuestada de gastos."
             },
             {
-              "metric": "Variación de gastos",
+              "metric": "VariaciÃ³n de gastos",
               "value": "-$6,336",
               "description": "Diferencia entre gasto actual y presupuesto."
             },
             {
-              "metric": "Variación de gastos",
+              "metric": "VariaciÃ³n de gastos",
               "value": "-0.3%",
-              "description": "Variación porcentual contra presupuesto."
+              "description": "VariaciÃ³n porcentual contra presupuesto."
             },
             {
-              "metric": "Nómina total",
+              "metric": "NÃ³mina total",
               "value": "$912,038",
-              "description": "Gasto total de nómina."
+              "description": "Gasto total de nÃ³mina."
             }
           ],
           "chart": [
@@ -578,6 +573,7 @@
             "variance_pct": -0.0356414815
           }
         ],
+        "analysis": "Análisis español de salud financiera basado en KPIs principales.",
         "presentation": {
           "rows": [
             {
@@ -591,14 +587,14 @@
               "description": "Meta presupuestada de ingresos."
             },
             {
-              "metric": "Variación de ingresos",
+              "metric": "VariaciÃ³n de ingresos",
               "value": "$87,696",
               "description": "Diferencia entre ingreso actual y presupuesto."
             },
             {
-              "metric": "Variación de ingresos",
+              "metric": "VariaciÃ³n de ingresos",
               "value": "4.0%",
-              "description": "Variación porcentual contra presupuesto."
+              "description": "VariaciÃ³n porcentual contra presupuesto."
             },
             {
               "metric": "Gastos totales",
@@ -611,19 +607,19 @@
               "description": "Meta presupuestada de gastos."
             },
             {
-              "metric": "Variación de gastos",
+              "metric": "VariaciÃ³n de gastos",
               "value": "-$6,336",
               "description": "Diferencia entre gasto actual y presupuesto."
             },
             {
-              "metric": "Variación de gastos",
+              "metric": "VariaciÃ³n de gastos",
               "value": "-0.3%",
-              "description": "Variación porcentual contra presupuesto."
+              "description": "VariaciÃ³n porcentual contra presupuesto."
             },
             {
-              "metric": "Nómina total",
+              "metric": "NÃ³mina total",
               "value": "$912,038",
-              "description": "Gasto total de nómina."
+              "description": "Gasto total de nÃ³mina."
             }
           ],
           "chart": [
@@ -751,6 +747,7 @@
           }
         ],
         "department_evidence": [],
+        "analysis": "Análisis español por departamento.",
         "presentation": {
           "rows": [
             {
@@ -828,8 +825,9 @@
           "low": 0
         },
         "top_anomalies": [],
+        "analysis": "Análisis español de anomalías o estado positivo si no hay anomalías.",
         "presentation": {
-          "positive_status": "No se detectaron anomalías relevantes en los datos procesados del periodo.",
+          "positive_status": "Sin anomalÃ­as relevantes.",
           "severity_rows": [],
           "top_rows": []
         }
@@ -846,31 +844,16 @@
         "retrieval_summary": {
           "package_id": "EVIDENCE-2026-12",
           "period_slug": "2026_12",
-          "tasks_executed": 2,
-          "successful_retrievals": 2,
+          "tasks_executed": 1,
+          "successful_retrievals": 1,
           "failed_retrievals": 0,
           "unavailable_evidence": 0
         },
         "evidence_items": [
           {
-            "task_id": "FALLBACK-001",
-            "priority": "medium",
-            "question": "What is the correct structure and business meaning of table 'university_financial_report_2026_12__cash_flow__table_01'?",
-            "retrieval_name": "financial_report",
-            "success": true,
-            "record_count": null,
-            "matched_tables": null,
-            "evidence_summary": "Retrieved processed 2026_12 finance summary.",
-            "source_references": [
-              "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\calculations\\finance_summary_2026_12.json"
-            ],
-            "warnings": [],
-            "unavailable_data": []
-          },
-          {
-            "task_id": "FALLBACK-002",
-            "priority": "medium",
-            "question": "What is the correct structure and business meaning of table 'university_financial_report_2026_12__department_summary__table_01'?",
+            "task_id": "STEP-001",
+            "priority": "high",
+            "question": "What evidence explains the prioritized financial risk?",
             "retrieval_name": "financial_report",
             "success": true,
             "record_count": null,
@@ -886,16 +869,10 @@
         "presentation": {
           "rows": [
             {
-              "priority": "Media",
+              "priority": "Alta",
               "evidence": "reporte financiero procesado",
               "records": "N/D",
-              "summary": "Se recuperó el resumen financiero procesado de 2026_12 para el periodo."
-            },
-            {
-              "priority": "Media",
-              "evidence": "reporte financiero procesado",
-              "records": "N/D",
-              "summary": "Se recuperó el resumen financiero procesado de 2026_12 para el periodo."
+              "summary": "Retrieved processed 2026_12 finance summary."
             }
           ]
         }
@@ -912,53 +889,38 @@
         "recommendations": [
           {
             "priority": "high",
-            "action": "Conduct departmental budget adherence review with focus on payroll and Facilities/Technology.",
-            "rationale": "Inconsistent budget adherence across departments and payroll variance require immediate attention to align spending with planning.",
-            "supporting_evidence": "Payroll +4% variance, Facilities/Technology negative variances, and departmental expense variances.",
-            "expected_impact": "Improved budget adherence, reduced expense variances, and better resource allocation.",
-            "confidence": 0.75
-          },
-          {
-            "priority": "medium",
-            "action": "Optimize underutilized resources in Facilities and Technology through reallocation or cost-saving initiatives.",
-            "rationale": "Facilities and Technology under-spending suggests inefficient resource use that can be optimized.",
-            "supporting_evidence": "Facilities and Technology negative variances.",
-            "expected_impact": "Cost savings and improved operational efficiency.",
+            "action": "Acción concreta en español.",
+            "rationale": "Racional en español respaldado por evidencia.",
+            "supporting_evidence": "Referencia breve a evidencia o métrica.",
+            "expected_impact": "Impacto esperado en español.",
+            "evidence_ids": [
+              "finance_summary.metrics.net_cash_flow"
+            ],
             "confidence": 0.75
           }
         ],
         "root_causes": [
-          "Payroll expense growth may be driven by headcount increases or salary adjustments not reflected in budget planning.",
-          "Facilities and Technology under-spending may indicate inefficient resource allocation or delayed spending.",
-          "Inconsistent budget adherence across departments suggests possible lack of oversight or planning gaps."
+          "Causa probable en español, con cautela si falta evidencia."
         ],
         "strategic_priorities": [
-          "Maintain payroll cost control to stay within 42% threshold.",
-          "Improve departmental budget adherence to reduce expense variances."
+          "Prioridad ejecutiva en español."
         ],
-        "reasoning_summary": "Evidence shows payroll variance, departmental inconsistencies, and underutilized resources. Root causes include planning gaps and inefficient allocation. Recommendations focus on immediate adherence review and resource optimization.",
+        "reasoning_summary": "Resumen breve en español de cómo la evidencia respalda el análisis.",
+        "analysis": "Análisis español de riesgos longitudinales.",
         "presentation": {
           "recommendations": [
             {
               "priority": "Alta",
-              "action": "Realizar una revisión de cumplimiento presupuestario por departamento, con foco en nómina, Instalaciones y Tecnología.",
-              "rationale": "El cumplimiento presupuestario inconsistente y la variación de nómina requieren atención inmediata para alinear el gasto con la planificación.",
-              "expected_impact": "Mejor cumplimiento presupuestario, menores variaciones de gasto y mejor asignación de recursos.",
-              "owner_status": "Responsable por asignar"
-            },
-            {
-              "priority": "Media",
-              "action": "Optimizar recursos subutilizados en Instalaciones y Tecnología mediante reasignaciones o iniciativas de ahorro.",
-              "rationale": "La subejecución en Instalaciones y Tecnología sugiere uso ineficiente de recursos que puede optimizarse.",
-              "expected_impact": "Ahorros y mayor eficiencia operativa.",
+              "action": "Acción concreta en español.",
+              "rationale": "Racional en español respaldado por evidencia.",
+              "expected_impact": "Impacto esperado en español.",
               "owner_status": "Responsable por asignar"
             }
           ],
           "priorities": [
-            "Mantener el control de nómina para permanecer dentro del umbral de 42%.",
-            "Mejorar el cumplimiento presupuestario por departamento para reducir variaciones de gasto."
+            "Prioridad ejecutiva en español."
           ],
-          "reasoning_summary": "La evidencia muestra variación de nómina, inconsistencias departamentales y recursos subutilizados. Las causas raíz incluyen brechas de planificación y asignación ineficiente. Las recomendaciones se enfocan en revisión inmediata del cumplimiento presupuestario y optimización de recursos."
+          "reasoning_summary": "Resumen breve en español de cómo la evidencia respalda el análisis."
         }
       },
       "source_references": [
@@ -970,17 +932,14 @@
       "section_id": "historical_summary",
       "title": "Historical Summary",
       "content": {
-        "narrative": [
-          "Nómina / ingresos mejoró de 45.0% en 2026_04 a 41.0% en 2026_11.",
-          "Tasa de cobranza mejoró de 89.0% en 2026_04 a 95.0% en 2026_11.",
-          "Flujo neto de caja mejoró de -$120,000 en 2026_04 a $320,000 en 2026_11."
-        ],
+        "analysis": "Resumen histórico español, omitible solo si no hay evidencia histórica.",
+        "narrative": [],
         "retrieval_count": 6,
         "topics": [
+          "Goal Progress",
           "Memory Facts",
           "Metric History",
-          "Previous Recommendations",
-          "Repeated Anomalies"
+          "Previous Recommendations"
         ]
       },
       "source_references": [
@@ -992,51 +951,17 @@
       "section_id": "historical_trends",
       "title": "Historical Trends",
       "content": {
+        "analysis": "Análisis español de tendencias históricas.",
         "trend_series": [
           {
-            "metric": "Nómina / ingresos",
+            "metric": "NÃ³mina / ingresos",
             "unit": "ratio",
             "direction": "improving",
             "points": [
               {
-                "period": "2026_04",
-                "value": 0.45000000000000007,
-                "display": "45.0%"
-              },
-              {
-                "period": "2026_05",
-                "value": 0.47,
-                "display": "47.0%"
-              },
-              {
                 "period": "2026_06",
-                "value": 0.53,
-                "display": "53.0%"
-              },
-              {
-                "period": "2026_07",
-                "value": 0.52,
-                "display": "52.0%"
-              },
-              {
-                "period": "2026_08",
-                "value": 0.4900000000000001,
-                "display": "49.0%"
-              },
-              {
-                "period": "2026_09",
-                "value": 0.46,
-                "display": "46.0%"
-              },
-              {
-                "period": "2026_10",
-                "value": 0.43,
-                "display": "43.0%"
-              },
-              {
-                "period": "2026_11",
-                "value": 0.41,
-                "display": "41.0%"
+                "value": 0.5310162728920758,
+                "display": "53.1%"
               }
             ]
           },
@@ -1046,44 +971,9 @@
             "direction": "improving",
             "points": [
               {
-                "period": "2026_04",
-                "value": 0.890000033020628,
-                "display": "89.0%"
-              },
-              {
-                "period": "2026_05",
-                "value": 0.8599999911358599,
-                "display": "86.0%"
-              },
-              {
                 "period": "2026_06",
-                "value": 0.8399999944223008,
-                "display": "84.0%"
-              },
-              {
-                "period": "2026_07",
-                "value": 0.8499999821353819,
-                "display": "85.0%"
-              },
-              {
-                "period": "2026_08",
-                "value": 0.9000000375294229,
-                "display": "90.0%"
-              },
-              {
-                "period": "2026_09",
-                "value": 0.9199999665179234,
-                "display": "92.0%"
-              },
-              {
-                "period": "2026_10",
-                "value": 0.9399999744642602,
-                "display": "94.0%"
-              },
-              {
-                "period": "2026_11",
-                "value": 0.9500000000000002,
-                "display": "95.0%"
+                "value": 0.8444563489064443,
+                "display": "84.4%"
               }
             ]
           },
@@ -1093,53 +983,14 @@
             "direction": "improving",
             "points": [
               {
-                "period": "2026_04",
-                "value": -120000.0,
-                "display": "-$120,000"
-              },
-              {
-                "period": "2026_05",
-                "value": -220000.0,
-                "display": "-$220,000"
-              },
-              {
                 "period": "2026_06",
-                "value": -680000.0,
-                "display": "-$680,000"
-              },
-              {
-                "period": "2026_07",
-                "value": -350000.0,
-                "display": "-$350,000"
-              },
-              {
-                "period": "2026_08",
-                "value": -120000.0,
-                "display": "-$120,000"
-              },
-              {
-                "period": "2026_09",
-                "value": 50000.0,
-                "display": "$50,000"
-              },
-              {
-                "period": "2026_10",
-                "value": 180000.0,
-                "display": "$180,000"
-              },
-              {
-                "period": "2026_11",
-                "value": 320000.0,
-                "display": "$320,000"
+                "value": -685996.0,
+                "display": "-$685,996"
               }
             ]
           }
         ],
-        "narrative": [
-          "Nómina / ingresos mejoró de 45.0% en 2026_04 a 41.0% en 2026_11.",
-          "Tasa de cobranza mejoró de 89.0% en 2026_04 a 95.0% en 2026_11.",
-          "Flujo neto de caja mejoró de -$120,000 en 2026_04 a $320,000 en 2026_11."
-        ]
+        "narrative": []
       },
       "source_references": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_12.json"
@@ -1150,15 +1001,16 @@
       "section_id": "recommendation_follow_up",
       "title": "Recommendation Follow-up",
       "content": {
+        "analysis": "Análisis español del seguimiento de recomendaciones previas.",
         "follow_up": [
           {
-            "recommendation": "Control de horas extra de nómina",
+            "recommendation": "Control de horas extra de nÃ³mina",
             "issued_period": "N/D",
             "current_evidence": "",
             "status": "En seguimiento"
           },
           {
-            "recommendation": "Gestión de cobranza",
+            "recommendation": "GestiÃ³n de cobranza",
             "issued_period": "N/D",
             "current_evidence": "",
             "status": "En seguimiento"
@@ -1180,31 +1032,9 @@
       "section_id": "longitudinal_risk_assessment",
       "title": "Longitudinal Risk Assessment",
       "content": {
-        "recurring_risks": [
-          {
-            "risk": "Riesgo recurrente",
-            "department": "Health Sciences",
-            "occurrences": "4",
-            "periods": "2026_04, 2026_05, 2026_06, 2026_07"
-          },
-          {
-            "risk": "Riesgo recurrente",
-            "department": "Health Sciences",
-            "occurrences": "3",
-            "periods": "2026_07, 2026_08, 2026_09"
-          },
-          {
-            "risk": "Riesgo recurrente",
-            "department": "University",
-            "occurrences": "2",
-            "periods": "2026_06, 2026_07"
-          }
-        ],
-        "conclusions": [
-          "Las tendencias históricas muestran señales útiles para priorizar la gestión del periodo actual.",
-          "Existen riesgos recurrentes que requieren seguimiento directivo, especialmente donde se repiten por varios periodos.",
-          "Las recomendaciones previas deben revisarse contra evidencia actual para confirmar avance o persistencia del riesgo."
-        ]
+        "analysis": "Análisis español de riesgos longitudinales.",
+        "recurring_risks": [],
+        "conclusions": []
       },
       "source_references": [
         "C:\\Users\\esteb\\Projects\\Finance-AI-Agent\\outputs\\analysis\\strategic_analysis_2026_12.json"
@@ -1215,12 +1045,14 @@
       "section_id": "missing_information",
       "title": "Missing Information",
       "content": {
-        "missing_information": [],
+        "missing_information": [
+          "Evidencia faltante en español, o [] si no falta nada."
+        ],
         "evidence_warnings": [],
         "unavailable_evidence": [],
         "presentation": {
           "items": [
-            "No se identificó información faltante material para este reporte ejecutivo."
+            "Evidencia faltante en español, o [] si no falta nada."
           ]
         }
       },

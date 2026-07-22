@@ -9,6 +9,8 @@ from finance_agent.analysis.strategic_analysis import (
     build_strategic_analysis_prompt,
     create_strategic_analysis,
     validate_strategic_analysis_response,
+    validate_evidence_bound_claims,
+    validate_user_facing_spanish,
 )
 
 
@@ -18,8 +20,11 @@ class FakeAnalysisClient:
 
     available: bool
     response: str = ""
+    responses: tuple[str, ...] = ()
     generate_calls: int = 0
     last_prompt: str = ""
+    response_format: object = "json"
+    observed_formats: tuple[object, ...] = ()
 
     def is_available(self) -> bool:
         """Return configured availability.
@@ -41,6 +46,10 @@ class FakeAnalysisClient:
 
         self.generate_calls += 1
         self.last_prompt = prompt
+        self.observed_formats = (*self.observed_formats, self.response_format)
+        if self.responses:
+            index = min(self.generate_calls - 1, len(self.responses) - 1)
+            return self.responses[index]
         return self.response
 
 
@@ -54,44 +63,70 @@ def _valid_analysis() -> dict[str, object]:
 
     return {
         "executive_summary": (
-            "June performance shows an operating deficit, negative cash flow, "
-            "and collection pressure requiring near-term management focus."
+            "El desempeño de junio muestra déficit operativo, flujo de caja "
+            "negativo y presión de cobranza que requiere atención directiva."
         ),
         "key_findings": [
-            "Operating result is negative based on processed finance summary.",
-            "Student collections and overdue invoices are flagged by anomalies.",
+            "El resultado operativo es negativo según el resumen financiero procesado.",
+            "La cobranza estudiantil y las facturas vencidas aparecen como señales de riesgo.",
         ],
         "root_causes": [
-            "Expense pressure appears to exceed revenue performance.",
-            "Collections are likely delayed for a subset of student invoices.",
+            "La presión de gastos parece superar el desempeño de ingresos.",
+            "La cobranza probablemente está retrasada en una parte de las facturas estudiantiles.",
         ],
-        "recommendations": [
+        "financial_health_analysis": "La salud financiera combina déficit operativo de -200, flujo de caja de -300 y nómina equivalente a 52.0% de ingresos.",
+        "kpi_analysis": "El KPI de cobranza estudiantil está en 84.0%, por debajo del nivel esperado para sostener caja.",
+        "historical_summary": "El contexto histórico disponible para junio de 2026 muestra presión recurrente en caja y cobranza.",
+        "historical_trend_analysis": "La tendencia histórica disponible debe revisarse contra junio de 2026 y el KPI de cobranza.",
+        "department_analysis": "Engineering presenta una variación de 100 que requiere revisión con evidencia departamental.",
+        "anomaly_analysis": "El reporte contiene 2 anomalías, incluyendo una crítica relacionada con resultado operativo.",
+        "recommendation_follow_up_analysis": "No hay seguimiento previo suficiente para cerrar recomendaciones con la evidencia actual.",
+        "longitudinal_risk_analysis": "El riesgo longitudinal principal es la persistencia de caja negativa y presión de cobranza.",
+        "strategic_recommendations": [
             {
                 "priority": "high",
-                "action": "Review department expense approvals for overspending categories.",
-                "rationale": "Processed evidence shows department and category pressure.",
-                "supporting_evidence": "Evidence package includes department and report retrievals.",
-                "expected_impact": "Reduce preventable variance in the next reporting cycle.",
+                "action": "Revisar aprobaciones de gasto por departamento en categorías con sobrepresupuesto.",
+                "rationale": "La evidencia procesada muestra presión por departamento y categoría.",
+                "supporting_evidence": "El paquete de evidencia incluye recuperación departamental y del reporte.",
+                "expected_impact": "Reducir variaciones prevenibles en el próximo ciclo de reporte.",
+                "evidence_ids": ["evidence_package.evidence_items", "finance_summary.department_summary"],
                 "confidence": 0.78,
             },
             {
                 "priority": "medium",
-                "action": "Prioritize overdue student invoice follow-up.",
-                "rationale": "Collection anomalies and overdue evidence indicate receivable risk.",
-                "supporting_evidence": "Student payment transactions include overdue records.",
-                "expected_impact": "Improve cash conversion and reduce outstanding balances.",
+                "action": "Priorizar seguimiento de facturas estudiantiles vencidas.",
+                "rationale": "Las anomalías de cobranza y la evidencia vencida indican riesgo de cuentas por cobrar.",
+                "supporting_evidence": "Las transacciones de pagos estudiantiles incluyen registros vencidos.",
+                "expected_impact": "Mejorar la conversión de caja y reducir saldos pendientes.",
+                "evidence_ids": ["finance_summary.finance_summary.student_payments.collection_rate"],
                 "confidence": 0.74,
             },
         ],
         "strategic_priorities": [
-            "Stabilize cash flow.",
-            "Reduce expense variance.",
+            "Estabilizar el flujo de caja.",
+            "Reducir la variación de gastos.",
         ],
-        "missing_information": ["Approval notes for flagged vendor payments."],
+        "missing_information": ["Notas de aprobación para pagos de proveedores marcados."],
+        "narrative_evidence": {
+            "executive_summary": ["finance_summary.finance_summary"],
+            "key_findings": ["finance_summary.finance_summary", "anomaly_report.anomalies"],
+            "root_causes": ["finance_summary.finance_summary", "evidence_package.evidence_items"],
+            "financial_health_analysis": ["finance_summary.finance_summary"],
+            "kpi_analysis": ["finance_summary.finance_summary.student_payments.collection_rate"],
+            "historical_summary": ["historical_context.summary"],
+            "historical_trend_analysis": ["historical_context.derived_context.kpi_trends"],
+            "department_analysis": ["finance_summary.department_summary"],
+            "anomaly_analysis": ["anomaly_report.anomalies"],
+            "recommendation_follow_up_analysis": ["historical_context.derived_context.recommendation_effectiveness"],
+            "longitudinal_risk_analysis": ["historical_context.derived_context.artifact_anomaly_patterns"],
+            "strategic_priorities": ["risk_summary.top_risks"],
+            "missing_information": ["evidence_package.summary"],
+            "reasoning_summary": ["finance_summary", "anomaly_report", "evidence_package"],
+        },
         "confidence": 0.76,
         "reasoning_summary": (
-            "Conclusions combine processed finance metrics, anomaly severity, "
-            "and retrieved evidence availability without recalculating values."
+            "Las conclusiones combinan métricas financieras procesadas, severidad de anomalías "
+            "y disponibilidad de evidencia recuperada sin recalcular valores."
         ),
     }
 
@@ -213,6 +248,41 @@ def test_valid_json_response_is_accepted() -> None:
     assert len(validation.analysis["recommendations"]) == 2
 
 
+def test_analysis_wrapper_is_safely_unwrapped() -> None:
+    """Verify a harmless top-level analysis envelope is accepted."""
+
+    validation = validate_strategic_analysis_response(
+        json.dumps({"analysis": _valid_analysis()}, ensure_ascii=False)
+    )
+
+    assert validation.is_valid is True
+    assert validation.analysis is not None
+    assert validation.analysis["executive_summary"]
+
+
+def test_english_user_facing_response_is_rejected() -> None:
+    """Verify schema-valid English narrative fails Spanish validation."""
+
+    payload = _valid_analysis()
+    payload["executive_summary"] = "The financial performance shows cash flow risk and requires management review."
+
+    validation = validate_strategic_analysis_response(json.dumps(payload))
+
+    assert validation.is_valid is False
+    assert any("executive_summary" in error for error in validation.errors)
+
+
+def test_spanish_language_validator_allows_common_acronyms() -> None:
+    """Verify common finance/report acronyms do not trigger English rejection."""
+
+    payload = _valid_analysis()
+    payload["executive_summary"] = "El KPI principal se mantiene en USD y el PDF conserva evidencia ejecutiva."
+
+    errors = validate_user_facing_spanish(payload)
+
+    assert errors == ()
+
+
 def test_invalid_json_response_is_rejected() -> None:
     """Verify prose or malformed JSON is rejected."""
 
@@ -262,12 +332,12 @@ def test_recommendation_count_limit_is_enforced() -> None:
     """Verify excessive recommendation lists are rejected."""
 
     payload = _valid_analysis()
-    payload["recommendations"] = payload["recommendations"] * 5
+    payload["strategic_recommendations"] = payload["strategic_recommendations"] * 5
 
     validation = validate_strategic_analysis_response(json.dumps(payload))
 
     assert validation.is_valid is False
-    assert any("recommendations may contain at most" in error for error in validation.errors)
+    assert any("strategic_recommendations may contain at most" in error for error in validation.errors)
 
 
 def test_successful_analysis_generation_uses_mocked_ollama() -> None:
@@ -292,6 +362,79 @@ def test_successful_analysis_generation_uses_mocked_ollama() -> None:
     assert result.telemetry is not None
     assert result.telemetry["context_characters"] > 0
     assert result.telemetry["deduplicate_context"] is True
+    assert result.telemetry["spanish_rewrite_attempted"] is False
+    assert isinstance(client.observed_formats[0], dict)
+    assert client.response_format == "json"
+
+
+def test_spanish_rewrite_retry_accepts_second_response() -> None:
+    """Verify one schema-valid English response is retried and accepted in Spanish."""
+
+    english = _valid_analysis()
+    english["executive_summary"] = "The financial performance shows cash flow risk and requires management review."
+    spanish = _valid_analysis()
+    client = FakeAnalysisClient(True, responses=(json.dumps(english), json.dumps(spanish)))
+
+    result = create_strategic_analysis(
+        client=client,
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="june_2026",
+    )
+
+    assert result.accepted is True
+    assert client.generate_calls == 2
+    assert "SPANISH_REWRITE_INPUT" in client.last_prompt
+    assert result.telemetry is not None
+    assert result.telemetry["spanish_rewrite_attempted"] is True
+    assert result.analysis_document["analysis"]["confidence"] == spanish["confidence"]
+    assert result.analysis_document["analysis"]["recommendations"][0]["priority"] == "high"
+
+
+def test_spanish_rewrite_retry_failure_rejects_analysis() -> None:
+    """Verify analysis is rejected when the bounded Spanish retry still fails."""
+
+    english = _valid_analysis()
+    english["executive_summary"] = "The financial performance shows cash flow risk and requires management review."
+    client = FakeAnalysisClient(True, responses=(json.dumps(english), json.dumps(english)))
+
+    result = create_strategic_analysis(
+        client=client,
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="june_2026",
+    )
+
+    assert result.accepted is False
+    assert client.generate_calls == 2
+    assert result.analysis_document["validation_status"] == "rejected"
+    assert any("executive_summary" in error for error in result.validation_errors)
+
+
+def test_evidence_repair_retry_accepts_corrected_claims() -> None:
+    """Verify one evidence-bound repair retry can remove unsupported claims."""
+
+    invalid = _valid_analysis()
+    invalid["financial_health_analysis"] = "La Escuela de Medicina tuvo una caída de 99% en 2030."
+    repaired = _valid_analysis()
+    client = FakeAnalysisClient(True, responses=(json.dumps(invalid), json.dumps(repaired)))
+
+    result = create_strategic_analysis(
+        client=client,
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="june_2026",
+    )
+
+    assert result.accepted is True
+    assert client.generate_calls == 2
+    assert "EVIDENCE_REPAIR_TASK" in client.last_prompt
 
 
 def test_unavailable_ollama_rejects_without_generation() -> None:
@@ -319,8 +462,8 @@ def test_supported_payroll_missing_information_is_removed() -> None:
 
     payload = _valid_analysis()
     payload["missing_information"] = [
-        "Actual headcount changes during June",
-        "Reason for overtime spike",
+        "Cambios reales de plantilla durante junio",
+        "Motivo del aumento de horas extra",
     ]
     evidence = _evidence_package()
     evidence["evidence_packages"][0]["retrieved_evidence"]["data"][
@@ -346,7 +489,7 @@ def test_supported_payroll_missing_information_is_removed() -> None:
 
     assert result.accepted is True
     assert result.analysis_document["analysis"]["missing_information"] == [
-        "Reason for overtime spike"
+        "Motivo del aumento de horas extra"
     ]
 
 
@@ -355,10 +498,10 @@ def test_processed_anomaly_cashflow_and_payroll_missing_claims_are_removed() -> 
 
     payload = _valid_analysis()
     payload["missing_information"] = [
-        "Cash flow data validation for June 2026",
-        "Anomalies data for June 2026",
-        "Detailed breakdown of Health Sciences overtime and benefits",
-        "Board approval minutes for flagged purchases",
+        "Validación de datos de cash flow para junio de 2026",
+        "Datos de anomalías para junio de 2026",
+        "Desglose detallado de overtime y benefits de Health Sciences",
+        "Actas de aprobación del comité para compras marcadas",
     ]
     evidence = _evidence_package()
     evidence["period_slug"] = "2026_06"
@@ -390,8 +533,69 @@ def test_processed_anomaly_cashflow_and_payroll_missing_claims_are_removed() -> 
 
     assert result.accepted is True
     assert result.analysis_document["analysis"]["missing_information"] == [
-        "Board approval minutes for flagged purchases"
+        "Actas de aprobación del comité para compras marcadas"
     ]
+
+
+def test_evidence_bound_validation_rejects_unsupported_claims() -> None:
+    """Verify unsupported numbers, periods, and departments cannot pass."""
+
+    validation = validate_strategic_analysis_response(json.dumps(_valid_analysis(), ensure_ascii=False))
+    assert validation.analysis is not None
+    validation.analysis["financial_health_analysis"] = (
+        "La Escuela de Medicina registró una caída de 99% durante 2030."
+    )
+
+    errors = validate_evidence_bound_claims(
+        validation.analysis,
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        evidence_package=_evidence_package(),
+        risk_summary=_risk_summary(),
+    )
+
+    assert any("unsupported number: 99%" in error for error in errors)
+    assert any("unsupported period: 2030" in error for error in errors)
+    assert any("unsupported named entity: Escuela de Medicina" in error for error in errors)
+
+
+def test_evidence_bound_validation_rejects_schema_placeholder_prose() -> None:
+    """Verify copied schema examples are rejected as generic filler."""
+
+    validation = validate_strategic_analysis_response(json.dumps(_valid_analysis(), ensure_ascii=False))
+    assert validation.analysis is not None
+    validation.analysis["financial_health_analysis"] = "Análisis español de salud financiera basado en KPIs principales."
+    validation.analysis["strategic_recommendations"][0]["action"] = "Acción concreta en español."
+
+    errors = validate_evidence_bound_claims(
+        validation.analysis,
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        evidence_package=_evidence_package(),
+        risk_summary=_risk_summary(),
+    )
+
+    assert any("generic placeholder prose" in error for error in errors)
+
+
+def test_evidence_bound_validation_accepts_spanish_number_formats() -> None:
+    """Verify decimal-comma percentages and comma-thousands can match evidence."""
+
+    validation = validate_strategic_analysis_response(json.dumps(_valid_analysis(), ensure_ascii=False))
+    assert validation.analysis is not None
+    validation.analysis["financial_health_analysis"] = (
+        "La salud financiera usa 52,0% de nómina sobre ingresos y $1,200 de gastos."
+    )
+
+    errors = validate_evidence_bound_claims(
+        validation.analysis,
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        evidence_package=_evidence_package(),
+        risk_summary=_risk_summary(),
+    )
+
+    assert not any("52.0%" in error or "1200" in error for error in errors)
 
 
 def test_prompt_is_compact_and_omits_full_evidence_rows() -> None:
@@ -410,6 +614,8 @@ def test_prompt_is_compact_and_omits_full_evidence_rows() -> None:
     assert "MUST_NOT_APPEAR" not in prompt
     assert "secret_row" not in prompt
     assert "net_operating_result" in prompt
+    assert "professional Spanish" in prompt
+    assert "historical_summary" in prompt
 
 
 def test_strategy_prompt_deduplicates_evidence_and_ranks_anomalies() -> None:

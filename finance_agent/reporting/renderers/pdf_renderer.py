@@ -250,6 +250,19 @@ def _section_title(story: list[Any], section_id: str, styles: dict[str, Paragrap
     story.append(_para(SECTION_LABELS_ES.get(section_id, section_id), styles["h1"]))
 
 
+def _append_narrative(story: list[Any], view: dict[str, Any], section_id: str, styles: dict[str, ParagraphStyle]) -> None:
+    """Append Step-9-authored section narrative when present.
+
+    Inputs: story list, presentation view, section ID, and styles.
+    Outputs: mutates story with one paragraph.
+    Assumptions: narrative has already passed Spanish/evidence validation.
+    """
+
+    text = view.get("section_narratives", {}).get(section_id, "")
+    if text:
+        story.append(_para(text, styles["body"]))
+
+
 def _bullet_list(items: list[str], styles: dict[str, ParagraphStyle], *, limit: int = 8) -> list[Any]:
     """Build bullet paragraphs.
 
@@ -361,6 +374,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
     story.append(_para(f"Confianza del análisis: {view['executive_summary']['confidence']}", styles["small"]))
 
     _section_title(story, "financial_health_overview", styles)
+    _append_narrative(story, view, "financial_health_overview", styles)
     story.append(_metric_cards(view, styles))
     chart_items = [
         {"label": card["label"], "value": card["numeric_value"] or 0.0, "unit": card["unit"]}
@@ -371,6 +385,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
     story.append(HorizontalBarChart(chart_items, "Resumen financiero principal"))
 
     _section_title(story, "kpi_overview", styles)
+    _append_narrative(story, view, "kpi_overview", styles)
     story.append(
         _table(
             ["Indicador", "Valor", "Estado", "Descripción"],
@@ -383,11 +398,13 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
     historical = view["historical"]
     if historical.get("available"):
         _section_title(story, "historical_trends", styles)
-        story.extend(_bullet_list(historical.get("narrative", []), styles, limit=5))
+        _append_narrative(story, view, "historical_summary", styles)
+        _append_narrative(story, view, "historical_trends", styles)
         chart_cells = [[LineChart(series) for series in historical.get("trends", [])[:2]]]
         if chart_cells[0]:
             story.append(Table(chart_cells, colWidths=[3.3 * inch] * len(chart_cells[0])))
         _section_title(story, "recommendation_follow_up", styles)
+        _append_narrative(story, view, "recommendation_follow_up", styles)
         story.append(
             _table(
                 ["Recomendación", "Periodo", "Evidencia actual", "Estado"],
@@ -400,6 +417,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
             )
         )
         _section_title(story, "longitudinal_risk_assessment", styles)
+        _append_narrative(story, view, "longitudinal_risk_assessment", styles)
         story.append(
             _table(
                 ["Riesgo", "Departamento", "Ocurrencias", "Periodos"],
@@ -411,9 +429,9 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
                 widths=[2.1 * inch, 1.4 * inch, 0.8 * inch, 2.0 * inch],
             )
         )
-        story.extend(_bullet_list(historical.get("longitudinal_conclusions", []), styles, limit=4))
 
     _section_title(story, "revenue_expense_analysis", styles)
+    _append_narrative(story, view, "revenue_expense_analysis", styles)
     story.append(HorizontalBarChart(view["revenue_expense"]["chart"], "Ingresos, gastos y resultado"))
     story.append(HorizontalBarChart(view["revenue_expense"]["budget_chart"], "Comparación contra presupuesto"))
     story.append(
@@ -426,6 +444,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
     )
 
     _section_title(story, "department_analysis", styles)
+    _append_narrative(story, view, "department_analysis", styles)
     story.append(
         _table(
             ["Departamento", "Ingresos", "Gastos", "Resultado", "Var. gasto"],
@@ -440,6 +459,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
     ))
 
     _section_title(story, "anomaly_summary", styles)
+    _append_narrative(story, view, "anomaly_summary", styles)
     anomalies = view["anomalies"]
     if anomalies.get("positive_status"):
         story.append(_para(anomalies["positive_status"], styles["body"]))
@@ -465,6 +485,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
     )
 
     _section_title(story, "strategic_recommendations", styles)
+    _append_narrative(story, view, "strategic_recommendations", styles)
     story.append(_para("Prioridades estratégicas", styles["h2"]))
     story.extend(_bullet_list(view["recommendations"]["priorities"], styles, limit=6))
     story.extend(_recommendation_cards(view, styles))
@@ -472,6 +493,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
         story.append(_para(view["recommendations"]["reasoning_summary"], styles["small"]))
 
     _section_title(story, "missing_information", styles)
+    _append_narrative(story, view, "missing_information", styles)
     story.extend(_bullet_list(view["missing_information"], styles, limit=8))
 
     _section_title(story, "appendix", styles)
