@@ -167,26 +167,66 @@ class FactRegistry:
 
         Inputs: registry.
         Outputs: compact fact descriptors with placeholders and numeric metadata.
-        Assumptions: display values are intentionally omitted from model context.
+        Assumptions: display values and raw evidence IDs are intentionally
+        omitted from model context.
         """
 
-        values: list[dict[str, Any]] = []
-        for fact in self.facts:
-            values.append(
-                {
-                    "fact_id": fact.fact_id,
-                    "placeholder": fact.placeholder,
-                    "semantic_label": _semantic_label(fact),
-                    "numeric_value": fact.raw_value if isinstance(fact.raw_value, (int, float)) else None,
-                    "value_type": fact.value_type,
-                    "metric_name": fact.metric_name,
-                    "unit": fact.unit,
-                    "period": fact.period,
-                    "entity": fact.entity,
-                    "evidence_ids": list(fact.evidence_ids),
-                }
-            )
-        return values
+        return [self.prompt_fact(fact) for fact in self.facts]
+
+    def prompt_fact(self, fact: RegisteredFact) -> dict[str, Any]:
+        """Return one LLM-safe fact descriptor.
+
+        Inputs: registered fact.
+        Outputs: compact fact without display values or evidence IDs.
+        Assumptions: Python uses the full registry for resolution after parsing.
+        """
+
+        return {
+            "fact_id": fact.fact_id,
+            "placeholder": fact.placeholder,
+            "meaning": _semantic_label(fact),
+            "numeric_value": fact.raw_value if isinstance(fact.raw_value, (int, float)) else None,
+            "value_type": fact.value_type,
+            "metric_name": fact.metric_name,
+            "unit": fact.unit,
+            "period": fact.period,
+            "entity": fact.entity,
+        }
+
+    def resolve_supporting_facts(
+        self,
+        supporting_facts: list[str],
+        *,
+        allowed_placeholders: set[str] | None = None,
+    ) -> tuple[list[RegisteredFact], list[str]]:
+        """Resolve model-supplied placeholders to registry facts.
+
+        Inputs: placeholders and optional stage-specific allowlist.
+        Outputs: resolved facts plus validation errors.
+        Assumptions: no substitute or nearest-match lookup is attempted.
+        """
+
+        resolved: list[RegisteredFact] = []
+        errors: list[str] = []
+        seen: set[str] = set()
+        for placeholder in supporting_facts:
+            if not isinstance(placeholder, str) or not PLACEHOLDER_PATTERN.fullmatch(placeholder):
+                errors.append(f"supporting_facts contains malformed placeholder: {placeholder}")
+                continue
+            fact_id = PLACEHOLDER_PATTERN.fullmatch(placeholder).group(1)  # type: ignore[union-attr]
+            fact = self.by_fact_id.get(fact_id)
+            if fact is None:
+                errors.append(f"supporting_facts contains unknown placeholder: {placeholder}")
+                continue
+            if allowed_placeholders is not None and placeholder not in allowed_placeholders:
+                errors.append(f"supporting_facts contains stage-disallowed placeholder: {placeholder}")
+                continue
+            if placeholder in seen:
+                errors.append(f"supporting_facts contains duplicate placeholder: {placeholder}")
+                continue
+            seen.add(placeholder)
+            resolved.append(fact)
+        return resolved, errors
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize the registry.

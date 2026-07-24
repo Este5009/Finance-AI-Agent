@@ -25,6 +25,7 @@ from finance_agent.reporting.presentation import (
     build_recommendation_cards,
     build_revenue_expense_summary,
     compact_source_label,
+    number_value,
     sanitize_items,
     sanitize_text,
     validate_presentation_view,
@@ -267,6 +268,269 @@ def _all_section_sources(sections: tuple[ReportSection, ...]) -> tuple[str, ...]
     )
 
 
+def _previous_month_slug(period_slug: str) -> str | None:
+    """Return the previous monthly slug when the current period is monthly.
+
+    Inputs: period slug such as ``2026_12``.
+    Outputs: previous period slug or None.
+    Assumptions: annual/custom periods do not have a safe automatic previous month.
+    """
+
+    parts = period_slug.replace("-", "_").split("_")
+    if len(parts) != 2:
+        return None
+    try:
+        year = int(parts[0])
+        month = int(parts[1])
+    except ValueError:
+        return None
+    if month < 1 or month > 12:
+        return None
+    if month == 1:
+        return f"{year - 1}_12"
+    return f"{year}_{month - 1:02d}"
+
+
+def _load_previous_finance_summary(current_finance_source: str, period_slug: str) -> tuple[dict[str, Any], str | None]:
+    """Load a previous processed finance summary when it exists.
+
+    Inputs: current finance-summary path and current period slug.
+    Outputs: parsed previous summary and source path, or empty payload and None.
+    Assumptions: this reads processed outputs only; raw workbooks are never opened.
+    """
+
+    previous_slug = _previous_month_slug(period_slug)
+    if not previous_slug:
+        return {}, None
+    current_path = Path(current_finance_source)
+    previous_path = current_path.with_name(f"finance_summary_{previous_slug}.json")
+    if not previous_path.is_file():
+        return {}, None
+    try:
+        payload = json.loads(previous_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}, None
+    return (payload if isinstance(payload, dict) else {}), str(previous_path)
+
+
+def _nested_value(payload: dict[str, Any], *keys: str) -> Any:
+    """Return a nested dictionary value.
+
+    Inputs: payload and key path.
+    Outputs: nested value or None.
+    Assumptions: non-dict intermediates mean the value is unavailable.
+    """
+
+    current: Any = payload
+    for key in keys:
+        if not isinstance(current, dict):
+            return None
+        current = current.get(key)
+    return current
+
+
+def _historical_previous_values(historical_context: dict[str, Any]) -> dict[str, float]:
+    """Extract latest previous KPI values from compact historical retrievals.
+
+    Inputs: strategic-analysis historical context.
+    Outputs: metric name to numeric value from the latest retrieved period.
+    Assumptions: retrieval records exclude the current period by construction.
+    """
+
+    aliases = {
+        "student_payment_collection_rate": "collection_rate",
+    }
+    values: dict[str, float] = {}
+    retrievals = historical_context.get("retrievals", []) if isinstance(historical_context, dict) else []
+    for retrieval in retrievals if isinstance(retrievals, list) else []:
+        if not isinstance(retrieval, dict) or retrieval.get("tool_name") != "get_metric_history":
+            continue
+        metric = str(retrieval.get("metric") or retrieval.get("arguments", {}).get("metric") or "")
+        records = retrieval.get("records", [])
+        if not metric or not isinstance(records, list) or not records:
+            continue
+        latest = records[-1] if isinstance(records[-1], dict) else {}
+        numeric = number_value(latest.get("value"))
+        if numeric is not None:
+            values[aliases.get(metric, metric)] = numeric
+    return values
+
+
+def _comparison_item(
+    metric: str,
+    *,
+    unit: str,
+    current_value: Any,
+    previous_value: Any = None,
+    budget_value: Any = None,
+    budget_change: Any = None,
+    budget_change_pct: Any = None,
+    current_source: str,
+    previous_source: str | None,
+) -> dict[str, Any]:
+    """Build one deterministic KPI comparison object.
+
+    Inputs: metric values, budget values, units, and source references.
+    Outputs: comparison payload for the report model.
+    Assumptions: differences are deterministic arithmetic over processed values.
+    """
+
+    current = number_value(current_value)
+    previous = number_value(previous_value)
+    budget = number_value(budget_value)
+    change = current - previous if current is not None and previous is not None else None
+    percent_change = None
+    percentage_point_change = None
+    if current is not None and previous is not None:
+        if unit == "ratio":
+            percentage_point_change = change
+        elif abs(previous) > 1e-12:
+            percent_change = change / abs(previous)
+    if budget_change is None and current is not None and budget is not None:
+        budget_change = current - budget
+    item = {
+        "metric": metric,
+        "unit": unit,
+        "current_value": current,
+        "previous_value": previous,
+        "absolute_change": change,
+        "percent_change": percent_change,
+        "percentage_point_change": percentage_point_change,
+        "budget_value": budget,
+        "budget_change": number_value(budget_change),
+        "budget_change_pct": number_value(budget_change_pct),
+        "sources": {
+            "current": current_source,
+            "previous": previous_source,
+            "budget": current_source if budget is not None else None,
+        },
+    }
+    return item
+
+
+def _build_kpi_comparisons(
+    inputs: ReportInputBundle,
+    finance: dict[str, Any],
+    budget: dict[str, Any],
+    payments: dict[str, Any],
+    cash_flow: dict[str, Any],
+    historical_context: dict[str, Any],
+) -> dict[str, Any]:
+    """Build deterministic current/previous/budget comparisons for KPI cards.
+
+    Inputs: report inputs and processed finance/historical payloads.
+    Outputs: comparison block keyed by canonical KPI metric.
+    Assumptions: Ollama never supplies or calculates these values.
+    """
+
+    current_source = inputs.source_files[0]
+    previous_document, previous_source = _load_previous_finance_summary(current_source, inputs.period_slug)
+    previous_finance = _finance(previous_document)
+    previous_payments = _nested_value(previous_finance, "student_payments") or {}
+    previous_cash_flow = _nested_value(previous_finance, "cash_flow") or {}
+    historical_previous = _historical_previous_values(historical_context)
+
+    def previous(metric: str, *path: str) -> Any:
+        """Prefer explicit history retrieval, then processed previous finance summary."""
+
+        if metric in historical_previous:
+            return historical_previous[metric]
+        return _nested_value(previous_finance, *path)
+
+    ending_cash_budget = None
+    ending_cash_variance = number_value(cash_flow.get("ending_cash_variance"))
+    ending_cash_current = number_value(cash_flow.get("ending_cash"))
+    if ending_cash_current is not None and ending_cash_variance is not None:
+        # Cash-flow calculations already produced the variance; this derives the
+        # implied target solely for display comparison, not new financial logic.
+        ending_cash_budget = ending_cash_current - ending_cash_variance
+
+    items = {
+        "total_revenue": _comparison_item(
+            "total_revenue",
+            unit="USD",
+            current_value=finance.get("total_revenue"),
+            previous_value=previous("total_revenue", "total_revenue"),
+            budget_value=budget.get("revenue_budget"),
+            budget_change=budget.get("revenue_variance"),
+            budget_change_pct=budget.get("revenue_variance_pct"),
+            current_source=current_source,
+            previous_source=previous_source,
+        ),
+        "total_expenses": _comparison_item(
+            "total_expenses",
+            unit="USD",
+            current_value=finance.get("total_expenses"),
+            previous_value=previous("total_expenses", "total_expenses"),
+            budget_value=budget.get("expense_budget"),
+            budget_change=budget.get("expense_variance"),
+            budget_change_pct=budget.get("expense_variance_pct"),
+            current_source=current_source,
+            previous_source=previous_source,
+        ),
+        "net_operating_result": _comparison_item(
+            "net_operating_result",
+            unit="USD",
+            current_value=finance.get("net_operating_result"),
+            previous_value=previous("net_operating_result", "net_operating_result"),
+            budget_value=budget.get("net_budget"),
+            budget_change=budget.get("net_variance"),
+            current_source=current_source,
+            previous_source=previous_source,
+        ),
+        "net_cash_flow": _comparison_item(
+            "net_cash_flow",
+            unit="USD",
+            current_value=cash_flow.get("net_cash_flow"),
+            previous_value=historical_previous.get("net_cash_flow", previous_cash_flow.get("net_cash_flow")),
+            current_source=current_source,
+            previous_source=previous_source,
+        ),
+        "ending_cash": _comparison_item(
+            "ending_cash",
+            unit="USD",
+            current_value=cash_flow.get("ending_cash"),
+            previous_value=previous_cash_flow.get("ending_cash"),
+            budget_value=ending_cash_budget,
+            budget_change=ending_cash_variance,
+            current_source=current_source,
+            previous_source=previous_source,
+        ),
+        "payroll_percentage_of_revenue": _comparison_item(
+            "payroll_percentage_of_revenue",
+            unit="ratio",
+            current_value=finance.get("payroll_percentage_of_revenue"),
+            previous_value=historical_previous.get(
+                "payroll_percentage_of_revenue",
+                previous_finance.get("payroll_percentage_of_revenue"),
+            ),
+            current_source=current_source,
+            previous_source=previous_source,
+        ),
+        "collection_rate": _comparison_item(
+            "collection_rate",
+            unit="ratio",
+            current_value=payments.get("collection_rate"),
+            previous_value=historical_previous.get("collection_rate", previous_payments.get("collection_rate")),
+            current_source=current_source,
+            previous_source=previous_source,
+        ),
+    }
+    unavailable = [
+        {"metric": metric, "field": field}
+        for metric, item in items.items()
+        for field in ("previous_value", "budget_value")
+        if item.get(field) is None
+    ]
+    return {
+        "current_period": str(inputs.finance_summary.get("report_period", inputs.period_slug)),
+        "previous_period": str(previous_document.get("report_period") or _previous_month_slug(inputs.period_slug) or ""),
+        "source_policy": "processed_outputs_and_compact_history_only",
+        "items": items,
+        "unavailable": unavailable,
+    }
+
+
 def _historical_sections(
     historical_context: dict[str, Any],
     analysis: dict[str, Any],
@@ -320,6 +584,7 @@ def _historical_sections(
             "Historical Summary",
             {
                 "analysis": _analysis_text(analysis, "historical_summary"),
+                "historical_context": historical_context,
                 "narrative": historical.get("narrative", []),
                 "retrieval_count": summary.get("available_retrievals", 0),
                 "topics": [
@@ -334,6 +599,7 @@ def _historical_sections(
             "Historical Trends",
             {
                 "analysis": _analysis_text(analysis, "historical_trend_analysis"),
+                "historical_context": historical_context,
                 "trend_series": trend_overview,
                 "narrative": historical.get("narrative", []),
             },
@@ -344,6 +610,7 @@ def _historical_sections(
             "Recommendation Follow-up",
             {
                 "analysis": _analysis_text(analysis, "recommendation_follow_up_analysis"),
+                "historical_context": historical_context,
                 "follow_up": historical.get("recommendation_follow_up", []),
             },
             analysis_source,
@@ -353,7 +620,9 @@ def _historical_sections(
             "Longitudinal Risk Assessment",
             {
                 "analysis": _analysis_text(analysis, "longitudinal_risk_analysis"),
+                "historical_context": historical_context,
                 "recurring_risks": historical.get("recurring_risks", []),
+                "risk_summary": historical.get("risk_summary", ""),
                 "conclusions": historical.get("longitudinal_conclusions", []),
             },
             analysis_source,
@@ -432,6 +701,14 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
     payments = payments if isinstance(payments, dict) else {}
     cash_flow = finance.get("cash_flow", {})
     cash_flow = cash_flow if isinstance(cash_flow, dict) else {}
+    kpi_comparisons = _build_kpi_comparisons(
+        inputs,
+        finance,
+        budget,
+        payments,
+        cash_flow,
+        historical_context,
+    )
 
     finance_source = (inputs.source_files[0],)
     kpi_source = (inputs.source_files[1],)
@@ -477,6 +754,7 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "ending_cash": cash_flow.get("ending_cash"),
                 "payroll_percentage_of_revenue": finance.get("payroll_percentage_of_revenue"),
                 "collection_rate": payments.get("collection_rate"),
+                "kpi_comparisons": kpi_comparisons,
                 "analysis": _analysis_text(analysis, "financial_health_analysis"),
             },
             finance_source,
@@ -535,10 +813,15 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
             "anomaly_summary",
             "Anomaly Summary",
             {
+                "report_period": report_period,
                 "total_anomalies": inputs.anomaly_report.get("total_anomalies"),
                 "anomalies_by_severity": inputs.anomaly_report.get("anomalies_by_severity", {}),
                 "top_anomalies": inputs.anomaly_report.get("anomalies", [])[:10],
-                "analysis": _analysis_text(analysis, "anomaly_analysis"),
+                "analysis": (
+                    _analysis_text(analysis, "anomaly_analysis")
+                    if int(inputs.anomaly_report.get("total_anomalies") or 0) > 0
+                    else ""
+                ),
             },
             anomaly_source,
         ),

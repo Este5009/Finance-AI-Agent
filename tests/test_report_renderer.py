@@ -60,6 +60,31 @@ def _sample_report_model() -> dict[str, object]:
                 "net_cash_flow": -300,
                 "ending_cash": 5000,
                 "collection_rate": 0.9,
+                "kpi_comparisons": {
+                    "items": {
+                        "total_revenue": {
+                            "unit": "USD",
+                            "current_value": 1000,
+                            "previous_value": 900,
+                            "absolute_change": 100,
+                            "percent_change": 0.1111111111,
+                            "budget_value": 1100,
+                            "budget_change": -100,
+                            "budget_change_pct": -0.0909090909,
+                        },
+                        "total_expenses": {
+                            "unit": "USD",
+                            "current_value": 1200,
+                            "previous_value": 1000,
+                            "absolute_change": 200,
+                            "percent_change": 0.2,
+                            "budget_value": 1000,
+                            "budget_change": 200,
+                            "budget_change_pct": 0.2,
+                        },
+                    },
+                    "unavailable": [],
+                },
             },
             "source_references": ["outputs/calculations/finance_summary_june_2026.json"],
             "warnings": [],
@@ -210,12 +235,12 @@ def test_html_generation_renders_strategic_analysis_fields() -> None:
 
     html = render_report_html(_sample_report_model())
 
-    assert "La operaciÃ³n requiere atenciÃ³n ejecutiva." in html
+    assert "La operación requiere atención ejecutiva." in html
     assert "El resultado operativo es negativo." in html
-    assert "El gasto creciÃ³ mÃ¡s rÃ¡pido que los ingresos." in html
+    assert "El gasto creció más rápido que los ingresos." in html
     assert "Estabilizar el flujo de caja." in html
     assert "Revisar aprobaciones de gasto." in html
-    assert "No hay recomendaciones estratÃ©gicas generadas." not in html
+    assert "No hay recomendaciones estratégicas generadas." not in html
 
 
 def test_section_templates_define_evidence_contracts() -> None:
@@ -278,7 +303,145 @@ def test_ollama_section_narrative_populates_html_sections() -> None:
 
     assert "La salud financiera se deteriora por un resultado operativo negativo de -200." in html
     assert "La tasa de cobranza de 90.0% exige seguimiento ejecutivo." in html
-    assert "Engineering concentra un déficit departamental de -150." in html
+    assert "Ingeniería concentra un déficit departamental de -150." in html
+
+
+def test_current_anomalies_are_separate_from_historical_risks() -> None:
+    """Verify current anomaly status does not suppress recurring historical risks."""
+
+    model = _sample_report_model()
+    for section in model["sections"]:  # type: ignore[union-attr]
+        if section["section_id"] == "anomaly_summary":
+            section["content"] = {
+                "report_period": "2026-12",
+                "total_anomalies": 0,
+                "anomalies_by_severity": {"critical": 0, "high": 0},
+                "top_anomalies": [],
+                "analysis": "No se identificaron anomalías en el período 2026-12, con un total de 0 anomalías reportadas.",
+            }
+    historical_context = {
+        "current_period": "2026_12",
+        "summary": {"available_retrievals": 2, "topics": ["get_repeated_anomalies", "get_previous_recommendations"]},
+        "retrievals": [
+            {
+                "tool_name": "get_repeated_anomalies",
+                "records": [
+                    {"type": "recurring_vendor_duplicate", "latest_severity": "high"},
+                    {"type": "negative_cash_flow", "latest_severity": "high"},
+                    {"type": "payroll_overtime_overspend", "latest_severity": "medium"},
+                ],
+            },
+            {
+                "tool_name": "get_previous_recommendations",
+                "records": [
+                    {
+                        "run_period": "2026_09",
+                        "action": "Review overtime and benefits allocation in Health Sciences.",
+                        "expected_impact": "Reduce payroll overruns by 20% within Q4.",
+                    },
+                    {
+                        "run_period": "2026_09",
+                        "action": "Audit vendor payment process.",
+                        "expected_impact": "Ensure compliance and prevent duplicate payments.",
+                    },
+                ],
+            },
+        ],
+        "derived_context": {
+            "kpi_trends": [
+                {
+                    "metric": "payroll_percentage_of_revenue",
+                    "periods": ["2026_04", "2026_11"],
+                    "first_value": 0.45,
+                    "latest_value": 0.41,
+                    "direction": "improving",
+                }
+            ],
+            "recommendation_effectiveness": [
+                {
+                    "topic": "payroll_overtime",
+                    "related_trend": {
+                        "periods": ["2026_04", "2026_11"],
+                        "first_value": 0.45,
+                        "latest_value": 0.41,
+                        "direction": "improving",
+                    },
+                },
+                {"topic": "vendor_controls", "related_trend": None},
+            ],
+            "artifact_anomaly_patterns": [
+                {
+                    "department": "Health Sciences",
+                    "anomaly_type": "payroll_overtime_overspend",
+                    "occurrences": 4,
+                    "periods": ["2026_04", "2026_05", "2026_06", "2026_07"],
+                },
+                {
+                    "department": "Health Sciences",
+                    "anomaly_type": "recurring_vendor_duplicate",
+                    "occurrences": 3,
+                    "periods": ["2026_07", "2026_08", "2026_09"],
+                },
+                {
+                    "department": "University",
+                    "anomaly_type": "negative_cash_flow",
+                    "occurrences": 2,
+                    "periods": ["2026_06", "2026_07"],
+                },
+            ],
+        },
+    }
+    model["sections"].append(  # type: ignore[union-attr]
+        {
+            "section_id": "historical_summary",
+            "title": "Historical Summary",
+            "content": {"historical_context": historical_context},
+            "source_references": ["outputs/analysis/strategic_analysis_2026_12.json"],
+            "warnings": [],
+        }
+    )
+    model["sections"].append(  # type: ignore[union-attr]
+        {
+            "section_id": "longitudinal_risk_assessment",
+            "title": "Longitudinal Risk Assessment",
+            "content": {
+                "recurring_risks": [
+                    {
+                        "risk": "Riesgo recurrente",
+                        "department": "Health Sciences",
+                        "occurrences": "4",
+                        "periods": "Abr 2026, May 2026, Jun 2026",
+                    },
+                    {
+                        "risk": "Riesgo recurrente",
+                        "department": "University",
+                        "occurrences": "2",
+                        "periods": "Jun 2026, Jul 2026",
+                    },
+                ]
+            },
+            "source_references": ["outputs/analysis/strategic_analysis_2026_12.json"],
+            "warnings": [],
+        }
+    )
+
+    html = render_report_html(model)
+
+    assert "Anomalías del período" in html
+    assert "No se detectaron anomalías en Dic 2026." in html
+    assert "Riesgos históricos recurrentes" in html
+    assert "Ciencias de la Salud" in html
+    assert "Universidad" in html
+    assert "Sobrecosto recurrente de nómina y horas extra" in html
+    assert "Riesgo recurrente en pagos a proveedores" in html
+    assert "Flujo de caja negativo recurrente" in html
+    assert "Objetivo original" in html
+    assert "Próxima acción sugerida" in html
+    assert "Sin anomalías relevantes" not in html
+    assert "0 anomalías reportadas" not in html
+    assert "Riesgo recurrente</h3>" not in html
+    assert "Health Sciences" not in html
+    assert "University" not in html
 
 
 def test_report_model_quality_accepts_strategy_backed_model() -> None:
@@ -337,8 +500,8 @@ def test_missing_and_empty_sections_render_gracefully(tmp_path: Path) -> None:
     html = render_report_html(model)
     pdf_path = render_report_pdf(model, tmp_path / "missing.pdf")
 
-    assert "SecciÃ³n faltante en el modelo: kpi_overview" not in html
-    assert "Sin datos disponibles" in html
+    assert "Sección faltante en el modelo: kpi_overview" not in html
+    assert "No hay KPIs disponibles para este periodo." in html
     assert pdf_path.read_bytes().startswith(b"%PDF")
 
 
@@ -405,6 +568,88 @@ def test_executive_html_hides_internal_identifiers_and_paths() -> None:
     assert "C:\\" not in html
     assert "########" not in html
     assert "<svg" in html
+
+
+def test_executive_html_uses_dashboard_visuals_and_insights() -> None:
+    """Verify upgraded report presentation includes cards, badges, axes, and insights."""
+
+    html = render_report_html(_sample_report_model())
+
+    assert "Insight ejecutivo" not in html
+    assert "Conclusión ejecutiva:" in html
+    assert "Periodo anterior:" in html
+    assert "Variación respecto al presupuesto:" in html
+    assert "class='grid-line'" in html
+    assert "class='axis-label'" in html
+    assert "current-bar" in html
+    assert "recommendation-card" in html
+
+
+def test_executive_html_replaces_low_value_tables_with_status_cards() -> None:
+    """Verify sparse evidence tables become compact executive status cards."""
+
+    model = _sample_report_model()
+    for section in model["sections"]:  # type: ignore[union-attr]
+        if section["section_id"] == "investigation_evidence":
+            section["content"]["evidence_items"] = [
+                {"priority": "medium", "retrieval_name": "", "record_count": "", "evidence_summary": ""}
+            ]
+        if section["section_id"] == "kpi_overview":
+            section["content"]["kpis"] = []
+
+    html = render_report_html(model)
+
+    assert "No hay KPIs disponibles para este periodo." in html
+    assert "La evidencia recuperada está disponible" not in html
+    assert "<table><thead><tr><th>Prioridad</th><th>Evidencia</th><th>Registros</th><th>Resumen</th>" not in html
+
+
+def test_executive_html_uses_executive_spanish_kpi_labels() -> None:
+    """Verify KPI cards avoid technical labels and compact unavailable abbreviations."""
+
+    html = render_report_html(_sample_report_model())
+
+    assert "Delta" not in html
+    assert "N/D" not in html
+    assert "Variación respecto al periodo anterior" in html
+    assert "No disponible</small>" not in html
+
+
+def test_executive_html_has_no_mojibake_text() -> None:
+    """Verify user-facing HTML renders corrected UTF-8 Spanish text."""
+
+    html = render_report_html(_sample_report_model())
+
+    for fragment in ("Ã", "Â", "â†", "SÃ­ntesis", "DescripciÃ³n"):
+        assert fragment not in html
+    assert "Síntesis ejecutiva" in html
+    assert "Descripción" in html
+
+
+def test_final_outputs_reject_known_english_presentation_labels(tmp_path: Path) -> None:
+    """Verify HTML/PDF presentation helper labels stay in Spanish."""
+
+    from pypdf import PdfReader
+
+    model = _sample_report_model()
+    html = render_report_html(model)
+    pdf_path = render_report_pdf(model, tmp_path / "report.pdf")
+    pdf_text = "\n".join(page.extract_text() or "" for page in PdfReader(str(pdf_path)).pages)
+
+    forbidden_labels = (
+        "Executive Insight",
+        "Current period",
+        "Direction:",
+        "Previous period",
+        "Budget delta",
+        "Suggested owner",
+        "Status:",
+    )
+    for label in forbidden_labels:
+        assert label not in html
+        assert label not in pdf_text
+    assert "Conclusión ejecutiva:" in html
+    assert "Conclusión ejecutiva:" in pdf_text
 
 
 def test_presentation_view_contains_recommendation_cards() -> None:

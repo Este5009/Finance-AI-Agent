@@ -76,17 +76,17 @@ def _placeholder(evidence_id: str, metric_name: str) -> str:
     raise AssertionError(f"Missing placeholder for {evidence_id}/{metric_name}")
 
 
-def _stage_payload(text: str, evidence_ids: list[str] | None = None) -> dict[str, Any]:
+def _stage_payload(text: str, supporting_facts: list[str] | None = None) -> dict[str, Any]:
     """Build a minimal Stage 1 payload.
 
-    Inputs: claim text and optional evidence IDs.
+    Inputs: claim text and optional supporting fact placeholders.
     Outputs: schema-compatible Stage 1 payload.
     Assumptions: tests vary only placeholder usage.
     """
 
-    ids = evidence_ids or ["finance.metric.net_operating_result"]
+    del supporting_facts
     return {
-        "claims": [{"text": text, "evidence_ids": ids, "confidence": 0.8, "claim_type": "fact"}],
+        "claims": [{"text": text, "confidence": 0.8, "claim_type": "fact"}],
         "risks": [],
         "opportunities": [],
         "open_questions": [],
@@ -133,7 +133,7 @@ def test_recursive_substitution_preserves_model_prose() -> None:
 
     registry = FactRegistry.from_evidence_ledger(_ledger())
     placeholder = _placeholder("finance.metric.net_operating_result", "net_operating_result")
-    payload = {"claims": [{"text": f"El resultado fue {placeholder}.", "evidence_ids": ["finance.metric.net_operating_result"]}]}
+    payload = {"claims": [{"text": f"El resultado fue {placeholder}.", "supporting_facts": [placeholder]}]}
 
     substituted, audit = registry.substitute(payload)
 
@@ -158,12 +158,12 @@ def test_unknown_and_malformed_placeholders_are_rejected() -> None:
     assert any("malformed placeholder" in error for error in result.errors)
 
 
-def test_unsupported_numeric_literal_rejected_even_if_approved() -> None:
-    """Verify model prose may not write deterministic numbers directly.
+def test_approved_numeric_literal_is_allowed_in_simplified_runtime() -> None:
+    """Verify supplied deterministic values may appear in model prose.
 
     Inputs: narrative using approved display value without placeholder.
-    Outputs: validation rejection.
-    Assumptions: exact approved values must still be substituted by Python.
+    Outputs: accepted validation.
+    Assumptions: Python already formatted the supplied value.
     """
 
     validation = validate_reasoning_stage_response(
@@ -173,28 +173,26 @@ def test_unsupported_numeric_literal_rejected_even_if_approved() -> None:
         fact_registry=FactRegistry.from_evidence_ledger(_ledger()),
     )
 
-    assert not validation.is_valid
-    assert any("numeric" in error or "literal" in error for error in validation.errors)
+    assert validation.is_valid
 
 
-def test_placeholder_must_be_supported_by_item_evidence_ids() -> None:
-    """Verify placeholders cite compatible evidence IDs.
+def test_invented_numeric_literal_is_rejected() -> None:
+    """Verify unsupported quantitative claims are still rejected.
 
-    Inputs: text using a collection placeholder but citing net result evidence.
+    Inputs: text using a number absent from the ledger.
     Outputs: validation rejection.
-    Assumptions: placeholders and evidence IDs must point to the same facts.
+    Assumptions: Python validates facts, not identifiers.
     """
 
-    collection = _placeholder("finance.metric.collection_rate", "collection_rate")
     validation = validate_reasoning_stage_response(
-        json.dumps(_stage_payload(f"La cobranza fue {collection}."), ensure_ascii=False),
+        json.dumps(_stage_payload("La cobranza fue 7777."), ensure_ascii=False),
         stage_id="financial_performance",
         evidence_ledger=_ledger(),
         fact_registry=FactRegistry.from_evidence_ledger(_ledger()),
     )
 
     assert not validation.is_valid
-    assert any("without supporting evidence_ids" in error for error in validation.errors)
+    assert any("unsupported number" in error for error in validation.errors)
 
 
 class _RepairClient:
@@ -208,10 +206,9 @@ class _RepairClient:
         Assumptions: response format is mutable like the Ollama client.
         """
 
-        placeholder = _placeholder("finance.metric.net_operating_result", "net_operating_result")
         self.responses = [
+            json.dumps({**_stage_payload("El resultado operativo fue $100."), "extra": []}, ensure_ascii=False),
             json.dumps(_stage_payload("El resultado operativo fue $100."), ensure_ascii=False),
-            json.dumps(_stage_payload(f"El resultado operativo fue {placeholder}."), ensure_ascii=False),
         ]
         self.response_format: str | dict[str, Any] = "json"
 
@@ -226,12 +223,12 @@ class _RepairClient:
         return {"response": self.responses.pop(0), "telemetry": {"prompt_characters": len(prompt)}}
 
 
-def test_placeholder_repair_retry_preserves_claim_and_accepts() -> None:
-    """Verify one placeholder repair retry can fix literal formatting only.
+def test_schema_retry_preserves_claim_and_accepts() -> None:
+    """Verify schema retry can fix structure without placeholder repair.
 
-    Inputs: fake client with literal first response and placeholder repair.
-    Outputs: accepted stage result with substitution audit.
-    Assumptions: retry does not invent claims or evidence IDs.
+    Inputs: fake client with extra top-level key then valid JSON.
+    Outputs: accepted stage result.
+    Assumptions: runtime no longer performs placeholder-compliance repair.
     """
 
     registry = FactRegistry.from_evidence_ledger(_ledger())
@@ -251,5 +248,6 @@ def test_placeholder_repair_retry_preserves_claim_and_accepts() -> None:
     )
 
     assert result.accepted
-    assert result.telemetry["placeholder_retry_attempted"] is True
-    assert result.payload["_substituted_payload"]["claims"][0]["text"] == "El resultado operativo fue $100."
+    assert result.telemetry["schema_retry_attempted"] is True
+    assert result.telemetry["placeholder_retry_attempted"] is False
+    assert result.payload["claims"][0]["text"] == "El resultado operativo fue $100."

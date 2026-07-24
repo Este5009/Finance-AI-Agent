@@ -1,7 +1,8 @@
 {
-  "period_slug": "2026_12",
   "stage_id": "strategic_synthesis",
-  "reasoning_output": {
+  "stage_name": "Strategic Synthesis",
+  "accepted": true,
+  "payload": {
     "executive_summary": "El informe financiero del período 2026-12 muestra un ingreso total de $2,280,096 USD, con gastos totales de $2,032,596 USD, generando un resultado operativo neto de $247,500 USD. El porcentaje de nómina sobre el ingreso total es del 40.0%, y la tasa de cobranza alcanza el 96.0% sin facturas vencidas. Los ingresos aumentaron un 4.0% en comparación con el período anterior, mientras que los gastos disminuyeron un 0.3%.",
     "key_findings": [
       "El ingreso total del período es de $2,280,096 USD.",
@@ -164,5 +165,32 @@
       }
     ],
     "_python_attached_evidence": true
+  },
+  "validation_errors": [],
+  "telemetry": {
+    "stage_id": "strategic_synthesis",
+    "prompt_characters": 7650,
+    "prompt_token_estimate": 1912,
+    "json_validation_time_seconds": 0.0023524999851360917,
+    "total_stage_time_seconds": 77.92758240003604,
+    "error_category": null,
+    "timeout_error_category": null,
+    "schema_retry_attempted": false,
+    "placeholder_retry_attempted": false,
+    "model": "qwen3:30b-a3b",
+    "reasoning_enabled": true,
+    "request_start_utc": "2026-07-24T15:58:27.323512+00:00",
+    "request_end_utc": "2026-07-24T15:59:45.248688+00:00",
+    "http_elapsed_time_seconds": 77.92518170003314,
+    "model_load_time_seconds": 0.218262,
+    "prompt_evaluation_time_seconds": 0.071132,
+    "generation_time_seconds": 73.217437,
+    "total_ollama_time_seconds": 73.8314073,
+    "prompt_eval_count": 2092,
+    "generation_eval_count": 1458,
+    "thinking_characters": 4754,
+    "connect_timeout_seconds": 10.0,
+    "read_timeout_seconds": 600.0,
+    "keep_alive": "15m"
   }
 }

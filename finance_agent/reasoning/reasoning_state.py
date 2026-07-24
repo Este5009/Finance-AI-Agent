@@ -31,6 +31,7 @@ class ReasoningState:
     substituted_outputs: dict[str, dict[str, Any]] = field(default_factory=dict)
     placeholder_validation_results: dict[str, dict[str, Any]] = field(default_factory=dict)
     substitution_audit_log: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
+    support_resolution_audit_log: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     normalization_log: dict[str, list[dict[str, str]]] = field(default_factory=dict)
     evidence_references: dict[str, dict[str, Any]] = field(default_factory=dict)
     cross_stage_dependencies: list[dict[str, Any]] = field(default_factory=list)
@@ -63,6 +64,7 @@ class ReasoningState:
         self.substituted_outputs[result.stage_id] = substituted_payload
         self.placeholder_validation_results[result.stage_id] = result.payload.get("_placeholder_validation", {})
         self.substitution_audit_log[result.stage_id] = list(result.payload.get("_substitution_audit", []))
+        self.support_resolution_audit_log[result.stage_id] = list(result.payload.get("_support_resolution_audit", []))
         self.normalization_log[result.stage_id] = list(result.payload.get("_schema_normalizations", []))
         # Earlier stages are passed forward with placeholders intact.  The final
         # synthesis is stored substituted so existing report generation receives
@@ -106,10 +108,10 @@ class ReasoningState:
 
         return {
             "period_slug": self.period_slug,
-            "validated_claims": self.validated_claims[:12],
-            "risks": self.risks[:10],
-            "opportunities": self.opportunities[:8],
-            "open_questions": self.open_questions[:8],
+            "validated_claims": [_prompt_safe_item(item) for item in self.validated_claims[:12]],
+            "risks": [_prompt_safe_item(item) for item in self.risks[:10]],
+            "opportunities": [_prompt_safe_item(item) for item in self.opportunities[:8]],
+            "open_questions": [_prompt_safe_item(item) for item in self.open_questions[:8]],
             "unresolved_conflicts": self.unresolved_conflicts[:8],
             "accepted_stage_ids": [
                 stage.stage_id for stage in self.stage_results if stage.accepted
@@ -144,6 +146,7 @@ class ReasoningState:
             "substituted_outputs": self.substituted_outputs,
             "placeholder_validation_results": self.placeholder_validation_results,
             "substitution_audit_log": self.substitution_audit_log,
+            "support_resolution_audit_log": self.support_resolution_audit_log,
             "normalization_log": self.normalization_log,
             "evidence_references": self.evidence_references,
             "cross_stage_dependencies": self.cross_stage_dependencies,
@@ -172,3 +175,19 @@ class ReasoningState:
             copied = dict(item)
             copied.setdefault("stage_id", stage_id)
             target.append(copied)
+
+
+def _prompt_safe_item(item: dict[str, Any]) -> dict[str, Any]:
+    """Return a prior-stage item safe for LLM prompt context.
+
+    Inputs: internal validated item.
+    Outputs: copy without Python-resolved evidence IDs or source metadata.
+    Assumptions: downstream stages may reuse placeholders but must not see raw
+    evidence identifiers.
+    """
+
+    return {
+        key: value
+        for key, value in item.items()
+        if key in {"text", "confidence", "claim_type", "stage_id"}
+    }

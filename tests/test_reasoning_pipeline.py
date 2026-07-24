@@ -10,6 +10,7 @@ from finance_agent.reasoning.reasoning_pipeline import (
     build_strategic_synthesis_prompt,
     create_modular_strategic_analysis,
     normalize_reasoning_stage_payload,
+    reasoning_stage_json_schema,
     validate_reasoning_stage_response,
 )
 from finance_agent.analysis.strategic_analysis import build_evidence_ledger
@@ -158,23 +159,20 @@ def _stage_1() -> dict[str, Any]:
     return {
         "claims": [
             {
-                "text": "El resultado operativo es positivo según la evidencia actual.",
-                "evidence_ids": ["finance.metric.net_operating_result"],
+                "text": "El resultado operativo es positivo con $100.",
                 "confidence": 0.84,
                 "claim_type": "fact",
             }
         ],
         "risks": [
             {
-                "text": "El gasto departamental requiere seguimiento ejecutivo.",
-                "evidence_ids": ["anomaly.anom_1"],
+                "text": "El gasto departamental de Health Sciences requiere seguimiento ejecutivo.",
                 "confidence": 0.8,
             }
         ],
         "opportunities": [
             {
-                "text": "La cobranza ofrece una base favorable para sostener liquidez.",
-                "evidence_ids": ["finance.metric.collection_rate"],
+                "text": "La cobranza ofrece una base favorable para sostener liquidez con 95.0%.",
                 "confidence": 0.78,
             }
         ],
@@ -193,23 +191,20 @@ def _stage_2() -> dict[str, Any]:
     return {
         "claims": [
             {
-                "text": "La evaluación histórica debe centrarse en el seguimiento del gasto.",
-                "evidence_ids": ["anomaly.anom_1"],
+                "text": "La evaluación histórica debe centrarse en el seguimiento del gasto de Health Sciences.",
                 "confidence": 0.8,
                 "claim_type": "interpretation",
             }
         ],
         "opportunities": [
             {
-                "text": "La tendencia validada mantiene el foco en disciplina operativa.",
-                "evidence_ids": ["finance.metric.payroll_percentage_of_revenue"],
+                "text": "La tendencia validada mantiene el foco en disciplina operativa con 40.0%.",
                 "confidence": 0.76,
             }
         ],
         "risks": [
             {
-                "text": "El riesgo persistente está asociado al control departamental.",
-                "evidence_ids": ["anomaly.anom_1"],
+                "text": "El riesgo persistente está asociado al control departamental de Health Sciences.",
                 "confidence": 0.77,
             }
         ],
@@ -225,58 +220,32 @@ def _stage_3() -> dict[str, Any]:
     Assumptions: every narrative field cites a supporting evidence ID.
     """
 
-    evidence = ["finance.metric.net_operating_result"]
-    net_result = _placeholder("finance.metric.net_operating_result", "net_operating_result")
-    department = _placeholder("finance.department.health_sciences.variance", "entity")
-    variance = _placeholder("finance.department.health_sciences.variance", "variance")
-    anomaly_title = _placeholder("anomaly.anom_1", "expense_variance")
     return {
-        "executive_summary": {"text": f"La posición financiera requiere gestión disciplinada con {net_result}.", "evidence_ids": evidence},
-        "key_findings": [f"El resultado operativo mantiene una señal favorable con {net_result}."],
-        "root_causes": [f"La hipótesis principal es presión operativa asociada a {department}."],
-        "financial_health_analysis": {"text": f"La salud financiera muestra margen operativo positivo con {net_result}.", "evidence_ids": evidence},
-        "kpi_analysis": {"text": "Los KPI priorizan resultado operativo, cobranza y liquidez.", "evidence_ids": evidence},
-        "department_analysis": {"text": f"{department} requiere seguimiento por varianza departamental de {variance}.", "evidence_ids": ["finance.department.health_sciences.variance"]},
-        "anomaly_analysis": {"text": f"La anomalía {anomaly_title} concentra el riesgo operativo.", "evidence_ids": ["anomaly.anom_1"]},
-        "recommendation_follow_up_analysis": {"text": "El seguimiento debe confirmar ejecución de controles.", "evidence_ids": evidence},
-        "longitudinal_risk_analysis": {"text": "El riesgo longitudinal debe monitorearse con evidencia mensual.", "evidence_ids": evidence},
+        "executive_summary": "La posición financiera requiere gestión disciplinada con $100.",
+        "key_findings": ["El resultado operativo mantiene una señal favorable con $100."],
+        "root_causes": ["La hipótesis principal es presión operativa asociada a Health Sciences."],
+        "financial_health_analysis": "La salud financiera muestra margen operativo positivo con $100.",
+        "kpi_analysis": "Los KPI priorizan resultado operativo sustentado en $100.",
+        "department_analysis": "Health Sciences requiere seguimiento por varianza departamental de $25.",
+        "anomaly_analysis": "La anomalía de gasto concentra el riesgo operativo.",
+        "recommendation_follow_up_analysis": "El seguimiento debe confirmar ejecución de controles motivados por $25.",
+        "longitudinal_risk_analysis": "El riesgo longitudinal debe monitorearse con evidencia de gasto.",
         "strategic_recommendations": [
             {
                 "priority": "high",
-                "action": f"Revisar controles de gasto departamental en {department}.",
-                "rationale": f"La evidencia validada muestra una varianza de {variance} que requiere atención.",
-                "supporting_evidence": "finance.metric.net_operating_result",
-                "expected_impact": f"Mejorar la disciplina presupuestaria asociada a {department} sin modificar los datos financieros.",
-                "evidence_ids": [
-                    "finance.metric.net_operating_result",
-                    "finance.department.health_sciences.variance",
-                    "anomaly.anom_1",
-                ],
+                "action": "Revisar controles de gasto departamental en Health Sciences.",
+                "rationale": "La evidencia validada muestra una varianza de $25 que requiere atención.",
+                "supporting_evidence": "Varianza departamental y anomalía de gasto.",
+                "expected_impact": "Mejorar la disciplina presupuestaria asociada a Health Sciences sin modificar los datos financieros.",
                 "confidence": 0.82,
             }
         ],
-        "strategic_priorities": ["Disciplina operativa y seguimiento departamental."],
-        "missing_information": [],
-        "historical_summary": {"text": "La lectura histórica se limita a evidencia validada disponible.", "evidence_ids": evidence},
-        "historical_trend_analysis": {"text": "La tendencia debe monitorearse sin inferir valores no suministrados.", "evidence_ids": evidence},
-        "narrative_evidence": {
-            "executive_summary": evidence,
-            "key_findings": evidence,
-            "root_causes": evidence,
-            "financial_health_analysis": evidence,
-            "kpi_analysis": evidence,
-            "department_analysis": ["finance.department.health_sciences.variance"],
-            "anomaly_analysis": ["anomaly.anom_1"],
-            "recommendation_follow_up_analysis": evidence,
-            "longitudinal_risk_analysis": evidence,
-            "strategic_priorities": evidence,
-            "missing_information": ["evidence.task_1.summary"],
-            "historical_summary": evidence,
-            "historical_trend_analysis": evidence,
-            "reasoning_summary": evidence,
-        },
+        "strategic_priorities": ["Disciplina operativa y seguimiento departamental en Health Sciences."],
+        "missing_information": ["La información faltante debe revisarse contra evidencia departamental disponible."],
+        "historical_summary": "La lectura histórica se limita a evidencia validada disponible.",
+        "historical_trend_analysis": "La tendencia debe monitorearse sin inferir valores no suministrados.",
         "confidence": 0.82,
-        "reasoning_summary": {"text": "La síntesis usa únicamente evidencia validada por etapas.", "evidence_ids": evidence},
+        "reasoning_summary": "La síntesis usa únicamente evidencia validada por etapas.",
     }
 
 
@@ -316,19 +285,25 @@ def test_reasoning_state_propagates_validated_outputs() -> None:
     """Verify ReasoningState stores accepted stage outputs by responsibility."""
 
     state = ReasoningState(period_slug="2026_12", evidence_ledger=_ledger())
+    validation = validate_reasoning_stage_response(
+        json.dumps(_stage_1(), ensure_ascii=False),
+        stage_id="financial_performance",
+        evidence_ledger=_ledger(),
+    )
+    assert validation.is_valid
     state.add_stage_result(
         ReasoningStageResult(
             stage_id="financial_performance",
             stage_name="Financial",
             accepted=True,
-            payload=_stage_1(),
+            payload=validation.payload or {},
             validation_errors=(),
             telemetry={},
         )
     )
 
     assert state.validated_claims[0]["stage_id"] == "financial_performance"
-    assert state.risks[0]["evidence_ids"] == ["anomaly.anom_1"]
+    assert state.risks[0]["text"]
 
 
 def test_context_propagation_avoids_full_ledger_in_strategic_prompt() -> None:
@@ -346,7 +321,8 @@ def test_context_propagation_avoids_full_ledger_in_strategic_prompt() -> None:
 
     assert "validated_reasoning_state" in prompt
     assert "evidence_ledger" not in prompt
-    assert "El resultado operativo es positivo" in prompt
+    assert "resolved_evidence_ids" not in prompt
+    assert "validated_claims" in prompt
 
 
 def test_duplicate_context_prevention_in_financial_prompt() -> None:
@@ -360,7 +336,61 @@ def test_duplicate_context_prevention_in_financial_prompt() -> None:
     )
 
     assert "payroll_breakdown" not in prompt
-    assert prompt.count("finance.metric.net_operating_result") >= 1
+    assert "finance.metric.net_operating_result" not in prompt
+    assert '"value":"$100"' in prompt
+
+
+def test_llm_facing_schema_uses_text_not_supporting_facts_or_evidence_ids() -> None:
+    """Verify modular stage schemas ask for reasoning text only."""
+
+    schema_text = json.dumps(reasoning_stage_json_schema("financial_performance"), ensure_ascii=False)
+
+    assert '"text"' in schema_text
+    assert "supporting_facts" not in schema_text
+    assert "evidence_ids" not in schema_text
+
+
+def test_model_supplied_evidence_ids_are_rejected() -> None:
+    """Verify legacy evidence IDs in model output are not accepted."""
+
+    payload = _stage_1()
+    payload["claims"][0]["evidence_ids"] = ["finance.metric.net_operating_result"]
+    validation = validate_reasoning_stage_response(
+        json.dumps(payload, ensure_ascii=False),
+        stage_id="financial_performance",
+        evidence_ledger=_ledger(),
+    )
+
+    assert not validation.is_valid
+    assert validation.errors[0].startswith("schema:")
+
+
+def test_stage_rejects_unsupported_period_claim() -> None:
+    """Verify Stage 1 rejects unsupported deterministic period claims."""
+
+    ledger = _ledger()
+    ledger["facts"].append(
+        {
+            "evidence_id": "history.metric.payroll_ratio",
+            "metric": "payroll_ratio",
+            "display_value": "44.0%",
+            "raw_value": 0.44,
+            "unit": "ratio",
+            "period": "2026_11",
+            "entity": "",
+            "source_reference": "data/memory/recovery_2026_memory.db",
+        }
+    )
+    payload = _stage_1()
+    payload["claims"][0]["text"] = "El ratio histórico de 2027_01 fue 44.0%."
+    validation = validate_reasoning_stage_response(
+        json.dumps(payload, ensure_ascii=False),
+        stage_id="financial_performance",
+        evidence_ledger=ledger,
+    )
+
+    assert not validation.is_valid
+    assert any("unsupported period" in error or "unsupported number" in error for error in validation.errors)
 
 
 def test_independent_stage_validation_rejects_unsupported_number() -> None:
@@ -375,16 +405,16 @@ def test_independent_stage_validation_rejects_unsupported_number() -> None:
     )
 
     assert not validation.is_valid
-    assert any("unsupported number" in error for error in validation.errors)
+    assert any("unsupported number" in error or "numeric literal" in error for error in validation.errors)
 
 
 def test_alias_keys_normalize_correctly() -> None:
     """Verify safe synonymous keys normalize into the minimal schema."""
 
     payload = {
-        "identified_risks": [{"text": "El riesgo requiere control.", "evidence_ids": ["anomaly.anom_1"], "confidence_level": 0.7}],
-        "identified_opportunities": [{"text": "La cobranza permite sostener liquidez.", "evidence_ids": ["finance.metric.collection_rate"], "confidence_level": 0.7}],
-        "financial_claims": [{"text": "El resultado operativo es positivo.", "evidence_ids": ["finance.metric.net_operating_result"], "confidence_level": 0.8, "claim_type": "fact"}],
+        "identified_risks": [{"text": "El riesgo requiere control.", "confidence_level": 0.7}],
+        "identified_opportunities": [{"text": "La cobranza permite sostener liquidez.", "confidence_level": 0.7}],
+        "financial_claims": [{"text": "El resultado operativo es positivo con $100.", "confidence_level": 0.8, "claim_type": "fact"}],
         "questions": [],
     }
 
@@ -425,8 +455,7 @@ def test_stage_1_semantic_alias_output_becomes_valid() -> None:
     payload = {
         "financial_claims": [
             {
-                "text": "El resultado operativo es positivo según la evidencia actual.",
-                "evidence_ids": ["finance.metric.net_operating_result"],
+                "text": "El resultado operativo es positivo con $100.",
                 "confidence_level": 0.8,
                 "claim_type": "fact",
             }
@@ -434,7 +463,6 @@ def test_stage_1_semantic_alias_output_becomes_valid() -> None:
         "identified_risks": [
             {
                 "text": "El gasto departamental requiere seguimiento ejecutivo.",
-                "evidence_ids": ["anomaly.anom_1"],
                 "confidence_level": 0.7,
             }
         ],
@@ -458,8 +486,7 @@ def test_schema_only_retry_preserves_original_fact_content() -> None:
     aliased = {
         "financial_claims": [
             {
-                "text": "El resultado operativo es positivo según la evidencia actual.",
-                "evidence_ids": ["finance.metric.net_operating_result"],
+                "text": "El resultado operativo es positivo con $100.",
                 "confidence_level": 0.8,
                 "claim_type": "fact",
             }
@@ -488,7 +515,7 @@ def test_schema_only_retry_preserves_original_fact_content() -> None:
     assert result.accepted
     first_stage = result.analysis_document["reasoning_state"]["stage_results"][0]
     assert first_stage["telemetry"]["schema_retry_attempted"] is True
-    assert first_stage["payload"]["claims"][0]["evidence_ids"] == ["finance.metric.net_operating_result"]
+    assert first_stage["payload"]["claims"][0]["text"] == "El resultado operativo es positivo con $100."
 
 
 def test_stage_validation_rejection_is_telemetry_category() -> None:
@@ -525,6 +552,14 @@ def test_modular_pipeline_runs_three_stages_with_mocked_ollama() -> None:
     assert len(client.prompts) == 3
     assert result.analysis_document["analysis_source"] == "ollama_modular_reasoning"
     assert result.analysis_document["reasoning_state"]["reasoning_outputs"]["strategic_synthesis"]
+    report_ready_analysis = {
+        key: value
+        for key, value in result.analysis_document["analysis"].items()
+        if not str(key).startswith("_")
+    }
+    analysis_text = json.dumps(report_ready_analysis, ensure_ascii=False)
+    assert "{{FACT_" not in analysis_text
+    assert "finance.metric.net_operating_result" not in result.analysis_document["analysis"]["executive_summary"]
 
 
 def test_stage_timeout_checkpoint_metadata_is_preserved() -> None:

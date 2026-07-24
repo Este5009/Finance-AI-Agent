@@ -1,33 +1,99 @@
 {
   "stage_id": "financial_performance_alone",
   "stage_name": "Financial Performance Reasoning Alone",
-  "accepted": false,
-  "payload": {},
-  "validation_errors": [
-    "opportunities[1] cites unknown evidence_id: finance.department.arts_humanidades.net_operating_result"
-  ],
+  "accepted": true,
+  "payload": {
+    "claims": [
+      {
+        "text": "El ingreso total del periodo es de $2,280,096 USD.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      },
+      {
+        "text": "Los gastos totales del periodo son de $2,032,596 USD.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      },
+      {
+        "text": "El resultado operativo neto del periodo es de $247,500 USD.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      },
+      {
+        "text": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      },
+      {
+        "text": "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      },
+      {
+        "text": "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      },
+      {
+        "text": "La tasa de cobranza es del 96.0%.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      },
+      {
+        "text": "No hay facturas vencidas en el periodo.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      }
+    ],
+    "risks": [
+      {
+        "text": "El alto porcentaje de nómina (40.0%) sobre el ingreso total podría representar un riesgo financiero si los ingresos disminuyen.",
+        "confidence": 0.85
+      }
+    ],
+    "opportunities": [
+      {
+        "text": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar aún más la eficiencia en la gestión de cobranzas.",
+        "confidence": 0.9
+      }
+    ],
+    "open_questions": [
+      {
+        "text": "¿Cuál es el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto?"
+      }
+    ],
+    "_selected_fact_summary": {
+      "stage_id": "financial_performance",
+      "selected_fact_count": 25,
+      "selection_prefixes": [
+        "finance.",
+        "anomaly."
+      ]
+    }
+  },
+  "validation_errors": [],
   "telemetry": {
     "stage_id": "financial_performance_alone",
-    "prompt_characters": 10305,
-    "prompt_token_estimate": 2576,
-    "json_validation_time_seconds": 0.0005757999606430531,
-    "total_stage_time_seconds": 49.76514329999918,
-    "error_category": "validation_rejection",
+    "prompt_characters": 5515,
+    "prompt_token_estimate": 1378,
+    "json_validation_time_seconds": 0.003919699927791953,
+    "total_stage_time_seconds": 28.895463299937546,
+    "error_category": null,
     "timeout_error_category": null,
     "schema_retry_attempted": false,
     "placeholder_retry_attempted": false,
     "model": "qwen3:30b-a3b",
     "reasoning_enabled": true,
-    "request_start_utc": "2026-07-22T19:57:37.033581+00:00",
-    "request_end_utc": "2026-07-22T19:58:26.798093+00:00",
-    "http_elapsed_time_seconds": 49.76451690000249,
-    "model_load_time_seconds": 0.2166053,
-    "prompt_evaluation_time_seconds": 0.146828,
-    "generation_time_seconds": 45.168135,
-    "total_ollama_time_seconds": 45.6989113,
-    "prompt_eval_count": 2953,
-    "generation_eval_count": 815,
-    "thinking_characters": 3059,
+    "request_start_utc": "2026-07-24T15:57:25.441399+00:00",
+    "request_end_utc": "2026-07-24T15:57:54.332897+00:00",
+    "http_elapsed_time_seconds": 28.891503900056705,
+    "model_load_time_seconds": 0.2254792,
+    "prompt_evaluation_time_seconds": 0.248313,
+    "generation_time_seconds": 24.214748,
+    "total_ollama_time_seconds": 24.8000641,
+    "prompt_eval_count": 1754,
+    "generation_eval_count": 465,
+    "thinking_characters": 1389,
     "connect_timeout_seconds": 10.0,
     "read_timeout_seconds": 600.0,
     "keep_alive": "15m"

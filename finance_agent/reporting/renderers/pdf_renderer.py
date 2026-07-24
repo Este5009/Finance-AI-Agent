@@ -1,4 +1,4 @@
-"""Professional PDF renderer for Finance AI Agent report models."""
+﻿"""Professional PDF renderer for Finance AI Agent report models."""
 
 from __future__ import annotations
 
@@ -21,7 +21,17 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from finance_agent.reporting.presentation import SECTION_LABELS_ES, build_presentation_view, format_value
+from finance_agent.reporting.presentation import (
+    SECTION_LABELS_ES,
+    build_presentation_view,
+    deterministic_chart_insight,
+    display_or_unavailable,
+    format_compact_axis_value,
+    format_period_label,
+    format_value,
+    table_has_useful_detail,
+    trim_low_value_columns,
+)
 
 
 NAVY = colors.HexColor("#17324d")
@@ -78,6 +88,19 @@ class HorizontalBarChart(Flowable):
         label_width = 1.75 * inch
         value_width = 1.0 * inch
         bar_width = self.width - label_width - value_width - 0.2 * inch
+        chart_top = self.height - 28
+        chart_bottom = 12
+        canvas.setStrokeColor(LINE)
+        canvas.setLineWidth(0.35)
+        canvas.setFont("Helvetica", 5.8)
+        canvas.setFillColor(MUTED)
+        for tick in range(5):
+            x = label_width + bar_width * tick / 4
+            canvas.line(x, chart_bottom, x, chart_top)
+            canvas.drawCentredString(x, 2, format_compact_axis_value(max_value * tick / 4, self.items[0].get("unit")))
+        abs_values = [abs(float(item.get("value") or 0.0)) for item in self.items]
+        max_index = abs_values.index(max(abs_values))
+        min_index = abs_values.index(min(abs_values))
         for index, item in enumerate(self.items):
             y = self.height - 36 - index * 24
             value = float(item.get("value") or 0.0)
@@ -90,6 +113,10 @@ class HorizontalBarChart(Flowable):
             canvas.setFillColor(GREEN if value >= 0 else RED)
             scaled = max(2.0, abs(value) / max_value * bar_width)
             canvas.roundRect(label_width, y, scaled, 10, 4, fill=1, stroke=0)
+            if index in {len(self.items) - 1, max_index, min_index}:
+                canvas.setStrokeColor(NAVY if index == len(self.items) - 1 else AMBER)
+                canvas.setLineWidth(0.65)
+                canvas.roundRect(label_width, y, scaled, 10, 4, fill=0, stroke=1)
             canvas.setFillColor(INK)
             canvas.drawRightString(self.width, y + 2, format_value(value, item.get("unit")))
 
@@ -102,7 +129,7 @@ class LineChart(Flowable):
     Assumptions: points are ordered chronologically upstream.
     """
 
-    def __init__(self, series: dict[str, Any], width: float = 3.2 * inch) -> None:
+    def __init__(self, series: dict[str, Any], width: float = 6.7 * inch) -> None:
         """Initialize a line chart.
 
         Inputs: trend series dictionary and width.
@@ -113,7 +140,7 @@ class LineChart(Flowable):
         super().__init__()
         self.series = series
         self.width = width
-        self.height = 1.65 * inch
+        self.height = 2.35 * inch
 
     def draw(self) -> None:
         """Draw the line chart onto the PDF canvas.
@@ -137,30 +164,55 @@ class LineChart(Flowable):
         min_value = min(values)
         max_value = max(values)
         span = max(max_value - min_value, 1e-9)
-        left = 12
-        bottom = 24
-        chart_width = self.width - 24
-        chart_height = self.height - 52
+        left = 0.58 * inch
+        bottom = 0.56 * inch
+        right = 0.16 * inch
+        top = 0.34 * inch
+        chart_width = self.width - left - right
+        chart_height = self.height - bottom - top
         coords = []
         for index, point in enumerate(points):
             x = left + chart_width * (index / max(1, len(points) - 1))
             y = bottom + ((float(point.get("value") or 0.0) - min_value) / span) * chart_height
-            coords.append((x, y))
+            coords.append((x, y, point))
         canvas.setStrokeColor(LINE)
+        canvas.setLineWidth(0.35)
+        for tick in range(5):
+            y = bottom + chart_height * tick / 4
+            canvas.line(left, y, left + chart_width, y)
+            value = min_value + span * tick / 4
+            canvas.setFont("Helvetica", 6)
+            canvas.setFillColor(MUTED)
+            canvas.drawRightString(left - 4, y - 2, format_value(value, self.series.get("unit")))
+        canvas.setStrokeColor(MUTED)
         canvas.line(left, bottom, left + chart_width, bottom)
+        canvas.line(left, bottom, left, bottom + chart_height)
         canvas.setStrokeColor(BLUE)
         canvas.setLineWidth(1.4)
         path = canvas.beginPath()
         path.moveTo(coords[0][0], coords[0][1])
-        for x, y in coords[1:]:
+        for x, y, _ in coords[1:]:
             path.lineTo(x, y)
         canvas.drawPath(path)
-        canvas.setFillColor(GREEN)
-        for x, y in coords:
+        min_index = values.index(min_value)
+        max_index = values.index(max_value)
+        for index, (x, y, _) in enumerate(coords):
+            canvas.setFillColor(
+                NAVY if index == len(coords) - 1 else (GREEN if index == max_index else (RED if index == min_index else BLUE))
+            )
             canvas.circle(x, y, 2.5, fill=1, stroke=0)
         canvas.setFont("Helvetica", 6.5)
         canvas.setFillColor(MUTED)
-        canvas.drawString(0, 2, f"{points[0].get('period')} → {points[-1].get('period')}")
+        for x, _, point in coords:
+            canvas.drawCentredString(x, bottom - 13, str(point.get("period_label") or format_period_label(point.get("period"))))
+        canvas.setFont("Helvetica-Bold", 6.3)
+        canvas.setFillColor(NAVY)
+        canvas.drawCentredString(left + chart_width / 2, 6, "Periodo")
+        canvas.saveState()
+        canvas.translate(8, bottom + chart_height / 2)
+        canvas.rotate(90)
+        canvas.drawCentredString(0, 0, "Porcentaje" if self.series.get("unit") == "ratio" else "Valor")
+        canvas.restoreState()
 
 
 def _styles() -> dict[str, ParagraphStyle]:
@@ -175,11 +227,12 @@ def _styles() -> dict[str, ParagraphStyle]:
     return {
         "cover_title": ParagraphStyle("CoverTitle", parent=sample["Title"], fontName="Helvetica-Bold", fontSize=30, leading=34, textColor=colors.white, spaceAfter=16),
         "cover": ParagraphStyle("CoverText", parent=sample["BodyText"], fontName="Helvetica", fontSize=13, leading=18, textColor=colors.white),
-        "h1": ParagraphStyle("SectionHeading", parent=sample["Heading1"], fontName="Helvetica-Bold", fontSize=16, leading=20, textColor=NAVY, spaceBefore=10, spaceAfter=8, keepWithNext=True),
-        "h2": ParagraphStyle("SubHeading", parent=sample["Heading2"], fontName="Helvetica-Bold", fontSize=10.5, leading=13, textColor=NAVY, spaceBefore=8, spaceAfter=5, keepWithNext=True),
-        "body": ParagraphStyle("Body", parent=sample["BodyText"], fontName="Helvetica", fontSize=8.8, leading=11.5, textColor=INK, spaceAfter=5),
-        "small": ParagraphStyle("Small", parent=sample["BodyText"], fontName="Helvetica", fontSize=7.2, leading=9, textColor=MUTED),
+        "h1": ParagraphStyle("SectionHeading", parent=sample["Heading1"], fontName="Helvetica-Bold", fontSize=16, leading=20, textColor=NAVY, spaceBefore=18, spaceAfter=12, keepWithNext=True),
+        "h2": ParagraphStyle("SubHeading", parent=sample["Heading2"], fontName="Helvetica-Bold", fontSize=10.5, leading=13, textColor=NAVY, spaceBefore=12, spaceAfter=7, keepWithNext=True),
+        "body": ParagraphStyle("Body", parent=sample["BodyText"], fontName="Helvetica", fontSize=8.8, leading=12.2, textColor=INK, spaceAfter=7),
+        "small": ParagraphStyle("Small", parent=sample["BodyText"], fontName="Helvetica", fontSize=7.2, leading=9.8, textColor=MUTED, spaceAfter=4),
         "card_value": ParagraphStyle("CardValue", parent=sample["BodyText"], fontName="Helvetica-Bold", fontSize=13, leading=15, textColor=NAVY),
+        "insight": ParagraphStyle("ExecutiveConclusion", parent=sample["BodyText"], fontName="Helvetica", fontSize=8, leading=11.2, textColor=colors.HexColor("#24364a"), backColor=colors.HexColor("#eef7ff"), borderColor=BLUE, borderWidth=0.4, borderPadding=7, spaceBefore=8, spaceAfter=14),
     }
 
 
@@ -196,6 +249,59 @@ def _para(value: Any, style: ParagraphStyle) -> Paragraph:
     return Paragraph(text, style)
 
 
+def _rich_para(value: Any, style: ParagraphStyle) -> Paragraph:
+    """Create a paragraph with renderer-owned inline markup.
+
+    Inputs: trusted renderer text with limited tags and paragraph style.
+    Outputs: ReportLab paragraph.
+    Assumptions: callers pass fixed labels, not untrusted narrative markup.
+    """
+
+    return Paragraph(str(value or ""), style)
+
+
+def _info_card(message: str, styles: dict[str, ParagraphStyle], *, title: str = "Estado actual") -> Table:
+    """Create a compact PDF information card.
+
+    Inputs: message, styles, and title.
+    Outputs: card-style ReportLab table.
+    Assumptions: used instead of empty or low-value tables.
+    """
+
+    table = Table(
+        [[_rich_para(f"<b>{title}:</b> {message}", styles["small"])]],
+        colWidths=[6.6 * inch],
+        hAlign="LEFT",
+    )
+    table.setStyle(
+        TableStyle(
+            [
+                ("BOX", (0, 0), (-1, -1), 0.45, LINE),
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#fbfdff")),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 7),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ]
+        )
+    )
+    return table
+
+
+def _insight_para(value: Any, style: ParagraphStyle) -> Paragraph:
+    """Create a deterministic conclusion paragraph with bold Spanish label.
+
+    Inputs: conclusion text and paragraph style.
+    Outputs: ReportLab paragraph with bold label.
+    Assumptions: value has no markup and is already presentation-safe.
+    """
+
+    text = "" if value is None else str(value)
+    text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return Paragraph(f"<b>Conclusión ejecutiva:</b> {text}", style)
+
+
 def _truncate(text: str, limit: int) -> str:
     """Truncate text for compact chart labels.
 
@@ -207,19 +313,34 @@ def _truncate(text: str, limit: int) -> str:
     return text if len(text) <= limit else text[: max(0, limit - 1)] + "…"
 
 
-def _table(headers: list[str], rows: list[list[Any]], styles: dict[str, ParagraphStyle], *, widths: list[float] | None = None) -> Table:
-    """Create a styled PDF table with repeating headers.
+def _table(
+    headers: list[str],
+    rows: list[list[Any]],
+    styles: dict[str, ParagraphStyle],
+    *,
+    widths: list[float] | None = None,
+    empty: str = "No hay datos suficientes para mostrar una tabla útil.",
+    force: bool = False,
+) -> Table:
+    """Create an adaptive styled PDF table with repeating headers.
 
     Inputs: headers, rows, styles, and optional column widths.
-    Outputs: ReportLab Table.
-    Assumptions: rows are bounded for executive reports.
+    Outputs: ReportLab Table or card-like empty state.
+    Assumptions: source artifacts retain full detail outside the executive PDF.
     """
 
-    data = [[_para(header, styles["small"]) for header in headers]]
     if not rows:
-        rows = [["Sin datos disponibles."] + [""] * max(0, len(headers) - 1)]
+        return _info_card(empty, styles)
+    headers, rows = trim_low_value_columns(headers, rows, protected_headers=(headers[0],))
+    if not force and not table_has_useful_detail(headers, rows):
+        return _info_card("La evidencia existe, pero no contiene suficiente detalle tabular para esta sección.", styles)
+    if widths and len(widths) != len(headers):
+        total_width = sum(widths)
+        widths = [total_width / len(headers)] * len(headers)
+    data = [[_para(header, styles["small"]) for header in headers]]
     for row in rows:
-        data.append([_para(value, styles["small"]) for value in row])
+        padded = list(row[: len(headers)]) + [""] * max(0, len(headers) - len(row))
+        data.append([_para(display_or_unavailable(value), styles["small"]) for value in padded])
     table = Table(data, repeatRows=1, hAlign="LEFT", colWidths=widths)
     table.setStyle(
         TableStyle(
@@ -227,16 +348,65 @@ def _table(headers: list[str], rows: list[list[Any]], styles: dict[str, Paragrap
                 ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#eef4fb")),
                 ("TEXTCOLOR", (0, 0), (-1, 0), NAVY),
                 ("GRID", (0, 0), (-1, -1), 0.25, LINE),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#fbfdff")]),
-                ("LEFTPADDING", (0, 0), (-1, -1), 4),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
             ]
         )
     )
     return table
+
+
+def _compact_cards(items: list[dict[str, Any]], styles: dict[str, ParagraphStyle], *, kind: str) -> list[Table]:
+    """Create compact executive cards for short historical lists.
+
+    Inputs: display-ready presentation items, PDF styles, and card kind.
+    Outputs: ReportLab card tables.
+    Assumptions: cards are presentation-only; source artifacts keep full details.
+    """
+
+    cards: list[Table] = []
+    for item in items:
+        if kind == "follow_up":
+            lines = [
+                f"<b>{display_or_unavailable(item.get('recommendation'))}</b>",
+                f"<b>Periodo de origen:</b> {display_or_unavailable(item.get('issued_period'))}",
+                f"<b>Progreso:</b> {display_or_unavailable(item.get('progress') or item.get('status'))}",
+                f"<b>Objetivo original:</b> {display_or_unavailable(item.get('objective'))}",
+                f"<b>Evidencia actual:</b> {display_or_unavailable(item.get('current_evidence'))}",
+                f"<b>Próxima acción sugerida:</b> {display_or_unavailable(item.get('next_action'))}",
+            ]
+        else:
+            lines = [
+                f"<b>{display_or_unavailable(item.get('risk'))}</b>",
+                f"<b>Departamento:</b> {display_or_unavailable(item.get('department'))}",
+                f"<b>Frecuencia:</b> {display_or_unavailable(item.get('frequency') or item.get('occurrences'))}",
+                f"<b>Estado:</b> {display_or_unavailable(item.get('status'))}",
+                f"<b>Períodos afectados:</b> {display_or_unavailable(item.get('periods'))}",
+            ]
+        table = Table(
+            [[_rich_para("<br/>".join(lines), styles["small"])]],
+            colWidths=[6.6 * inch],
+            hAlign="LEFT",
+        )
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BOX", (0, 0), (-1, -1), 0.45, LINE),
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#fbfdff")),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 9),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 9),
+                    ("TOPPADDING", (0, 0), (-1, -1), 8),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ]
+            )
+        )
+        cards.append(table)
+    return cards
 
 
 def _section_title(story: list[Any], section_id: str, styles: dict[str, ParagraphStyle]) -> None:
@@ -284,9 +454,16 @@ def _metric_cards(view: dict[str, Any], styles: dict[str, ParagraphStyle]) -> Ta
 
     cells = []
     for card in view["financial_health"]["cards"][:6]:
+        comparison_rows = card.get("comparison_rows", [])
+        comparison_flowables = [
+            _para(f"{row.get('label')}: {row.get('value')}", styles["small"])
+            for row in comparison_rows
+            if row.get("value")
+        ]
         cells.append([
-            _para(card["label"], styles["small"]),
-            _para(card["value"], styles["card_value"]),
+            _para(f"{card['label']} - {card.get('badge', {}).get('label', '')}", styles["small"]),
+            _para(f"{card['value']}", styles["card_value"]),
+            *comparison_flowables,
             _para(card["description"], styles["small"]),
         ])
     rows = []
@@ -327,7 +504,8 @@ def _recommendation_cards(view: dict[str, Any], styles: dict[str, ParagraphStyle
             [_para(card["action"], styles["body"])],
             [_para(f"Racional: {card['rationale']}", styles["small"])],
             [_para(f"Impacto esperado: {card['expected_impact']}", styles["small"])],
-            [_para(f"Responsable/estado: {card['owner_status']}", styles["small"])],
+            [_para(f"Responsable sugerido: {card.get('owner')}", styles["small"])],
+            [_para(f"Estado: {card.get('status')}", styles["small"])],
         ]
         table = Table(data, colWidths=[6.7 * inch], hAlign="LEFT")
         table.setStyle(
@@ -383,57 +561,80 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
     ]
     story.append(Spacer(1, 0.1 * inch))
     story.append(HorizontalBarChart(chart_items, "Resumen financiero principal"))
+    story.append(_insight_para(view["financial_health"].get("chart_insight", ""), styles["insight"]))
 
     _section_title(story, "kpi_overview", styles)
     _append_narrative(story, view, "kpi_overview", styles)
-    story.append(
-        _table(
-            ["Indicador", "Valor", "Estado", "Descripción"],
-            [[row["indicator"], row["value"], row["status"], row["description"]] for row in view["kpis"][:10]],
-            styles,
-            widths=[1.55 * inch, 0.9 * inch, 0.9 * inch, 3.15 * inch],
+    if len(view["kpis"]) > 6:
+        story.append(
+            _table(
+                ["Indicador", "Valor", "Estado", "Descripción"],
+                [[row["indicator"], row["value"], row["status"], row["description"]] for row in view["kpis"][:10]],
+                styles,
+                widths=[1.55 * inch, 0.9 * inch, 0.9 * inch, 3.15 * inch],
+                force=True,
+            )
         )
-    )
+    else:
+        story.append(_info_card("Los KPIs principales ya están resumidos en las tarjetas de salud financiera.", styles, title="Lectura ejecutiva"))
 
     historical = view["historical"]
     if historical.get("available"):
         _section_title(story, "historical_trends", styles)
         _append_narrative(story, view, "historical_summary", styles)
         _append_narrative(story, view, "historical_trends", styles)
-        chart_cells = [[LineChart(series) for series in historical.get("trends", [])[:2]]]
-        if chart_cells[0]:
-            story.append(Table(chart_cells, colWidths=[3.3 * inch] * len(chart_cells[0])))
+        for series in historical.get("trends", [])[:3]:
+            story.append(KeepTogether([LineChart(series), _insight_para(series.get("insight", ""), styles["insight"])]))
+            story.append(Spacer(1, 0.08 * inch))
         _section_title(story, "recommendation_follow_up", styles)
         _append_narrative(story, view, "recommendation_follow_up", styles)
-        story.append(
-            _table(
-                ["Recomendación", "Periodo", "Evidencia actual", "Estado"],
-                [
-                    [row["recommendation"], row["issued_period"], row["current_evidence"], row["status"]]
-                    for row in historical.get("recommendation_follow_up", [])[:6]
-                ],
-                styles,
-                widths=[1.7 * inch, 0.75 * inch, 3.0 * inch, 1.0 * inch],
+        follow_items = historical.get("recommendation_follow_up", [])[:6]
+        if 0 < len(follow_items) <= 5:
+            for card in _compact_cards(follow_items, styles, kind="follow_up"):
+                story.append(card)
+                story.append(Spacer(1, 0.08 * inch))
+        else:
+            follow_rows = [
+                [row["recommendation"], row["issued_period"], row.get("progress", row.get("status", "")), row.get("objective", ""), row["current_evidence"]]
+                for row in follow_items
+            ]
+            story.append(
+                _table(
+                    ["Recomendación", "Periodo de origen", "Progreso", "Objetivo original", "Evidencia actual"],
+                    follow_rows,
+                    styles,
+                    widths=[1.35 * inch, 0.8 * inch, 0.85 * inch, 1.55 * inch, 2.05 * inch],
+                )
             )
-        )
         _section_title(story, "longitudinal_risk_assessment", styles)
         _append_narrative(story, view, "longitudinal_risk_assessment", styles)
-        story.append(
-            _table(
-                ["Riesgo", "Departamento", "Ocurrencias", "Periodos"],
-                [
-                    [row["risk"], row["department"], row["occurrences"], row["periods"]]
-                    for row in historical.get("recurring_risks", [])[:6]
-                ],
-                styles,
-                widths=[2.1 * inch, 1.4 * inch, 0.8 * inch, 2.0 * inch],
+        if historical.get("risk_summary"):
+            story.append(_info_card(historical.get("risk_summary"), styles, title="Lectura ejecutiva"))
+            story.append(Spacer(1, 0.08 * inch))
+        risk_items = historical.get("recurring_risks", [])[:6]
+        if 0 < len(risk_items) <= 3:
+            for card in _compact_cards(risk_items, styles, kind="risk"):
+                story.append(card)
+                story.append(Spacer(1, 0.08 * inch))
+        else:
+            story.append(
+                _table(
+                    ["Riesgo", "Departamento", "Frecuencia", "Estado", "Períodos afectados"],
+                    [
+                        [row["risk"], row["department"], row.get("frequency", row.get("occurrences", "")), row.get("status", ""), row["periods"]]
+                        for row in risk_items
+                    ],
+                    styles,
+                    widths=[1.75 * inch, 1.3 * inch, 0.8 * inch, 0.9 * inch, 1.85 * inch],
+                )
             )
-        )
 
     _section_title(story, "revenue_expense_analysis", styles)
     _append_narrative(story, view, "revenue_expense_analysis", styles)
     story.append(HorizontalBarChart(view["revenue_expense"]["chart"], "Ingresos, gastos y resultado"))
+    story.append(_insight_para(view["revenue_expense"].get("chart_insight", ""), styles["insight"]))
     story.append(HorizontalBarChart(view["revenue_expense"]["budget_chart"], "Comparación contra presupuesto"))
+    story.append(_insight_para(view["revenue_expense"].get("budget_chart_insight", ""), styles["insight"]))
     story.append(
         _table(
             ["Métrica", "Valor", "Descripción"],
@@ -457,44 +658,81 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
         [{"label": row["department"], "value": row["numeric_result"], "unit": "USD"} for row in view["departments"][:6]],
         "Resultado operativo por departamento",
     ))
+    if view["departments"]:
+        story.append(_insight_para(
+            deterministic_chart_insight(
+                [{"label": row["department"], "value": row["numeric_result"], "unit": "USD"} for row in view["departments"][:6]],
+                title="resultado operativo por departamento",
+                chart_kind="department",
+                unit="USD",
+            ),
+            styles["insight"],
+        ))
 
     _section_title(story, "anomaly_summary", styles)
-    _append_narrative(story, view, "anomaly_summary", styles)
     anomalies = view["anomalies"]
-    if anomalies.get("positive_status"):
-        story.append(_para(anomalies["positive_status"], styles["body"]))
+    if anomalies.get("current_period_status") or anomalies.get("positive_status"):
+        story.append(_info_card(anomalies.get("current_period_status") or anomalies.get("positive_status"), styles))
+        if anomalies.get("distinction_note"):
+            story.append(_para(anomalies.get("distinction_note"), styles["body"]))
     else:
-        story.append(_table(["Severidad", "Cantidad"], [[row["severity"], row["count"]] for row in anomalies["severity_rows"]], styles))
-        story.append(
-            _table(
-                ["Anomalía", "Severidad", "Evidencia"],
-                [[row["title"], row["severity"], row["evidence"]] for row in anomalies["top_rows"]],
-                styles,
-                widths=[2.1 * inch, 0.9 * inch, 3.4 * inch],
+        _append_narrative(story, view, "anomaly_summary", styles)
+        story.append(HorizontalBarChart(anomalies.get("severity_chart", []), "Anomalías por severidad"))
+        story.append(_insight_para(anomalies.get("chart_insight", ""), styles["insight"]))
+        if len(anomalies["severity_rows"]) > 4:
+            story.append(_table(["Severidad", "Cantidad"], [[row["severity"], row["count"]] for row in anomalies["severity_rows"]], styles, force=True))
+        if len(anomalies["top_rows"]) > 3:
+            story.append(
+                _table(
+                    ["Anomalía", "Severidad", "Evidencia"],
+                    [[row["title"], row["severity"], row["evidence"]] for row in anomalies["top_rows"]],
+                    styles,
+                    widths=[2.1 * inch, 0.9 * inch, 3.4 * inch],
+                    force=True,
+                )
             )
-        )
 
     _section_title(story, "investigation_evidence", styles)
+    evidence_rows = [[row["priority"], row["evidence"], row["records"], row["summary"]] for row in view["evidence"][:8]]
     story.append(
         _table(
             ["Prioridad", "Evidencia", "Registros", "Resumen"],
-            [[row["priority"], row["evidence"], row["records"], row["summary"]] for row in view["evidence"][:8]],
+            evidence_rows,
             styles,
             widths=[0.75 * inch, 1.35 * inch, 0.65 * inch, 3.7 * inch],
+            empty="No se solicitó evidencia adicional para este periodo.",
         )
     )
 
     _section_title(story, "strategic_recommendations", styles)
     _append_narrative(story, view, "strategic_recommendations", styles)
-    story.append(_para("Prioridades estratégicas", styles["h2"]))
-    story.extend(_bullet_list(view["recommendations"]["priorities"], styles, limit=6))
-    story.extend(_recommendation_cards(view, styles))
+    if view["recommendations"]["priorities"]:
+        story.append(_para("Prioridades estratégicas", styles["h2"]))
+        story.extend(_bullet_list(view["recommendations"]["priorities"], styles, limit=6))
+    if len(view["recommendations"]["cards"]) <= 5:
+        story.extend(_recommendation_cards(view, styles))
+    else:
+        story.append(
+            _table(
+                ["Prioridad", "Acción", "Impacto esperado", "Responsable", "Estado"],
+                [
+                    [card["priority"], card["action"], card["expected_impact"], card.get("owner"), card.get("status")]
+                    for card in view["recommendations"]["cards"]
+                ],
+                styles,
+                widths=[0.75 * inch, 2.3 * inch, 1.6 * inch, 1.2 * inch, 0.75 * inch],
+                force=True,
+            )
+        )
     if view["recommendations"]["reasoning_summary"]:
         story.append(_para(view["recommendations"]["reasoning_summary"], styles["small"]))
 
     _section_title(story, "missing_information", styles)
     _append_narrative(story, view, "missing_information", styles)
-    story.extend(_bullet_list(view["missing_information"], styles, limit=8))
+    if view["missing_information"]:
+        story.extend(_bullet_list(view["missing_information"], styles, limit=8))
+    else:
+        story.append(_info_card("No se reportan brechas de información relevantes.", styles, title="Estado de información"))
 
     _section_title(story, "appendix", styles)
     story.append(_para("Metodología", styles["h2"]))

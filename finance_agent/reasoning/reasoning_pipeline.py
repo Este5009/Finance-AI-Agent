@@ -17,11 +17,7 @@ from finance_agent.analysis.strategic_analysis import (
     validate_user_facing_spanish,
 )
 from finance_agent.llm.ollama_client import OllamaError
-from finance_agent.reasoning.fact_registry import (
-    FactRegistry,
-    PLACEHOLDER_PATTERN,
-    validate_placeholders_in_payload,
-)
+from finance_agent.reasoning.fact_registry import FactRegistry
 from finance_agent.reasoning.reasoning_models import (
     ReasoningStageResult,
     ReasoningValidationResult,
@@ -204,7 +200,7 @@ def create_modular_strategic_analysis(
                 evidence_ledger=evidence_ledger,
                 fact_registry=fact_registry,
             ),
-            response_format=strategic_analysis_json_schema(),
+            response_format=strategic_synthesis_fact_json_schema(),
             stage_timeout_seconds=stage_timeout_seconds,
             fact_registry=fact_registry,
         )
@@ -272,17 +268,12 @@ def build_financial_performance_prompt(
     Assumptions: prompt includes only current financial facts and top anomalies.
     """
 
-    registry = fact_registry or FactRegistry.from_evidence_ledger(evidence_ledger)
-    facts = [
-        fact
-        for fact in registry.prompt_facts()
-        if str(fact.get("evidence_ids", [""])[0]).startswith(("finance.", "anomaly."))
-    ][:28]
+    del fact_registry
+    facts = _fact_cards_for_prefixes(evidence_ledger, ("finance.", "anomaly."), limit=25)
     context = {
         "period_slug": period_slug,
         "objective": "Qué está ocurriendo financieramente en el periodo actual.",
         "facts": facts,
-        "allowed_placeholders": [fact["placeholder"] for fact in facts],
         "report_period": finance_summary.get("report_period"),
         "anomaly_count": anomaly_report.get("total_anomalies"),
     }
@@ -308,26 +299,21 @@ def build_historical_operational_prompt(
     Assumptions: only historical facts plus Stage 1 validated reasoning are sent.
     """
 
-    registry = fact_registry or FactRegistry.from_evidence_ledger(evidence_ledger)
-    facts = [
-        fact
-        for fact in registry.prompt_facts()
-        if str(fact.get("evidence_ids", [""])[0]).startswith(("history.", "anomaly.", "finance."))
-    ][:30]
+    del fact_registry
+    facts = _fact_cards_for_prefixes(evidence_ledger, ("history.", "anomaly.", "finance."), limit=25)
     context = {
         "period_slug": period_slug,
         "objective": "Cómo evolucionaron los riesgos y avances respecto de periodos previos.",
         "historical_facts": facts,
         "validated_stage_1": {
-            "claims": state.validated_claims[:8],
-            "risks": state.risks[:8],
-            "opportunities": state.opportunities[:6],
-            "open_questions": state.open_questions[:6],
+            "claims": _llm_safe_reasoning_items(state.validated_claims[:8]),
+            "risks": _llm_safe_reasoning_items(state.risks[:8]),
+            "opportunities": _llm_safe_reasoning_items(state.opportunities[:6]),
+            "open_questions": _llm_safe_reasoning_items(state.open_questions[:6]),
         },
         "history_summary": (historical_context or {}).get("summary", {})
         if isinstance(historical_context, dict)
         else {},
-        "allowed_placeholders": [fact["placeholder"] for fact in facts],
     }
     return _stage_prompt(
         stage_name="Historical & Operational Reasoning",
@@ -356,32 +342,136 @@ def build_strategic_synthesis_prompt(
         "report_period": finance_summary.get("report_period"),
         "objective": "Qué debe hacer la dirección universitaria.",
         "validated_reasoning_state": state.to_prompt_context(),
-        "allowed_evidence_ids": sorted(state.evidence_references)[:80],
-        "allowed_placeholders": [
-            fact["placeholder"]
-            for fact in (fact_registry.prompt_facts() if fact_registry else [])
-        ][:80],
+        "facts": _stage3_fact_cards(state, fact_registry, limit=20),
         "rules": (
             "Usa solo afirmaciones validadas en validated_reasoning_state.",
-            "Conserva los placeholders {{FACT_###}} de esas afirmaciones; no escribas literales deterministas.",
-            "Cita evidence_ids ya presentes en las afirmaciones validadas.",
+            "Usa solo los hechos adicionales incluidos en facts cuando necesites valores deterministas.",
+            "No calcules ni inventes valores; si falta evidencia, decláralo como información faltante.",
         ),
     }
     return (
         _stage_prompt(
             stage_name="Strategic Synthesis",
             schema=(
-                "Return the existing strategic-analysis JSON schema: executive_summary, "
-                "key_findings, root_causes, financial_health_analysis, kpi_analysis, "
-                "department_analysis, anomaly_analysis, recommendation_follow_up_analysis, "
-                "longitudinal_risk_analysis, strategic_recommendations, "
-                "strategic_priorities, missing_information, historical_summary, "
-                "historical_trend_analysis, narrative_evidence, confidence, reasoning_summary."
+                "Return strategic analysis JSON without evidence IDs. "
+                "Narrative fields are plain Spanish strings. "
+                "key_findings, root_causes, strategic_priorities and missing_information are lists of strings. "
+                "strategic_recommendations items use priority, action, rationale, supporting_evidence, "
+                "expected_impact, confidence. Never include evidence_ids or narrative_evidence."
             ),
             context=context,
         )
         + "\nStage 3 MUST NOT ask for or assume the full evidence ledger."
     )
+
+
+def _fact_cards_for_prefixes(
+    evidence_ledger: dict[str, Any],
+    prefixes: tuple[str, ...],
+    *,
+    limit: int,
+) -> list[dict[str, Any]]:
+    """Return compact deterministic fact cards for Ollama.
+
+    Inputs: evidence ledger, evidence-ID prefixes, and maximum count.
+    Outputs: fact cards with exact Python-formatted values but no internal IDs.
+    Assumptions: Python selects relevance; Ollama reasons from these facts only.
+    """
+
+    cards: list[dict[str, Any]] = []
+    for fact in evidence_ledger.get("facts", []):
+        if not isinstance(fact, dict):
+            continue
+        evidence_id = str(fact.get("evidence_id", ""))
+        if not evidence_id.startswith(prefixes):
+            continue
+        value = fact.get("display_value")
+        raw_value = fact.get("raw_value")
+        cards.append(
+            {
+                "metric": fact.get("metric") or fact.get("field"),
+                "value": value if value not in {None, ""} else raw_value,
+                "raw_value": raw_value if isinstance(raw_value, (int, float)) else None,
+                "unit": fact.get("unit"),
+                "period": fact.get("period"),
+                "entity": fact.get("entity"),
+                "category": fact.get("category"),
+                "meaning": fact.get("claim") or fact.get("metric") or fact.get("field"),
+            }
+        )
+        if len(cards) >= limit:
+            break
+    return cards
+
+
+def _stage3_fact_cards(
+    state: ReasoningState,
+    registry: FactRegistry | None,
+    *,
+    limit: int,
+) -> list[dict[str, Any]]:
+    """Return a small set of synthesis facts from prior-stage referenced facts.
+
+    Inputs: reasoning state, optional fact registry and maximum count.
+    Outputs: fact cards with Python-formatted values.
+    Assumptions: the active simplified runtime does not require model citations;
+    this only gives Stage 3 enough deterministic context for synthesis.
+    """
+
+    if registry is None:
+        return []
+    wanted_evidence = {
+        evidence_id
+        for collection in (state.validated_claims, state.risks, state.opportunities, state.open_questions)
+        for item in collection
+        for evidence_id in item.get("resolved_evidence_ids", [])
+        if isinstance(evidence_id, str)
+    }
+    cards: list[dict[str, Any]] = []
+    for fact in registry.facts:
+        if wanted_evidence and not set(fact.evidence_ids).intersection(wanted_evidence):
+            continue
+        cards.append(
+            {
+                "metric": fact.metric_name,
+                "value": fact.display_value,
+                "raw_value": fact.raw_value if isinstance(fact.raw_value, (int, float)) else None,
+                "unit": fact.unit,
+                "period": fact.period,
+                "entity": fact.entity,
+                "category": fact.source_metadata.get("category"),
+                "meaning": fact.source_metadata.get("claim") or fact.metric_name,
+            }
+        )
+        if len(cards) >= limit:
+            break
+    return cards
+
+
+def _llm_safe_reasoning_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Strip Python-only metadata from prior-stage prompt context.
+
+    Inputs: validated internal reasoning items.
+    Outputs: items containing narrative, confidence/type, and stage provenance.
+    Assumptions: internal evidence references remain Python-owned.
+    """
+
+    safe: list[dict[str, Any]] = []
+    for item in items:
+        safe.append(
+            {
+                key: value
+                for key, value in item.items()
+                if key
+                in {
+                    "text",
+                    "confidence",
+                    "claim_type",
+                    "stage_id",
+                }
+            }
+        )
+    return safe
 
 
 def validate_reasoning_stage_response(
@@ -416,33 +506,401 @@ def validate_reasoning_stage_response(
             ),
         )
 
+    del fact_registry
     errors: list[str] = []
     for field_name in STAGE_TEXT_FIELDS[stage_id]:
-        _validate_reasoning_items(field_name, payload.get(field_name), evidence_ledger, errors)
+        _validate_reasoning_items(
+            field_name,
+            payload.get(field_name),
+            evidence_ledger,
+            errors,
+        )
     if errors:
         return ReasoningValidationResult(False, None, tuple(dict.fromkeys(errors)))
-    registry = fact_registry or FactRegistry.from_evidence_ledger(evidence_ledger)
-    placeholder_validation = validate_placeholders_in_payload(payload, registry)
-    if not placeholder_validation.is_valid:
-        return ReasoningValidationResult(False, None, placeholder_validation.errors)
 
     cleaned = {
         key: _clean_reasoning_items(value, field_name=key)
         for key, value in payload.items()
     }
-    raw_placeholder_payload = json.loads(json.dumps(cleaned, ensure_ascii=False))
-    substituted, substitution_audit = registry.substitute(cleaned)
     if normalizations:
         cleaned["_schema_normalizations"] = normalizations
-    cleaned["_raw_placeholder_payload"] = raw_placeholder_payload
-    cleaned["_substituted_payload"] = substituted
-    cleaned["_placeholder_validation"] = {
-        "is_valid": True,
-        "placeholder_count": placeholder_validation.placeholder_count,
-        "audit": list(placeholder_validation.audit),
-    }
-    cleaned["_substitution_audit"] = substitution_audit
+    cleaned["_selected_fact_summary"] = _selected_fact_summary(evidence_ledger, stage_id)
     return ReasoningValidationResult(True, cleaned, ())
+
+
+def _convert_stage3_supporting_facts_payload(
+    payload: Any,
+    *,
+    registry: FactRegistry,
+    allowed_placeholders: set[str],
+) -> tuple[dict[str, Any], list[str], list[dict[str, Any]]]:
+    """Convert Stage 3 LLM fact-support output into internal analysis JSON.
+
+    Inputs: raw parsed payload, fact registry, and Stage 3 allowed placeholders.
+    Outputs: converted analysis payload, validation errors, and support audit.
+    Assumptions: model output must not contain evidence IDs; Python resolves
+    them exclusively from referenced facts.
+    """
+
+    errors: list[str] = []
+    audit: list[dict[str, Any]] = []
+    if not isinstance(payload, dict):
+        return {}, ["response root must be an object"], audit
+    if _contains_key(payload, "evidence_ids") or _contains_key(payload, "narrative_evidence"):
+        return {}, ["model output must not contain evidence_ids or narrative_evidence"], audit
+
+    required = {
+        "executive_summary",
+        "key_findings",
+        "root_causes",
+        "financial_health_analysis",
+        "kpi_analysis",
+        "historical_summary",
+        "historical_trend_analysis",
+        "department_analysis",
+        "anomaly_analysis",
+        "recommendation_follow_up_analysis",
+        "longitudinal_risk_analysis",
+        "strategic_recommendations",
+        "strategic_priorities",
+        "missing_information",
+        "confidence",
+        "reasoning_summary",
+    }
+    if set(payload) != required:
+        return {}, [f"schema: strategic_synthesis must contain exactly {sorted(required)}; received {sorted(payload)}"], audit
+
+    converted: dict[str, Any] = {"narrative_evidence": {}}
+    for field_name in (
+        "executive_summary",
+        "financial_health_analysis",
+        "kpi_analysis",
+        "historical_summary",
+        "historical_trend_analysis",
+        "department_analysis",
+        "anomaly_analysis",
+        "recommendation_follow_up_analysis",
+        "longitudinal_risk_analysis",
+        "reasoning_summary",
+    ):
+        text, evidence_ids, item_errors, item_audit = _resolve_stage3_block(
+            field_name,
+            payload.get(field_name),
+            registry=registry,
+            allowed_placeholders=allowed_placeholders,
+            require_support=True,
+        )
+        errors.extend(item_errors)
+        audit.extend(item_audit)
+        converted[field_name] = {"text": text, "evidence_ids": evidence_ids}
+        converted["narrative_evidence"][field_name] = evidence_ids
+
+    for field_name in ("key_findings", "root_causes", "strategic_priorities", "missing_information"):
+        values = payload.get(field_name)
+        if not isinstance(values, list):
+            errors.append(f"{field_name} must be a list")
+            values = []
+        texts: list[str] = []
+        evidence_ids: set[str] = set()
+        support_sets: list[tuple[str, ...]] = []
+        for index, item in enumerate(values):
+            text, ids, item_errors, item_audit = _resolve_stage3_block(
+                f"{field_name}[{index}]",
+                item,
+                registry=registry,
+                allowed_placeholders=allowed_placeholders,
+                require_support=field_name != "missing_information",
+            )
+            errors.extend(item_errors)
+            audit.extend(item_audit)
+            if text:
+                texts.append(text)
+            evidence_ids.update(ids)
+            if isinstance(item, dict):
+                support_sets.append(tuple(sorted(str(value) for value in item.get("supporting_facts", []))))
+        if len(support_sets) > 2 and len(set(support_sets)) == 1 and support_sets[0]:
+            errors.append(f"{field_name} repeats identical supporting_facts across unrelated items")
+        converted[field_name] = texts
+        converted["narrative_evidence"][field_name] = sorted(evidence_ids)
+
+    recommendations = payload.get("strategic_recommendations")
+    if not isinstance(recommendations, list) or not recommendations:
+        errors.append("strategic_recommendations must be a non-empty list")
+        recommendations = []
+    converted_recommendations: list[dict[str, Any]] = []
+    for index, recommendation in enumerate(recommendations):
+        if not isinstance(recommendation, dict):
+            errors.append(f"strategic_recommendations[{index}] must be an object")
+            continue
+        expected_keys = {
+            "priority",
+            "text",
+            "rationale",
+            "expected_effect",
+            "measurement_plan",
+            "supporting_facts",
+            "confidence",
+        }
+        if set(recommendation) != expected_keys:
+            errors.append(
+                f"schema: strategic_recommendations[{index}] must contain exactly {sorted(expected_keys)}"
+            )
+            continue
+        text = str(recommendation.get("text") or "")
+        support_errors, resolved_facts = _validate_item_support(
+            prefix=f"strategic_recommendations[{index}]",
+            field_name="strategic_recommendations",
+            item={"text": text, "supporting_facts": recommendation.get("supporting_facts", [])},
+            text=" ".join(
+                str(recommendation.get(part) or "")
+                for part in ("text", "rationale", "expected_effect", "measurement_plan")
+            ),
+            registry=registry,
+            allowed_placeholders=allowed_placeholders,
+        )
+        errors.extend(support_errors)
+        resolved_ids = sorted({evidence_id for fact in resolved_facts for evidence_id in fact.evidence_ids})
+        audit.append(
+            {
+                "path": f"strategic_recommendations[{index}]",
+                "supporting_facts": list(recommendation.get("supporting_facts", [])),
+                "resolved_evidence_ids": resolved_ids,
+                "fact_metadata": [_support_fact_metadata(fact) for fact in resolved_facts],
+            }
+        )
+        converted_recommendations.append(
+            {
+                "priority": recommendation["priority"],
+                "action": recommendation["text"],
+                "rationale": recommendation["rationale"],
+                "supporting_evidence": ", ".join(str(item) for item in recommendation.get("supporting_facts", [])),
+                "expected_impact": (
+                    f"{recommendation['expected_effect']} Plan de medición: {recommendation['measurement_plan']}"
+                ),
+                "evidence_ids": resolved_ids,
+                "confidence": recommendation["confidence"],
+            }
+        )
+    converted["strategic_recommendations"] = converted_recommendations
+    converted["confidence"] = payload.get("confidence")
+    return converted, errors, audit
+
+
+def _resolve_stage3_block(
+    path: str,
+    block: Any,
+    *,
+    registry: FactRegistry,
+    allowed_placeholders: set[str],
+    require_support: bool,
+) -> tuple[str, list[str], list[str], list[dict[str, Any]]]:
+    """Resolve one Stage 3 narrative block to internal evidence IDs.
+
+    Inputs: path, raw block, registry, allowlist and support requirement.
+    Outputs: text, resolved evidence IDs, errors, and audit records.
+    Assumptions: evidence IDs are created only from referenced facts.
+    """
+
+    if not isinstance(block, dict):
+        return "", [], [f"{path} must be an object"], []
+    if set(block) != {"text", "supporting_facts"}:
+        return "", [], [f"schema: {path} must contain exactly ['supporting_facts', 'text']"], []
+    text = str(block.get("text") or "")
+    support_errors, resolved_facts = _validate_item_support(
+        prefix=path,
+        field_name="claims" if require_support else "open_questions",
+        item={"text": text, "supporting_facts": block.get("supporting_facts", []), "claim_type": "interpretation"},
+        text=text,
+        registry=registry,
+        allowed_placeholders=allowed_placeholders,
+    )
+    resolved_ids = sorted({evidence_id for fact in resolved_facts for evidence_id in fact.evidence_ids})
+    return (
+        text,
+        resolved_ids,
+        support_errors,
+        [
+            {
+                "path": path,
+                "supporting_facts": list(block.get("supporting_facts", [])),
+                "resolved_evidence_ids": resolved_ids,
+                "fact_metadata": [_support_fact_metadata(fact) for fact in resolved_facts],
+            }
+        ],
+    )
+
+
+def _contains_key(value: Any, key_name: str) -> bool:
+    """Return whether a nested payload contains a forbidden key.
+
+    Inputs: JSON-like value and key name.
+    Outputs: True when found anywhere in dictionaries.
+    Assumptions: used to reject model-supplied internal evidence IDs.
+    """
+
+    if isinstance(value, dict):
+        return key_name in value or any(_contains_key(item, key_name) for item in value.values())
+    if isinstance(value, list):
+        return any(_contains_key(item, key_name) for item in value)
+    return False
+
+
+def _convert_stage3_plain_payload(
+    response_text: str,
+    evidence_ledger: dict[str, Any],
+) -> tuple[dict[str, Any], tuple[str, ...]]:
+    """Convert simplified Stage 3 JSON into the internal analysis schema.
+
+    Inputs: raw Stage 3 response and deterministic evidence ledger.
+    Outputs: internal strategic-analysis payload and schema errors.
+    Assumptions: Ollama writes only narrative/recommendation text; Python
+    attaches evidence IDs from the selected ledger facts for validation/reporting.
+    """
+
+    try:
+        payload = json.loads(response_text.strip())
+    except (AttributeError, json.JSONDecodeError):
+        return {}, ("response is not strict JSON",)
+    if not isinstance(payload, dict):
+        return {}, ("response root must be an object",)
+    if _contains_key(payload, "evidence_ids") or _contains_key(payload, "narrative_evidence"):
+        return {}, ("model output must not contain evidence_ids or narrative_evidence",)
+
+    required = {
+        "executive_summary",
+        "key_findings",
+        "root_causes",
+        "financial_health_analysis",
+        "kpi_analysis",
+        "historical_summary",
+        "historical_trend_analysis",
+        "department_analysis",
+        "anomaly_analysis",
+        "recommendation_follow_up_analysis",
+        "longitudinal_risk_analysis",
+        "strategic_recommendations",
+        "strategic_priorities",
+        "missing_information",
+        "confidence",
+        "reasoning_summary",
+    }
+    if set(payload) != required:
+        return {}, (f"schema: strategic_synthesis must contain exactly {sorted(required)}; received {sorted(payload)}",)
+
+    converted: dict[str, Any] = {"narrative_evidence": {}}
+    block_fields = (
+        "executive_summary",
+        "financial_health_analysis",
+        "kpi_analysis",
+        "historical_summary",
+        "historical_trend_analysis",
+        "department_analysis",
+        "anomaly_analysis",
+        "recommendation_follow_up_analysis",
+        "longitudinal_risk_analysis",
+        "reasoning_summary",
+    )
+    for field_name in block_fields:
+        text = _plain_text(payload.get(field_name))
+        evidence_ids = _section_evidence_ids(evidence_ledger, field_name)
+        converted[field_name] = {"text": text, "evidence_ids": evidence_ids}
+        converted["narrative_evidence"][field_name] = evidence_ids
+    for field_name in ("key_findings", "root_causes", "strategic_priorities", "missing_information"):
+        values = payload.get(field_name)
+        if not isinstance(values, list):
+            return {}, (f"{field_name} must be a list",)
+        converted[field_name] = [_plain_text(item) for item in values]
+        converted["narrative_evidence"][field_name] = _section_evidence_ids(evidence_ledger, field_name)
+    recommendations = payload.get("strategic_recommendations")
+    if not isinstance(recommendations, list) or not recommendations:
+        return {}, ("strategic_recommendations must be a non-empty list",)
+    converted_recommendations: list[dict[str, Any]] = []
+    for index, recommendation in enumerate(recommendations):
+        if not isinstance(recommendation, dict):
+            return {}, (f"strategic_recommendations[{index}] must be an object",)
+        expected = {"priority", "action", "rationale", "supporting_evidence", "expected_impact", "confidence"}
+        if set(recommendation) != expected:
+            return {}, (f"schema: strategic_recommendations[{index}] must contain exactly {sorted(expected)}",)
+        converted_recommendations.append(
+            {
+                "priority": recommendation["priority"],
+                "action": recommendation["action"],
+                "rationale": recommendation["rationale"],
+                "supporting_evidence": recommendation["supporting_evidence"],
+                "expected_impact": recommendation["expected_impact"],
+                "evidence_ids": _section_evidence_ids(evidence_ledger, "strategic_recommendations"),
+                "confidence": recommendation["confidence"],
+            }
+        )
+    converted["strategic_recommendations"] = converted_recommendations
+    converted["confidence"] = payload.get("confidence")
+    return converted, ()
+
+
+def _default_evidence_ids(evidence_ledger: dict[str, Any]) -> list[str]:
+    """Return deterministic evidence IDs for internal validation only.
+
+    Inputs: evidence ledger.
+    Outputs: up to eight source IDs selected by Python.
+    Assumptions: IDs are never exposed to the model and are only used to satisfy
+    downstream report/source-reference contracts.
+    """
+
+    ids = [
+        str(fact.get("evidence_id"))
+        for fact in evidence_ledger.get("facts", [])
+        if isinstance(fact, dict) and fact.get("evidence_id")
+    ]
+    return ids[:8] or ["python.processed.outputs"]
+
+
+def _section_evidence_ids(evidence_ledger: dict[str, Any], section: str) -> list[str]:
+    """Return Python-selected evidence IDs appropriate for a report section.
+
+    Inputs: evidence ledger and strategic-analysis section name.
+    Outputs: bounded evidence IDs whose ledger facts declare section support.
+    Assumptions: source attribution is deterministic and never model-generated.
+    """
+
+    ids = [
+        str(fact.get("evidence_id"))
+        for fact in evidence_ledger.get("facts", [])
+        if isinstance(fact, dict)
+        and fact.get("evidence_id")
+        and section in set(fact.get("supports", []) or [])
+    ]
+    if ids:
+        return ids[:8]
+    prefix_map = {
+        "department_analysis": ("finance.department.",),
+        "anomaly_analysis": ("anomaly.",),
+        "missing_information": ("evidence.",),
+    }
+    prefixes = prefix_map.get(section)
+    if prefixes:
+        heuristic_ids = [
+            str(fact.get("evidence_id"))
+            for fact in evidence_ledger.get("facts", [])
+            if isinstance(fact, dict)
+            and fact.get("evidence_id")
+            and str(fact.get("evidence_id")).startswith(prefixes)
+        ]
+        if heuristic_ids:
+            return heuristic_ids[:8]
+    return _default_evidence_ids(evidence_ledger)[:3]
+
+
+def _plain_text(value: Any) -> str:
+    """Return a string from either simplified text or legacy text block.
+
+    Inputs: arbitrary model field value.
+    Outputs: bounded string used for subsequent validation.
+    Assumptions: this does not author new narrative; it only unwraps text.
+    """
+
+    if isinstance(value, dict) and "text" in value:
+        return str(value.get("text") or "")
+    return str(value or "")
 
 
 def validate_strategic_synthesis_response(
@@ -464,16 +922,15 @@ def validate_strategic_synthesis_response(
     schema so downstream report generation remains unchanged.
     """
 
-    validation = validate_strategic_analysis_response(response_text)
+    del fact_registry
+    converted, conversion_errors = _convert_stage3_plain_payload(response_text, evidence_ledger)
+    if conversion_errors:
+        return ReasoningValidationResult(False, None, conversion_errors)
+    validation = validate_strategic_analysis_response(json.dumps(converted, ensure_ascii=False))
     if not validation.is_valid or validation.analysis is None:
         return ReasoningValidationResult(False, None, validation.errors)
-    registry = fact_registry or FactRegistry.from_evidence_ledger(evidence_ledger)
-    placeholder_validation = validate_placeholders_in_payload(validation.analysis, registry)
-    if not placeholder_validation.is_valid:
-        return ReasoningValidationResult(False, None, placeholder_validation.errors)
-    substituted_analysis, substitution_audit = registry.substitute(validation.analysis)
     claim_errors = validate_evidence_bound_claims(
-        substituted_analysis,
+        validation.analysis,
         finance_summary=finance_summary,
         anomaly_report=anomaly_report,
         evidence_package=evidence_package,
@@ -483,19 +940,8 @@ def validate_strategic_synthesis_response(
     )
     if claim_errors:
         return ReasoningValidationResult(False, None, claim_errors)
-    substituted_analysis["_raw_placeholder_payload"] = validation.analysis
-    substituted_analysis["_substituted_payload"] = {
-        key: value
-        for key, value in substituted_analysis.items()
-        if not str(key).startswith("_")
-    }
-    substituted_analysis["_placeholder_validation"] = {
-        "is_valid": True,
-        "placeholder_count": placeholder_validation.placeholder_count,
-        "audit": list(placeholder_validation.audit),
-    }
-    substituted_analysis["_substitution_audit"] = substitution_audit
-    return ReasoningValidationResult(True, substituted_analysis, ())
+    validation.analysis["_python_attached_evidence"] = True
+    return ReasoningValidationResult(True, validation.analysis, ())
 
 
 def _run_structured_stage(
@@ -578,7 +1024,6 @@ def _run_structured_stage(
     validation = validator(response)
     validation_time = time.perf_counter() - validation_started
     schema_retry_attempted = False
-    placeholder_retry_attempted = False
     if not validation.is_valid and _is_schema_only_error(validation.errors):
         schema_retry_attempted = True
         retry_prompt = build_schema_repair_prompt(
@@ -610,37 +1055,6 @@ def _run_structured_stage(
         validation_started = time.perf_counter()
         validation = validator(response)
         validation_time += time.perf_counter() - validation_started
-    if not validation.is_valid and _is_placeholder_error(validation.errors) and fact_registry is not None:
-        placeholder_retry_attempted = True
-        retry_prompt = build_placeholder_repair_prompt(
-            stage_name=stage_name,
-            placeholder_errors=validation.errors,
-            original_response=response,
-            fact_registry=fact_registry,
-        )
-        previous_response_format = getattr(client, "response_format", None)
-        if previous_response_format is not None:
-            setattr(client, "response_format", response_format)
-        try:
-            if hasattr(client, "generate_with_metadata"):
-                generation = client.generate_with_metadata(retry_prompt)
-                response = str(generation["response"])
-                retry_telemetry = dict(generation.get("telemetry", {}))
-                ollama_telemetry = _merge_retry_telemetry(ollama_telemetry, retry_telemetry)
-            else:
-                response = client.generate(retry_prompt)
-        except OllamaError as exc:
-            validation = ReasoningValidationResult(False, None, (str(exc),))
-            ollama_telemetry = {
-                **ollama_telemetry,
-                "placeholder_retry_error_category": exc.category,
-            }
-        finally:
-            if previous_response_format is not None:
-                setattr(client, "response_format", previous_response_format)
-        validation_started = time.perf_counter()
-        validation = validator(response)
-        validation_time += time.perf_counter() - validation_started
     telemetry = {
         "stage_id": stage_id,
         "prompt_characters": len(prompt),
@@ -650,14 +1064,18 @@ def _run_structured_stage(
         "error_category": None if validation.is_valid else "validation_rejection",
         "timeout_error_category": ollama_telemetry.get("timeout_error_category"),
         "schema_retry_attempted": schema_retry_attempted,
-        "placeholder_retry_attempted": placeholder_retry_attempted,
+        "placeholder_retry_attempted": False,
         **ollama_telemetry,
     }
     return ReasoningStageResult(
         stage_id=stage_id,
         stage_name=stage_name,
         accepted=validation.is_valid,
-        payload=validation.payload or {},
+        payload=validation.payload or {
+            "_validation_failed": True,
+            "_raw_model_response": response,
+            "_validation_errors": list(validation.errors),
+        },
         validation_errors=validation.errors,
         telemetry=telemetry,
     )
@@ -673,7 +1091,8 @@ def _validate_reasoning_items(
 
     Inputs: field name, untrusted value, ledger, and mutable error list.
     Outputs: appends field-specific validation errors.
-    Assumptions: every item must include text and evidence_ids.
+    Assumptions: every item must include model-authored Spanish reasoning text;
+    Python validates unsupported deterministic claims separately.
     """
 
     if not isinstance(value, list):
@@ -681,12 +1100,7 @@ def _validate_reasoning_items(
         return
     if len(value) > 8:
         errors.append(f"{field_name} may contain at most 8 items")
-    known_ids = {
-        str(fact.get("evidence_id"))
-        for fact in evidence_ledger.get("facts", [])
-        if isinstance(fact, dict) and fact.get("evidence_id")
-    }
-    approved_numbers = set(str(number) for number in evidence_ledger.get("approved_numbers", []))
+    approved_numbers = _approved_numbers_for_reasoning(evidence_ledger)
     approved_periods = set(str(period) for period in evidence_ledger.get("approved_periods", []))
     approved_entities = set(str(entity) for entity in evidence_ledger.get("approved_entities", []))
     for index, item in enumerate(value):
@@ -694,7 +1108,7 @@ def _validate_reasoning_items(
         if not isinstance(item, dict):
             errors.append(f"{prefix} must be an object")
             continue
-        required_keys = {"text", "evidence_ids"}
+        required_keys = {"text"}
         if field_name in {"claims", "risks", "opportunities"}:
             required_keys.add("confidence")
         if field_name == "claims":
@@ -720,30 +1134,157 @@ def _validate_reasoning_items(
             errors.append(f"{prefix}.claim_type must be fact, interpretation, or hypothesis")
         language_errors = validate_user_facing_spanish({"key_findings": [text]})
         errors.extend(f"{prefix}: {error}" for error in language_errors)
-        text_without_placeholders = PLACEHOLDER_PATTERN.sub("", text)
-        for number in _numbers_in_text(text_without_placeholders):
+        for number in _numbers_in_text(text):
             if number not in approved_numbers and number not in approved_periods:
                 errors.append(f"{prefix} contains unsupported number: {number}")
-        for period in set(re.findall(r"20\d{2}[-_]\d{2}|20\d{2}", text_without_placeholders)):
+        for period in set(re.findall(r"20\d{2}[-_]\d{2}|20\d{2}", text)):
             if period not in approved_periods:
                 errors.append(f"{prefix} contains unsupported period: {period}")
         for entity in approved_entities:
-            if entity and entity in text_without_placeholders:
+            if entity and entity in text:
                 break
-        evidence_ids = item.get("evidence_ids")
-        if not isinstance(evidence_ids, list) or not evidence_ids:
-            errors.append(f"{prefix}.evidence_ids must be a non-empty list")
-        else:
-            for evidence_id in evidence_ids:
-                if str(evidence_id) not in known_ids:
-                    errors.append(f"{prefix} cites unknown evidence_id: {evidence_id}")
+        if item.get("claim_type") == "hypothesis" and _sounds_certain(text):
+            errors.append(f"{prefix}.claim_type hypothesis is written as established fact")
+
+
+def _validate_item_support(
+    *,
+    prefix: str,
+    field_name: str,
+    item: dict[str, Any],
+    text: str,
+    registry: FactRegistry,
+    allowed_placeholders: set[str],
+) -> tuple[list[str], list[RegisteredFact]]:
+    """Validate one item's supporting facts and semantic compatibility.
+
+    Inputs: item path, field name, model item, text, registry and stage allowset.
+    Outputs: errors plus resolved facts.
+    Assumptions: this function never selects substitute facts or rewrites prose.
+    """
+
+    errors: list[str] = []
+    supporting_facts = item.get("supporting_facts")
+    if not isinstance(supporting_facts, list):
+        return ([f"{prefix}.supporting_facts must be a list"], [])
+    if field_name != "open_questions" and not supporting_facts:
+        errors.append(f"{prefix}.supporting_facts must be non-empty")
+    if len(supporting_facts) > 5:
+        errors.append(f"{prefix}.supporting_facts may contain at most 5 placeholders")
+    normalized_support = [str(placeholder).strip() for placeholder in supporting_facts]
+    resolved_facts, resolution_errors = registry.resolve_supporting_facts(
+        normalized_support,
+        allowed_placeholders=allowed_placeholders,
+    )
+    errors.extend(f"{prefix}: {error}" for error in resolution_errors)
+
+    text_placeholders = sorted(PLACEHOLDER_PATTERN.findall(text))
+    support_fact_ids = {
+        PLACEHOLDER_PATTERN.fullmatch(placeholder).group(1)  # type: ignore[union-attr]
+        for placeholder in normalized_support
+        if PLACEHOLDER_PATTERN.fullmatch(placeholder)
+    }
+    for fact_id in text_placeholders:
+        if fact_id not in support_fact_ids:
+            errors.append(f"{prefix}.text uses {{{{{fact_id}}}}} missing from supporting_facts")
+    if item.get("claim_type") == "fact":
+        text_fact_ids = set(text_placeholders)
+        for fact in resolved_facts:
+            if fact.value_type not in {"entity", "period"} and fact.fact_id not in text_fact_ids:
+                errors.append(f"{prefix} includes supporting fact {fact.placeholder} not used by factual claim text")
+
+    entities = {fact.entity for fact in resolved_facts if fact.entity}
+    if len(entities) > 1:
+        errors.append(f"{prefix} has department/entity mismatch in supporting_facts: {sorted(entities)}")
+    periods = {fact.period for fact in resolved_facts if fact.period}
+    if item.get("claim_type") == "fact" and len(periods) > 1:
+        errors.append(f"{prefix} has period mismatch in factual supporting_facts: {sorted(periods)}")
+    metrics = {fact.metric_name for fact in resolved_facts if fact.metric_name not in {"entity", "period"}}
+    if item.get("claim_type") == "fact" and len(metrics) > 2:
+        errors.append(f"{prefix} has metric mismatch in factual supporting_facts: {sorted(metrics)}")
+    if item.get("claim_type") == "hypothesis" and _sounds_certain(text):
+        errors.append(f"{prefix}.claim_type hypothesis is written as established fact")
+    return errors, resolved_facts
+
+
+def _support_fact_metadata(fact: RegisteredFact) -> dict[str, Any]:
+    """Return audit metadata for a resolved support fact.
+
+    Inputs: registered fact.
+    Outputs: metadata without model-generated evidence choices.
+    Assumptions: this is internal/debug information, not user-facing prose.
+    """
+
+    return {
+        "fact_id": fact.fact_id,
+        "placeholder": fact.placeholder,
+        "metric_name": fact.metric_name,
+        "value_type": fact.value_type,
+        "period": fact.period,
+        "entity": fact.entity,
+        "resolved_evidence_ids": list(fact.evidence_ids),
+    }
+
+
+def _selected_fact_summary(evidence_ledger: dict[str, Any], stage_id: str) -> dict[str, Any]:
+    """Return audit counts for the simplified stage fact selection.
+
+    Inputs: evidence ledger and stage ID.
+    Outputs: selected fact count and category.
+    Assumptions: facts themselves are not copied into every stage payload.
+    """
+
+    prefixes = {
+        "financial_performance": ("finance.", "anomaly."),
+        "historical_operational": ("history.", "finance.", "anomaly."),
+    }.get(stage_id, ("finance.", "anomaly.", "history."))
+    return {
+        "stage_id": stage_id,
+        "selected_fact_count": len(_fact_cards_for_prefixes(evidence_ledger, prefixes, limit=25)),
+        "selection_prefixes": list(prefixes),
+    }
+
+
+def _allowed_placeholders_for_stage(stage_id: str, registry: FactRegistry) -> set[str]:
+    """Return the stage-specific placeholder allowlist.
+
+    Inputs: stage ID and registry.
+    Outputs: allowed placeholder set.
+    Assumptions: Stage 1 uses current finance/anomaly facts; Stage 2 may compare
+    history with current context.
+    """
+
+    prefixes = {
+        "financial_performance": ("finance.", "anomaly."),
+        "historical_operational": ("history.", "finance.", "anomaly."),
+        "strategic_synthesis": ("history.", "finance.", "anomaly.", "evidence."),
+    }.get(stage_id, ("finance.", "anomaly.", "history.", "evidence."))
+    return {
+        fact.placeholder
+        for fact in registry.facts
+        if any(evidence_id.startswith(prefixes) for evidence_id in fact.evidence_ids)
+    }
+
+
+def _sounds_certain(text: str) -> bool:
+    """Return whether a hypothesis is phrased as established fact.
+
+    Inputs: Spanish text.
+    Outputs: True for a small set of deterministic certainty markers.
+    Assumptions: this conservative check catches obvious validator gaming only.
+    """
+
+    lowered = text.casefold()
+    certain_terms = ("se debe a", "es causado por", "demuestra que", "confirma que")
+    cautious_terms = ("hipótesis", "posible", "probable", "podría", "requiere validar")
+    return any(term in lowered for term in certain_terms) and not any(term in lowered for term in cautious_terms)
 
 
 def _clean_reasoning_items(value: Any, *, field_name: str) -> list[dict[str, Any]]:
     """Clean validated reasoning items without altering meaning.
 
     Inputs: model item list.
-    Outputs: normalized list with text, evidence_ids, and optional metadata.
+    Outputs: normalized list with text and optional confidence/type metadata.
     Assumptions: validation has already checked structure and evidence IDs.
     """
 
@@ -756,7 +1297,6 @@ def _clean_reasoning_items(value: Any, *, field_name: str) -> list[dict[str, Any
         text = str(item.get("text") or item.get("claim") or item.get("question") or item.get("risk") or "").strip()
         copied = dict(item)
         copied["text"] = text
-        copied["evidence_ids"] = [str(evidence_id).strip() for evidence_id in item.get("evidence_ids", [])]
         if field_name in {"claims", "risks", "opportunities"}:
             copied["confidence"] = float(item.get("confidence"))
         cleaned.append(copied)
@@ -828,6 +1368,42 @@ def normalize_reasoning_stage_payload(payload: dict[str, Any]) -> tuple[dict[str
     return normalized, normalizations
 
 
+def _approved_numbers_for_reasoning(evidence_ledger: dict[str, Any]) -> set[str]:
+    """Return numeric strings the model may cite in simplified reasoning.
+
+    Inputs: Python evidence ledger containing approved numbers and fact cards.
+    Outputs: normalized number variants accepted by the stage validator.
+    Assumptions: variants are display/rendering equivalents of supplied facts;
+    this function never derives new finance metrics or expands allowed claims.
+    """
+
+    approved = {str(number) for number in evidence_ledger.get("approved_numbers", [])}
+    for fact in evidence_ledger.get("facts", []):
+        if not isinstance(fact, dict):
+            continue
+        for value in (fact.get("display_value"), fact.get("raw_value"), fact.get("value")):
+            if value in {None, ""}:
+                continue
+            text = str(value)
+            approved.add(text)
+            approved.update(_numbers_in_text(text))
+            # Currency displays may be copied with or without thousands
+            # separators/currency symbols. Accept only the normalized literal
+            # Python already supplied, not arbitrary calculations.
+            compact = re.sub(r"[^0-9.\-%]", "", text)
+            if compact:
+                approved.update(_numbers_in_text(compact))
+        display = str(fact.get("display_value") or "")
+        raw_value = fact.get("raw_value")
+        if display.endswith("%") and isinstance(raw_value, (int, float)) and raw_value < 0:
+            # Spanish prose often says "disminución del 0.3%" instead of
+            # repeating the minus sign. Treat the absolute percent as the same
+            # supplied fact only when the ledger value itself is negative.
+            approved.add(display.lstrip("-"))
+            approved.update(_numbers_in_text(display.lstrip("-")))
+    return approved
+
+
 def _numbers_in_text(text: str) -> set[str]:
     """Extract normalized explicit numeric claims from prose.
 
@@ -837,8 +1413,14 @@ def _numbers_in_text(text: str) -> set[str]:
     """
 
     numbers: set[str] = set()
-    for match in re.finditer(r"-?\d+(?:[\.,]\d+)?%?", text):
+    pattern = r"-?\d{1,3}(?:,\d{3})+(?:\.\d+)?%?|-?\d+(?:[\.,]\d+)?%?"
+    for match in re.finditer(pattern, text):
         value = match.group(0).replace(",", ".")
+        if re.fullmatch(r"-?\d{1,3}(?:\.\d{3})+(?:\.\d+)?%?", value):
+            suffix = "%" if value.endswith("%") else ""
+            core = value[:-1] if suffix else value
+            parts = core.split(".")
+            value = "".join(parts) + suffix
         if value.endswith(".0"):
             value = value[:-2]
         numbers.add(value)
@@ -874,13 +1456,11 @@ def _stage_prompt(*, stage_name: str, schema: str, context: dict[str, Any]) -> s
 
     return (
         f"STAGE: {stage_name}\n"
-        "Usa placeholders {{FACT_###}} exactamente para todo hecho determinista disponible.\n"
-        "No escribas literales numéricos, montos, porcentajes, periodos o entidades deterministas en campos text.\n"
-        "No modifiques, traduzcas, dividas ni inventes placeholders; Python hará la sustitución final.\n"
         "Escribe todo texto de usuario en español profesional.\n"
-        "Usa solo hechos, números, periodos, entidades y evidence_ids presentes en el contexto.\n"
+        "Usa solo los hechos deterministas incluidos en CONTEXT.\n"
+        "Nunca escribas evidence IDs en la respuesta.\n"
         "No calcules, no estimes, no redondees, no inventes causas ni resultados.\n"
-        "Si una causa es incierta, márcala como hipótesis y cita evidence_ids.\n"
+        "Si una causa es incierta, márcala como hipótesis o información faltante.\n"
         "Devuelve JSON estricto únicamente.\n"
         f"SCHEMA:\n{schema}\n"
         "CONTEXT:\n"
@@ -906,7 +1486,7 @@ def build_schema_repair_prompt(
         f"STAGE_SCHEMA_REPAIR: {stage_name}\n"
         "El JSON anterior fue válido, pero no cumplió la estructura requerida.\n"
         "Reestructura el MISMO contenido para cumplir exactamente el esquema.\n"
-        "No agregues ni elimines afirmaciones, riesgos, oportunidades, preguntas, números ni evidence_ids.\n"
+        "No agregues ni elimines afirmaciones, riesgos, oportunidades, preguntas, números ni supporting_facts.\n"
         "No cambies el significado ni escribas análisis nuevo.\n"
         "Devuelve JSON estricto únicamente.\n"
         f"SCHEMA_ERRORS:\n{json.dumps(list(schema_errors), ensure_ascii=False)}\n"
@@ -948,7 +1528,7 @@ def build_placeholder_repair_prompt(
         f"STAGE_PLACEHOLDER_REPAIR: {stage_name}\n"
         "El JSON anterior fue estructuralmente válido, pero incumplió el contrato de placeholders.\n"
         "Reescribe el MISMO JSON usando solo placeholders {{FACT_###}} para hechos deterministas.\n"
-        "No agregues ni elimines afirmaciones, riesgos, oportunidades, preguntas, recomendaciones ni evidence_ids.\n"
+        "No agregues ni elimines afirmaciones, riesgos, oportunidades, preguntas, recomendaciones ni supporting_facts.\n"
         "No calcules, no redondees, no cambies significado y no escribas literales numéricos, periodos o entidades.\n"
         "Devuelve JSON estricto únicamente.\n"
         f"PLACEHOLDER_ERRORS:\n{json.dumps(list(placeholder_errors), ensure_ascii=False)}\n"
@@ -972,7 +1552,10 @@ def _is_placeholder_error(errors: tuple[str, ...]) -> bool:
         "placeholder",
         "unsupported numeric literal",
         "deterministic literal",
-        "without supporting evidence_ids",
+        "supporting_facts must be non-empty",
+        "missing from supporting_facts",
+        "unknown placeholder",
+        "malformed placeholder",
     )
     return bool(errors) and all(any(marker in str(error) for marker in markers) for error in errors)
 
@@ -1022,15 +1605,15 @@ def _financial_stage_schema_text() -> str:
 
     Inputs: none.
     Outputs: compact schema instructions.
-    Assumptions: each item includes text and evidence_ids.
+    Assumptions: each item includes text and supporting_facts.
     """
 
     return (
         "Return exactly one JSON object with exactly these top-level keys and no others: "
         "claims, risks, opportunities, open_questions. "
-        "claims item: {text: Spanish string, evidence_ids: [valid IDs], confidence: 0..1, claim_type: fact|interpretation|hypothesis}. "
-        "risks/opportunities item: {text: Spanish string, evidence_ids: [valid IDs], confidence: 0..1}. "
-        "open_questions item: {text: Spanish string, evidence_ids: [valid IDs]}. "
+        "claims item: {text: Spanish string, confidence: 0..1, claim_type: fact|interpretation|hypothesis}. "
+        "risks/opportunities item: {text: Spanish string, confidence: 0..1}. "
+        "open_questions item: {text: Spanish string}. "
         "Do not include examples, fake values, markdown, or prose outside JSON."
     )
 
@@ -1040,15 +1623,15 @@ def _historical_stage_schema_text() -> str:
 
     Inputs: none.
     Outputs: compact schema instructions.
-    Assumptions: each item includes text and evidence_ids.
+    Assumptions: each item includes text and supporting_facts.
     """
 
     return (
         "Return exactly one JSON object with exactly these top-level keys and no others: "
         "claims, risks, opportunities, open_questions. "
-        "claims item: {text: Spanish string, evidence_ids: [valid IDs], confidence: 0..1, claim_type: fact|interpretation|hypothesis}. "
-        "risks/opportunities item: {text: Spanish string, evidence_ids: [valid IDs], confidence: 0..1}. "
-        "open_questions item: {text: Spanish string, evidence_ids: [valid IDs]}. "
+        "claims item: {text: Spanish string, confidence: 0..1, claim_type: fact|interpretation|hypothesis}. "
+        "risks/opportunities item: {text: Spanish string, confidence: 0..1}. "
+        "open_questions item: {text: Spanish string}. "
         "Do not include examples, fake values, markdown, or prose outside JSON."
     )
 
@@ -1066,7 +1649,7 @@ def _stage_required_fields(stage_id: str) -> tuple[str, ...]:
     raise ValueError(f"Unknown reasoning stage: {stage_id}")
 
 
-def reasoning_stage_json_schema(stage_id: str) -> dict[str, Any]:
+def reasoning_stage_json_schema(stage_id: str, allowed_placeholders: set[str] | None = None) -> dict[str, Any]:
     """Return the provider JSON schema for Stage 1/2 reasoning.
 
     Inputs: stage ID.
@@ -1075,26 +1658,21 @@ def reasoning_stage_json_schema(stage_id: str) -> dict[str, Any]:
     minimal and stable across financial and historical reasoning.
     """
 
+    del allowed_placeholders
     if stage_id not in {"financial_performance", "historical_operational"}:
         raise ValueError(f"Unknown reasoning stage schema: {stage_id}")
     text_item = {
         "type": "object",
         "additionalProperties": False,
-        "required": ["text", "evidence_ids"],
+        "required": ["text"],
         "properties": {
             "text": {"type": "string", "minLength": 1, "maxLength": 1200},
-            "evidence_ids": {
-                "type": "array",
-                "items": {"type": "string"},
-                "minItems": 1,
-                "maxItems": 6,
-            },
         },
     }
     confidence_item = {
         "type": "object",
         "additionalProperties": False,
-        "required": ["text", "evidence_ids", "confidence"],
+        "required": ["text", "confidence"],
         "properties": {
             **text_item["properties"],
             "confidence": {"type": "number", "minimum": 0, "maximum": 1},
@@ -1103,7 +1681,7 @@ def reasoning_stage_json_schema(stage_id: str) -> dict[str, Any]:
     claim_item = {
         "type": "object",
         "additionalProperties": False,
-        "required": ["text", "evidence_ids", "confidence", "claim_type"],
+        "required": ["text", "confidence", "claim_type"],
         "properties": {
             **confidence_item["properties"],
             "claim_type": {"type": "string", "enum": sorted(CLAIM_TYPES)},
@@ -1118,6 +1696,83 @@ def reasoning_stage_json_schema(stage_id: str) -> dict[str, Any]:
             "risks": {"type": "array", "items": confidence_item, "maxItems": 8},
             "opportunities": {"type": "array", "items": confidence_item, "maxItems": 8},
             "open_questions": {"type": "array", "items": text_item, "maxItems": 8},
+        },
+    }
+
+
+def strategic_synthesis_fact_json_schema(allowed_placeholders: set[str] | None = None) -> dict[str, Any]:
+    """Return the LLM-facing Stage 3 schema using supporting facts only.
+
+    Inputs: optional allowed placeholder set.
+    Outputs: JSON schema for strategic synthesis without evidence IDs.
+    Assumptions: Python converts supporting facts to internal evidence IDs.
+    """
+
+    string_schema = {"type": "string", "minLength": 1, "maxLength": 1800}
+    del allowed_placeholders
+    narrative_block = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["text"],
+        "properties": {"text": string_schema},
+    }
+    recommendation = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["priority", "action", "rationale", "supporting_evidence", "expected_impact", "confidence"],
+        "properties": {
+            "priority": {"type": "string", "enum": ["high", "medium", "low"]},
+            "action": string_schema,
+            "rationale": string_schema,
+            "supporting_evidence": string_schema,
+            "expected_impact": string_schema,
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        },
+    }
+    block_list = {
+        "type": "array",
+        "minItems": 0,
+        "maxItems": 8,
+        "items": narrative_block,
+    }
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "executive_summary",
+            "key_findings",
+            "root_causes",
+            "financial_health_analysis",
+            "kpi_analysis",
+            "historical_summary",
+            "historical_trend_analysis",
+            "department_analysis",
+            "anomaly_analysis",
+            "recommendation_follow_up_analysis",
+            "longitudinal_risk_analysis",
+            "strategic_recommendations",
+            "strategic_priorities",
+            "missing_information",
+            "confidence",
+            "reasoning_summary",
+        ],
+        "properties": {
+            "executive_summary": narrative_block,
+            "key_findings": block_list,
+            "root_causes": block_list,
+            "financial_health_analysis": narrative_block,
+            "kpi_analysis": narrative_block,
+            "historical_summary": narrative_block,
+            "historical_trend_analysis": narrative_block,
+            "department_analysis": narrative_block,
+            "anomaly_analysis": narrative_block,
+            "recommendation_follow_up_analysis": narrative_block,
+            "longitudinal_risk_analysis": narrative_block,
+            "strategic_recommendations": {"type": "array", "minItems": 1, "maxItems": 8, "items": recommendation},
+            "strategic_priorities": block_list,
+            "missing_information": block_list,
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+            "reasoning_summary": narrative_block,
         },
     }
 

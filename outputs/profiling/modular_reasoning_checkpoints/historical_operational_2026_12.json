@@ -1,7 +1,8 @@
 {
-  "period_slug": "2026_12",
-  "stage_id": "financial_performance",
-  "reasoning_output": {
+  "stage_id": "historical_operational",
+  "stage_name": "Historical & Operational Reasoning",
+  "accepted": true,
+  "payload": {
     "claims": [
       {
         "text": "El ingreso total del periodo es de $2,280,096 USD.",
@@ -62,12 +63,40 @@
       }
     ],
     "_selected_fact_summary": {
-      "stage_id": "financial_performance",
+      "stage_id": "historical_operational",
       "selected_fact_count": 25,
       "selection_prefixes": [
+        "history.",
         "finance.",
         "anomaly."
       ]
     }
+  },
+  "validation_errors": [],
+  "telemetry": {
+    "stage_id": "historical_operational",
+    "prompt_characters": 7411,
+    "prompt_token_estimate": 1852,
+    "json_validation_time_seconds": 0.003146699978969991,
+    "total_stage_time_seconds": 32.966309800045565,
+    "error_category": null,
+    "timeout_error_category": null,
+    "schema_retry_attempted": false,
+    "placeholder_retry_attempted": false,
+    "model": "qwen3:30b-a3b",
+    "reasoning_enabled": true,
+    "request_start_utc": "2026-07-24T15:57:54.351187+00:00",
+    "request_end_utc": "2026-07-24T15:58:27.314304+00:00",
+    "http_elapsed_time_seconds": 32.96311999997124,
+    "model_load_time_seconds": 0.2076552,
+    "prompt_evaluation_time_seconds": 0.162036,
+    "generation_time_seconds": 28.309621,
+    "total_ollama_time_seconds": 28.8693348,
+    "prompt_eval_count": 2264,
+    "generation_eval_count": 553,
+    "thinking_characters": 1699,
+    "connect_timeout_seconds": 10.0,
+    "read_timeout_seconds": 600.0,
+    "keep_alive": "15m"
   }
 }

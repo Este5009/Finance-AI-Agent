@@ -203,6 +203,55 @@ def test_generic_period_source_files_are_preserved() -> None:
     assert "outputs/analysis/strategic_analysis_2026_06.json" in model["source_references"]
 
 
+def test_kpi_comparisons_use_previous_processed_summary(tmp_path: Path) -> None:
+    """Verify KPI card comparisons are populated from deterministic previous outputs."""
+
+    current_path = tmp_path / "finance_summary_2026_12.json"
+    previous_path = tmp_path / "finance_summary_2026_11.json"
+    previous_path.write_text(
+        json.dumps(
+            {
+                "report_period": "2026-11",
+                "finance_summary": {
+                    "total_revenue": 900,
+                    "total_expenses": 950,
+                    "net_operating_result": -50,
+                    "student_payments": {"collection_rate": 0.88},
+                    "cash_flow": {"net_cash_flow": 25, "ending_cash": 4800},
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    current_path.write_text("{}", encoding="utf-8")
+    bundle = _bundle()
+    generic_bundle = ReportInputBundle(
+        period_slug="2026_12",
+        finance_summary={**bundle.finance_summary, "report_period": "2026-12"},
+        kpi_summary=bundle.kpi_summary,
+        anomaly_report=bundle.anomaly_report,
+        evidence_package=bundle.evidence_package,
+        strategic_analysis=bundle.strategic_analysis,
+        source_files=(
+            str(current_path),
+            "outputs/calculations/kpi_summary_2026_12.csv",
+            "outputs/anomalies/anomaly_report_2026_12.json",
+            "outputs/evidence/evidence_package_2026_12.json",
+            "outputs/analysis/strategic_analysis_2026_12.json",
+        ),
+    )
+
+    model = build_report_model(generic_bundle).to_dict()
+    section = next(section for section in model["sections"] if section["section_id"] == "financial_health_overview")
+    comparisons = section["content"]["kpi_comparisons"]["items"]
+
+    assert comparisons["total_revenue"]["previous_value"] == 900
+    assert comparisons["total_revenue"]["absolute_change"] == 100
+    assert comparisons["total_revenue"]["budget_value"] == 1100
+    assert comparisons["net_cash_flow"]["previous_value"] == 25
+    assert comparisons["ending_cash"]["previous_value"] == 4800
+
+
 def test_json_schema_validation_and_save(tmp_path: Path) -> None:
     """Verify saved report model JSON keeps the expected schema."""
 

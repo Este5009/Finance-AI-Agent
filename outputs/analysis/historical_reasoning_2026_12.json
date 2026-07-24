@@ -1,5 +1,74 @@
 {
   "period_slug": "2026_12",
   "stage_id": "historical_operational",
-  "reasoning_output": {}
+  "reasoning_output": {
+    "claims": [
+      {
+        "text": "El ingreso total del periodo es de $2,280,096 USD.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      },
+      {
+        "text": "Los gastos totales del periodo son de $2,032,596 USD.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      },
+      {
+        "text": "El resultado operativo neto del periodo es de $247,500 USD.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      },
+      {
+        "text": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      },
+      {
+        "text": "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      },
+      {
+        "text": "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      },
+      {
+        "text": "La tasa de cobranza es del 96.0%.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      },
+      {
+        "text": "No hay facturas vencidas en el periodo.",
+        "confidence": 1.0,
+        "claim_type": "fact"
+      }
+    ],
+    "risks": [
+      {
+        "text": "El alto porcentaje de nómina (40.0%) sobre el ingreso total podría representar un riesgo financiero si los ingresos disminuyen.",
+        "confidence": 0.85
+      }
+    ],
+    "opportunities": [
+      {
+        "text": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar aún más la eficiencia en la gestión de cobranzas.",
+        "confidence": 0.9
+      }
+    ],
+    "open_questions": [
+      {
+        "text": "¿Cuál es el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto?"
+      }
+    ],
+    "_selected_fact_summary": {
+      "stage_id": "historical_operational",
+      "selected_fact_count": 25,
+      "selection_prefixes": [
+        "history.",
+        "finance.",
+        "anomaly."
+      ]
+    }
+  }
 }

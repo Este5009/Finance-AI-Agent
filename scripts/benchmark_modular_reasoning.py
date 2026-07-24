@@ -35,6 +35,7 @@ from finance_agent.reasoning.reasoning_pipeline import (  # noqa: E402
     build_historical_operational_prompt,
     build_strategic_synthesis_prompt,
     reasoning_stage_json_schema,
+    strategic_synthesis_fact_json_schema,
     validate_reasoning_stage_response,
     validate_strategic_synthesis_response,
 )
@@ -366,7 +367,7 @@ def main() -> None:
                         fact_registry=fact_registry,
                     ),
                     resume=args.resume,
-                    response_format=strategic_analysis_json_schema(),
+                    response_format=strategic_synthesis_fact_json_schema(),
                     stage_timeout_seconds=args.stage_timeout,
                     fact_registry=fact_registry,
                 )

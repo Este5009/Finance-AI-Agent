@@ -4,12 +4,10 @@
   "report_period": "2026-12",
   "analysis_source": "ollama_modular_reasoning",
   "ollama_available": true,
-  "validation_status": "rejected",
-  "analysis_generated": false,
-  "validation_errors": [
-    "opportunities[1] cites unknown evidence_id: finance.department.arts_humanidades.net_operating_result"
-  ],
-  "recommendation_count": 0,
+  "validation_status": "accepted",
+  "analysis_generated": true,
+  "validation_errors": [],
+  "recommendation_count": 2,
   "historical_context_summary": {
     "available_retrievals": 6,
     "unavailable_retrievals": 1,
@@ -810,7 +808,7 @@
   },
   "evidence_ledger_summary": {
     "fact_count": 45,
-    "approved_number_count": 74,
+    "approved_number_count": 72,
     "approved_period_count": 12,
     "approved_entity_count": 8
   },
@@ -818,25 +816,447 @@
     "period_slug": "2026_12",
     "evidence_ledger_summary": {
       "fact_count": 45,
-      "approved_number_count": 74,
+      "approved_number_count": 72,
       "approved_period_count": 12,
       "approved_entity_count": 8
     },
-    "validated_claims": [],
-    "risks": [],
-    "opportunities": [],
-    "open_questions": [],
-    "unresolved_conflicts": [
+    "validated_claims": [
       {
-        "stage_id": "financial_performance",
-        "reason": "reasoning_stage_rejected",
-        "errors": [
-          "opportunities[1] cites unknown evidence_id: finance.department.arts_humanidades.net_operating_result"
-        ]
+        "text": "El ingreso total del periodo es de $2,280,096 USD.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "financial_performance"
+      },
+      {
+        "text": "Los gastos totales del periodo son de $2,032,596 USD.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "financial_performance"
+      },
+      {
+        "text": "El resultado operativo neto del periodo es de $247,500 USD.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "financial_performance"
+      },
+      {
+        "text": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "financial_performance"
+      },
+      {
+        "text": "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "financial_performance"
+      },
+      {
+        "text": "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "financial_performance"
+      },
+      {
+        "text": "La tasa de cobranza es del 96.0%.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "financial_performance"
+      },
+      {
+        "text": "No hay facturas vencidas en el periodo.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "financial_performance"
+      },
+      {
+        "text": "El ingreso total del periodo es de $2,280,096 USD.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "historical_operational"
+      },
+      {
+        "text": "Los gastos totales del periodo son de $2,032,596 USD.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "historical_operational"
+      },
+      {
+        "text": "El resultado operativo neto del periodo es de $247,500 USD.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "historical_operational"
+      },
+      {
+        "text": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "historical_operational"
+      },
+      {
+        "text": "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "historical_operational"
+      },
+      {
+        "text": "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "historical_operational"
+      },
+      {
+        "text": "La tasa de cobranza es del 96.0%.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "historical_operational"
+      },
+      {
+        "text": "No hay facturas vencidas en el periodo.",
+        "confidence": 1.0,
+        "claim_type": "fact",
+        "stage_id": "historical_operational"
       }
     ],
+    "risks": [
+      {
+        "text": "El alto porcentaje de nómina (40.0%) sobre el ingreso total podría representar un riesgo financiero si los ingresos disminuyen.",
+        "confidence": 0.85,
+        "stage_id": "financial_performance"
+      },
+      {
+        "text": "El alto porcentaje de nómina (40.0%) sobre el ingreso total podría representar un riesgo financiero si los ingresos disminuyen.",
+        "confidence": 0.85,
+        "stage_id": "historical_operational"
+      }
+    ],
+    "opportunities": [
+      {
+        "text": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar aún más la eficiencia en la gestión de cobranzas.",
+        "confidence": 0.9,
+        "stage_id": "financial_performance"
+      },
+      {
+        "text": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar aún más la eficiencia en la gestión de cobranzas.",
+        "confidence": 0.9,
+        "stage_id": "historical_operational"
+      }
+    ],
+    "open_questions": [
+      {
+        "text": "¿Cuál es el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto?",
+        "stage_id": "financial_performance"
+      },
+      {
+        "text": "¿Cuál es el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto?",
+        "stage_id": "historical_operational"
+      }
+    ],
+    "unresolved_conflicts": [],
     "reasoning_outputs": {
-      "financial_performance": {}
+      "financial_performance": {
+        "claims": [
+          {
+            "text": "El ingreso total del periodo es de $2,280,096 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "Los gastos totales del periodo son de $2,032,596 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El resultado operativo neto del periodo es de $247,500 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "La tasa de cobranza es del 96.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "No hay facturas vencidas en el periodo.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          }
+        ],
+        "risks": [
+          {
+            "text": "El alto porcentaje de nómina (40.0%) sobre el ingreso total podría representar un riesgo financiero si los ingresos disminuyen.",
+            "confidence": 0.85
+          }
+        ],
+        "opportunities": [
+          {
+            "text": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar aún más la eficiencia en la gestión de cobranzas.",
+            "confidence": 0.9
+          }
+        ],
+        "open_questions": [
+          {
+            "text": "¿Cuál es el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto?"
+          }
+        ],
+        "_selected_fact_summary": {
+          "stage_id": "financial_performance",
+          "selected_fact_count": 25,
+          "selection_prefixes": [
+            "finance.",
+            "anomaly."
+          ]
+        }
+      },
+      "historical_operational": {
+        "claims": [
+          {
+            "text": "El ingreso total del periodo es de $2,280,096 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "Los gastos totales del periodo son de $2,032,596 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El resultado operativo neto del periodo es de $247,500 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "La tasa de cobranza es del 96.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "No hay facturas vencidas en el periodo.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          }
+        ],
+        "risks": [
+          {
+            "text": "El alto porcentaje de nómina (40.0%) sobre el ingreso total podría representar un riesgo financiero si los ingresos disminuyen.",
+            "confidence": 0.85
+          }
+        ],
+        "opportunities": [
+          {
+            "text": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar aún más la eficiencia en la gestión de cobranzas.",
+            "confidence": 0.9
+          }
+        ],
+        "open_questions": [
+          {
+            "text": "¿Cuál es el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto?"
+          }
+        ],
+        "_selected_fact_summary": {
+          "stage_id": "historical_operational",
+          "selected_fact_count": 25,
+          "selection_prefixes": [
+            "history.",
+            "finance.",
+            "anomaly."
+          ]
+        }
+      },
+      "strategic_synthesis": {
+        "executive_summary": "El informe financiero del período 2026-12 muestra un ingreso total de $2,280,096 USD, con gastos totales de $2,032,596 USD, generando un resultado operativo neto de $247,500 USD. El porcentaje de nómina sobre el ingreso total es del 40.0%, y la tasa de cobranza alcanza el 96.0% sin facturas vencidas. Los ingresos aumentaron un 4.0% en comparación con el período anterior, mientras que los gastos disminuyeron un 0.3%.",
+        "key_findings": [
+          "El ingreso total del período es de $2,280,096 USD.",
+          "Los gastos totales del período son de $2,032,596 USD.",
+          "El resultado operativo neto del período es de $247,500 USD.",
+          "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+          "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+          "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+          "La tasa de cobranza es del 96.0%.",
+          "No hay facturas vencidas en el período."
+        ],
+        "root_causes": [
+          "El alto porcentaje de nómina (40.0%) sobre el ingreso total representa un riesgo financiero si los ingresos disminuyen."
+        ],
+        "strategic_recommendations": [
+          {
+            "priority": "high",
+            "action": "Monitorear el porcentaje de nómina y ajustar los costos operativos si los ingresos disminuyen.",
+            "rationale": "El alto porcentaje de nómina (40.0%) representa un riesgo financiero si los ingresos disminuyen.",
+            "supporting_evidence": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+            "expected_impact": "Reducir el riesgo financiero en escenarios de disminución de ingresos.",
+            "evidence_ids": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "confidence": 0.85
+          },
+          {
+            "priority": "medium",
+            "action": "Optimizar la gestión de cobranzas para mejorar la tasa de cobranza por encima del 96.0%.",
+            "rationale": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar la eficiencia en la gestión de cobranzas.",
+            "supporting_evidence": "La tasa de cobranza es del 96.0%.",
+            "expected_impact": "Aumentar la eficiencia en la gestión financiera y potencialmente incrementar los ingresos.",
+            "evidence_ids": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "confidence": 0.9
+          }
+        ],
+        "strategic_priorities": [
+          "Reducir el riesgo financiero asociado al alto porcentaje de nómina.",
+          "Mejorar la eficiencia en la gestión de cobranzas."
+        ],
+        "missing_information": [
+          "El impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto.",
+          "Ingresos específicos del departamento de Artes y Humanidades."
+        ],
+        "financial_health_analysis": "El resultado operativo neto positivo de $247,500 USD refleja una salud financiera sólida, respaldada por un aumento en los ingresos y una ligera reducción en los gastos. La tasa de cobranza del 96.0% indica eficiencia en la gestión financiera.",
+        "kpi_analysis": "El porcentaje de nómina del 40.0% y la tasa de cobranza del 96.0% son indicadores clave que requieren monitoreo continuo para mantener la estabilidad financiera.",
+        "historical_summary": "El período 2026-12 muestra una tendencia positiva en ingresos (+4.0%) y una ligera disminución en gastos (-0.3%), manteniendo un resultado operativo neto estable.",
+        "historical_trend_analysis": "Los ingresos han aumentado consistentemente, mientras que los gastos han disminuido ligeramente, contribuyendo a un resultado operativo neto positivo.",
+        "department_analysis": "El departamento de Administración reporta ingresos de $182,408 USD y gastos de $162,608 USD, con un resultado operativo neto de $19,800 USD. El departamento de Artes y Humanidades registra gastos de $284,563 USD, pero no se proporcionan ingresos específicos.",
+        "anomaly_analysis": "No se identificaron anomalías en el período 2026-12, con un total de 0 anomalías reportadas.",
+        "recommendation_follow_up_analysis": "Se requiere un análisis adicional para determinar el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto.",
+        "longitudinal_risk_analysis": "El riesgo financiero asociado al alto porcentaje de nómina (40.0%) debe ser evaluado en escenarios de disminución de ingresos.",
+        "narrative_evidence": {
+          "executive_summary": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "financial_health_analysis": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "kpi_analysis": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "historical_summary": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "historical_trend_analysis": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "department_analysis": [
+            "finance.department.administration.actual_revenue",
+            "finance.department.administration.actual_expenses",
+            "finance.department.administration.net_operating_result",
+            "finance.department.administration.expense_variance_pct",
+            "finance.department.arts_humanities.actual_revenue",
+            "finance.department.arts_humanities.actual_expenses",
+            "finance.department.arts_humanities.net_operating_result",
+            "finance.department.arts_humanities.expense_variance_pct"
+          ],
+          "anomaly_analysis": [
+            "anomaly.total_count"
+          ],
+          "recommendation_follow_up_analysis": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "longitudinal_risk_analysis": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "reasoning_summary": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "key_findings": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "root_causes": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "strategic_priorities": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "missing_information": [
+            "evidence.step_001.summary"
+          ]
+        },
+        "confidence": 0.95,
+        "reasoning_summary": "El análisis se basa en hechos validados y datos deterministas proporcionados en el contexto, sin cálculos ni suposiciones adicionales.",
+        "recommendations": [
+          {
+            "priority": "high",
+            "action": "Monitorear el porcentaje de nómina y ajustar los costos operativos si los ingresos disminuyen.",
+            "rationale": "El alto porcentaje de nómina (40.0%) representa un riesgo financiero si los ingresos disminuyen.",
+            "supporting_evidence": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+            "expected_impact": "Reducir el riesgo financiero en escenarios de disminución de ingresos.",
+            "evidence_ids": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "confidence": 0.85
+          },
+          {
+            "priority": "medium",
+            "action": "Optimizar la gestión de cobranzas para mejorar la tasa de cobranza por encima del 96.0%.",
+            "rationale": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar la eficiencia en la gestión de cobranzas.",
+            "supporting_evidence": "La tasa de cobranza es del 96.0%.",
+            "expected_impact": "Aumentar la eficiencia en la gestión financiera y potencialmente incrementar los ingresos.",
+            "evidence_ids": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "confidence": 0.9
+          }
+        ],
+        "_python_attached_evidence": true
+      }
     },
     "fact_registry": {
       "fact_count": 115,
@@ -3029,19 +3449,634 @@
       ]
     },
     "raw_placeholder_outputs": {
-      "financial_performance": {}
+      "financial_performance": {
+        "claims": [
+          {
+            "text": "El ingreso total del periodo es de $2,280,096 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "Los gastos totales del periodo son de $2,032,596 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El resultado operativo neto del periodo es de $247,500 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "La tasa de cobranza es del 96.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "No hay facturas vencidas en el periodo.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          }
+        ],
+        "risks": [
+          {
+            "text": "El alto porcentaje de nómina (40.0%) sobre el ingreso total podría representar un riesgo financiero si los ingresos disminuyen.",
+            "confidence": 0.85
+          }
+        ],
+        "opportunities": [
+          {
+            "text": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar aún más la eficiencia en la gestión de cobranzas.",
+            "confidence": 0.9
+          }
+        ],
+        "open_questions": [
+          {
+            "text": "¿Cuál es el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto?"
+          }
+        ],
+        "_selected_fact_summary": {
+          "stage_id": "financial_performance",
+          "selected_fact_count": 25,
+          "selection_prefixes": [
+            "finance.",
+            "anomaly."
+          ]
+        }
+      },
+      "historical_operational": {
+        "claims": [
+          {
+            "text": "El ingreso total del periodo es de $2,280,096 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "Los gastos totales del periodo son de $2,032,596 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El resultado operativo neto del periodo es de $247,500 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "La tasa de cobranza es del 96.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "No hay facturas vencidas en el periodo.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          }
+        ],
+        "risks": [
+          {
+            "text": "El alto porcentaje de nómina (40.0%) sobre el ingreso total podría representar un riesgo financiero si los ingresos disminuyen.",
+            "confidence": 0.85
+          }
+        ],
+        "opportunities": [
+          {
+            "text": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar aún más la eficiencia en la gestión de cobranzas.",
+            "confidence": 0.9
+          }
+        ],
+        "open_questions": [
+          {
+            "text": "¿Cuál es el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto?"
+          }
+        ],
+        "_selected_fact_summary": {
+          "stage_id": "historical_operational",
+          "selected_fact_count": 25,
+          "selection_prefixes": [
+            "history.",
+            "finance.",
+            "anomaly."
+          ]
+        }
+      },
+      "strategic_synthesis": {
+        "executive_summary": "El informe financiero del período 2026-12 muestra un ingreso total de $2,280,096 USD, con gastos totales de $2,032,596 USD, generando un resultado operativo neto de $247,500 USD. El porcentaje de nómina sobre el ingreso total es del 40.0%, y la tasa de cobranza alcanza el 96.0% sin facturas vencidas. Los ingresos aumentaron un 4.0% en comparación con el período anterior, mientras que los gastos disminuyeron un 0.3%.",
+        "key_findings": [
+          "El ingreso total del período es de $2,280,096 USD.",
+          "Los gastos totales del período son de $2,032,596 USD.",
+          "El resultado operativo neto del período es de $247,500 USD.",
+          "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+          "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+          "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+          "La tasa de cobranza es del 96.0%.",
+          "No hay facturas vencidas en el período."
+        ],
+        "root_causes": [
+          "El alto porcentaje de nómina (40.0%) sobre el ingreso total representa un riesgo financiero si los ingresos disminuyen."
+        ],
+        "strategic_recommendations": [
+          {
+            "priority": "high",
+            "action": "Monitorear el porcentaje de nómina y ajustar los costos operativos si los ingresos disminuyen.",
+            "rationale": "El alto porcentaje de nómina (40.0%) representa un riesgo financiero si los ingresos disminuyen.",
+            "supporting_evidence": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+            "expected_impact": "Reducir el riesgo financiero en escenarios de disminución de ingresos.",
+            "evidence_ids": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "confidence": 0.85
+          },
+          {
+            "priority": "medium",
+            "action": "Optimizar la gestión de cobranzas para mejorar la tasa de cobranza por encima del 96.0%.",
+            "rationale": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar la eficiencia en la gestión de cobranzas.",
+            "supporting_evidence": "La tasa de cobranza es del 96.0%.",
+            "expected_impact": "Aumentar la eficiencia en la gestión financiera y potencialmente incrementar los ingresos.",
+            "evidence_ids": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "confidence": 0.9
+          }
+        ],
+        "strategic_priorities": [
+          "Reducir el riesgo financiero asociado al alto porcentaje de nómina.",
+          "Mejorar la eficiencia en la gestión de cobranzas."
+        ],
+        "missing_information": [
+          "El impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto.",
+          "Ingresos específicos del departamento de Artes y Humanidades."
+        ],
+        "financial_health_analysis": "El resultado operativo neto positivo de $247,500 USD refleja una salud financiera sólida, respaldada por un aumento en los ingresos y una ligera reducción en los gastos. La tasa de cobranza del 96.0% indica eficiencia en la gestión financiera.",
+        "kpi_analysis": "El porcentaje de nómina del 40.0% y la tasa de cobranza del 96.0% son indicadores clave que requieren monitoreo continuo para mantener la estabilidad financiera.",
+        "historical_summary": "El período 2026-12 muestra una tendencia positiva en ingresos (+4.0%) y una ligera disminución en gastos (-0.3%), manteniendo un resultado operativo neto estable.",
+        "historical_trend_analysis": "Los ingresos han aumentado consistentemente, mientras que los gastos han disminuido ligeramente, contribuyendo a un resultado operativo neto positivo.",
+        "department_analysis": "El departamento de Administración reporta ingresos de $182,408 USD y gastos de $162,608 USD, con un resultado operativo neto de $19,800 USD. El departamento de Artes y Humanidades registra gastos de $284,563 USD, pero no se proporcionan ingresos específicos.",
+        "anomaly_analysis": "No se identificaron anomalías en el período 2026-12, con un total de 0 anomalías reportadas.",
+        "recommendation_follow_up_analysis": "Se requiere un análisis adicional para determinar el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto.",
+        "longitudinal_risk_analysis": "El riesgo financiero asociado al alto porcentaje de nómina (40.0%) debe ser evaluado en escenarios de disminución de ingresos.",
+        "narrative_evidence": {
+          "executive_summary": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "financial_health_analysis": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "kpi_analysis": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "historical_summary": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "historical_trend_analysis": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "department_analysis": [
+            "finance.department.administration.actual_revenue",
+            "finance.department.administration.actual_expenses",
+            "finance.department.administration.net_operating_result",
+            "finance.department.administration.expense_variance_pct",
+            "finance.department.arts_humanities.actual_revenue",
+            "finance.department.arts_humanities.actual_expenses",
+            "finance.department.arts_humanities.net_operating_result",
+            "finance.department.arts_humanities.expense_variance_pct"
+          ],
+          "anomaly_analysis": [
+            "anomaly.total_count"
+          ],
+          "recommendation_follow_up_analysis": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "longitudinal_risk_analysis": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "reasoning_summary": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "key_findings": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "root_causes": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "strategic_priorities": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "missing_information": [
+            "evidence.step_001.summary"
+          ]
+        },
+        "confidence": 0.95,
+        "reasoning_summary": "El análisis se basa en hechos validados y datos deterministas proporcionados en el contexto, sin cálculos ni suposiciones adicionales.",
+        "recommendations": [
+          {
+            "priority": "high",
+            "action": "Monitorear el porcentaje de nómina y ajustar los costos operativos si los ingresos disminuyen.",
+            "rationale": "El alto porcentaje de nómina (40.0%) representa un riesgo financiero si los ingresos disminuyen.",
+            "supporting_evidence": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+            "expected_impact": "Reducir el riesgo financiero en escenarios de disminución de ingresos.",
+            "evidence_ids": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "confidence": 0.85
+          },
+          {
+            "priority": "medium",
+            "action": "Optimizar la gestión de cobranzas para mejorar la tasa de cobranza por encima del 96.0%.",
+            "rationale": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar la eficiencia en la gestión de cobranzas.",
+            "supporting_evidence": "La tasa de cobranza es del 96.0%.",
+            "expected_impact": "Aumentar la eficiencia en la gestión financiera y potencialmente incrementar los ingresos.",
+            "evidence_ids": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "confidence": 0.9
+          }
+        ],
+        "_python_attached_evidence": true
+      }
     },
     "substituted_outputs": {
-      "financial_performance": {}
+      "financial_performance": {
+        "claims": [
+          {
+            "text": "El ingreso total del periodo es de $2,280,096 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "Los gastos totales del periodo son de $2,032,596 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El resultado operativo neto del periodo es de $247,500 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "La tasa de cobranza es del 96.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "No hay facturas vencidas en el periodo.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          }
+        ],
+        "risks": [
+          {
+            "text": "El alto porcentaje de nómina (40.0%) sobre el ingreso total podría representar un riesgo financiero si los ingresos disminuyen.",
+            "confidence": 0.85
+          }
+        ],
+        "opportunities": [
+          {
+            "text": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar aún más la eficiencia en la gestión de cobranzas.",
+            "confidence": 0.9
+          }
+        ],
+        "open_questions": [
+          {
+            "text": "¿Cuál es el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto?"
+          }
+        ],
+        "_selected_fact_summary": {
+          "stage_id": "financial_performance",
+          "selected_fact_count": 25,
+          "selection_prefixes": [
+            "finance.",
+            "anomaly."
+          ]
+        }
+      },
+      "historical_operational": {
+        "claims": [
+          {
+            "text": "El ingreso total del periodo es de $2,280,096 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "Los gastos totales del periodo son de $2,032,596 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El resultado operativo neto del periodo es de $247,500 USD.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "La tasa de cobranza es del 96.0%.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          },
+          {
+            "text": "No hay facturas vencidas en el periodo.",
+            "confidence": 1.0,
+            "claim_type": "fact"
+          }
+        ],
+        "risks": [
+          {
+            "text": "El alto porcentaje de nómina (40.0%) sobre el ingreso total podría representar un riesgo financiero si los ingresos disminuyen.",
+            "confidence": 0.85
+          }
+        ],
+        "opportunities": [
+          {
+            "text": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar aún más la eficiencia en la gestión de cobranzas.",
+            "confidence": 0.9
+          }
+        ],
+        "open_questions": [
+          {
+            "text": "¿Cuál es el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto?"
+          }
+        ],
+        "_selected_fact_summary": {
+          "stage_id": "historical_operational",
+          "selected_fact_count": 25,
+          "selection_prefixes": [
+            "history.",
+            "finance.",
+            "anomaly."
+          ]
+        }
+      },
+      "strategic_synthesis": {
+        "executive_summary": "El informe financiero del período 2026-12 muestra un ingreso total de $2,280,096 USD, con gastos totales de $2,032,596 USD, generando un resultado operativo neto de $247,500 USD. El porcentaje de nómina sobre el ingreso total es del 40.0%, y la tasa de cobranza alcanza el 96.0% sin facturas vencidas. Los ingresos aumentaron un 4.0% en comparación con el período anterior, mientras que los gastos disminuyeron un 0.3%.",
+        "key_findings": [
+          "El ingreso total del período es de $2,280,096 USD.",
+          "Los gastos totales del período son de $2,032,596 USD.",
+          "El resultado operativo neto del período es de $247,500 USD.",
+          "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+          "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+          "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+          "La tasa de cobranza es del 96.0%.",
+          "No hay facturas vencidas en el período."
+        ],
+        "root_causes": [
+          "El alto porcentaje de nómina (40.0%) sobre el ingreso total representa un riesgo financiero si los ingresos disminuyen."
+        ],
+        "strategic_recommendations": [
+          {
+            "priority": "high",
+            "action": "Monitorear el porcentaje de nómina y ajustar los costos operativos si los ingresos disminuyen.",
+            "rationale": "El alto porcentaje de nómina (40.0%) representa un riesgo financiero si los ingresos disminuyen.",
+            "supporting_evidence": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+            "expected_impact": "Reducir el riesgo financiero en escenarios de disminución de ingresos.",
+            "evidence_ids": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "confidence": 0.85
+          },
+          {
+            "priority": "medium",
+            "action": "Optimizar la gestión de cobranzas para mejorar la tasa de cobranza por encima del 96.0%.",
+            "rationale": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar la eficiencia en la gestión de cobranzas.",
+            "supporting_evidence": "La tasa de cobranza es del 96.0%.",
+            "expected_impact": "Aumentar la eficiencia en la gestión financiera y potencialmente incrementar los ingresos.",
+            "evidence_ids": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "confidence": 0.9
+          }
+        ],
+        "strategic_priorities": [
+          "Reducir el riesgo financiero asociado al alto porcentaje de nómina.",
+          "Mejorar la eficiencia en la gestión de cobranzas."
+        ],
+        "missing_information": [
+          "El impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto.",
+          "Ingresos específicos del departamento de Artes y Humanidades."
+        ],
+        "financial_health_analysis": "El resultado operativo neto positivo de $247,500 USD refleja una salud financiera sólida, respaldada por un aumento en los ingresos y una ligera reducción en los gastos. La tasa de cobranza del 96.0% indica eficiencia en la gestión financiera.",
+        "kpi_analysis": "El porcentaje de nómina del 40.0% y la tasa de cobranza del 96.0% son indicadores clave que requieren monitoreo continuo para mantener la estabilidad financiera.",
+        "historical_summary": "El período 2026-12 muestra una tendencia positiva en ingresos (+4.0%) y una ligera disminución en gastos (-0.3%), manteniendo un resultado operativo neto estable.",
+        "historical_trend_analysis": "Los ingresos han aumentado consistentemente, mientras que los gastos han disminuido ligeramente, contribuyendo a un resultado operativo neto positivo.",
+        "department_analysis": "El departamento de Administración reporta ingresos de $182,408 USD y gastos de $162,608 USD, con un resultado operativo neto de $19,800 USD. El departamento de Artes y Humanidades registra gastos de $284,563 USD, pero no se proporcionan ingresos específicos.",
+        "anomaly_analysis": "No se identificaron anomalías en el período 2026-12, con un total de 0 anomalías reportadas.",
+        "recommendation_follow_up_analysis": "Se requiere un análisis adicional para determinar el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto.",
+        "longitudinal_risk_analysis": "El riesgo financiero asociado al alto porcentaje de nómina (40.0%) debe ser evaluado en escenarios de disminución de ingresos.",
+        "narrative_evidence": {
+          "executive_summary": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "financial_health_analysis": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "kpi_analysis": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "historical_summary": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "historical_trend_analysis": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "department_analysis": [
+            "finance.department.administration.actual_revenue",
+            "finance.department.administration.actual_expenses",
+            "finance.department.administration.net_operating_result",
+            "finance.department.administration.expense_variance_pct",
+            "finance.department.arts_humanities.actual_revenue",
+            "finance.department.arts_humanities.actual_expenses",
+            "finance.department.arts_humanities.net_operating_result",
+            "finance.department.arts_humanities.expense_variance_pct"
+          ],
+          "anomaly_analysis": [
+            "anomaly.total_count"
+          ],
+          "recommendation_follow_up_analysis": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "longitudinal_risk_analysis": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "reasoning_summary": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "key_findings": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "root_causes": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "strategic_priorities": [
+            "finance.metric.total_revenue",
+            "finance.metric.total_expenses",
+            "finance.metric.net_operating_result"
+          ],
+          "missing_information": [
+            "evidence.step_001.summary"
+          ]
+        },
+        "confidence": 0.95,
+        "reasoning_summary": "El análisis se basa en hechos validados y datos deterministas proporcionados en el contexto, sin cálculos ni suposiciones adicionales.",
+        "recommendations": [
+          {
+            "priority": "high",
+            "action": "Monitorear el porcentaje de nómina y ajustar los costos operativos si los ingresos disminuyen.",
+            "rationale": "El alto porcentaje de nómina (40.0%) representa un riesgo financiero si los ingresos disminuyen.",
+            "supporting_evidence": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+            "expected_impact": "Reducir el riesgo financiero en escenarios de disminución de ingresos.",
+            "evidence_ids": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "confidence": 0.85
+          },
+          {
+            "priority": "medium",
+            "action": "Optimizar la gestión de cobranzas para mejorar la tasa de cobranza por encima del 96.0%.",
+            "rationale": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar la eficiencia en la gestión de cobranzas.",
+            "supporting_evidence": "La tasa de cobranza es del 96.0%.",
+            "expected_impact": "Aumentar la eficiencia en la gestión financiera y potencialmente incrementar los ingresos.",
+            "evidence_ids": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "confidence": 0.9
+          }
+        ],
+        "_python_attached_evidence": true
+      }
     },
     "placeholder_validation_results": {
-      "financial_performance": {}
+      "financial_performance": {},
+      "historical_operational": {},
+      "strategic_synthesis": {}
     },
     "substitution_audit_log": {
-      "financial_performance": []
+      "financial_performance": [],
+      "historical_operational": [],
+      "strategic_synthesis": []
+    },
+    "support_resolution_audit_log": {
+      "financial_performance": [],
+      "historical_operational": [],
+      "strategic_synthesis": []
     },
     "normalization_log": {
-      "financial_performance": []
+      "financial_performance": [],
+      "historical_operational": [],
+      "strategic_synthesis": []
     },
     "evidence_references": {
       "finance.metric.total_revenue": {
@@ -4316,33 +5351,399 @@
       {
         "stage_id": "financial_performance",
         "stage_name": "Financial Performance Reasoning",
-        "accepted": false,
-        "payload": {},
-        "validation_errors": [
-          "opportunities[1] cites unknown evidence_id: finance.department.arts_humanidades.net_operating_result"
-        ],
+        "accepted": true,
+        "payload": {
+          "claims": [
+            {
+              "text": "El ingreso total del periodo es de $2,280,096 USD.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            },
+            {
+              "text": "Los gastos totales del periodo son de $2,032,596 USD.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            },
+            {
+              "text": "El resultado operativo neto del periodo es de $247,500 USD.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            },
+            {
+              "text": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            },
+            {
+              "text": "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            },
+            {
+              "text": "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            },
+            {
+              "text": "La tasa de cobranza es del 96.0%.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            },
+            {
+              "text": "No hay facturas vencidas en el periodo.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            }
+          ],
+          "risks": [
+            {
+              "text": "El alto porcentaje de nómina (40.0%) sobre el ingreso total podría representar un riesgo financiero si los ingresos disminuyen.",
+              "confidence": 0.85
+            }
+          ],
+          "opportunities": [
+            {
+              "text": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar aún más la eficiencia en la gestión de cobranzas.",
+              "confidence": 0.9
+            }
+          ],
+          "open_questions": [
+            {
+              "text": "¿Cuál es el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto?"
+            }
+          ],
+          "_selected_fact_summary": {
+            "stage_id": "financial_performance",
+            "selected_fact_count": 25,
+            "selection_prefixes": [
+              "finance.",
+              "anomaly."
+            ]
+          }
+        },
+        "validation_errors": [],
         "telemetry": {
-          "stage_id": "financial_performance",
-          "prompt_characters": 10305,
-          "prompt_token_estimate": 2576,
-          "json_validation_time_seconds": 0.0004387999651953578,
-          "total_stage_time_seconds": 50.14854289998766,
-          "error_category": "validation_rejection",
+          "stage_id": "financial_performance_alone",
+          "prompt_characters": 5515,
+          "prompt_token_estimate": 1378,
+          "json_validation_time_seconds": 0.003919699927791953,
+          "total_stage_time_seconds": 28.895463299937546,
+          "error_category": null,
           "timeout_error_category": null,
           "schema_retry_attempted": false,
           "placeholder_retry_attempted": false,
           "model": "qwen3:30b-a3b",
           "reasoning_enabled": true,
-          "request_start_utc": "2026-07-22T19:58:26.807061+00:00",
-          "request_end_utc": "2026-07-22T19:59:16.955106+00:00",
-          "http_elapsed_time_seconds": 50.148047299997415,
-          "model_load_time_seconds": 0.2195344,
-          "prompt_evaluation_time_seconds": 0.171887,
-          "generation_time_seconds": 45.683685,
-          "total_ollama_time_seconds": 46.089962,
-          "prompt_eval_count": 2953,
-          "generation_eval_count": 815,
-          "thinking_characters": 3059,
+          "request_start_utc": "2026-07-24T15:57:25.441399+00:00",
+          "request_end_utc": "2026-07-24T15:57:54.332897+00:00",
+          "http_elapsed_time_seconds": 28.891503900056705,
+          "model_load_time_seconds": 0.2254792,
+          "prompt_evaluation_time_seconds": 0.248313,
+          "generation_time_seconds": 24.214748,
+          "total_ollama_time_seconds": 24.8000641,
+          "prompt_eval_count": 1754,
+          "generation_eval_count": 465,
+          "thinking_characters": 1389,
+          "connect_timeout_seconds": 10.0,
+          "read_timeout_seconds": 600.0,
+          "keep_alive": "15m",
+          "checkpoint_source": "financial_performance_alone",
+          "checkpoint_reused": true
+        }
+      },
+      {
+        "stage_id": "historical_operational",
+        "stage_name": "Historical & Operational Reasoning",
+        "accepted": true,
+        "payload": {
+          "claims": [
+            {
+              "text": "El ingreso total del periodo es de $2,280,096 USD.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            },
+            {
+              "text": "Los gastos totales del periodo son de $2,032,596 USD.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            },
+            {
+              "text": "El resultado operativo neto del periodo es de $247,500 USD.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            },
+            {
+              "text": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            },
+            {
+              "text": "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            },
+            {
+              "text": "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            },
+            {
+              "text": "La tasa de cobranza es del 96.0%.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            },
+            {
+              "text": "No hay facturas vencidas en el periodo.",
+              "confidence": 1.0,
+              "claim_type": "fact"
+            }
+          ],
+          "risks": [
+            {
+              "text": "El alto porcentaje de nómina (40.0%) sobre el ingreso total podría representar un riesgo financiero si los ingresos disminuyen.",
+              "confidence": 0.85
+            }
+          ],
+          "opportunities": [
+            {
+              "text": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar aún más la eficiencia en la gestión de cobranzas.",
+              "confidence": 0.9
+            }
+          ],
+          "open_questions": [
+            {
+              "text": "¿Cuál es el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto?"
+            }
+          ],
+          "_selected_fact_summary": {
+            "stage_id": "historical_operational",
+            "selected_fact_count": 25,
+            "selection_prefixes": [
+              "history.",
+              "finance.",
+              "anomaly."
+            ]
+          }
+        },
+        "validation_errors": [],
+        "telemetry": {
+          "stage_id": "historical_operational",
+          "prompt_characters": 7411,
+          "prompt_token_estimate": 1852,
+          "json_validation_time_seconds": 0.003146699978969991,
+          "total_stage_time_seconds": 32.966309800045565,
+          "error_category": null,
+          "timeout_error_category": null,
+          "schema_retry_attempted": false,
+          "placeholder_retry_attempted": false,
+          "model": "qwen3:30b-a3b",
+          "reasoning_enabled": true,
+          "request_start_utc": "2026-07-24T15:57:54.351187+00:00",
+          "request_end_utc": "2026-07-24T15:58:27.314304+00:00",
+          "http_elapsed_time_seconds": 32.96311999997124,
+          "model_load_time_seconds": 0.2076552,
+          "prompt_evaluation_time_seconds": 0.162036,
+          "generation_time_seconds": 28.309621,
+          "total_ollama_time_seconds": 28.8693348,
+          "prompt_eval_count": 2264,
+          "generation_eval_count": 553,
+          "thinking_characters": 1699,
+          "connect_timeout_seconds": 10.0,
+          "read_timeout_seconds": 600.0,
+          "keep_alive": "15m"
+        }
+      },
+      {
+        "stage_id": "strategic_synthesis",
+        "stage_name": "Strategic Synthesis",
+        "accepted": true,
+        "payload": {
+          "executive_summary": "El informe financiero del período 2026-12 muestra un ingreso total de $2,280,096 USD, con gastos totales de $2,032,596 USD, generando un resultado operativo neto de $247,500 USD. El porcentaje de nómina sobre el ingreso total es del 40.0%, y la tasa de cobranza alcanza el 96.0% sin facturas vencidas. Los ingresos aumentaron un 4.0% en comparación con el período anterior, mientras que los gastos disminuyeron un 0.3%.",
+          "key_findings": [
+            "El ingreso total del período es de $2,280,096 USD.",
+            "Los gastos totales del período son de $2,032,596 USD.",
+            "El resultado operativo neto del período es de $247,500 USD.",
+            "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+            "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+            "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+            "La tasa de cobranza es del 96.0%.",
+            "No hay facturas vencidas en el período."
+          ],
+          "root_causes": [
+            "El alto porcentaje de nómina (40.0%) sobre el ingreso total representa un riesgo financiero si los ingresos disminuyen."
+          ],
+          "strategic_recommendations": [
+            {
+              "priority": "high",
+              "action": "Monitorear el porcentaje de nómina y ajustar los costos operativos si los ingresos disminuyen.",
+              "rationale": "El alto porcentaje de nómina (40.0%) representa un riesgo financiero si los ingresos disminuyen.",
+              "supporting_evidence": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+              "expected_impact": "Reducir el riesgo financiero en escenarios de disminución de ingresos.",
+              "evidence_ids": [
+                "finance.metric.total_revenue",
+                "finance.metric.total_expenses",
+                "finance.metric.net_operating_result"
+              ],
+              "confidence": 0.85
+            },
+            {
+              "priority": "medium",
+              "action": "Optimizar la gestión de cobranzas para mejorar la tasa de cobranza por encima del 96.0%.",
+              "rationale": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar la eficiencia en la gestión de cobranzas.",
+              "supporting_evidence": "La tasa de cobranza es del 96.0%.",
+              "expected_impact": "Aumentar la eficiencia en la gestión financiera y potencialmente incrementar los ingresos.",
+              "evidence_ids": [
+                "finance.metric.total_revenue",
+                "finance.metric.total_expenses",
+                "finance.metric.net_operating_result"
+              ],
+              "confidence": 0.9
+            }
+          ],
+          "strategic_priorities": [
+            "Reducir el riesgo financiero asociado al alto porcentaje de nómina.",
+            "Mejorar la eficiencia en la gestión de cobranzas."
+          ],
+          "missing_information": [
+            "El impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto.",
+            "Ingresos específicos del departamento de Artes y Humanidades."
+          ],
+          "financial_health_analysis": "El resultado operativo neto positivo de $247,500 USD refleja una salud financiera sólida, respaldada por un aumento en los ingresos y una ligera reducción en los gastos. La tasa de cobranza del 96.0% indica eficiencia en la gestión financiera.",
+          "kpi_analysis": "El porcentaje de nómina del 40.0% y la tasa de cobranza del 96.0% son indicadores clave que requieren monitoreo continuo para mantener la estabilidad financiera.",
+          "historical_summary": "El período 2026-12 muestra una tendencia positiva en ingresos (+4.0%) y una ligera disminución en gastos (-0.3%), manteniendo un resultado operativo neto estable.",
+          "historical_trend_analysis": "Los ingresos han aumentado consistentemente, mientras que los gastos han disminuido ligeramente, contribuyendo a un resultado operativo neto positivo.",
+          "department_analysis": "El departamento de Administración reporta ingresos de $182,408 USD y gastos de $162,608 USD, con un resultado operativo neto de $19,800 USD. El departamento de Artes y Humanidades registra gastos de $284,563 USD, pero no se proporcionan ingresos específicos.",
+          "anomaly_analysis": "No se identificaron anomalías en el período 2026-12, con un total de 0 anomalías reportadas.",
+          "recommendation_follow_up_analysis": "Se requiere un análisis adicional para determinar el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto.",
+          "longitudinal_risk_analysis": "El riesgo financiero asociado al alto porcentaje de nómina (40.0%) debe ser evaluado en escenarios de disminución de ingresos.",
+          "narrative_evidence": {
+            "executive_summary": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "financial_health_analysis": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "kpi_analysis": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "historical_summary": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "historical_trend_analysis": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "department_analysis": [
+              "finance.department.administration.actual_revenue",
+              "finance.department.administration.actual_expenses",
+              "finance.department.administration.net_operating_result",
+              "finance.department.administration.expense_variance_pct",
+              "finance.department.arts_humanities.actual_revenue",
+              "finance.department.arts_humanities.actual_expenses",
+              "finance.department.arts_humanities.net_operating_result",
+              "finance.department.arts_humanities.expense_variance_pct"
+            ],
+            "anomaly_analysis": [
+              "anomaly.total_count"
+            ],
+            "recommendation_follow_up_analysis": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "longitudinal_risk_analysis": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "reasoning_summary": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "key_findings": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "root_causes": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "strategic_priorities": [
+              "finance.metric.total_revenue",
+              "finance.metric.total_expenses",
+              "finance.metric.net_operating_result"
+            ],
+            "missing_information": [
+              "evidence.step_001.summary"
+            ]
+          },
+          "confidence": 0.95,
+          "reasoning_summary": "El análisis se basa en hechos validados y datos deterministas proporcionados en el contexto, sin cálculos ni suposiciones adicionales.",
+          "recommendations": [
+            {
+              "priority": "high",
+              "action": "Monitorear el porcentaje de nómina y ajustar los costos operativos si los ingresos disminuyen.",
+              "rationale": "El alto porcentaje de nómina (40.0%) representa un riesgo financiero si los ingresos disminuyen.",
+              "supporting_evidence": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+              "expected_impact": "Reducir el riesgo financiero en escenarios de disminución de ingresos.",
+              "evidence_ids": [
+                "finance.metric.total_revenue",
+                "finance.metric.total_expenses",
+                "finance.metric.net_operating_result"
+              ],
+              "confidence": 0.85
+            },
+            {
+              "priority": "medium",
+              "action": "Optimizar la gestión de cobranzas para mejorar la tasa de cobranza por encima del 96.0%.",
+              "rationale": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar la eficiencia en la gestión de cobranzas.",
+              "supporting_evidence": "La tasa de cobranza es del 96.0%.",
+              "expected_impact": "Aumentar la eficiencia en la gestión financiera y potencialmente incrementar los ingresos.",
+              "evidence_ids": [
+                "finance.metric.total_revenue",
+                "finance.metric.total_expenses",
+                "finance.metric.net_operating_result"
+              ],
+              "confidence": 0.9
+            }
+          ],
+          "_python_attached_evidence": true
+        },
+        "validation_errors": [],
+        "telemetry": {
+          "stage_id": "strategic_synthesis",
+          "prompt_characters": 7650,
+          "prompt_token_estimate": 1912,
+          "json_validation_time_seconds": 0.0023524999851360917,
+          "total_stage_time_seconds": 77.92758240003604,
+          "error_category": null,
+          "timeout_error_category": null,
+          "schema_retry_attempted": false,
+          "placeholder_retry_attempted": false,
+          "model": "qwen3:30b-a3b",
+          "reasoning_enabled": true,
+          "request_start_utc": "2026-07-24T15:58:27.323512+00:00",
+          "request_end_utc": "2026-07-24T15:59:45.248688+00:00",
+          "http_elapsed_time_seconds": 77.92518170003314,
+          "model_load_time_seconds": 0.218262,
+          "prompt_evaluation_time_seconds": 0.071132,
+          "generation_time_seconds": 73.217437,
+          "total_ollama_time_seconds": 73.8314073,
+          "prompt_eval_count": 2092,
+          "generation_eval_count": 1458,
+          "thinking_characters": 4754,
           "connect_timeout_seconds": 10.0,
           "read_timeout_seconds": 600.0,
           "keep_alive": "15m"
@@ -4351,23 +5752,167 @@
     ]
   },
   "analysis": {
-    "executive_summary": "",
-    "key_findings": [],
-    "root_causes": [],
-    "financial_health_analysis": "",
-    "kpi_analysis": "",
-    "department_analysis": "",
-    "anomaly_analysis": "",
-    "recommendation_follow_up_analysis": "",
-    "longitudinal_risk_analysis": "",
-    "strategic_recommendations": [],
-    "recommendations": [],
-    "strategic_priorities": [],
-    "missing_information": [],
-    "historical_summary": "",
-    "historical_trend_analysis": "",
-    "narrative_evidence": {},
-    "confidence": null,
-    "reasoning_summary": ""
+    "executive_summary": "El informe financiero del período 2026-12 muestra un ingreso total de $2,280,096 USD, con gastos totales de $2,032,596 USD, generando un resultado operativo neto de $247,500 USD. El porcentaje de nómina sobre el ingreso total es del 40.0%, y la tasa de cobranza alcanza el 96.0% sin facturas vencidas. Los ingresos aumentaron un 4.0% en comparación con el período anterior, mientras que los gastos disminuyeron un 0.3%.",
+    "key_findings": [
+      "El ingreso total del período es de $2,280,096 USD.",
+      "Los gastos totales del período son de $2,032,596 USD.",
+      "El resultado operativo neto del período es de $247,500 USD.",
+      "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+      "El ingreso varía en $87,696 USD con respecto al período anterior, un aumento del 4.0%.",
+      "Los gastos varían en -$6,336 USD con respecto al período anterior, una disminución del 0.3%.",
+      "La tasa de cobranza es del 96.0%.",
+      "No hay facturas vencidas en el período."
+    ],
+    "root_causes": [
+      "El alto porcentaje de nómina (40.0%) sobre el ingreso total representa un riesgo financiero si los ingresos disminuyen."
+    ],
+    "strategic_recommendations": [
+      {
+        "priority": "high",
+        "action": "Monitorear el porcentaje de nómina y ajustar los costos operativos si los ingresos disminuyen.",
+        "rationale": "El alto porcentaje de nómina (40.0%) representa un riesgo financiero si los ingresos disminuyen.",
+        "supporting_evidence": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+        "expected_impact": "Reducir el riesgo financiero en escenarios de disminución de ingresos.",
+        "evidence_ids": [
+          "finance.metric.total_revenue",
+          "finance.metric.total_expenses",
+          "finance.metric.net_operating_result"
+        ],
+        "confidence": 0.85
+      },
+      {
+        "priority": "medium",
+        "action": "Optimizar la gestión de cobranzas para mejorar la tasa de cobranza por encima del 96.0%.",
+        "rationale": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar la eficiencia en la gestión de cobranzas.",
+        "supporting_evidence": "La tasa de cobranza es del 96.0%.",
+        "expected_impact": "Aumentar la eficiencia en la gestión financiera y potencialmente incrementar los ingresos.",
+        "evidence_ids": [
+          "finance.metric.total_revenue",
+          "finance.metric.total_expenses",
+          "finance.metric.net_operating_result"
+        ],
+        "confidence": 0.9
+      }
+    ],
+    "strategic_priorities": [
+      "Reducir el riesgo financiero asociado al alto porcentaje de nómina.",
+      "Mejorar la eficiencia en la gestión de cobranzas."
+    ],
+    "missing_information": [
+      "El impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto.",
+      "Ingresos específicos del departamento de Artes y Humanidades."
+    ],
+    "financial_health_analysis": "El resultado operativo neto positivo de $247,500 USD refleja una salud financiera sólida, respaldada por un aumento en los ingresos y una ligera reducción en los gastos. La tasa de cobranza del 96.0% indica eficiencia en la gestión financiera.",
+    "kpi_analysis": "El porcentaje de nómina del 40.0% y la tasa de cobranza del 96.0% son indicadores clave que requieren monitoreo continuo para mantener la estabilidad financiera.",
+    "historical_summary": "El período 2026-12 muestra una tendencia positiva en ingresos (+4.0%) y una ligera disminución en gastos (-0.3%), manteniendo un resultado operativo neto estable.",
+    "historical_trend_analysis": "Los ingresos han aumentado consistentemente, mientras que los gastos han disminuido ligeramente, contribuyendo a un resultado operativo neto positivo.",
+    "department_analysis": "El departamento de Administración reporta ingresos de $182,408 USD y gastos de $162,608 USD, con un resultado operativo neto de $19,800 USD. El departamento de Artes y Humanidades registra gastos de $284,563 USD, pero no se proporcionan ingresos específicos.",
+    "anomaly_analysis": "No se identificaron anomalías en el período 2026-12, con un total de 0 anomalías reportadas.",
+    "recommendation_follow_up_analysis": "Se requiere un análisis adicional para determinar el impacto de la disminución en los gastos (-0.3%) en el resultado operativo neto.",
+    "longitudinal_risk_analysis": "El riesgo financiero asociado al alto porcentaje de nómina (40.0%) debe ser evaluado en escenarios de disminución de ingresos.",
+    "narrative_evidence": {
+      "executive_summary": [
+        "finance.metric.total_revenue",
+        "finance.metric.total_expenses",
+        "finance.metric.net_operating_result"
+      ],
+      "financial_health_analysis": [
+        "finance.metric.total_revenue",
+        "finance.metric.total_expenses",
+        "finance.metric.net_operating_result"
+      ],
+      "kpi_analysis": [
+        "finance.metric.total_revenue",
+        "finance.metric.total_expenses",
+        "finance.metric.net_operating_result"
+      ],
+      "historical_summary": [
+        "finance.metric.total_revenue",
+        "finance.metric.total_expenses",
+        "finance.metric.net_operating_result"
+      ],
+      "historical_trend_analysis": [
+        "finance.metric.total_revenue",
+        "finance.metric.total_expenses",
+        "finance.metric.net_operating_result"
+      ],
+      "department_analysis": [
+        "finance.department.administration.actual_revenue",
+        "finance.department.administration.actual_expenses",
+        "finance.department.administration.net_operating_result",
+        "finance.department.administration.expense_variance_pct",
+        "finance.department.arts_humanities.actual_revenue",
+        "finance.department.arts_humanities.actual_expenses",
+        "finance.department.arts_humanities.net_operating_result",
+        "finance.department.arts_humanities.expense_variance_pct"
+      ],
+      "anomaly_analysis": [
+        "anomaly.total_count"
+      ],
+      "recommendation_follow_up_analysis": [
+        "finance.metric.total_revenue",
+        "finance.metric.total_expenses",
+        "finance.metric.net_operating_result"
+      ],
+      "longitudinal_risk_analysis": [
+        "finance.metric.total_revenue",
+        "finance.metric.total_expenses",
+        "finance.metric.net_operating_result"
+      ],
+      "reasoning_summary": [
+        "finance.metric.total_revenue",
+        "finance.metric.total_expenses",
+        "finance.metric.net_operating_result"
+      ],
+      "key_findings": [
+        "finance.metric.total_revenue",
+        "finance.metric.total_expenses",
+        "finance.metric.net_operating_result"
+      ],
+      "root_causes": [
+        "finance.metric.total_revenue",
+        "finance.metric.total_expenses",
+        "finance.metric.net_operating_result"
+      ],
+      "strategic_priorities": [
+        "finance.metric.total_revenue",
+        "finance.metric.total_expenses",
+        "finance.metric.net_operating_result"
+      ],
+      "missing_information": [
+        "evidence.step_001.summary"
+      ]
+    },
+    "confidence": 0.95,
+    "reasoning_summary": "El análisis se basa en hechos validados y datos deterministas proporcionados en el contexto, sin cálculos ni suposiciones adicionales.",
+    "recommendations": [
+      {
+        "priority": "high",
+        "action": "Monitorear el porcentaje de nómina y ajustar los costos operativos si los ingresos disminuyen.",
+        "rationale": "El alto porcentaje de nómina (40.0%) representa un riesgo financiero si los ingresos disminuyen.",
+        "supporting_evidence": "El porcentaje de nómina sobre el ingreso total es del 40.0%.",
+        "expected_impact": "Reducir el riesgo financiero en escenarios de disminución de ingresos.",
+        "evidence_ids": [
+          "finance.metric.total_revenue",
+          "finance.metric.total_expenses",
+          "finance.metric.net_operating_result"
+        ],
+        "confidence": 0.85
+      },
+      {
+        "priority": "medium",
+        "action": "Optimizar la gestión de cobranzas para mejorar la tasa de cobranza por encima del 96.0%.",
+        "rationale": "La tasa de cobranza del 96.0% sugiere una oportunidad para mejorar la eficiencia en la gestión de cobranzas.",
+        "supporting_evidence": "La tasa de cobranza es del 96.0%.",
+        "expected_impact": "Aumentar la eficiencia en la gestión financiera y potencialmente incrementar los ingresos.",
+        "evidence_ids": [
+          "finance.metric.total_revenue",
+          "finance.metric.total_expenses",
+          "finance.metric.net_operating_result"
+        ],
+        "confidence": 0.9
+      }
+    ],
+    "_python_attached_evidence": true
   }
 }

@@ -292,9 +292,10 @@ def _number_variants_for_ledger(value: Any, display_value: str, unit: str | None
     Assumptions: percentages are approved only at ledger display precision.
     """
 
+    number_pattern = r"(?<!\d)-?\d{1,3}(?:,\d{3})+(?:\.\d+)?%?|(?<!\d)-?\d+(?:[\.,]\d+)?%?"
     variants = {
         _normalize_claim_number(match.group(0))
-        for match in re.finditer(r"-?\d+(?:[\.,]\d+)?%?", str(display_value))
+        for match in re.finditer(number_pattern, str(display_value))
     }
     try:
         number = float(value)
@@ -303,6 +304,13 @@ def _number_variants_for_ledger(value: Any, display_value: str, unit: str | None
     variants.add(_normalize_claim_number(str(value)))
     if unit == "ratio":
         variants.add(f"{number:.1%}")
+        if number < 0:
+            # Spanish prose often expresses a negative ratio as
+            # "disminución del 0.3%" instead of repeating the minus sign.
+            variants.add(f"{abs(number):.1%}")
+    for variant in list(variants):
+        if variant.startswith("-") and variant.endswith("%"):
+            variants.add(variant[1:])
     return variants
 
 
@@ -591,7 +599,7 @@ def _normalize_claim_number(token: str) -> str:
     core = text[:-1] if suffix else text
     if "," in core and "." not in core:
         parts = core.split(",")
-        if len(parts) == 2 and len(parts[1]) == 3 and suffix != "%":
+        if len(parts) >= 2 and all(len(part) == 3 for part in parts[1:]) and suffix != "%":
             core = "".join(parts)
         else:
             core = core.replace(",", ".")
@@ -609,7 +617,8 @@ def _extract_supported_claim_tokens(*contexts: dict[str, Any]) -> dict[str, set[
     """
 
     text = json.dumps(contexts, ensure_ascii=False)
-    numbers = {_normalize_claim_number(match.group(0)) for match in re.finditer(r"-?\d+(?:[\.,]\d+)?%?", text)}
+    number_pattern = r"(?<!\d)-?\d{1,3}(?:,\d{3})+(?:\.\d+)?%?|(?<!\d)-?\d+(?:[\.,]\d+)?%?"
+    numbers = {_normalize_claim_number(match.group(0)) for match in re.finditer(number_pattern, text)}
     # Ratios are stored as decimals in processed JSON, while executive prose may
     # cite the equivalent percentage. Allow both forms without allowing new math.
     for number in list(numbers):
@@ -623,6 +632,8 @@ def _extract_supported_claim_tokens(*contexts: dict[str, Any]) -> dict[str, set[
             numbers.add(f"{value:.0%}")
             numbers.add(f"{value:.1%}")
             numbers.add(f"{value:.2%}")
+        if number.startswith("-") and number.endswith("%"):
+            numbers.add(number[1:])
     periods = set(re.findall(r"20\d{2}[-_]\d{2}|20\d{2}", text))
     departments: set[str] = set()
     for context in contexts:
@@ -835,7 +846,8 @@ def validate_evidence_bound_claims(
         lowered = text.casefold()
         if any(phrase in lowered for phrase in GENERIC_PLACEHOLDER_PHRASES):
             errors.append(f"{field_name} contains generic placeholder prose")
-        for number in {_normalize_claim_number(match.group(0)) for match in re.finditer(r"-?\d+(?:[\.,]\d+)?%?", text)}:
+        number_pattern = r"(?<!\d)-?\d{1,3}(?:,\d{3})+(?:\.\d+)?%?|(?<!\d)-?\d+(?:[\.,]\d+)?%?"
+        for number in {_normalize_claim_number(match.group(0)) for match in re.finditer(number_pattern, text)}:
             if number in supported["periods"]:
                 continue
             if number not in supported["numbers"]:
