@@ -17,6 +17,7 @@ DEFAULT_OLLAMA_CONNECT_TIMEOUT_SECONDS = 10.0
 DEFAULT_OLLAMA_READ_TIMEOUT_SECONDS = 600.0
 DEFAULT_OLLAMA_STAGE_TIMEOUT_SECONDS = 900.0
 DEFAULT_OLLAMA_KEEP_ALIVE = "15m"
+PIPELINE_SCHEMA_VERSION = "finance-ai-agent-pipeline-v2"
 
 
 @dataclass(frozen=True)
@@ -201,6 +202,7 @@ class PipelineConfig:
     deduplicate_context: bool = True
     enable_memory_storage: bool = True
     memory_database_path: Path | None = None
+    source_revision_confirmed: bool = False
 
     @classmethod
     def from_project_root(
@@ -228,6 +230,7 @@ class PipelineConfig:
         deduplicate_context: bool = True,
         enable_memory_storage: bool = True,
         memory_database_path: str | Path | None = None,
+        source_revision_confirmed: bool = False,
     ) -> "PipelineConfig":
         """Build a default configuration from the repository root.
 
@@ -272,6 +275,7 @@ class PipelineConfig:
             memory_database_path=Path(memory_database_path)
             if memory_database_path is not None
             else root / "data" / "memory" / "finance_memory.db",
+            source_revision_confirmed=source_revision_confirmed,
         )
 
     def to_dict(self) -> dict[str, Any]:

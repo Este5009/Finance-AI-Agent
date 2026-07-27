@@ -504,6 +504,20 @@ def test_runtime_optimization_settings_change_cache_key(tmp_path: Path) -> None:
     )
 
 
+def test_pipeline_version_changes_cache_key(tmp_path: Path, monkeypatch: Any) -> None:
+    """Verify pipeline/schema version participates in cache identity."""
+
+    from finance_agent.orchestration import pipeline_orchestrator
+
+    input_model = _input_model(tmp_path)
+    config = _config(tmp_path)
+    original = _pipeline_cache_key(input_model, config)
+
+    monkeypatch.setattr(pipeline_orchestrator, "PIPELINE_SCHEMA_VERSION", "test-version-change")
+
+    assert pipeline_orchestrator._pipeline_cache_key(input_model, config) != original
+
+
 def test_pipeline_profile_summarizes_stage_telemetry(tmp_path: Path) -> None:
     """Verify profiler output includes stage timings and context telemetry."""
 

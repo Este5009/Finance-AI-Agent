@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 import sys
 import time
@@ -11,6 +12,7 @@ from pathlib import Path
 from typing import Any, Callable, Protocol
 
 from finance_agent.llm.ollama_client import DEFAULT_OLLAMA_ENDPOINT
+from finance_agent.memory.repository import MemoryRepository
 from finance_agent.orchestration import (
     DEFAULT_OLLAMA_MODEL,
     EXPERIMENTAL_FAST_OLLAMA_MODEL,
@@ -70,6 +72,7 @@ class StreamlitRunSettings:
     enable_cache: bool = True
     enable_memory_storage: bool = True
     memory_database_path: Path | None = None
+    source_revision_confirmed: bool = False
 
 
 PipelineRunner = Callable[[PipelineInputModel, PipelineConfig], PipelineRunResult]
@@ -174,6 +177,7 @@ def build_pipeline_config(
         enable_cache=settings.enable_cache,
         enable_memory_storage=settings.enable_memory_storage,
         memory_database_path=settings.memory_database_path,
+        source_revision_confirmed=settings.source_revision_confirmed,
         input_model=input_model,
     )
 
@@ -205,11 +209,11 @@ def _period_override_from_selection(selection: str, value: str) -> str | None:
     """Convert period override widgets into the orchestrator override string.
 
     Inputs: selected mode and optional user-entered value.
-    Outputs: None for Auto, otherwise the stripped override text.
+    Outputs: None for automatic detection, otherwise the stripped override text.
     Assumptions: pipeline period parsing/validation remains downstream.
     """
 
-    if selection == "Auto":
+    if selection in {"Auto", "Detectar automáticamente"}:
         return None
     return value.strip() or None
 
@@ -302,12 +306,89 @@ def _file_status_message(uploaded_file: UploadedFileLike | None, allowed: tuple[
     """
 
     if uploaded_file is None:
-        return "pending", "Pendiente de cargar."
+        return "pending", "Ningún archivo seleccionado."
     if not _is_allowed_extension(uploaded_file, allowed):
         allowed_text = ", ".join(f".{item}" for item in allowed)
         return "error", f"Formato no permitido. Use: {allowed_text}."
     size = len(uploaded_file.getbuffer())
     return "ok", f"Archivo listo: {uploaded_file.name} ({size / 1024:.1f} KB)."
+
+
+def _sha256_upload(uploaded_file: UploadedFileLike) -> str:
+    """Compute SHA-256 from raw uploaded bytes.
+
+    Inputs: uploaded file object.
+    Outputs: hex digest of the file content.
+    Assumptions: filename is not used for document identity.
+    """
+
+    return hashlib.sha256(bytes(uploaded_file.getbuffer())).hexdigest()
+
+
+def _classify_upload_for_period(
+    *,
+    uploaded_file: UploadedFileLike | None,
+    document_type: str,
+    effective_period: str | None,
+    database_path: Path | None,
+) -> dict[str, Any] | None:
+    """Classify an uploaded file against the persistent document registry.
+
+    Inputs: upload, document type, effective period, and SQLite path.
+    Outputs: classification dictionary or None when classification is unavailable.
+    Assumptions: this is a read-only preflight used before pipeline execution.
+    """
+
+    if uploaded_file is None or not effective_period or database_path is None:
+        return None
+    repository = MemoryRepository(database_path)
+    classification = repository.classify_source_document(
+        document_type=document_type,
+        content_sha256=_sha256_upload(uploaded_file),
+        effective_period=effective_period,
+    )
+    return classification.to_dict()
+
+
+def _render_upload_registry_status(st: Any, label: str, classification: dict[str, Any] | None) -> None:
+    """Render Spanish document-registry status for one upload.
+
+    Inputs: Streamlit module, display label, and optional classification.
+    Outputs: visible status message.
+    Assumptions: classification happens before analysis and registration after success.
+    """
+
+    if not classification:
+        return
+    status = classification.get("status")
+    message = str(classification.get("message") or "")
+    if status == "duplicate":
+        st.info(f"{label}: {message}")
+    elif status == "revision":
+        st.warning(f"{label}: {message}")
+    else:
+        st.success(f"{label}: Archivo nuevo.")
+
+
+def _success_registration_message(
+    result: PipelineRunResult,
+    classifications: tuple[dict[str, Any] | None, ...],
+) -> str:
+    """Return the Spanish post-run registration status.
+
+    Inputs: pipeline result and preflight document classifications.
+    Outputs: concise success message for administrators.
+    Assumptions: accepted persistence happens after successful quality-backed runs.
+    """
+
+    if result.cache_hit:
+        return "Análisis reutilizado."
+    statuses = {str(item.get("status")) for item in classifications if item}
+    if "revision" in statuses:
+        return "Nueva versión registrada."
+    if "duplicate" in statuses:
+        return "Este archivo ya fue registrado anteriormente. Se reutilizará el registro existente."
+    return "Nuevo período registrado."
 
 
 def _read_text_artifact(path: Path | None, limit: int = 2000) -> str:
@@ -337,7 +418,7 @@ def _apply_page_styles(st: Any) -> None:
     st.markdown(
         """
         <style>
-        .main .block-container { padding-top: 2rem; max-width: 1180px; }
+        .main .block-container { padding-top: 1.1rem; max-width: 1180px; }
         div[data-testid="stMetric"] {
             background: #fbfdff;
             border: 1px solid #d8e1ea;
@@ -352,11 +433,69 @@ def _apply_page_styles(st: Any) -> None:
             margin: 10px 0 16px;
         }
         .step-card {
-            border-left: 4px solid #245b89;
-            background: #f6f9fc;
-            padding: 12px 14px;
-            border-radius: 10px;
-            margin-bottom: 10px;
+            min-height: 112px;
+            background: linear-gradient(180deg, #ffffff 0%, #f6f9fc 100%);
+            border: 1px solid #d8e1ea;
+            border-left: 5px solid #245b89;
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin: 4px 0 8px;
+            box-shadow: 0 1px 2px rgba(23, 43, 77, 0.05);
+        }
+        .step-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 999px;
+            background: #e7f0f8;
+            margin-right: 8px;
+        }
+        .step-title {
+            color: #12314d;
+            font-size: 1.02rem;
+            font-weight: 700;
+        }
+        .step-description {
+            color: #435466;
+            line-height: 1.38;
+            margin-top: 8px;
+            font-size: 0.94rem;
+        }
+        .compat-card {
+            background: #f8fbff;
+            border: 1px solid #d8e1ea;
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin: 2px 0 14px;
+            color: #33485c;
+        }
+        .run-action-card {
+            background: #f5f9fd;
+            border: 1px solid #d8e1ea;
+            border-radius: 16px;
+            padding: 14px 16px 10px;
+            margin-top: 8px;
+        }
+        div[data-testid="stFileUploaderDropzoneInstructions"] {
+            display: none;
+        }
+        div[data-testid="stFileUploaderDropzone"] small {
+            display: none;
+        }
+        div[data-testid="stFileUploaderDropzone"] button {
+            font-size: 0;
+        }
+        div[data-testid="stFileUploaderDropzone"] button::after {
+            content: "Seleccionar archivo";
+            font-size: 0.9rem;
+        }
+        div[data-testid="stButton"] button:disabled {
+            background-color: #e4e9ef !important;
+            color: #526273 !important;
+            border: 1px solid #b8c4d0 !important;
+            opacity: 1 !important;
         }
         </style>
         """,
@@ -391,9 +530,33 @@ def _render_workflow_intro(st: Any) -> None:
 
     st.markdown("### Cómo funciona")
     col_a, col_b, col_c = st.columns(3)
-    col_a.markdown("<div class='step-card'><b>1. Cargue archivos</b><br/>Reporte financiero y documento de metas del mismo periodo.</div>", unsafe_allow_html=True)
-    col_b.markdown("<div class='step-card'><b>2. Ejecute análisis</b><br/>El sistema calcula indicadores, consulta historial e interpreta evidencia validada.</div>", unsafe_allow_html=True)
-    col_c.markdown("<div class='step-card'><b>3. Descargue reporte</b><br/>Revise el resumen y descargue PDF, HTML o archivos de auditoría.</div>", unsafe_allow_html=True)
+    col_a.markdown(
+        """
+        <div class='step-card'>
+          <div><span class='step-icon'>📄</span><span class='step-title'>Cargue archivos</span></div>
+          <div class='step-description'>Suba el reporte financiero y el documento de metas del mismo periodo.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    col_b.markdown(
+        """
+        <div class='step-card'>
+          <div><span class='step-icon'>📊</span><span class='step-title'>Genere el análisis</span></div>
+          <div class='step-description'>El sistema calcula indicadores, consulta historial e interpreta evidencia validada.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    col_c.markdown(
+        """
+        <div class='step-card'>
+          <div><span class='step-icon'>📥</span><span class='step-title'>Descargue resultados</span></div>
+          <div class='step-description'>Revise el resumen ejecutivo y descargue el PDF, HTML o JSON de auditoría.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _section_by_id(report_model: dict[str, Any], section_id: str) -> dict[str, Any]:
@@ -457,7 +620,7 @@ def _render_stage_results(st: Any, result: PipelineRunResult) -> None:
         )
     st.subheader("Progreso del análisis")
     cache_label = "se reutilizó un análisis existente" if result.cache_hit else "análisis nuevo"
-    st.info(f"Cache: {cache_label}.")
+    st.info(f"Reutilización: {cache_label}.")
     st.dataframe(rows, use_container_width=True, hide_index=True)
     ollama_rows = [
         row
@@ -704,21 +867,29 @@ def _render_streamlit_app(st: Any) -> None:
 
     with st.sidebar:
         st.header("Configuración")
-        language = st.selectbox("Idioma del reporte", options=("es", "en"), index=0)
+        language_label = st.selectbox("Idioma del reporte", options=("Español", "Inglés"), index=0)
+        language = {"Español": "es", "Inglés": "en"}[language_label]
         override_mode = st.selectbox(
             "Periodo",
-            options=("Auto", "Mensual", "Trimestral", "Semestral", "Anual", "Personalizado"),
+            options=(
+                "Detectar automáticamente",
+                "Mensual",
+                "Trimestral",
+                "Semestral",
+                "Anual",
+                "Personalizado",
+            ),
             index=0,
-            help="Use Auto salvo que el sistema no pueda detectar el periodo correctamente.",
+            help="Use la detección automática salvo que el sistema no pueda identificar el periodo correctamente.",
         )
         override_value = ""
-        if override_mode != "Auto":
+        if override_mode != "Detectar automáticamente":
             override_value = st.text_input(
                 "Periodo específico",
                 placeholder="Ejemplos: 2026-06, 2026-Q2, 2026-S1, 2026",
             )
         with st.expander("Opciones avanzadas", expanded=False):
-            st.caption("Use estas opciones solo si administra Ollama, cache o memoria histórica.")
+            st.caption("Use estas opciones solo si administra Ollama, reutilización o memoria histórica.")
             endpoint = st.text_input("Servidor Ollama", value=DEFAULT_OLLAMA_ENDPOINT)
             model = st.text_input(
                 "Modelo Ollama",
@@ -766,6 +937,17 @@ def _render_streamlit_app(st: Any) -> None:
             st.rerun()
 
     st.markdown("### 1. Cargue los documentos")
+    st.markdown(
+        """
+        <div class='compat-card'>
+          <b>Archivos compatibles:</b>
+          reporte financiero en Excel o CSV (.xlsx, .xls, .csv) y documento de metas en PDF,
+          Word o Excel (.pdf, .docx, .xlsx, .xls). El periodo se detecta automáticamente
+          a partir del nombre del archivo, fechas y contenido disponible.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     upload_col_a, upload_col_b = st.columns(2)
     with upload_col_a:
         financial_report = st.file_uploader(
@@ -788,19 +970,90 @@ def _render_streamlit_app(st: Any) -> None:
         and _is_allowed_extension(financial_report, FINANCIAL_REPORT_UPLOAD_TYPES)
         and _is_allowed_extension(goals_document, GOALS_UPLOAD_TYPES)
     )
-    st.markdown("### 2. Ejecute el análisis")
-    st.caption(
-        "El procesamiento financiero es determinístico. La consulta histórica usa memoria local si está disponible. "
-        "La interpretación estratégica usa Ollama sobre evidencia ya validada."
+    preflight_input: PipelineInputModel | None = None
+    report_classification: dict[str, Any] | None = None
+    goals_classification: dict[str, Any] | None = None
+    memory_database_path = Path(memory_database).expanduser() if memory_database.strip() else None
+    if files_ready:
+        # The UI writes temporary preflight copies so the shared deterministic
+        # period-detection layer can classify uploads before pipeline execution.
+        preflight_dir = UPLOAD_ROOT / "_preflight"
+        preflight_report_path = save_uploaded_file(financial_report, preflight_dir)
+        preflight_goals_path = save_uploaded_file(goals_document, preflight_dir)
+        period_mode_map = {
+            "Detectar automáticamente": "Auto",
+            "Mensual": "Monthly",
+            "Trimestral": "Quarterly",
+            "Semestral": "Semester",
+            "Anual": "Annual",
+            "Personalizado": "Custom",
+        }
+        preflight_settings = StreamlitRunSettings(
+            report_language=language,
+            period_override=_period_override_from_selection(
+                period_mode_map.get(override_mode, "Auto"),
+                override_value,
+            ),
+            memory_database_path=memory_database_path,
+        )
+        try:
+            preflight_input = build_input_model_from_uploads(
+                financial_report_path=preflight_report_path,
+                goals_document_path=preflight_goals_path,
+                settings=preflight_settings,
+            )
+            effective_period = preflight_input.effective_period_label
+            report_classification = _classify_upload_for_period(
+                uploaded_file=financial_report,
+                document_type="financial_report",
+                effective_period=effective_period,
+                database_path=memory_database_path,
+            )
+            goals_classification = _classify_upload_for_period(
+                uploaded_file=goals_document,
+                document_type="goals_document",
+                effective_period=effective_period,
+                database_path=memory_database_path,
+            )
+        except Exception as exc:  # noqa: BLE001 - preflight should inform, not crash.
+            st.warning(f"No se pudo clasificar la versión del archivo antes del análisis: {exc}")
+    _render_upload_registry_status(st, "Reporte financiero", report_classification)
+    _render_upload_registry_status(st, "Documento de metas", goals_classification)
+    revision_required = any(
+        item and item.get("requires_revision_confirmation")
+        for item in (report_classification, goals_classification)
     )
+    revision_confirmed = False
+    if revision_required:
+        revision_confirmed = st.checkbox(
+            "Confirmo registrar una nueva versión para este período si el análisis es aceptado.",
+            value=False,
+        )
+    st.markdown("### 2. Genere el análisis financiero")
+    if files_ready and (not revision_required or revision_confirmed):
+        st.markdown(
+            """
+            <div class='run-action-card'>
+              <b>Listo para analizar.</b><br/>
+              Los documentos están completos. Genere el reporte ejecutivo con un solo clic.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    elif revision_required:
+        st.warning("Confirme el registro de la nueva versión antes de ejecutar el análisis.")
+    else:
+        st.info("Seleccione el reporte financiero y el documento de metas para continuar.")
     run_button = st.button(
         "Generar análisis financiero",
         type="primary",
         use_container_width=True,
-        disabled=not files_ready or bool(st.session_state.get("finance_ai_running")),
+        disabled=(
+            not files_ready
+            or (revision_required and not revision_confirmed)
+            or bool(st.session_state.get("finance_ai_running"))
+        ),
     )
-    if not files_ready:
-        st.info("Cargue un reporte financiero y un documento de metas válidos para iniciar.")
 
     if not run_button:
         result = st.session_state.get("finance_ai_result")
@@ -815,7 +1068,7 @@ def _render_streamlit_app(st: Any) -> None:
     report_path = save_uploaded_file(financial_report, run_dir)
     goals_path = save_uploaded_file(goals_document, run_dir)
     period_mode_map = {
-        "Auto": "Auto",
+        "Detectar automáticamente": "Auto",
         "Mensual": "Monthly",
         "Trimestral": "Quarterly",
         "Semestral": "Semester",
@@ -840,7 +1093,8 @@ def _render_streamlit_app(st: Any) -> None:
         deduplicate_context=bool(deduplicate_context),
         enable_cache=bool(enable_cache),
         enable_memory_storage=bool(enable_memory_storage),
-        memory_database_path=Path(memory_database).expanduser() if memory_database.strip() else None,
+        memory_database_path=memory_database_path,
+        source_revision_confirmed=revision_confirmed,
     )
 
     try:
@@ -865,7 +1119,10 @@ def _render_streamlit_app(st: Any) -> None:
         st.session_state["finance_ai_running"] = False
 
     if result.success:
-        st.success("Análisis completado. Revise el resumen y descargue los reportes.")
+        st.success(
+            f"{_success_registration_message(result, (report_classification, goals_classification))} "
+            "Revise el resumen y descargue los reportes."
+        )
     else:
         st.error("El análisis terminó con una falla crítica. Revise el paso marcado como 'Requiere atención'.")
     if result.warnings:

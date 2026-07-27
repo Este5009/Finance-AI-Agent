@@ -43,6 +43,7 @@ from finance_agent.memory.context_builder import (
 )
 from finance_agent.orchestration.pipeline_models import (
     DetectedPeriod,
+    PIPELINE_SCHEMA_VERSION,
     PipelineConfig,
     PipelineInputModel,
     PipelineRunResult,
@@ -457,6 +458,7 @@ def _pipeline_cache_key(input_model: PipelineInputModel, config: PipelineConfig)
     payload = {
         "financial_report_sha256": _hash_file(input_model.financial_report_path),
         "goals_document_sha256": _hash_file(input_model.goals_document_path),
+        "pipeline_schema_version": PIPELINE_SCHEMA_VERSION,
         "period_override": input_model.period_override,
         "effective_period_label": input_model.effective_period_label,
         "report_language": input_model.report_language,
@@ -958,7 +960,10 @@ def run_pipeline_for_report(
         planner_ollama_model=config.planner_ollama_model,
         analysis_ollama_model=config.analysis_ollama_model,
         ollama_timeout_seconds=config.ollama_timeout_seconds,
+        connect_timeout_seconds=config.connect_timeout_seconds,
+        read_timeout_seconds=config.read_timeout_seconds,
         stage_timeout_seconds=config.stage_timeout_seconds,
+        ollama_keep_alive=config.ollama_keep_alive,
         input_model=input_model,
         structure_fallback_table_threshold=config.structure_fallback_table_threshold,
         structure_fallback_column_threshold=config.structure_fallback_column_threshold,
@@ -969,6 +974,7 @@ def run_pipeline_for_report(
         deduplicate_context=config.deduplicate_context,
         enable_memory_storage=config.enable_memory_storage,
         memory_database_path=config.memory_database_path,
+        source_revision_confirmed=config.source_revision_confirmed,
     )
     if stages is not None or stage_executor is not run_stage_subprocess:
         # Tests and legacy callers can still exercise the script-backed path with

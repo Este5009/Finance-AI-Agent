@@ -56,6 +56,14 @@ def initialize_database(database_path: str | Path = DEFAULT_MEMORY_DB_PATH) -> P
                     "INSERT INTO schema_version(version, applied_at_utc) VALUES (?, ?)",
                     (SCHEMA_VERSION, datetime.now(timezone.utc).isoformat()),
                 )
+            elif int(version) < SCHEMA_VERSION:
+                # Current migrations are additive and idempotent through
+                # schema.sql. Recording the new version makes old databases
+                # visibly upgraded without rewriting existing accepted runs.
+                connection.execute(
+                    "INSERT OR IGNORE INTO schema_version(version, applied_at_utc) VALUES (?, ?)",
+                    (SCHEMA_VERSION, datetime.now(timezone.utc).isoformat()),
+                )
             elif int(version) > SCHEMA_VERSION:
                 raise RuntimeError(
                     f"Database schema version {version} is newer than supported {SCHEMA_VERSION}."

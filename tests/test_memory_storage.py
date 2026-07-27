@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import sqlite3
 import sys
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +16,7 @@ from finance_agent.memory.database import initialize_database
 from finance_agent.memory.models import (
     AnomalyRecord,
     ArtifactRecord,
+    SourceDocumentRecord,
     StoredPipelineRun,
 )
 from finance_agent.memory.repository import MemoryRepository
@@ -260,9 +263,138 @@ def test_schema_creation_and_migration(tmp_path: Path) -> None:
             )
         }
 
-    assert version == 1
+    assert version == 2
     assert "pipeline_runs" in tables
     assert "memory_facts" in tables
+    assert "source_documents" in tables
+
+
+def _source_document(
+    *,
+    content: str,
+    filename: str,
+    document_type: str = "financial_report",
+    period: str = "2026-06",
+) -> SourceDocumentRecord:
+    """Build a source document fixture."""
+
+    digest = content
+    return SourceDocumentRecord(
+        document_id=f"DOC-{document_type}-{digest[:8]}",
+        content_sha256=digest,
+        original_filename=filename,
+        document_type=document_type,
+        size_bytes=123,
+        detected_period=period,
+        effective_period=period,
+        upload_time_utc=datetime.now(timezone.utc).isoformat(),
+        processing_status="accepted",
+        source_metadata_json="{}",
+    )
+
+
+def test_same_filename_same_content_reuses_source_document(tmp_path: Path) -> None:
+    """Verify exact duplicate content does not create a second document."""
+
+    repository = MemoryRepository(tmp_path / "memory.db")
+    first = repository.register_source_document(_source_document(content="hash-a", filename="report.xlsx"))
+    second = repository.register_source_document(_source_document(content="hash-a", filename="report.xlsx"))
+
+    assert first.document_id == second.document_id
+    assert second.reused_existing is True
+    assert repository.table_counts()["source_documents"] == 1
+
+
+def test_different_filename_same_content_reuses_source_document(tmp_path: Path) -> None:
+    """Verify filename changes do not affect content identity."""
+
+    repository = MemoryRepository(tmp_path / "memory.db")
+    first = repository.register_source_document(_source_document(content="hash-b", filename="old.xlsx"))
+    second = repository.register_source_document(_source_document(content="hash-b", filename="renamed.xlsx"))
+
+    assert first.document_id == second.document_id
+    assert second.status == "duplicate"
+    assert repository.table_counts()["source_documents"] == 1
+
+
+def test_same_period_different_content_requires_revision_confirmation(tmp_path: Path) -> None:
+    """Verify revised content for an existing period needs explicit confirmation."""
+
+    repository = MemoryRepository(tmp_path / "memory.db")
+    repository.register_source_document(_source_document(content="hash-c1", filename="report.xlsx"))
+    classification = repository.classify_source_document(
+        document_type="financial_report",
+        content_sha256="hash-c2",
+        effective_period="2026-06",
+    )
+
+    assert classification.status == "revision"
+    assert classification.requires_revision_confirmation is True
+    try:
+        repository.register_source_document(_source_document(content="hash-c2", filename="report_v2.xlsx"))
+    except ValueError as exc:
+        assert "Revision confirmation" in str(exc)
+    else:  # pragma: no cover - defensive assertion.
+        raise AssertionError("Expected revision confirmation failure")
+
+
+def test_revision_registration_marks_current_version(tmp_path: Path) -> None:
+    """Verify confirmed revisions preserve old versions and mark the latest current."""
+
+    repository = MemoryRepository(tmp_path / "memory.db")
+    first = repository.register_source_document(_source_document(content="hash-d1", filename="report.xlsx"))
+    second = repository.register_source_document(
+        _source_document(content="hash-d2", filename="report_v2.xlsx"),
+        revision_confirmed=True,
+    )
+    current = repository.fetch_current_document(document_type="financial_report", effective_period="2026-06")
+
+    assert second.registered_revision is True
+    assert second.version_number == 2
+    assert current is not None
+    assert current["document_id"] == second.document_id
+    assert current["document_id"] != first.document_id
+    assert repository.table_counts()["source_documents"] == 2
+
+
+def test_same_report_different_goals_tracks_independent_goal_revision(tmp_path: Path) -> None:
+    """Verify goals documents version independently from financial reports."""
+
+    repository = MemoryRepository(tmp_path / "memory.db")
+    repository.register_source_document(_source_document(content="report-hash", filename="report.xlsx"))
+    repository.register_source_document(
+        _source_document(
+            content="goals-1",
+            filename="goals.pdf",
+            document_type="goals_document",
+        )
+    )
+    classification = repository.classify_source_document(
+        document_type="goals_document",
+        content_sha256="goals-2",
+        effective_period="2026-06",
+    )
+
+    assert classification.status == "revision"
+    assert repository.table_counts()["source_documents"] == 2
+
+
+def test_concurrent_duplicate_insertion_reuses_one_document(tmp_path: Path) -> None:
+    """Verify concurrent duplicate attempts converge on one content record."""
+
+    repository = MemoryRepository(tmp_path / "memory.db")
+    record = _source_document(content="hash-concurrent", filename="report.xlsx")
+
+    def register_once() -> str:
+        """Register the same record once."""
+
+        return repository.register_source_document(record).document_id
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        ids = list(executor.map(lambda _item: register_once(), range(8)))
+
+    assert len(set(ids)) == 1
+    assert repository.table_counts()["source_documents"] == 1
 
 
 def test_successful_run_persistence_and_table_counts(tmp_path: Path) -> None:
@@ -349,6 +481,9 @@ def test_rollback_on_failure(tmp_path: Path) -> None:
         artifact_directory="outputs",
         configuration_json="{}",
         artifacts=(ArtifactRecord("json", "missing.json", None),),
+        source_documents=(
+            _source_document(content="rollback-report", filename="rollback.xlsx"),
+        ),
         anomalies=(
             AnomalyRecord("DUP", None, None, None, "high", "metric", "{}", "one"),
             AnomalyRecord("DUP", None, None, None, "high", "metric", "{}", "two"),
@@ -361,6 +496,7 @@ def test_rollback_on_failure(tmp_path: Path) -> None:
         pass
 
     assert repository.table_counts()["pipeline_runs"] == 0
+    assert repository.table_counts()["source_documents"] == 0
 
 
 def test_rejected_strategy_is_not_stored(tmp_path: Path) -> None:

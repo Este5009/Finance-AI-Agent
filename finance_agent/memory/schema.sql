@@ -27,6 +27,33 @@ CREATE TABLE IF NOT EXISTS pipeline_runs (
     updated_at_utc TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS source_documents (
+    document_id TEXT PRIMARY KEY,
+    content_sha256 TEXT NOT NULL,
+    original_filename TEXT NOT NULL,
+    document_type TEXT NOT NULL CHECK(document_type IN ('financial_report', 'goals_document')),
+    size_bytes INTEGER NOT NULL,
+    detected_period TEXT,
+    effective_period TEXT NOT NULL,
+    upload_time_utc TEXT NOT NULL,
+    processing_status TEXT NOT NULL,
+    source_metadata_json TEXT NOT NULL DEFAULT '{}',
+    version_number INTEGER NOT NULL DEFAULT 1,
+    supersedes_document_id TEXT,
+    is_current INTEGER NOT NULL DEFAULT 1,
+    UNIQUE(document_type, content_sha256),
+    FOREIGN KEY(supersedes_document_id) REFERENCES source_documents(document_id)
+);
+
+CREATE TABLE IF NOT EXISTS pipeline_run_documents (
+    run_id TEXT NOT NULL,
+    document_id TEXT NOT NULL,
+    document_role TEXT NOT NULL CHECK(document_role IN ('financial_report', 'goals_document')),
+    PRIMARY KEY(run_id, document_role),
+    FOREIGN KEY(run_id) REFERENCES pipeline_runs(run_id) ON DELETE CASCADE,
+    FOREIGN KEY(document_id) REFERENCES source_documents(document_id)
+);
+
 CREATE TABLE IF NOT EXISTS artifacts (
     artifact_id INTEGER PRIMARY KEY AUTOINCREMENT,
     run_id TEXT NOT NULL,
@@ -102,6 +129,11 @@ CREATE TABLE IF NOT EXISTS memory_facts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_pipeline_runs_period ON pipeline_runs(period);
+CREATE INDEX IF NOT EXISTS idx_source_documents_hash ON source_documents(document_type, content_sha256);
+CREATE INDEX IF NOT EXISTS idx_source_documents_period ON source_documents(document_type, effective_period, is_current);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_source_documents_current_period
+ON source_documents(document_type, effective_period)
+WHERE is_current = 1 AND processing_status = 'accepted';
 CREATE INDEX IF NOT EXISTS idx_artifacts_run_type ON artifacts(run_id, artifact_type);
 CREATE INDEX IF NOT EXISTS idx_kpis_metric ON kpis(metric);
 CREATE INDEX IF NOT EXISTS idx_anomalies_severity ON anomalies(severity);

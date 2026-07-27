@@ -248,6 +248,7 @@ def test_period_override_auto_returns_none() -> None:
     """Verify Auto mode leaves period detection in charge."""
 
     assert streamlit_app._period_override_from_selection("Auto", "2026-06") is None
+    assert streamlit_app._period_override_from_selection("Detectar automáticamente", "2026-06") is None
     assert streamlit_app._period_override_from_selection("Monthly", "2026-06") == "2026-06"
 
 
@@ -259,11 +260,65 @@ def test_file_validation_messages_are_spanish() -> None:
     bad_status, bad_message = streamlit_app._file_status_message(FakeUpload("metas.txt", b"bad"), ("pdf",))
 
     assert pending_status == "pending"
-    assert "Pendiente" in pending_message
+    assert "Ningún archivo seleccionado" in pending_message
     assert ok_status == "ok"
     assert "Archivo listo" in ok_message
     assert bad_status == "error"
     assert "Formato no permitido" in bad_message
+
+
+def test_ui_copy_contains_executive_workflow_cards_and_spanish_upload_copy() -> None:
+    """Verify the UI source contains Spanish executive workflow and upload copy."""
+
+    source = Path(streamlit_app.__file__).read_text(encoding="utf-8")
+
+    assert "Cargue archivos" in source
+    assert "Genere el análisis" in source
+    assert "Descargue resultados" in source
+    assert "Archivos compatibles" in source
+    assert "Seleccionar archivo" in source
+    assert "Detectar automáticamente" in source
+    assert "Ningún archivo seleccionado" in source
+    forbidden_native_copy = (
+        "Drag" + " and drop file here",
+        "Browse" + " files",
+        "Limit" + " 200MB per file",
+    )
+    for phrase in forbidden_native_copy:
+        assert phrase not in source
+
+
+def test_success_registration_messages_are_spanish() -> None:
+    """Verify post-run document registration outcomes use clear Spanish labels."""
+
+    config = PipelineConfig.from_project_root(Path("."), python_executable="python")
+    result = _pipeline_result(config)
+    cached = PipelineRunResult(
+        success=True,
+        stages=result.stages,
+        output_files=(),
+        warnings=(),
+        runtime_summary=result.runtime_summary,
+        config=config,
+        cache_hit=True,
+    )
+
+    assert streamlit_app._success_registration_message(cached, ()) == "Análisis reutilizado."
+    assert streamlit_app._success_registration_message(result, ({"status": "revision"},)) == "Nueva versión registrada."
+    assert "registrado anteriormente" in streamlit_app._success_registration_message(result, ({"status": "duplicate"},))
+    assert streamlit_app._success_registration_message(result, ({"status": "new"},)) == "Nuevo período registrado."
+
+
+def test_custom_ui_css_uses_accessible_card_contrast() -> None:
+    """Verify custom card CSS avoids white-on-light low-contrast combinations."""
+
+    source = Path(streamlit_app.__file__).read_text(encoding="utf-8")
+
+    assert ".run-action-card" in source
+    assert "color: #33485c" in source
+    assert "color: #435466" in source
+    assert "color: white" not in source
+    assert "color: #fff" not in source
 
 
 def test_ui_stage_results_display_cache_and_skipped_status() -> None:
@@ -334,6 +389,6 @@ def test_ui_stage_results_display_cache_and_skipped_status() -> None:
 
     streamlit_app._render_stage_results(fake_st, result)
 
-    assert fake_st.info_messages == ["Cache: se reutilizó un análisis existente."]
+    assert fake_st.info_messages == ["Reutilización: se reutilizó un análisis existente."]
     assert fake_st.tables[0][0]["Estado"] == "Omitido"
     assert fake_st.tables[-1][0]["Tamaño contexto"] == 100

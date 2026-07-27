@@ -17,6 +17,7 @@ from finance_agent.memory.models import (
     KpiRecord,
     MemoryFactRecord,
     RecommendationRecord,
+    SourceDocumentRecord,
     StorageResult,
     StoredPipelineRun,
 )
@@ -51,6 +52,17 @@ def _hash_text(value: str) -> str:
     """
 
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _source_document_id(document_type: str, content_sha256: str) -> str:
+    """Build a stable source-document ID from type and content hash.
+
+    Inputs: document type and SHA-256 content hash.
+    Outputs: deterministic document ID.
+    Assumptions: filenames are not part of document identity.
+    """
+
+    return f"DOC-{document_type.upper().replace('_', '-')}-{content_sha256[:24]}"
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -511,6 +523,8 @@ def build_stored_pipeline_run(
     analysis_document = _load_json(paths["strategic_analysis"])
     report_hash = _file_checksum(input_model.financial_report_path) or ""
     goals_hash = _file_checksum(input_model.goals_document_path) or ""
+    detected_period = input_model.detected_period.label
+    effective_period = input_model.effective_period_label
     configuration_json = json.dumps(
         result.config.to_dict(),
         sort_keys=True,
@@ -559,6 +573,47 @@ def build_stored_pipeline_run(
         recommendations=_extract_recommendations(analysis_document),
         goals=_extract_goals(finance_summary, paths.get("goals_text")),
         memory_facts=_extract_memory_facts(analysis_document, evidence_package, anomalies),
+        source_documents=(
+            SourceDocumentRecord(
+                document_id=_source_document_id("financial_report", report_hash),
+                content_sha256=report_hash,
+                original_filename=input_model.financial_report_path.name,
+                document_type="financial_report",
+                size_bytes=input_model.financial_report_path.stat().st_size,
+                detected_period=detected_period,
+                effective_period=effective_period,
+                upload_time_utc=datetime.now(timezone.utc).isoformat(),
+                processing_status="accepted",
+                source_metadata_json=json.dumps(
+                    {
+                        "path": str(input_model.financial_report_path.resolve()),
+                        "period_type": input_model.period_type,
+                    },
+                    sort_keys=True,
+                    ensure_ascii=False,
+                ),
+            ),
+            SourceDocumentRecord(
+                document_id=_source_document_id("goals_document", goals_hash),
+                content_sha256=goals_hash,
+                original_filename=input_model.goals_document_path.name,
+                document_type="goals_document",
+                size_bytes=input_model.goals_document_path.stat().st_size,
+                detected_period=detected_period,
+                effective_period=effective_period,
+                upload_time_utc=datetime.now(timezone.utc).isoformat(),
+                processing_status="accepted",
+                source_metadata_json=json.dumps(
+                    {
+                        "path": str(input_model.goals_document_path.resolve()),
+                        "period_type": input_model.period_type,
+                    },
+                    sort_keys=True,
+                    ensure_ascii=False,
+                ),
+            ),
+        ),
+        source_revision_confirmed=result.config.source_revision_confirmed,
     )
 
 

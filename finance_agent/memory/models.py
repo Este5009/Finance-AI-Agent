@@ -8,7 +8,7 @@ from typing import Any
 
 
 DEFAULT_MEMORY_DB_PATH = Path("data") / "memory" / "finance_memory.db"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 @dataclass(frozen=True)
@@ -144,6 +144,8 @@ class StoredPipelineRun:
     recommendations: tuple[RecommendationRecord, ...] = field(default_factory=tuple)
     goals: tuple[GoalRecord, ...] = field(default_factory=tuple)
     memory_facts: tuple[MemoryFactRecord, ...] = field(default_factory=tuple)
+    source_documents: tuple[SourceDocumentRecord, ...] = field(default_factory=tuple)
+    source_revision_confirmed: bool = False
 
 
 @dataclass(frozen=True)
@@ -179,4 +181,92 @@ class StorageResult:
             "table_counts": self.table_counts,
             "reason": self.reason,
             "updated_existing": self.updated_existing,
+        }
+
+
+@dataclass(frozen=True)
+class SourceDocumentRecord:
+    """Stored source-document metadata for uploaded reports and goals.
+
+    Inputs: content identity, document type, period metadata, and version fields.
+    Outputs: immutable record used by the repository layer.
+    Assumptions: file bytes stay on disk; SQLite stores metadata and hashes only.
+    """
+
+    document_id: str
+    content_sha256: str
+    original_filename: str
+    document_type: str
+    size_bytes: int
+    detected_period: str | None
+    effective_period: str
+    upload_time_utc: str
+    processing_status: str
+    source_metadata_json: str
+    version_number: int = 1
+    supersedes_document_id: str | None = None
+    is_current: bool = True
+
+
+@dataclass(frozen=True)
+class DocumentClassification:
+    """Pre-processing classification for one uploaded source document.
+
+    Inputs: status and optional existing/current records.
+    Outputs: UI-safe classification used before pipeline execution.
+    Assumptions: caller decides whether a revision is explicitly confirmed.
+    """
+
+    status: str
+    message: str
+    document_type: str
+    content_sha256: str
+    effective_period: str
+    existing_document_id: str | None = None
+    current_document_id: str | None = None
+    next_version_number: int = 1
+    requires_revision_confirmation: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the classification for UI/session diagnostics."""
+
+        return {
+            "status": self.status,
+            "message": self.message,
+            "document_type": self.document_type,
+            "content_sha256": self.content_sha256,
+            "effective_period": self.effective_period,
+            "existing_document_id": self.existing_document_id,
+            "current_document_id": self.current_document_id,
+            "next_version_number": self.next_version_number,
+            "requires_revision_confirmation": self.requires_revision_confirmation,
+        }
+
+
+@dataclass(frozen=True)
+class DocumentRegistrationResult:
+    """Result returned after registering an accepted source document.
+
+    Inputs: persisted document ID, status, and version metadata.
+    Outputs: immutable summary for UI and pipeline diagnostics.
+    Assumptions: duplicate content reuses the existing document record.
+    """
+
+    document_id: str
+    status: str
+    message: str
+    version_number: int
+    reused_existing: bool = False
+    registered_revision: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the registration result for UI/session diagnostics."""
+
+        return {
+            "document_id": self.document_id,
+            "status": self.status,
+            "message": self.message,
+            "version_number": self.version_number,
+            "reused_existing": self.reused_existing,
+            "registered_revision": self.registered_revision,
         }
