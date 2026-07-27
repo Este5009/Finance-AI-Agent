@@ -20,6 +20,7 @@ from finance_agent.orchestration import (
     build_pipeline_input_model,
     run_pipeline_for_report,
 )
+from finance_agent.reporting.presentation import build_presentation_view
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -66,9 +67,34 @@ class StreamlitRunSettings:
     max_planner_anomalies: int = 5
     compact_context: bool = True
     deduplicate_context: bool = True
+    enable_cache: bool = True
+    enable_memory_storage: bool = True
+    memory_database_path: Path | None = None
 
 
 PipelineRunner = Callable[[PipelineInputModel, PipelineConfig], PipelineRunResult]
+
+
+STAGE_LABELS_ES: dict[str, str] = {
+    "ingestion": "Procesando archivos",
+    "document_understanding": "Entendiendo estructura del reporte",
+    "finance_calculations": "Calculando indicadores",
+    "anomaly_detection": "Detectando anomalías",
+    "ollama_structure_fallback": "Revisando estructura dudosa",
+    "ollama_investigation_planner": "Preparando investigación",
+    "retrieval_layer": "Consultando historial",
+    "strategic_analysis": "Generando análisis estratégico",
+    "report_engine": "Creando modelo de reporte",
+    "report_renderer": "Creando reporte descargable",
+    "pipeline_cache": "Reutilizando análisis existente",
+    "memory_storage": "Guardando memoria histórica",
+}
+
+STATUS_LABELS_ES: dict[str, str] = {
+    "ok": "Completado",
+    "skipped": "Omitido",
+    "failed": "Requiere atención",
+}
 
 
 def _safe_upload_name(filename: str) -> str:
@@ -145,6 +171,9 @@ def build_pipeline_config(
         max_planner_anomalies=settings.max_planner_anomalies,
         compact_context=settings.compact_context,
         deduplicate_context=settings.deduplicate_context,
+        enable_cache=settings.enable_cache,
+        enable_memory_storage=settings.enable_memory_storage,
+        memory_database_path=settings.memory_database_path,
         input_model=input_model,
     )
 
@@ -220,6 +249,153 @@ def _find_output(result: PipelineRunResult, suffix: str) -> Path | None:
     return None
 
 
+def _stage_display_name(stage: Any) -> str:
+    """Return a Spanish stage name for administrators.
+
+    Inputs: pipeline stage result.
+    Outputs: Spanish display label.
+    Assumptions: unknown stage names are sanitized but not exposed as tool names.
+    """
+
+    key = str(getattr(stage, "stage_name", "") or "")
+    if key in STAGE_LABELS_ES:
+        return STAGE_LABELS_ES[key]
+    raw = str(getattr(stage, "display_name", "") or key).replace("_", " ")
+    return raw.capitalize()
+
+
+def _stage_status(stage: Any) -> tuple[str, str]:
+    """Return Spanish status text and severity for a stage.
+
+    Inputs: pipeline stage result.
+    Outputs: label and CSS/status key.
+    Assumptions: skipped successful stages are expected runtime behavior.
+    """
+
+    if getattr(stage, "skipped", False):
+        return STATUS_LABELS_ES["skipped"], "skipped"
+    if getattr(stage, "success", False):
+        return STATUS_LABELS_ES["ok"], "ok"
+    return STATUS_LABELS_ES["failed"], "failed"
+
+
+def _is_allowed_extension(uploaded_file: UploadedFileLike | None, allowed: tuple[str, ...]) -> bool:
+    """Validate an uploaded file extension.
+
+    Inputs: uploaded file and allowed suffixes.
+    Outputs: True when the file is absent or allowed.
+    Assumptions: Streamlit also filters extensions, but explicit messaging helps users.
+    """
+
+    if uploaded_file is None:
+        return True
+    suffix = Path(uploaded_file.name).suffix.lower().lstrip(".")
+    return suffix in allowed
+
+
+def _file_status_message(uploaded_file: UploadedFileLike | None, allowed: tuple[str, ...]) -> tuple[str, str]:
+    """Return a Spanish validation message for one uploaded file.
+
+    Inputs: uploaded file and allowed extensions.
+    Outputs: status kind and message.
+    Assumptions: byte-level validation remains with the pipeline.
+    """
+
+    if uploaded_file is None:
+        return "pending", "Pendiente de cargar."
+    if not _is_allowed_extension(uploaded_file, allowed):
+        allowed_text = ", ".join(f".{item}" for item in allowed)
+        return "error", f"Formato no permitido. Use: {allowed_text}."
+    size = len(uploaded_file.getbuffer())
+    return "ok", f"Archivo listo: {uploaded_file.name} ({size / 1024:.1f} KB)."
+
+
+def _read_text_artifact(path: Path | None, limit: int = 2000) -> str:
+    """Read a small preview from a text artifact.
+
+    Inputs: optional path and character limit.
+    Outputs: preview text or empty string.
+    Assumptions: previews are informational; downloads provide full files.
+    """
+
+    if path is None or not path.is_file():
+        return ""
+    try:
+        return path.read_text(encoding="utf-8", errors="replace")[:limit]
+    except OSError:
+        return ""
+
+
+def _apply_page_styles(st: Any) -> None:
+    """Apply lightweight dashboard styling to the Streamlit app.
+
+    Inputs: Streamlit module.
+    Outputs: injected CSS.
+    Assumptions: styling is presentation-only and does not affect pipeline logic.
+    """
+
+    st.markdown(
+        """
+        <style>
+        .main .block-container { padding-top: 2rem; max-width: 1180px; }
+        div[data-testid="stMetric"] {
+            background: #fbfdff;
+            border: 1px solid #d8e1ea;
+            border-radius: 14px;
+            padding: 14px 16px;
+        }
+        .finance-card {
+            background: #fbfdff;
+            border: 1px solid #d8e1ea;
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin: 10px 0 16px;
+        }
+        .step-card {
+            border-left: 4px solid #245b89;
+            background: #f6f9fc;
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_file_validation(st: Any, label: str, uploaded_file: UploadedFileLike | None, allowed: tuple[str, ...]) -> None:
+    """Render file validation feedback.
+
+    Inputs: Streamlit module, label, uploaded file, and allowed extensions.
+    Outputs: status message.
+    Assumptions: deep file validation remains with ingestion.
+    """
+
+    status, message = _file_status_message(uploaded_file, allowed)
+    if status == "ok":
+        st.success(f"{label}: {message}")
+    elif status == "error":
+        st.error(f"{label}: {message}")
+    else:
+        st.info(f"{label}: {message}")
+
+
+def _render_workflow_intro(st: Any) -> None:
+    """Render a short guided workflow explanation.
+
+    Inputs: Streamlit module.
+    Outputs: visible step cards.
+    Assumptions: stage wording should be understandable without architecture context.
+    """
+
+    st.markdown("### Cómo funciona")
+    col_a, col_b, col_c = st.columns(3)
+    col_a.markdown("<div class='step-card'><b>1. Cargue archivos</b><br/>Reporte financiero y documento de metas del mismo periodo.</div>", unsafe_allow_html=True)
+    col_b.markdown("<div class='step-card'><b>2. Ejecute análisis</b><br/>El sistema calcula indicadores, consulta historial e interpreta evidencia validada.</div>", unsafe_allow_html=True)
+    col_c.markdown("<div class='step-card'><b>3. Descargue reporte</b><br/>Revise el resumen y descargue PDF, HTML o archivos de auditoría.</div>", unsafe_allow_html=True)
+
+
 def _section_by_id(report_model: dict[str, Any], section_id: str) -> dict[str, Any]:
     """Return one section from a renderer-agnostic report model.
 
@@ -266,67 +442,62 @@ def _render_stage_results(st: Any, result: PipelineRunResult) -> None:
     Assumptions: stages are complete when this function is called.
     """
 
-    rows = [
-        {
-            "Stage": stage.display_name,
-            "Status": "Skipped" if stage.skipped else "OK" if stage.success else "Failed",
-            "Critical": "Yes" if stage.critical else "No",
-            "Runtime (s)": round(stage.runtime_seconds, 2),
-            "Context chars": stage.telemetry.get("context_characters", ""),
-            "Generation (s)": round(
-                float(stage.telemetry.get("generation_time_seconds", 0.0)),
-                2,
-            )
-            if stage.telemetry
-            else "",
-            "Warnings": "; ".join(stage.warnings),
-            "Error": stage.error or "",
-        }
-        for stage in result.stages
-    ]
-    st.subheader("Pipeline progress")
-    cache_label = "hit" if result.cache_hit else "miss"
-    st.info(f"Pipeline cache: {cache_label}")
+    rows = []
+    for stage in result.stages:
+        status, _ = _stage_status(stage)
+        rows.append(
+            {
+                "Paso": _stage_display_name(stage),
+                "Estado": status,
+                "Tipo": "Obligatorio" if stage.critical else "Complementario",
+                "Tiempo (s)": round(stage.runtime_seconds, 2),
+                "Avisos": "; ".join(stage.warnings),
+                "Error accionable": stage.error or "",
+            }
+        )
+    st.subheader("Progreso del análisis")
+    cache_label = "se reutilizó un análisis existente" if result.cache_hit else "análisis nuevo"
+    st.info(f"Cache: {cache_label}.")
     st.dataframe(rows, use_container_width=True, hide_index=True)
     ollama_rows = [
         row
         for row in rows
-        if "Ollama" in row["Stage"] or row["Stage"] == "Strategic analysis"
+        if "análisis" in row["Paso"].lower() or "investigación" in row["Paso"].lower()
     ]
     if ollama_rows:
-        st.subheader("Ollama stage runtimes")
+        st.subheader("Tiempos de interpretación estratégica")
         st.dataframe(ollama_rows, use_container_width=True, hide_index=True)
     telemetry_rows = [
         {
-            "Stage": stage.display_name,
-            "Model load (s)": round(
+            "Paso": _stage_display_name(stage),
+            "Carga modelo (s)": round(
                 float(stage.telemetry.get("model_load_time_seconds", 0.0)),
                 2,
             ),
-            "Prompt eval (s)": round(
+            "Lectura contexto (s)": round(
                 float(stage.telemetry.get("prompt_evaluation_time_seconds", 0.0)),
                 2,
             ),
-            "Generation (s)": round(
+            "Generación (s)": round(
                 float(stage.telemetry.get("generation_time_seconds", 0.0)),
                 2,
             ),
-            "Validation (s)": round(
+            "Validación (s)": round(
                 float(stage.telemetry.get("json_validation_time_seconds", 0.0)),
                 4,
             ),
-            "Preprocess (s)": round(
+            "Preparación Python (s)": round(
                 float(stage.telemetry.get("python_preprocessing_time_seconds", 0.0)),
                 4,
             ),
-            "Context chars": stage.telemetry.get("context_characters", ""),
-            "Token est.": stage.telemetry.get("context_token_estimate", ""),
+            "Tamaño contexto": stage.telemetry.get("context_characters", ""),
+            "Tokens estimados": stage.telemetry.get("context_token_estimate", ""),
         }
         for stage in result.stages
         if stage.telemetry
     ]
     if telemetry_rows:
-        st.subheader("Ollama telemetry")
+        st.subheader("Diagnóstico avanzado de Ollama")
         st.dataframe(telemetry_rows, use_container_width=True, hide_index=True)
 
 
@@ -340,17 +511,29 @@ def _render_overview_tab(st: Any, report_model: dict[str, Any], result: Pipeline
 
     input_model = result.config.input_model
     detected = input_model.detected_period if input_model else None
-    executive = _section_by_id(report_model, "executive_summary").get("content", {})
-    health = _section_by_id(report_model, "financial_health_overview").get("content", {})
-    st.markdown("### Executive summary")
-    st.write(executive.get("summary") or "Executive summary unavailable.")
+    view = build_presentation_view(report_model) if report_model else {}
+    executive = view.get("executive_summary", {}) if isinstance(view, dict) else {}
+    health_cards = view.get("financial_health", {}).get("cards", []) if isinstance(view, dict) else []
+    st.markdown("### Resumen ejecutivo")
+    st.write(executive.get("summary") or "El resumen ejecutivo no está disponible.")
     if detected:
         col_a, col_b, col_c = st.columns(3)
-        col_a.metric("Detected period", detected.label)
-        col_b.metric("Period type", detected.period_type)
-        col_c.metric("Confidence", f"{detected.confidence:.0%}")
-    st.markdown("### Financial health")
-    st.json(health, expanded=False)
+        col_a.metric("Periodo detectado", detected.label)
+        col_b.metric("Tipo de periodo", detected.period_type)
+        col_c.metric("Confianza", f"{detected.confidence:.0%}")
+    st.markdown("### Salud financiera")
+    if health_cards:
+        columns = st.columns(min(4, len(health_cards)))
+        for index, card in enumerate(health_cards[:8]):
+            with columns[index % len(columns)]:
+                st.metric(
+                    card.get("label", "Indicador"),
+                    card.get("value", "No disponible"),
+                    card.get("comparison_rows", [{}])[0].get("value", "") if card.get("comparison_rows") else None,
+                )
+                st.caption(card.get("description", ""))
+    else:
+        st.info("No hay indicadores financieros para mostrar en esta vista.")
 
 
 def _render_kpi_tab(st: Any, report_model: dict[str, Any]) -> None:
@@ -361,8 +544,20 @@ def _render_kpi_tab(st: Any, report_model: dict[str, Any]) -> None:
     Assumptions: KPIs were calculated upstream.
     """
 
-    content = _section_by_id(report_model, "kpi_overview").get("content", {})
-    st.dataframe(content.get("kpis", []), use_container_width=True, hide_index=True)
+    view = build_presentation_view(report_model) if report_model else {}
+    rows = [
+        {
+            "Indicador": item.get("indicator"),
+            "Valor": item.get("value"),
+            "Estado": item.get("status"),
+            "Lectura": item.get("description"),
+        }
+        for item in view.get("kpis", [])
+    ]
+    if rows:
+        st.dataframe(rows, use_container_width=True, hide_index=True)
+    else:
+        st.info("No hay KPIs disponibles para este periodo.")
 
 
 def _render_anomaly_tab(st: Any, report_model: dict[str, Any]) -> None:
@@ -373,11 +568,23 @@ def _render_anomaly_tab(st: Any, report_model: dict[str, Any]) -> None:
     Assumptions: anomaly detection already ran in Python.
     """
 
-    content = _section_by_id(report_model, "anomaly_summary").get("content", {})
-    st.markdown("### Severity summary")
-    st.json(content.get("anomalies_by_severity", {}), expanded=False)
-    st.markdown("### Top anomalies")
-    st.dataframe(content.get("top_anomalies", []), use_container_width=True, hide_index=True)
+    view = build_presentation_view(report_model) if report_model else {}
+    anomalies = view.get("anomalies", {})
+    st.markdown("### Anomalías del periodo")
+    if anomalies.get("current_period_status"):
+        st.success(anomalies["current_period_status"])
+    rows = [
+        {
+            "Anomalía": item.get("title"),
+            "Severidad": item.get("severity"),
+            "Evidencia": item.get("evidence"),
+        }
+        for item in anomalies.get("top", [])
+    ]
+    if rows:
+        st.dataframe(rows, use_container_width=True, hide_index=True)
+    elif not anomalies.get("current_period_status"):
+        st.info("No hay anomalías relevantes para mostrar.")
 
 
 def _render_recommendations_tab(st: Any, report_model: dict[str, Any]) -> None:
@@ -388,27 +595,29 @@ def _render_recommendations_tab(st: Any, report_model: dict[str, Any]) -> None:
     Assumptions: strategic reasoning was generated and validated upstream.
     """
 
-    recommendations = _section_by_id(report_model, "strategic_recommendations").get(
-        "content",
-        {},
-    )
-    missing = _section_by_id(report_model, "missing_information").get("content", {})
-    st.markdown("### Root causes")
-    for item in recommendations.get("root_causes", []):
+    view = build_presentation_view(report_model) if report_model else {}
+    recommendations = view.get("recommendations", {})
+    missing_items = view.get("missing_information", [])
+    st.markdown("### Prioridades estratégicas")
+    for item in recommendations.get("priorities", []):
         st.write(f"- {item}")
-    st.markdown("### Strategic priorities")
-    for item in recommendations.get("strategic_priorities", []):
-        st.write(f"- {item}")
-    st.markdown("### Recommendations")
-    for item in recommendations.get("recommendations", []):
-        st.write(item if isinstance(item, str) else item.get("action", item))
-    missing_items = missing.get("missing_information", [])
+    st.markdown("### Recomendaciones")
+    cards = recommendations.get("cards", [])
+    if cards:
+        for item in cards:
+            with st.container(border=True):
+                st.markdown(f"**{item.get('action', 'Recomendación')}**")
+                st.write(f"Prioridad: {item.get('priority', 'No disponible')}")
+                st.write(f"Impacto esperado: {item.get('expected_impact', 'No disponible')}")
+                st.caption(f"Responsable sugerido: {item.get('owner', 'Por asignar')}")
+    else:
+        st.info("No hay recomendaciones estratégicas disponibles.")
     if missing_items:
-        st.warning("Missing information remains:")
+        st.warning("Información pendiente:")
         for item in missing_items:
             st.write(f"- {item}")
     else:
-        st.success("No missing information is currently reported.")
+        st.success("No se reporta información faltante relevante.")
 
 
 def _render_downloads_tab(st: Any, artifacts: dict[str, Path | None]) -> None:
@@ -427,14 +636,20 @@ def _render_downloads_tab(st: Any, artifacts: dict[str, Path | None]) -> None:
     }
     for label, path in artifacts.items():
         if path and path.is_file():
+            label_es = {
+                "PDF": "Descargar PDF",
+                "HTML": "Descargar HTML",
+                "Report model JSON": "Descargar modelo JSON",
+                "Strategic analysis JSON": "Descargar análisis JSON",
+            }.get(label, f"Descargar {label}")
             st.download_button(
-                label=f"Download {label}",
+                label=label_es,
                 data=path.read_bytes(),
                 file_name=path.name,
                 mime=mime_by_label[label],
             )
         else:
-            st.info(f"{label} is not available for this run.")
+            st.info(f"{label} no está disponible para esta ejecución.")
 
 
 def _render_results(st: Any, result: PipelineRunResult) -> None:
@@ -448,7 +663,7 @@ def _render_results(st: Any, result: PipelineRunResult) -> None:
     artifacts = _artifact_paths(result)
     report_model = _load_json(artifacts["Report model JSON"])
     overview, kpis, anomalies, recommendations, downloads = st.tabs(
-        ["Overview", "KPIs", "Anomalies", "Recommendations", "Downloads"]
+        ["Resumen", "KPIs", "Anomalías", "Recomendaciones", "Descargas"]
     )
     with overview:
         _render_overview_tab(st, report_model, result)
@@ -460,6 +675,203 @@ def _render_results(st: Any, result: PipelineRunResult) -> None:
         _render_recommendations_tab(st, report_model)
     with downloads:
         _render_downloads_tab(st, artifacts)
+
+
+def _render_streamlit_app(st: Any) -> None:
+    """Render the administrator-friendly Streamlit workflow.
+
+    Inputs: imported Streamlit module.
+    Outputs: interactive UI that delegates execution to the orchestrator.
+    Assumptions: all business logic remains outside this UI layer.
+    """
+
+    st.set_page_config(
+        page_title="Analista Financiero Universitario",
+        page_icon="📊",
+        layout="wide",
+    )
+    _apply_page_styles(st)
+    st.title("Analista financiero universitario")
+    st.caption(
+        "Cargue un reporte financiero y un documento de metas. La aplicación calcula indicadores, "
+        "consulta historial disponible y genera un reporte ejecutivo descargable."
+    )
+    _render_workflow_intro(st)
+
+    st.session_state.setdefault("finance_ai_result", None)
+    st.session_state.setdefault("finance_ai_running", False)
+    st.session_state.setdefault("finance_ai_error", "")
+
+    with st.sidebar:
+        st.header("Configuración")
+        language = st.selectbox("Idioma del reporte", options=("es", "en"), index=0)
+        override_mode = st.selectbox(
+            "Periodo",
+            options=("Auto", "Mensual", "Trimestral", "Semestral", "Anual", "Personalizado"),
+            index=0,
+            help="Use Auto salvo que el sistema no pueda detectar el periodo correctamente.",
+        )
+        override_value = ""
+        if override_mode != "Auto":
+            override_value = st.text_input(
+                "Periodo específico",
+                placeholder="Ejemplos: 2026-06, 2026-Q2, 2026-S1, 2026",
+            )
+        with st.expander("Opciones avanzadas", expanded=False):
+            st.caption("Use estas opciones solo si administra Ollama, cache o memoria histórica.")
+            endpoint = st.text_input("Servidor Ollama", value=DEFAULT_OLLAMA_ENDPOINT)
+            model = st.text_input(
+                "Modelo Ollama",
+                value=DEFAULT_OLLAMA_MODEL,
+                help="Configuración recomendada: un solo modelo para todas las etapas con LLM.",
+            )
+            enable_cache = st.checkbox(
+                "Reutilizar análisis idénticos",
+                value=True,
+                help="Acelera ejecuciones repetidas cuando los archivos y opciones no cambiaron.",
+            )
+            enable_memory_storage = st.checkbox(
+                "Guardar en memoria histórica",
+                value=True,
+                help="Guarda solo ejecuciones completas con análisis estratégico aceptado.",
+            )
+            memory_database = st.text_input(
+                "Base de memoria histórica",
+                value=str(PROJECT_ROOT / "data" / "memory" / "finance_memory.db"),
+            )
+            st.markdown("**Formatos de salida**")
+            st.checkbox("PDF ejecutivo", value=True, disabled=True)
+            st.checkbox("HTML ejecutivo", value=True, disabled=True)
+            st.checkbox("JSON de auditoría", value=True, disabled=True)
+            experimental_models = st.checkbox(
+                "Experimental: modelos distintos por etapa",
+                value=False,
+                help="No recomendado por defecto; benchmarks locales fueron más lentos.",
+            )
+            structure_model = planner_model = analysis_model = None
+            if experimental_models:
+                structure_model = st.text_input("Modelo para estructura", value=EXPERIMENTAL_FAST_OLLAMA_MODEL)
+                planner_model = st.text_input("Modelo para investigación", value=EXPERIMENTAL_FAST_OLLAMA_MODEL)
+                analysis_model = st.text_input("Modelo para análisis estratégico", value=DEFAULT_OLLAMA_MODEL)
+            connect_timeout = st.number_input("Tiempo máximo de conexión a Ollama (s)", 5.0, 120.0, 10.0, 5.0)
+            read_timeout = st.number_input("Tiempo máximo de respuesta de Ollama (s)", 30.0, 1800.0, 600.0, 30.0)
+            stage_timeout = st.number_input("Tiempo máximo por etapa (s)", 30.0, 2400.0, 900.0, 30.0)
+            keep_alive = st.text_input("Mantener modelo cargado", value="15m")
+            max_planner_anomalies = st.number_input("Máximo de anomalías enviadas al planificador", 1, 20, 5, 1)
+            compact_context = st.checkbox("Compactar contexto para Ollama", value=True)
+            deduplicate_context = st.checkbox("Eliminar evidencia duplicada", value=True)
+        if st.button("Nuevo análisis / limpiar resultados", use_container_width=True):
+            st.session_state["finance_ai_result"] = None
+            st.session_state["finance_ai_error"] = ""
+            st.rerun()
+
+    st.markdown("### 1. Cargue los documentos")
+    upload_col_a, upload_col_b = st.columns(2)
+    with upload_col_a:
+        financial_report = st.file_uploader(
+            "Reporte financiero",
+            type=FINANCIAL_REPORT_UPLOAD_TYPES,
+            help="Formatos admitidos: .xlsx, .xls, .csv.",
+        )
+        _render_file_validation(st, "Reporte financiero", financial_report, FINANCIAL_REPORT_UPLOAD_TYPES)
+    with upload_col_b:
+        goals_document = st.file_uploader(
+            "Documento de metas",
+            type=GOALS_UPLOAD_TYPES,
+            help="Formatos admitidos: .pdf, .docx, .xlsx, .xls.",
+        )
+        _render_file_validation(st, "Documento de metas", goals_document, GOALS_UPLOAD_TYPES)
+
+    files_ready = (
+        financial_report is not None
+        and goals_document is not None
+        and _is_allowed_extension(financial_report, FINANCIAL_REPORT_UPLOAD_TYPES)
+        and _is_allowed_extension(goals_document, GOALS_UPLOAD_TYPES)
+    )
+    st.markdown("### 2. Ejecute el análisis")
+    st.caption(
+        "El procesamiento financiero es determinístico. La consulta histórica usa memoria local si está disponible. "
+        "La interpretación estratégica usa Ollama sobre evidencia ya validada."
+    )
+    run_button = st.button(
+        "Generar análisis financiero",
+        type="primary",
+        use_container_width=True,
+        disabled=not files_ready or bool(st.session_state.get("finance_ai_running")),
+    )
+    if not files_ready:
+        st.info("Cargue un reporte financiero y un documento de metas válidos para iniciar.")
+
+    if not run_button:
+        result = st.session_state.get("finance_ai_result")
+        if result is not None:
+            _render_stage_results(st, result)
+            _render_results(st, result)
+        elif st.session_state.get("finance_ai_error"):
+            st.error(st.session_state["finance_ai_error"])
+        return
+
+    run_dir = UPLOAD_ROOT / time.strftime("%Y%m%d_%H%M%S")
+    report_path = save_uploaded_file(financial_report, run_dir)
+    goals_path = save_uploaded_file(goals_document, run_dir)
+    period_mode_map = {
+        "Auto": "Auto",
+        "Mensual": "Monthly",
+        "Trimestral": "Quarterly",
+        "Semestral": "Semester",
+        "Anual": "Annual",
+        "Personalizado": "Custom",
+    }
+    settings = StreamlitRunSettings(
+        report_language=language,
+        period_override=_period_override_from_selection(period_mode_map.get(override_mode, "Auto"), override_value),
+        ollama_endpoint=endpoint,
+        ollama_model=model.strip() or DEFAULT_OLLAMA_MODEL,
+        structure_ollama_model=structure_model.strip() if structure_model else None,
+        planner_ollama_model=planner_model.strip() if planner_model else None,
+        analysis_ollama_model=analysis_model.strip() if analysis_model else None,
+        ollama_timeout_seconds=float(read_timeout),
+        connect_timeout_seconds=float(connect_timeout),
+        read_timeout_seconds=float(read_timeout),
+        stage_timeout_seconds=float(stage_timeout),
+        ollama_keep_alive=keep_alive.strip() or "15m",
+        max_planner_anomalies=int(max_planner_anomalies),
+        compact_context=bool(compact_context),
+        deduplicate_context=bool(deduplicate_context),
+        enable_cache=bool(enable_cache),
+        enable_memory_storage=bool(enable_memory_storage),
+        memory_database_path=Path(memory_database).expanduser() if memory_database.strip() else None,
+    )
+
+    try:
+        st.session_state["finance_ai_running"] = True
+        progress = st.progress(0, text="Procesando archivos")
+        status_box = st.empty()
+        status_box.info("Procesando archivos y preparando la ejecución...")
+        with st.spinner("Ejecutando el análisis financiero..."):
+            result = run_analysis_from_files(
+                financial_report_path=report_path,
+                goals_document_path=goals_path,
+                settings=settings,
+            )
+        progress.progress(100, text="Reporte creado")
+        st.session_state["finance_ai_result"] = result
+        st.session_state["finance_ai_error"] = ""
+    except Exception as exc:  # noqa: BLE001 - UI must display graceful failures.
+        st.session_state["finance_ai_error"] = f"No se pudo iniciar el análisis: {exc}"
+        st.error(st.session_state["finance_ai_error"])
+        return
+    finally:
+        st.session_state["finance_ai_running"] = False
+
+    if result.success:
+        st.success("Análisis completado. Revise el resumen y descargue los reportes.")
+    else:
+        st.error("El análisis terminó con una falla crítica. Revise el paso marcado como 'Requiere atención'.")
+    if result.warnings:
+        st.warning("Avisos: " + "; ".join(result.warnings))
+    _render_stage_results(st, result)
+    _render_results(st, result)
 
 
 def main() -> None:
@@ -478,148 +890,7 @@ def main() -> None:
             "`pip install -r requirements.txt` before launching the UI."
         ) from exc
 
-    st.set_page_config(
-        page_title="Finance AI Agent",
-        page_icon="📊",
-        layout="wide",
-    )
-    st.title("Finance AI Agent")
-    st.caption("Upload one financial report and one goals document, then run the existing pipeline.")
-
-    with st.sidebar:
-        st.header("Inputs")
-        financial_report = st.file_uploader(
-            "Financial report",
-            type=FINANCIAL_REPORT_UPLOAD_TYPES,
-        )
-        goals_document = st.file_uploader(
-            "Goals document",
-            type=GOALS_UPLOAD_TYPES,
-        )
-        language = st.selectbox("Report language", options=("es", "en"), index=0)
-        override_mode = st.selectbox(
-            "Period override",
-            options=("Auto", "Monthly", "Quarterly", "Semester", "Annual", "Custom"),
-            index=0,
-        )
-        override_value = ""
-        if override_mode != "Auto":
-            override_value = st.text_input(
-                "Override value",
-                placeholder="Examples: 2026-06, 2026-Q2, 2026-S1, 2026",
-            )
-        with st.expander("Advanced settings", expanded=False):
-            endpoint = st.text_input("Ollama endpoint", value=DEFAULT_OLLAMA_ENDPOINT)
-            model = st.text_input(
-                "Ollama model",
-                value=DEFAULT_OLLAMA_MODEL,
-                help="Supported default: one model for every Ollama stage.",
-            )
-            experimental_models = st.checkbox(
-                "Experimental: use separate models per Ollama stage",
-                value=False,
-                help="Benchmarking showed this was slower on the current machine.",
-            )
-            structure_model = planner_model = analysis_model = None
-            if experimental_models:
-                structure_model = st.text_input(
-                    "Structure fallback model",
-                    value=EXPERIMENTAL_FAST_OLLAMA_MODEL,
-                )
-                planner_model = st.text_input(
-                    "Investigation planner model",
-                    value=EXPERIMENTAL_FAST_OLLAMA_MODEL,
-                )
-                analysis_model = st.text_input(
-                    "Strategic analysis model",
-                    value=DEFAULT_OLLAMA_MODEL,
-                )
-            connect_timeout = st.number_input(
-                "Ollama connect timeout seconds",
-                min_value=5.0,
-                max_value=120.0,
-                value=10.0,
-                step=5.0,
-            )
-            read_timeout = st.number_input(
-                "Ollama read/inference timeout seconds",
-                min_value=30.0,
-                max_value=1800.0,
-                value=600.0,
-                step=30.0,
-                help="Allows large local models time to load and generate.",
-            )
-            stage_timeout = st.number_input(
-                "Stage timeout seconds",
-                min_value=30.0,
-                max_value=2400.0,
-                value=900.0,
-                step=30.0,
-            )
-            keep_alive = st.text_input(
-                "Ollama keep_alive",
-                value="15m",
-                help="Keeps the selected model loaded across reasoning stages.",
-            )
-            max_planner_anomalies = st.number_input(
-                "Max planner anomalies sent to Ollama",
-                min_value=1,
-                max_value=20,
-                value=5,
-                step=1,
-                help="Only ranked Critical/High anomalies are sent by default.",
-            )
-            compact_context = st.checkbox("Compact Ollama context", value=True)
-            deduplicate_context = st.checkbox("Deduplicate Ollama context", value=True)
-        run_button = st.button("Run Analysis", type="primary", use_container_width=True)
-
-    if not run_button:
-        st.info("Upload both files and click Run Analysis to start.")
-        return
-    if financial_report is None or goals_document is None:
-        st.error("Please upload both a financial report and a goals document.")
-        return
-
-    run_dir = UPLOAD_ROOT / time.strftime("%Y%m%d_%H%M%S")
-    report_path = save_uploaded_file(financial_report, run_dir)
-    goals_path = save_uploaded_file(goals_document, run_dir)
-    settings = StreamlitRunSettings(
-        report_language=language,
-        period_override=_period_override_from_selection(override_mode, override_value),
-        ollama_endpoint=endpoint,
-        ollama_model=model.strip() or DEFAULT_OLLAMA_MODEL,
-        structure_ollama_model=structure_model.strip() if structure_model else None,
-        planner_ollama_model=planner_model.strip() if planner_model else None,
-        analysis_ollama_model=analysis_model.strip() if analysis_model else None,
-        ollama_timeout_seconds=float(read_timeout),
-        connect_timeout_seconds=float(connect_timeout),
-        read_timeout_seconds=float(read_timeout),
-        stage_timeout_seconds=float(stage_timeout),
-        ollama_keep_alive=keep_alive.strip() or "15m",
-        max_planner_anomalies=int(max_planner_anomalies),
-        compact_context=bool(compact_context),
-        deduplicate_context=bool(deduplicate_context),
-    )
-
-    try:
-        with st.spinner("Running Finance AI Agent pipeline..."):
-            result = run_analysis_from_files(
-                financial_report_path=report_path,
-                goals_document_path=goals_path,
-                settings=settings,
-            )
-    except Exception as exc:  # noqa: BLE001 - UI must display graceful failures.
-        st.error(f"Pipeline could not start: {exc}")
-        return
-
-    if result.success:
-        st.success("Pipeline completed successfully.")
-    else:
-        st.error("Pipeline completed with a critical failure.")
-    if result.warnings:
-        st.warning("Warnings: " + "; ".join(result.warnings))
-    _render_stage_results(st, result)
-    _render_results(st, result)
+    _render_streamlit_app(st)
 
 
 if __name__ == "__main__":

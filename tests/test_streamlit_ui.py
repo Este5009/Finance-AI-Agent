@@ -158,6 +158,8 @@ def test_run_analysis_from_files_invokes_pipeline_runner(tmp_path: Path) -> None
             max_planner_anomalies=3,
             compact_context=True,
             deduplicate_context=False,
+            enable_cache=False,
+            enable_memory_storage=False,
         ),
         runner=fake_runner,
     )
@@ -168,6 +170,8 @@ def test_run_analysis_from_files_invokes_pipeline_runner(tmp_path: Path) -> None
     assert captured["config"].stage_timeout_seconds == 34
     assert captured["config"].max_planner_anomalies == 3
     assert captured["config"].deduplicate_context is False
+    assert captured["config"].enable_cache is False
+    assert captured["config"].enable_memory_storage is False
     assert captured["config"].input_model is captured["input_model"]
     assert captured["config"].effective_ollama_models() == {
         "structure_fallback": "qwen3:30b-a3b",
@@ -247,6 +251,21 @@ def test_period_override_auto_returns_none() -> None:
     assert streamlit_app._period_override_from_selection("Monthly", "2026-06") == "2026-06"
 
 
+def test_file_validation_messages_are_spanish() -> None:
+    """Verify upload validation returns actionable Spanish messages."""
+
+    pending_status, pending_message = streamlit_app._file_status_message(None, ("xlsx",))
+    ok_status, ok_message = streamlit_app._file_status_message(FakeUpload("reporte.xlsx", b"1234"), ("xlsx",))
+    bad_status, bad_message = streamlit_app._file_status_message(FakeUpload("metas.txt", b"bad"), ("pdf",))
+
+    assert pending_status == "pending"
+    assert "Pendiente" in pending_message
+    assert ok_status == "ok"
+    assert "Archivo listo" in ok_message
+    assert bad_status == "error"
+    assert "Formato no permitido" in bad_message
+
+
 def test_ui_stage_results_display_cache_and_skipped_status() -> None:
     """Verify stage rendering exposes cache state and skipped statuses."""
 
@@ -315,6 +334,6 @@ def test_ui_stage_results_display_cache_and_skipped_status() -> None:
 
     streamlit_app._render_stage_results(fake_st, result)
 
-    assert fake_st.info_messages == ["Pipeline cache: hit"]
-    assert fake_st.tables[0][0]["Status"] == "Skipped"
-    assert fake_st.tables[-1][0]["Context chars"] == 100
+    assert fake_st.info_messages == ["Cache: se reutilizó un análisis existente."]
+    assert fake_st.tables[0][0]["Estado"] == "Omitido"
+    assert fake_st.tables[-1][0]["Tamaño contexto"] == 100
