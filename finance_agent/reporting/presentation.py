@@ -110,7 +110,7 @@ SECTION_LABELS_ES: dict[str, str] = {
     "department_analysis": "Análisis por departamento",
     "anomaly_summary": "Anomalías del período",
     "investigation_evidence": "Evidencia de investigación",
-    "recommendation_follow_up": "Seguimiento de recomendaciones anteriores",
+    "recommendation_follow_up": "Seguimiento de recomendaciones emitidas anteriormente",
     "longitudinal_risk_assessment": "Riesgos históricos recurrentes",
     "strategic_recommendations": "Recomendaciones estratégicas actuales",
     "missing_information": "Información faltante / supuestos",
@@ -146,6 +146,11 @@ RECOMMENDATION_TOPIC_LABELS_ES: dict[str, str] = {
     "collections": "Gestión de cobranza estudiantil",
     "vendor_controls": "Controles de pagos a proveedores",
 }
+
+RECOMMENDATION_FOLLOW_UP_INTRO = (
+    "Las siguientes recomendaciones fueron emitidas en informes financieros de meses anteriores "
+    "y se evalúan utilizando la evidencia acumulada hasta el periodo actual."
+)
 
 METRIC_LABELS_ES: dict[str, tuple[str, str, str]] = {
     "total_revenue": ("Ingresos totales", "USD", "Ingreso operativo reconocido en el periodo."),
@@ -1262,6 +1267,8 @@ def build_historical_presentation(report_model: dict[str, Any]) -> dict[str, Any
             clean["risk_summary"] = _risk_summary(context_risks)
         if context_follow_up and _follow_up_rows_are_sparse(clean.get("recommendation_follow_up", [])):
             clean["recommendation_follow_up"] = context_follow_up[:8]
+            clean["recommendation_intro"] = RECOMMENDATION_FOLLOW_UP_INTRO
+            clean["recommendation_summary"] = _recommendation_follow_up_summary(context_follow_up)
         return clean
     context = _historical_context(report_model)
     derived = context.get("derived_context", {}) if isinstance(context, dict) else {}
@@ -1278,6 +1285,8 @@ def build_historical_presentation(report_model: dict[str, Any]) -> dict[str, Any
         "trends": trends[:4],
         "recurring_risks": risks[:8],
         "risk_summary": _risk_summary(risks),
+        "recommendation_intro": RECOMMENDATION_FOLLOW_UP_INTRO,
+        "recommendation_summary": _recommendation_follow_up_summary(follow_up),
         "recommendation_follow_up": follow_up[:8],
         "longitudinal_conclusions": _longitudinal_conclusions(trends, risks, follow_up),
     }
@@ -1631,6 +1640,10 @@ def _recurring_risk_rows(context: dict[str, Any]) -> list[dict[str, str]]:
                 "frequency": f"{item.get('occurrences') or len(periods)} períodos",
                 "periods": ", ".join(format_period_label(period) for period in periods[:8]),
                 "status": _recurring_risk_status(periods, current_period),
+                "what_happened": _risk_what_happened(item.get("risk_type"), periods),
+                "recurrence_reason": _risk_recurrence_reason(item.get("occurrences") or len(periods), periods),
+                "recurrence_direction": _risk_recurrence_direction(periods, current_period),
+                "management_relevance": _risk_management_relevance(item.get("risk_type")),
                 "severity": _localize_severity(severity),
                 "severity_class": str(severity or "medium").lower(),
                 "sort_score": _risk_sort_score(severity, int(item.get("occurrences") or len(periods))),
@@ -1670,6 +1683,7 @@ def _recommendation_follow_up_rows(context: dict[str, Any]) -> list[dict[str, st
                 "current_evidence": _trend_evidence(topic, trend),
                 "status": progress,
                 "progress": progress,
+                "status_reason": _recommendation_status_reason(topic, progress, trend),
                 "objective": _recommendation_objective(topic, latest),
                 "next_action": _recommendation_next_action(topic, progress),
             }
@@ -1690,6 +1704,8 @@ def _clean_historical_sections(report_model: dict[str, Any]) -> dict[str, Any]:
     risk_content = get_section(report_model, "longitudinal_risk_assessment").get("content", {})
     trends = trends_content.get("trend_series", []) if isinstance(trends_content, dict) else []
     follow_up = follow_content.get("follow_up", []) if isinstance(follow_content, dict) else []
+    follow_intro = follow_content.get("intro", "") if isinstance(follow_content, dict) else ""
+    follow_summary = follow_content.get("summary", "") if isinstance(follow_content, dict) else ""
     risks = risk_content.get("recurring_risks", []) if isinstance(risk_content, dict) else []
     risk_summary = risk_content.get("risk_summary", "") if isinstance(risk_content, dict) else ""
     conclusions = risk_content.get("conclusions", []) if isinstance(risk_content, dict) else []
@@ -1701,6 +1717,8 @@ def _clean_historical_sections(report_model: dict[str, Any]) -> dict[str, Any]:
             "trends": [],
             "recurring_risks": [],
             "risk_summary": "",
+            "recommendation_intro": "",
+            "recommendation_summary": "",
             "recommendation_follow_up": [],
             "longitudinal_conclusions": [],
         }
@@ -1733,6 +1751,8 @@ def _clean_historical_sections(report_model: dict[str, Any]) -> dict[str, Any]:
         "trends": normalized_trends,
         "recurring_risks": normalized_risks,
         "risk_summary": sanitize_text(risk_summary) or _risk_summary(normalized_risks),
+        "recommendation_intro": sanitize_text(follow_intro) or (RECOMMENDATION_FOLLOW_UP_INTRO if follow_up else ""),
+        "recommendation_summary": sanitize_text(follow_summary) or _recommendation_follow_up_summary(follow_up),
         "recommendation_follow_up": [
             {
                 "recommendation": sanitize_text(item.get("recommendation") or ""),
@@ -1742,6 +1762,7 @@ def _clean_historical_sections(report_model: dict[str, Any]) -> dict[str, Any]:
                 "progress": sanitize_text(item.get("progress") or item.get("status") or "En seguimiento"),
                 "objective": sanitize_text(item.get("objective") or ""),
                 "next_action": sanitize_text(item.get("next_action") or ""),
+                "status_reason": sanitize_text(item.get("status_reason") or ""),
             }
             for item in follow_up
             if isinstance(item, dict)
@@ -1787,6 +1808,10 @@ def _normalize_recurring_risk_rows(risks: Any) -> list[dict[str, str]]:
                 "frequency": sanitize_text(item.get("frequency") or f"{occurrence_text} períodos").strip(),
                 "periods": periods,
                 "status": sanitize_text(item.get("status") or "En seguimiento"),
+                "what_happened": sanitize_text(item.get("what_happened") or _risk_what_happened(item.get("risk_type") or item.get("risk"), periods)),
+                "recurrence_reason": sanitize_text(item.get("recurrence_reason") or _risk_recurrence_reason(occurrence_count, periods.split(",") if periods else [])),
+                "recurrence_direction": sanitize_text(item.get("recurrence_direction") or item.get("status") or "En seguimiento"),
+                "management_relevance": sanitize_text(item.get("management_relevance") or _risk_management_relevance(item.get("risk_type") or item.get("risk"))),
                 "severity": _localize_severity(severity or item.get("severity")),
                 "severity_class": severity or "medium",
                 "sort_score": _risk_sort_score(severity, occurrence_count),
@@ -1839,12 +1864,90 @@ def _risk_summary(rows: list[dict[str, Any]]) -> str:
     ordered = sorted(rows, key=lambda row: int(row.get("sort_score") or 0), reverse=True)
     highest = ordered[0]
     active_count = sum(1 for row in rows if str(row.get("status") or "").lower().startswith("activo"))
-    recurrence = "activa" if active_count else "en remisión o seguimiento"
+    directions = {str(row.get("recurrence_direction") or row.get("status") or "").lower() for row in rows}
+    if any("activa" in direction or "estable" in direction for direction in directions):
+        recurrence = "activa o estable"
+    elif any("disminución" in direction or "remisión" in direction for direction in directions):
+        recurrence = "en disminución"
+    else:
+        recurrence = "sin tendencia verificable"
     return (
-        f"Se identifican {len(rows)} riesgos históricos recurrentes; {active_count} permanecen con actividad reciente. "
+        f"Se identifican {len(rows)} riesgos históricos recurrentes; {active_count} muestran actividad reciente. "
         f"El riesgo de mayor prioridad es {highest.get('risk')} en {highest.get('department')}. "
-        f"La recurrencia agregada se mantiene {recurrence} según los períodos afectados registrados."
+        f"La recurrencia agregada está {recurrence} según los períodos afectados registrados."
     )
+
+
+def _risk_what_happened(risk_type: Any, periods: list[str] | str) -> str:
+    """Describe what happened for a recurring risk.
+
+    Inputs: deterministic risk type and affected periods.
+    Outputs: concise Spanish description.
+    Assumptions: wording is selected from known deterministic risk categories.
+    """
+
+    risk_name = display_risk_name(risk_type)
+    period_text = _format_period_list(periods)
+    suffix = f" en {period_text}" if period_text else ""
+    return f"{risk_name} apareció{suffix}."
+
+
+def _risk_recurrence_reason(occurrences: Any, periods: list[str] | str) -> str:
+    """Explain why the risk is considered recurring.
+
+    Inputs: occurrence count and affected periods.
+    Outputs: deterministic recurrence explanation.
+    Assumptions: recurrence means the issue appeared in more than one period.
+    """
+
+    count = int(occurrences or 0) if str(occurrences or "").isdigit() else len(_period_values(periods))
+    if count <= 1:
+        return "Se muestra como antecedente histórico porque existe un registro previo documentado."
+    return f"Se considera recurrente porque aparece en {count} períodos distintos."
+
+
+def _risk_recurrence_direction(periods: list[str] | str, current_period: str) -> str:
+    """Classify recurrence movement from affected-period recency.
+
+    Inputs: affected periods and current period.
+    Outputs: Spanish recurrence movement label.
+    Assumptions: presentation uses recency only and does not infer causality.
+    """
+
+    values = _period_values(periods)
+    period_indices = [_period_index(period) for period in values]
+    period_indices = [index for index in period_indices if index is not None]
+    current = _period_index(current_period)
+    if not period_indices or current is None:
+        return "Sin tendencia verificable"
+    latest_gap = current - max(period_indices)
+    if latest_gap <= 1:
+        return "Estable o activa"
+    if latest_gap <= 3:
+        return "En disminución"
+    return "En remisión"
+
+
+def _risk_management_relevance(risk_type: Any) -> str:
+    """Explain why management should care about a deterministic risk type.
+
+    Inputs: deterministic risk type.
+    Outputs: Spanish business relevance statement.
+    Assumptions: statements describe operational exposure, not root causes.
+    """
+
+    key = str(risk_type or "").lower()
+    if "vendor" in key or "proveedor" in key:
+        return "Importa porque puede debilitar controles de pago, aprobación y soporte documental."
+    if "cash" in key or "caja" in key:
+        return "Importa porque reduce liquidez disponible para cubrir compromisos operativos."
+    if "payroll" in key or "nómina" in key or "nomina" in key or "overtime" in key:
+        return "Importa porque presiona el margen operativo y limita flexibilidad presupuestaria."
+    if "collection" in key or "cobranza" in key or "overdue" in key:
+        return "Importa porque retrasa entradas de efectivo y aumenta presión sobre caja."
+    if "budget" in key or "presupuesto" in key or "overspend" in key:
+        return "Importa porque señala disciplina presupuestaria débil en gastos recurrentes."
+    return "Importa porque representa una exposición repetida que requiere seguimiento directivo."
 
 
 def _format_period_list(value: Any) -> str:
@@ -1860,6 +1963,19 @@ def _format_period_list(value: Any) -> str:
     else:
         periods = [part.strip() for part in str(value or "").split(",") if part.strip()]
     return ", ".join(format_period_label(period) for period in periods)
+
+
+def _period_values(value: Any) -> list[str]:
+    """Normalize period values without changing their chronology.
+
+    Inputs: list-like or comma-separated periods.
+    Outputs: period identifiers or already-formatted labels.
+    Assumptions: callers use this only for display/status summaries.
+    """
+
+    if isinstance(value, list):
+        return [str(item) for item in value if item]
+    return [part.strip() for part in str(value or "").split(",") if part.strip()]
 
 
 def _repeated_anomaly_records(context: dict[str, Any]) -> list[dict[str, Any]]:
@@ -1999,15 +2115,15 @@ def _recommendation_progress(topic: str, trend: dict[str, Any] | None) -> str:
     """
 
     if trend is None:
-        return "En seguimiento"
+        return "Sin evidencia suficiente"
     latest = number_value(trend.get("latest_value"))
     direction = str(trend.get("direction") or "").lower()
     if topic == "payroll_overtime" and latest is not None and latest <= 0.42:
-        return "Resuelto"
+        return "Objetivo alcanzado"
     if topic == "collections" and latest is not None and latest >= 0.94:
-        return "Resuelto"
+        return "Objetivo alcanzado"
     if direction == "improving":
-        return "Parcialmente resuelto"
+        return "Mejora parcial"
     if direction in {"worsening", "deterioro"}:
         return "En seguimiento"
     return "En seguimiento"
@@ -2022,7 +2138,7 @@ def _trend_evidence(topic: str, trend: dict[str, Any] | None) -> str:
     """
 
     if trend is None:
-        return "No hay tendencia cuantitativa vinculada en la memoria histórica."
+        return "No hay indicador cuantitativo acumulado para medir avance en el periodo actual."
     metric = {
         "payroll_overtime": "Nómina / ingresos",
         "collections": "Tasa de cobranza",
@@ -2047,15 +2163,56 @@ def _recommendation_next_action(topic: str, progress: str) -> str:
     Assumptions: text is fixed operational guidance, not LLM reasoning.
     """
 
-    if progress == "Resuelto":
+    if progress == "Objetivo alcanzado":
         return "Mantener monitoreo mensual y conservar controles actuales."
+    if progress == "Mejora parcial":
+        return "Mantener la acción correctiva y verificar que alcance el objetivo definido."
     if topic == "vendor_controls":
-        return "Verificar documentación de facturas, aprobaciones y posibles duplicados."
+        return "Reunir evidencia de facturas, aprobaciones y posibles duplicados para medir avance."
+    if progress == "Sin evidencia suficiente":
+        return "Solicitar evidencia documental o un indicador de seguimiento para medir avance."
     if topic == "payroll_overtime":
         return "Revisar horas extra, beneficios y dotación por departamento."
     if topic == "collections":
         return "Continuar seguimiento de saldos vencidos y planes de pago."
     return "Mantener seguimiento ejecutivo hasta contar con evidencia concluyente."
+
+
+def _recommendation_status_reason(topic: str, progress: str, trend: dict[str, Any] | None) -> str:
+    """Explain why a follow-up recommendation received its status.
+
+    Inputs: topic, calculated progress, and optional deterministic trend.
+    Outputs: Spanish status explanation.
+    Assumptions: no new calculations are performed here.
+    """
+
+    evidence = _trend_evidence(topic, trend)
+    if progress == "Objetivo alcanzado":
+        return f"{evidence} El valor reciente cumple el umbral objetivo usado para seguimiento."
+    if progress == "Mejora parcial":
+        return f"{evidence} La dirección registrada mejora, pero aún no confirma cierre completo."
+    if progress == "Sin evidencia suficiente":
+        return "No existe un indicador cuantitativo acumulado que permita comprobar si la recomendación produjo el efecto esperado."
+    return f"{evidence} El seguimiento continúa porque la evidencia disponible no demuestra cierre del objetivo."
+
+
+def _recommendation_follow_up_summary(rows: list[dict[str, Any]]) -> str:
+    """Summarize recommendation follow-up status deterministically.
+
+    Inputs: follow-up rows.
+    Outputs: executive Spanish summary.
+    Assumptions: status labels were calculated by Python.
+    """
+
+    if not rows:
+        return ""
+    counts: dict[str, int] = {}
+    for row in rows:
+        status = str(row.get("progress") or row.get("status") or "Sin evidencia suficiente")
+        counts[status] = counts.get(status, 0) + 1
+    order = ["Objetivo alcanzado", "Mejora parcial", "En seguimiento", "Sin evidencia suficiente"]
+    parts = [f"{counts[status]} {status.lower()}" for status in order if status in counts]
+    return f"Se evalúan {len(rows)} recomendaciones previas: {', '.join(parts)}."
 
 
 def _recommendation_objective(topic: str, record: dict[str, Any]) -> str:

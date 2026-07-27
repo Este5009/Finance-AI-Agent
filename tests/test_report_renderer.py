@@ -430,16 +430,27 @@ def test_current_anomalies_are_separate_from_historical_risks() -> None:
     assert "Anomalías del período" in html
     assert "No se detectaron anomalías en Dic 2026." in html
     assert "Riesgos históricos recurrentes" in html
+    assert "Seguimiento de recomendaciones emitidas anteriormente" in html
+    assert "Las siguientes recomendaciones fueron emitidas en informes financieros de meses anteriores" in html
     assert "Ciencias de la Salud" in html
     assert "Universidad" in html
     assert "Sobrecosto recurrente de nómina y horas extra" in html
     assert "Riesgo recurrente en pagos a proveedores" in html
     assert "Flujo de caja negativo recurrente" in html
+    assert "Emitida en" in html
+    assert "Estado de seguimiento" in html
+    assert "Objetivo alcanzado" in html
+    assert "Por qué:" in html
+    assert "Por qué es recurrente" in html
+    assert "Por qué importa" in html
     assert "Objetivo original" in html
     assert "Próxima acción sugerida" in html
     assert "Sin anomalías relevantes" not in html
     assert "0 anomalías reportadas" not in html
     assert "Riesgo recurrente</h3>" not in html
+    assert "Periodo de origen" not in html
+    assert "Progreso:" not in html
+    assert "Se requiere un análisis adicional" not in html
     assert "Health Sciences" not in html
     assert "University" not in html
 

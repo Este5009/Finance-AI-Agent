@@ -611,6 +611,8 @@ def _historical_sections(
             {
                 "analysis": _analysis_text(analysis, "recommendation_follow_up_analysis"),
                 "historical_context": historical_context,
+                "intro": historical.get("recommendation_intro", ""),
+                "summary": historical.get("recommendation_summary", ""),
                 "follow_up": historical.get("recommendation_follow_up", []),
             },
             analysis_source,

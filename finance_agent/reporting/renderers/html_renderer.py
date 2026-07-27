@@ -145,7 +145,13 @@ def _summary_cards(items: list[dict[str, Any]], *, kind: str) -> str:
                 "<article class='status-card'>"
                 f"<em class='badge {klass}'>{_escape(progress)}</em>"
                 f"<h3>{_escape(item.get('recommendation'))}</h3>"
-                + (f"<p><strong>Periodo de origen:</strong> {_escape(period)}</p>" if period != "No disponible" else "")
+                + (f"<p><strong>Emitida en:</strong> {_escape(period)}</p>" if period != "No disponible" else "")
+                + f"<p><strong>Estado de seguimiento:</strong> {_escape(progress)}</p>"
+                + (
+                    f"<p><strong>Por qué:</strong> {_escape(display_or_unavailable(item.get('status_reason')))}</p>"
+                    if display_or_unavailable(item.get("status_reason")) != "No disponible"
+                    else ""
+                )
                 + (
                     f"<p><strong>Objetivo original:</strong> {_escape(display_or_unavailable(item.get('objective')))}</p>"
                     if display_or_unavailable(item.get("objective")) != "No disponible"
@@ -169,7 +175,12 @@ def _summary_cards(items: list[dict[str, Any]], *, kind: str) -> str:
                 + (f"<em class='badge amber'>{_escape(status)}</em>" if status != "No disponible" else "")
                 + (f"<em class='badge neutral'>{_escape(severity)}</em>" if severity != "No disponible" else "")
                 + f"<h3>{_escape(item.get('risk'))}</h3>"
+                + f"<p><strong>Qué pasó:</strong> {_escape(display_or_unavailable(item.get('what_happened')))}</p>"
                 + f"<p><strong>Departamento:</strong> {_escape(display_or_unavailable(item.get('department')))}</p>"
+                + f"<p><strong>Por qué es recurrente:</strong> {_escape(display_or_unavailable(item.get('recurrence_reason')))}</p>"
+                + f"<p><strong>Estado de recurrencia:</strong> {_escape(display_or_unavailable(item.get('status')))}</p>"
+                + f"<p><strong>Tendencia de recurrencia:</strong> {_escape(display_or_unavailable(item.get('recurrence_direction')))}</p>"
+                + f"<p><strong>Por qué importa:</strong> {_escape(display_or_unavailable(item.get('management_relevance')))}</p>"
                 + f"<p><strong>Períodos afectados:</strong> {_escape(display_or_unavailable(item.get('periods')))}</p>"
                 + "</article>"
             )
@@ -198,11 +209,11 @@ def _status_class(status: str) -> str:
     """
 
     normalized = str(status or "").lower()
-    if normalized in {"good", "resuelto"}:
+    if normalized in {"good", "resuelto", "objetivo alcanzado"}:
         return "good"
-    if normalized in {"amber", "en seguimiento", "parcialmente resuelto"}:
+    if normalized in {"amber", "en seguimiento", "parcialmente resuelto", "mejora parcial"}:
         return "amber"
-    if normalized in {"risk", "no iniciado"}:
+    if normalized in {"risk", "no iniciado", "sin evidencia suficiente"}:
         return "risk"
     return "neutral"
 
@@ -489,14 +500,14 @@ def _render_historical(view: dict[str, Any]) -> str:
         for row in historical.get("recurring_risks", [])
     ]
     follow = [
-        [row["recommendation"], row["issued_period"], row.get("progress", row.get("status", "")), row.get("objective", ""), row["current_evidence"]]
+        [row["recommendation"], row["issued_period"], row.get("progress", row.get("status", "")), row.get("status_reason", ""), row.get("objective", ""), row["current_evidence"]]
         for row in historical.get("recommendation_follow_up", [])
     ]
     follow_markup = (
         _summary_cards(historical.get("recommendation_follow_up", []), kind="follow_up")
         if 0 < len(follow) <= 5
         else _table(
-            ["Recomendación", "Periodo de origen", "Progreso", "Objetivo original", "Evidencia actual"],
+            ["Recomendación", "Emitida en", "Estado de seguimiento", "Por qué", "Objetivo original", "Evidencia actual"],
             follow,
             low_value_title="Seguimiento disponible",
             low_value_message="La evidencia histórica no contiene suficiente detalle para una tabla de seguimiento.",
@@ -506,7 +517,7 @@ def _render_historical(view: dict[str, Any]) -> str:
         _summary_cards(historical.get("recurring_risks", []), kind="risk")
         if 0 < len(risks) <= 3
         else _table(
-            ["Riesgo", "Departamento", "Frecuencia", "Estado", "Períodos afectados"],
+            ["Riesgo", "Departamento", "Frecuencia", "Estado de recurrencia", "Períodos afectados"],
             risks,
             low_value_title="Riesgos longitudinales",
             low_value_message="No hay riesgos recurrentes con suficiente detalle tabular.",
@@ -521,12 +532,12 @@ def _render_historical(view: dict[str, Any]) -> str:
         "</section>"
         "<section id='recommendation_follow_up'>"
         f"<h2>{SECTION_LABELS_ES['recommendation_follow_up']}</h2>"
-        + _narrative(view, "recommendation_follow_up")
+        + (f"<p class='section-analysis'>{_escape(historical.get('recommendation_intro'))}</p>" if historical.get("recommendation_intro") else "")
+        + (f"<div class='info-card neutral'><p>{_escape(historical.get('recommendation_summary'))}</p></div>" if historical.get("recommendation_summary") else "")
         + follow_markup
         + "</section>"
         "<section id='longitudinal_risk_assessment'>"
         f"<h2>{SECTION_LABELS_ES['longitudinal_risk_assessment']}</h2>"
-        + _narrative(view, "longitudinal_risk_assessment")
         + (f"<div class='info-card neutral'><p>{_escape(historical.get('risk_summary'))}</p></div>" if historical.get("risk_summary") else "")
         + risk_markup
         + "</section>"
@@ -722,7 +733,6 @@ def _render_recommendations(view: dict[str, Any]) -> str:
         + _narrative(view, "strategic_recommendations")
         + (f"<h3>Prioridades estratégicas</h3><ul>{priorities}</ul>" if priorities else "")
         + recommendation_display
-        + (f"<p class='muted'>{_escape(recs['reasoning_summary'])}</p>" if recs.get("reasoning_summary") else "")
         + "</section>"
     )
 

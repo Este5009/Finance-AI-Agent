@@ -373,8 +373,9 @@ def _compact_cards(items: list[dict[str, Any]], styles: dict[str, ParagraphStyle
         if kind == "follow_up":
             lines = [
                 f"<b>{display_or_unavailable(item.get('recommendation'))}</b>",
-                f"<b>Periodo de origen:</b> {display_or_unavailable(item.get('issued_period'))}",
-                f"<b>Progreso:</b> {display_or_unavailable(item.get('progress') or item.get('status'))}",
+                f"<b>Emitida en:</b> {display_or_unavailable(item.get('issued_period'))}",
+                f"<b>Estado de seguimiento:</b> {display_or_unavailable(item.get('progress') or item.get('status'))}",
+                f"<b>Por qué:</b> {display_or_unavailable(item.get('status_reason'))}",
                 f"<b>Objetivo original:</b> {display_or_unavailable(item.get('objective'))}",
                 f"<b>Evidencia actual:</b> {display_or_unavailable(item.get('current_evidence'))}",
                 f"<b>Próxima acción sugerida:</b> {display_or_unavailable(item.get('next_action'))}",
@@ -382,9 +383,13 @@ def _compact_cards(items: list[dict[str, Any]], styles: dict[str, ParagraphStyle
         else:
             lines = [
                 f"<b>{display_or_unavailable(item.get('risk'))}</b>",
+                f"<b>Qué pasó:</b> {display_or_unavailable(item.get('what_happened'))}",
                 f"<b>Departamento:</b> {display_or_unavailable(item.get('department'))}",
+                f"<b>Por qué es recurrente:</b> {display_or_unavailable(item.get('recurrence_reason'))}",
+                f"<b>Tendencia de recurrencia:</b> {display_or_unavailable(item.get('recurrence_direction'))}",
+                f"<b>Por qué importa:</b> {display_or_unavailable(item.get('management_relevance'))}",
                 f"<b>Frecuencia:</b> {display_or_unavailable(item.get('frequency') or item.get('occurrences'))}",
-                f"<b>Estado:</b> {display_or_unavailable(item.get('status'))}",
+                f"<b>Estado de recurrencia:</b> {display_or_unavailable(item.get('status'))}",
                 f"<b>Períodos afectados:</b> {display_or_unavailable(item.get('periods'))}",
             ]
         table = Table(
@@ -587,7 +592,11 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
             story.append(KeepTogether([LineChart(series), _insight_para(series.get("insight", ""), styles["insight"])]))
             story.append(Spacer(1, 0.08 * inch))
         _section_title(story, "recommendation_follow_up", styles)
-        _append_narrative(story, view, "recommendation_follow_up", styles)
+        if historical.get("recommendation_intro"):
+            story.append(_para(historical.get("recommendation_intro"), styles["body"]))
+        if historical.get("recommendation_summary"):
+            story.append(_info_card(historical.get("recommendation_summary"), styles, title="Lectura ejecutiva"))
+            story.append(Spacer(1, 0.08 * inch))
         follow_items = historical.get("recommendation_follow_up", [])[:6]
         if 0 < len(follow_items) <= 5:
             for card in _compact_cards(follow_items, styles, kind="follow_up"):
@@ -595,19 +604,18 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
                 story.append(Spacer(1, 0.08 * inch))
         else:
             follow_rows = [
-                [row["recommendation"], row["issued_period"], row.get("progress", row.get("status", "")), row.get("objective", ""), row["current_evidence"]]
+                [row["recommendation"], row["issued_period"], row.get("progress", row.get("status", "")), row.get("status_reason", ""), row.get("objective", ""), row["current_evidence"]]
                 for row in follow_items
             ]
             story.append(
                 _table(
-                    ["Recomendación", "Periodo de origen", "Progreso", "Objetivo original", "Evidencia actual"],
+                    ["Recomendación", "Emitida en", "Estado de seguimiento", "Por qué", "Objetivo original", "Evidencia actual"],
                     follow_rows,
                     styles,
-                    widths=[1.35 * inch, 0.8 * inch, 0.85 * inch, 1.55 * inch, 2.05 * inch],
+                    widths=[1.15 * inch, 0.7 * inch, 0.9 * inch, 1.45 * inch, 1.25 * inch, 1.15 * inch],
                 )
             )
         _section_title(story, "longitudinal_risk_assessment", styles)
-        _append_narrative(story, view, "longitudinal_risk_assessment", styles)
         if historical.get("risk_summary"):
             story.append(_info_card(historical.get("risk_summary"), styles, title="Lectura ejecutiva"))
             story.append(Spacer(1, 0.08 * inch))
@@ -619,7 +627,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
         else:
             story.append(
                 _table(
-                    ["Riesgo", "Departamento", "Frecuencia", "Estado", "Períodos afectados"],
+                    ["Riesgo", "Departamento", "Frecuencia", "Estado de recurrencia", "Períodos afectados"],
                     [
                         [row["risk"], row["department"], row.get("frequency", row.get("occurrences", "")), row.get("status", ""), row["periods"]]
                         for row in risk_items
@@ -724,9 +732,6 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
                 force=True,
             )
         )
-    if view["recommendations"]["reasoning_summary"]:
-        story.append(_para(view["recommendations"]["reasoning_summary"], styles["small"]))
-
     _section_title(story, "missing_information", styles)
     _append_narrative(story, view, "missing_information", styles)
     if view["missing_information"]:

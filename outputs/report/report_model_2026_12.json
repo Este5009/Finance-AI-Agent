@@ -3924,13 +3924,16 @@
             ]
           }
         },
+        "intro": "Las siguientes recomendaciones fueron emitidas en informes financieros de meses anteriores y se evalúan utilizando la evidencia acumulada hasta el periodo actual.",
+        "summary": "Se evalúan 3 recomendaciones previas: 2 objetivo alcanzado, 1 sin evidencia suficiente.",
         "follow_up": [
           {
             "recommendation": "Control de horas extra y nómina",
             "issued_period": "Sep 2026",
             "current_evidence": "Nómina / ingresos: 45.0% en Abr 2026 y 41.0% en Nov 2026.",
-            "status": "Resuelto",
-            "progress": "Resuelto",
+            "status": "Objetivo alcanzado",
+            "progress": "Objetivo alcanzado",
+            "status_reason": "Nómina / ingresos: 45.0% en Abr 2026 y 41.0% en Nov 2026. El valor reciente cumple el umbral objetivo usado para seguimiento.",
             "objective": "Alinear los costos de nómina, beneficios y horas extra con el presupuesto.",
             "next_action": "Mantener monitoreo mensual y conservar controles actuales."
           },
@@ -3938,19 +3941,21 @@
             "recommendation": "Gestión de cobranza estudiantil",
             "issued_period": "Sep 2026",
             "current_evidence": "Tasa de cobranza: 89.0% en Abr 2026 y 95.0% en Nov 2026.",
-            "status": "Resuelto",
-            "progress": "Resuelto",
+            "status": "Objetivo alcanzado",
+            "progress": "Objetivo alcanzado",
+            "status_reason": "Tasa de cobranza: 89.0% en Abr 2026 y 95.0% en Nov 2026. El valor reciente cumple el umbral objetivo usado para seguimiento.",
             "objective": "Elevar la tasa de cobranza y reducir saldos estudiantiles vencidos.",
             "next_action": "Mantener monitoreo mensual y conservar controles actuales."
           },
           {
             "recommendation": "Controles de pagos a proveedores",
             "issued_period": "Sep 2026",
-            "current_evidence": "No hay tendencia cuantitativa vinculada en la memoria histórica.",
-            "status": "En seguimiento",
-            "progress": "En seguimiento",
+            "current_evidence": "No hay indicador cuantitativo acumulado para medir avance en el periodo actual.",
+            "status": "Sin evidencia suficiente",
+            "progress": "Sin evidencia suficiente",
+            "status_reason": "No existe un indicador cuantitativo acumulado que permita comprobar si la recomendación produjo el efecto esperado.",
             "objective": "Fortalecer controles para prevenir pagos duplicados o sin soporte suficiente.",
-            "next_action": "Verificar documentación de facturas, aprobaciones y posibles duplicados."
+            "next_action": "Reunir evidencia de facturas, aprobaciones y posibles duplicados para medir avance."
           }
         ]
       },
@@ -4760,6 +4765,10 @@
             "frequency": "3 períodos",
             "periods": "Jul 2026, Ago 2026, Sep 2026",
             "status": "En remisión",
+            "what_happened": "Riesgo recurrente en pagos a proveedores apareció en Jul 2026, Ago 2026, Sep 2026.",
+            "recurrence_reason": "Se considera recurrente porque aparece en 3 períodos distintos.",
+            "recurrence_direction": "En disminución",
+            "management_relevance": "Importa porque puede debilitar controles de pago, aprobación y soporte documental.",
             "severity": "Alta",
             "severity_class": "high",
             "sort_score": 303
@@ -4771,6 +4780,10 @@
             "frequency": "2 períodos",
             "periods": "Jun 2026, Jul 2026",
             "status": "En remisión",
+            "what_happened": "Flujo de caja negativo recurrente apareció en Jun 2026, Jul 2026.",
+            "recurrence_reason": "Se considera recurrente porque aparece en 2 períodos distintos.",
+            "recurrence_direction": "En remisión",
+            "management_relevance": "Importa porque reduce liquidez disponible para cubrir compromisos operativos.",
             "severity": "Alta",
             "severity_class": "high",
             "sort_score": 302
@@ -4782,12 +4795,16 @@
             "frequency": "4 períodos",
             "periods": "Abr 2026, May 2026, Jun 2026, Jul 2026",
             "status": "En remisión",
+            "what_happened": "Sobrecosto recurrente de nómina y horas extra apareció en Abr 2026, May 2026, Jun 2026, Jul 2026.",
+            "recurrence_reason": "Se considera recurrente porque aparece en 4 períodos distintos.",
+            "recurrence_direction": "En remisión",
+            "management_relevance": "Importa porque presiona el margen operativo y limita flexibilidad presupuestaria.",
             "severity": "Media",
             "severity_class": "medium",
             "sort_score": 204
           }
         ],
-        "risk_summary": "Se identifican 3 riesgos históricos recurrentes; 0 permanecen con actividad reciente. El riesgo de mayor prioridad es Riesgo recurrente en pagos a proveedores en Ciencias de la Salud. La recurrencia agregada se mantiene en remisión o seguimiento según los períodos afectados registrados.",
+        "risk_summary": "Se identifican 3 riesgos históricos recurrentes; 0 muestran actividad reciente. El riesgo de mayor prioridad es Riesgo recurrente en pagos a proveedores en Ciencias de la Salud. La recurrencia agregada está en disminución según los períodos afectados registrados.",
         "conclusions": []
       },
       "source_references": [
