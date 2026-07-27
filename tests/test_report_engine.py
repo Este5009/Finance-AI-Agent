@@ -14,6 +14,15 @@ from finance_agent.reporting import (
     save_report_model,
     validate_report_model,
 )
+from finance_agent.reporting.report_engine import _previous_month_slug
+
+
+def test_january_monthly_comparison_uses_previous_december() -> None:
+    """Verify monthly previous-period mapping crosses the year boundary."""
+
+    assert _previous_month_slug("2027_01") == "2026_12"
+    assert _previous_month_slug("2027-01") == "2026_12"
+    assert _previous_month_slug("2027") is None
 
 
 def _bundle() -> ReportInputBundle:

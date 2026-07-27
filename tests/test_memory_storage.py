@@ -305,6 +305,20 @@ def test_same_filename_same_content_reuses_source_document(tmp_path: Path) -> No
     assert repository.table_counts()["source_documents"] == 1
 
 
+def test_source_document_classification_accepts_raw_uploaded_bytes(tmp_path: Path) -> None:
+    """Verify canonical preflight API hashes raw bytes inside repository."""
+
+    repository = MemoryRepository(tmp_path / "memory.db")
+    classification = repository.classify_source_document(
+        document_type="financial_report",
+        raw_bytes=b"may 2026 report",
+        effective_period="2026-05",
+    )
+
+    assert classification.status == "new"
+    assert len(classification.content_sha256) == 64
+
+
 def test_different_filename_same_content_reuses_source_document(tmp_path: Path) -> None:
     """Verify filename changes do not affect content identity."""
 
@@ -355,6 +369,43 @@ def test_revision_registration_marks_current_version(tmp_path: Path) -> None:
     assert current["document_id"] == second.document_id
     assert current["document_id"] != first.document_id
     assert repository.table_counts()["source_documents"] == 2
+
+
+def test_confirmed_revision_reaches_storage_transaction(tmp_path: Path) -> None:
+    """Verify per-submission revision confirmation reaches accepted-run storage."""
+
+    input_model = _input_model(tmp_path)
+    config = _config(tmp_path, input_model)
+    output_files = _write_artifacts(config)
+    first = persist_pipeline_run(
+        _pipeline_result(config, output_files),
+        period_slug="2026_06",
+        database_path=config.memory_database_path,
+    )
+    input_model.financial_report_path.write_bytes(b"financial report revised")
+    revised_input = PipelineInputModel(
+        financial_report_path=input_model.financial_report_path,
+        goals_document_path=input_model.goals_document_path,
+        detected_period=input_model.detected_period,
+        period_type=input_model.period_type,
+        period_override=input_model.period_override,
+        report_language=input_model.report_language,
+        source_revision_confirmed=True,
+    )
+    revised_config = _config(tmp_path, revised_input)
+    second = persist_pipeline_run(
+        _pipeline_result(revised_config, output_files),
+        period_slug="2026_06",
+        database_path=revised_config.memory_database_path,
+    )
+    repository = MemoryRepository(config.memory_database_path)
+    current = repository.fetch_current_document(document_type="financial_report", effective_period="2026-06")
+
+    assert first.stored is True
+    assert second.stored is True
+    assert current is not None
+    assert int(current["version_number"]) == 2
+    assert repository.table_counts()["source_documents"] == 3
 
 
 def test_same_report_different_goals_tracks_independent_goal_revision(tmp_path: Path) -> None:

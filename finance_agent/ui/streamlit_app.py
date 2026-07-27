@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import hashlib
 import re
 import sys
 import time
@@ -29,6 +28,21 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 UPLOAD_ROOT = PROJECT_ROOT / "outputs" / "ui_uploads"
 FINANCIAL_REPORT_UPLOAD_TYPES = ("xlsx", "xls", "csv")
 GOALS_UPLOAD_TYPES = ("pdf", "docx", "xlsx", "xls")
+SUPPORTED_UI_PERIOD_OPTIONS = ("Detectar automáticamente", "Mensual")
+SPANISH_MONTHS = {
+    1: "Ene",
+    2: "Feb",
+    3: "Mar",
+    4: "Abr",
+    5: "May",
+    6: "Jun",
+    7: "Jul",
+    8: "Ago",
+    9: "Sep",
+    10: "Oct",
+    11: "Nov",
+    12: "Dic",
+}
 
 
 class UploadedFileLike(Protocol):
@@ -144,6 +158,7 @@ def build_input_model_from_uploads(
         goals_document_path=goals_document_path,
         period_override=settings.period_override,
         report_language=settings.report_language,
+        source_revision_confirmed=settings.source_revision_confirmed,
     )
 
 
@@ -177,7 +192,6 @@ def build_pipeline_config(
         enable_cache=settings.enable_cache,
         enable_memory_storage=settings.enable_memory_storage,
         memory_database_path=settings.memory_database_path,
-        source_revision_confirmed=settings.source_revision_confirmed,
         input_model=input_model,
     )
 
@@ -216,6 +230,60 @@ def _period_override_from_selection(selection: str, value: str) -> str | None:
     if selection in {"Auto", "Detectar automáticamente"}:
         return None
     return value.strip() or None
+
+
+def _is_monthly_period_text(value: str) -> bool:
+    """Return whether text is a supported monthly override.
+
+    Inputs: user-entered period text.
+    Outputs: True for YYYY-MM or YYYY_MM with month 01..12.
+    Assumptions: Streamlit supports monthly execution only for now.
+    """
+
+    match = re.match(r"^20\d{2}[-_](0[1-9]|1[0-2])$", str(value or "").strip())
+    return bool(match)
+
+
+def _spanish_month_label(year: int | None, month: int | None) -> str:
+    """Return a compact Spanish month/year label.
+
+    Inputs: optional year and month number.
+    Outputs: label like ``Dic 2026`` or empty string.
+    Assumptions: callers show raw period text only when parsed metadata is absent.
+    """
+
+    if not year or not month or month not in SPANISH_MONTHS:
+        return ""
+    return f"{SPANISH_MONTHS[month]} {year}"
+
+
+def _monthly_readiness_message(
+    *,
+    input_model: PipelineInputModel | None,
+    override_mode: str,
+    override_value: str,
+) -> tuple[bool, str]:
+    """Determine whether the UI can run the currently supported monthly path.
+
+    Inputs: optional detected input model and period selector state.
+    Outputs: ready flag and Spanish explanation.
+    Assumptions: quarterly/semester/annual/custom comparisons are intentionally disabled.
+    """
+
+    if override_mode == "Mensual":
+        if not _is_monthly_period_text(override_value):
+            return False, "Indique el mes y año en formato 2026-12 para ejecutar un reporte mensual."
+        return True, f"Período seleccionado: Mensual — {override_value.replace('_', '-')}"
+    if input_model is None:
+        return False, "Seleccione el reporte financiero y el documento de metas para continuar."
+    detected = input_model.detected_period
+    if detected.period_type == "monthly" and not detected.requires_override:
+        label = _spanish_month_label(detected.year, detected.month) or detected.label
+        return True, f"Período detectado: Mensual — {label}"
+    return (
+        False,
+        "No se detectó un período mensual con suficiente confianza. Seleccione “Mensual” e indique el mes y año.",
+    )
 
 
 def _load_json(path: Path | str | None) -> dict[str, Any]:
@@ -314,17 +382,6 @@ def _file_status_message(uploaded_file: UploadedFileLike | None, allowed: tuple[
     return "ok", f"Archivo listo: {uploaded_file.name} ({size / 1024:.1f} KB)."
 
 
-def _sha256_upload(uploaded_file: UploadedFileLike) -> str:
-    """Compute SHA-256 from raw uploaded bytes.
-
-    Inputs: uploaded file object.
-    Outputs: hex digest of the file content.
-    Assumptions: filename is not used for document identity.
-    """
-
-    return hashlib.sha256(bytes(uploaded_file.getbuffer())).hexdigest()
-
-
 def _classify_upload_for_period(
     *,
     uploaded_file: UploadedFileLike | None,
@@ -344,7 +401,7 @@ def _classify_upload_for_period(
     repository = MemoryRepository(database_path)
     classification = repository.classify_source_document(
         document_type=document_type,
-        content_sha256=_sha256_upload(uploaded_file),
+        raw_bytes=bytes(uploaded_file.getbuffer()),
         effective_period=effective_period,
     )
     return classification.to_dict()
@@ -871,22 +928,21 @@ def _render_streamlit_app(st: Any) -> None:
         language = {"Español": "es", "Inglés": "en"}[language_label]
         override_mode = st.selectbox(
             "Periodo",
-            options=(
-                "Detectar automáticamente",
-                "Mensual",
-                "Trimestral",
-                "Semestral",
-                "Anual",
-                "Personalizado",
-            ),
+            options=SUPPORTED_UI_PERIOD_OPTIONS,
             index=0,
             help="Use la detección automática salvo que el sistema no pueda identificar el periodo correctamente.",
+        )
+        st.caption(
+            "Actualmente, el sistema procesa reportes mensuales. Los períodos trimestrales, "
+            "semestrales, anuales y personalizados se habilitarán después de implementar "
+            "comparaciones compatibles."
         )
         override_value = ""
         if override_mode != "Detectar automáticamente":
             override_value = st.text_input(
-                "Periodo específico",
-                placeholder="Ejemplos: 2026-06, 2026-Q2, 2026-S1, 2026",
+                "Mes y año",
+                placeholder="Ejemplo: 2026-12",
+                help="Use el formato AAAA-MM.",
             )
         with st.expander("Opciones avanzadas", expanded=False):
             st.caption("Use estas opciones solo si administra Ollama, reutilización o memoria histórica.")
@@ -973,6 +1029,7 @@ def _render_streamlit_app(st: Any) -> None:
     preflight_input: PipelineInputModel | None = None
     report_classification: dict[str, Any] | None = None
     goals_classification: dict[str, Any] | None = None
+    preflight_error = ""
     memory_database_path = Path(memory_database).expanduser() if memory_database.strip() else None
     if files_ready:
         # The UI writes temporary preflight copies so the shared deterministic
@@ -983,10 +1040,6 @@ def _render_streamlit_app(st: Any) -> None:
         period_mode_map = {
             "Detectar automáticamente": "Auto",
             "Mensual": "Monthly",
-            "Trimestral": "Quarterly",
-            "Semestral": "Semester",
-            "Anual": "Annual",
-            "Personalizado": "Custom",
         }
         preflight_settings = StreamlitRunSettings(
             report_language=language,
@@ -1016,9 +1069,19 @@ def _render_streamlit_app(st: Any) -> None:
                 database_path=memory_database_path,
             )
         except Exception as exc:  # noqa: BLE001 - preflight should inform, not crash.
-            st.warning(f"No se pudo clasificar la versión del archivo antes del análisis: {exc}")
+            preflight_error = f"No se pudo validar el registro del archivo antes del análisis: {exc}"
+            st.error(preflight_error)
     _render_upload_registry_status(st, "Reporte financiero", report_classification)
     _render_upload_registry_status(st, "Documento de metas", goals_classification)
+    monthly_ready, monthly_message = _monthly_readiness_message(
+        input_model=preflight_input,
+        override_mode=override_mode,
+        override_value=override_value,
+    )
+    if files_ready and monthly_ready and not preflight_error:
+        st.success(monthly_message)
+    elif files_ready and not preflight_error:
+        st.warning(monthly_message)
     revision_required = any(
         item and item.get("requires_revision_confirmation")
         for item in (report_classification, goals_classification)
@@ -1030,7 +1093,7 @@ def _render_streamlit_app(st: Any) -> None:
             value=False,
         )
     st.markdown("### 2. Genere el análisis financiero")
-    if files_ready and (not revision_required or revision_confirmed):
+    if files_ready and monthly_ready and not preflight_error and (not revision_required or revision_confirmed):
         st.markdown(
             """
             <div class='run-action-card'>
@@ -1042,6 +1105,10 @@ def _render_streamlit_app(st: Any) -> None:
         )
     elif revision_required:
         st.warning("Confirme el registro de la nueva versión antes de ejecutar el análisis.")
+    elif preflight_error:
+        st.info("Corrija el problema de validación del registro antes de ejecutar el análisis.")
+    elif files_ready and not monthly_ready:
+        st.info("El análisis se habilitará cuando el período mensual esté confirmado.")
     else:
         st.info("Seleccione el reporte financiero y el documento de metas para continuar.")
     run_button = st.button(
@@ -1050,6 +1117,8 @@ def _render_streamlit_app(st: Any) -> None:
         use_container_width=True,
         disabled=(
             not files_ready
+            or bool(preflight_error)
+            or not monthly_ready
             or (revision_required and not revision_confirmed)
             or bool(st.session_state.get("finance_ai_running"))
         ),
@@ -1070,10 +1139,6 @@ def _render_streamlit_app(st: Any) -> None:
     period_mode_map = {
         "Detectar automáticamente": "Auto",
         "Mensual": "Monthly",
-        "Trimestral": "Quarterly",
-        "Semestral": "Semester",
-        "Anual": "Annual",
-        "Personalizado": "Custom",
     }
     settings = StreamlitRunSettings(
         report_language=language,

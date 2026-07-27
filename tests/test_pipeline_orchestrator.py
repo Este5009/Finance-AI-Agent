@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+import pytest
 from reportlab.pdfgen import canvas
 
 from finance_agent.orchestration.pipeline_models import (
@@ -502,6 +503,26 @@ def test_runtime_optimization_settings_change_cache_key(tmp_path: Path) -> None:
         input_model,
         changed_config,
     )
+
+
+def test_pipeline_config_rejects_revision_confirmation_keyword(tmp_path: Path) -> None:
+    """Verify revision confirmation is not a PipelineConfig runtime setting."""
+
+    with pytest.raises(TypeError):
+        PipelineConfig.from_project_root(
+            tmp_path,
+            python_executable=sys.executable,
+            source_revision_confirmed=True,
+        )
+
+
+def test_monthly_cache_key_stable_for_same_inputs(tmp_path: Path) -> None:
+    """Verify identical monthly inputs and config keep the same fingerprint."""
+
+    input_model = _input_model(tmp_path)
+    config = _config(tmp_path)
+
+    assert _pipeline_cache_key(input_model, config) == _pipeline_cache_key(input_model, config)
 
 
 def test_pipeline_version_changes_cache_key(tmp_path: Path, monkeypatch: Any) -> None:

@@ -974,7 +974,6 @@ def run_pipeline_for_report(
         deduplicate_context=config.deduplicate_context,
         enable_memory_storage=config.enable_memory_storage,
         memory_database_path=config.memory_database_path,
-        source_revision_confirmed=config.source_revision_confirmed,
     )
     if stages is not None or stage_executor is not run_stage_subprocess:
         # Tests and legacy callers can still exercise the script-backed path with

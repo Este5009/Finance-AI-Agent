@@ -166,6 +166,22 @@ def test_previous_period_and_period_history_ordering(seeded_database: Path) -> N
     assert "2026_06" not in [row["period"] for row in history.data["records"]]
 
 
+def test_january_2027_retrieves_december_2026_as_previous_month(tmp_path: Path) -> None:
+    """Verify monthly historical retrieval crosses year boundary without aggregation."""
+
+    db_path = tmp_path / "memory.db"
+    repository = MemoryRepository(db_path)
+    repository.save_pipeline_run(_payload("2026_12", 11))
+    repository.save_pipeline_run(_payload("2027_01", 12))
+
+    previous = get_previous_period("2027_01", database_path=db_path)
+    history = get_period_history(2, before_period="2027_01", database_path=db_path)
+
+    assert previous.success is True
+    assert previous.data["record"]["period"] == "2026_12"
+    assert [row["period"] for row in history.data["records"]] == ["2026_12"]
+
+
 def test_metric_history_filters_and_orders(seeded_database: Path) -> None:
     """Verify metric history returns exact payroll ratio values in order."""
 

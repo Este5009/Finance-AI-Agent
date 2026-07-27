@@ -93,6 +93,7 @@ class PipelineInputModel:
     period_type: str
     period_override: str | None = None
     report_language: str = "es"
+    source_revision_confirmed: bool = False
 
     def __post_init__(self) -> None:
         """Validate generic input model fields.
@@ -163,6 +164,7 @@ class PipelineInputModel:
             "requires_period_override": self.requires_period_override,
             "effective_period_label": self.effective_period_label,
             "report_language": self.report_language,
+            "source_revision_confirmed": self.source_revision_confirmed,
         }
 
 
@@ -202,7 +204,6 @@ class PipelineConfig:
     deduplicate_context: bool = True
     enable_memory_storage: bool = True
     memory_database_path: Path | None = None
-    source_revision_confirmed: bool = False
 
     @classmethod
     def from_project_root(
@@ -230,7 +231,6 @@ class PipelineConfig:
         deduplicate_context: bool = True,
         enable_memory_storage: bool = True,
         memory_database_path: str | Path | None = None,
-        source_revision_confirmed: bool = False,
     ) -> "PipelineConfig":
         """Build a default configuration from the repository root.
 
@@ -275,7 +275,6 @@ class PipelineConfig:
             memory_database_path=Path(memory_database_path)
             if memory_database_path is not None
             else root / "data" / "memory" / "finance_memory.db",
-            source_revision_confirmed=source_revision_confirmed,
         )
 
     def to_dict(self) -> dict[str, Any]:

@@ -5,7 +5,7 @@
   "planner_source": "ollama",
   "status": "pending",
   "tools_executed": false,
-  "total_items": 4,
+  "total_items": 3,
   "items": [
     {
       "queue_position": 1,
@@ -22,7 +22,7 @@
         }
       },
       "reasoning": "Critical anomaly with 100% overdue invoices requires transaction-level detail.",
-      "expected_output": "List of overdue invoices and aging buckets by department.",
+      "expected_output": "List of overdue invoices and aging bucket distribution.",
       "status": "queued",
       "dependencies": []
     },
@@ -32,13 +32,13 @@
       "step_id": "STEP-002",
       "anomaly_id": null,
       "priority": "critical",
-      "question": "Which operating, scholarship, or capital outflows caused cash-flow risk? | Which revenue shortfalls and expense drivers caused operating deficit? | What is the correct structure of anomalies embedded table? | What is the correct structure of department summary table? | What is the correct structure of cash flow table?",
+      "question": "Which operating, scholarship, or capital outflows caused cash-flow risk? | What is the correct structure of anomalies_embedded table? | What is the correct structure of department_summary table?",
       "tool_name": "get_full_report",
       "arguments": {
         "period": "2026-05"
       },
-      "reasoning": "Critical cash flow anomaly needs full report for root cause analysis. | High priority operating result anomaly requires full report for root cause. | Data quality issue with anomalies table requires full report for resolution. | Data quality issue with department summary table requires full report. | Data quality issue with cash flow table requires full report for resolution.",
-      "expected_output": "Detailed cash flow statement with outflow breakdown. | Revenue and expense drivers behind the deficit. | Correct table structure and business meaning for anomalies table. | Correct table structure and business meaning for department summary. | Correct table structure and business meaning for cash flow table.",
+      "reasoning": "Critical cash flow anomaly needs full report for root cause analysis. | Data quality issue with unresolved anomalies table requires full report. | Data quality issue with unresolved department_summary table requires full report.",
+      "expected_output": "Detailed cash flow statement with outflow breakdown. | Table structure and business meaning of anomalies_embedded. | Table structure and business meaning of department_summary.",
       "status": "queued",
       "dependencies": []
     },
@@ -46,35 +46,18 @@
       "queue_position": 3,
       "execution_id": "EXEC-2026-05-003",
       "step_id": "STEP-003",
-      "anomaly_id": "ANOM-2026-05-001",
-      "priority": "high",
-      "question": "What payroll components and departments caused payroll risk?",
-      "tool_name": "get_payroll_history",
-      "arguments": {
-        "department": "all",
-        "months": 1
-      },
-      "reasoning": "High priority payroll ratio breach requires department-level payroll data.",
-      "expected_output": "Payroll breakdown by department and component for May 2026.",
-      "status": "queued",
-      "dependencies": []
-    },
-    {
-      "queue_position": 4,
-      "execution_id": "EXEC-2026-05-004",
-      "step_id": "STEP-004",
       "anomaly_id": "ANOM-2026-05-002",
       "priority": "high",
-      "question": "Why did student collection rate miss target?",
+      "question": "Why did the student collection rate miss its target?",
       "tool_name": "get_transactions",
       "arguments": {
         "filters": {
-          "type": "tuition",
+          "type": "student_payment",
           "period": "2026-05"
         }
       },
-      "reasoning": "High priority tuition collection anomaly needs transaction-level analysis.",
-      "expected_output": "Tuition payment status and aging by student.",
+      "reasoning": "High-priority collection rate anomaly requires payment transaction analysis.",
+      "expected_output": "Student payment collection pattern and shortfall analysis.",
       "status": "queued",
       "dependencies": []
     }

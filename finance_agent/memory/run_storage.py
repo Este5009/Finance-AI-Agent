@@ -613,7 +613,7 @@ def build_stored_pipeline_run(
                 ),
             ),
         ),
-        source_revision_confirmed=result.config.source_revision_confirmed,
+        source_revision_confirmed=input_model.source_revision_confirmed,
     )
 
 

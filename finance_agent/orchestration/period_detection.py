@@ -313,6 +313,7 @@ def build_pipeline_input_model(
     goals_document_path: str | Path,
     period_override: str | None = None,
     report_language: str = "es",
+    source_revision_confirmed: bool = False,
 ) -> PipelineInputModel:
     """Build the generic one-report pipeline input model.
 
@@ -330,6 +331,7 @@ def build_pipeline_input_model(
         period_type=period_type,
         period_override=period_override,
         report_language=report_language or "es",
+        source_revision_confirmed=source_revision_confirmed,
     )
 
 

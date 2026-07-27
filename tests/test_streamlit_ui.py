@@ -5,6 +5,7 @@ from typing import Any
 
 from finance_agent.orchestration import PipelineConfig, PipelineInputModel
 from finance_agent.orchestration.pipeline_models import (
+    DetectedPeriod,
     PipelineRunResult,
     PipelineStageResult,
     RuntimeSummary,
@@ -166,6 +167,7 @@ def test_run_analysis_from_files_invokes_pipeline_runner(tmp_path: Path) -> None
 
     assert result.success is True
     assert captured["input_model"].period_override == "2026-06"
+    assert captured["input_model"].source_revision_confirmed is False
     assert captured["config"].ollama_timeout_seconds == 12
     assert captured["config"].stage_timeout_seconds == 34
     assert captured["config"].max_planner_anomalies == 3
@@ -173,11 +175,58 @@ def test_run_analysis_from_files_invokes_pipeline_runner(tmp_path: Path) -> None
     assert captured["config"].enable_cache is False
     assert captured["config"].enable_memory_storage is False
     assert captured["config"].input_model is captured["input_model"]
+    assert not hasattr(captured["config"], "source_revision_confirmed")
     assert captured["config"].effective_ollama_models() == {
         "structure_fallback": "qwen3:30b-a3b",
         "investigation_planner": "qwen3:30b-a3b",
         "strategic_analysis": "qwen3:30b-a3b",
     }
+
+
+def test_run_analysis_from_files_passes_revision_confirmation_on_input_model(tmp_path: Path) -> None:
+    """Verify revision confirmation is per-submission input, not PipelineConfig."""
+
+    report = tmp_path / "monthly_financial_report_may_2026.xlsx"
+    goals = tmp_path / "financial_goals_2026_05.pdf"
+    report.write_bytes(b"may financial report")
+    goals.write_bytes(b"%PDF may goals")
+    captured: dict[str, Any] = {}
+
+    def fake_runner(input_model: PipelineInputModel, config: PipelineConfig) -> PipelineRunResult:
+        """Capture per-submission revision confirmation."""
+
+        captured["input_model"] = input_model
+        captured["config"] = config
+        return _pipeline_result(config)
+
+    run_analysis_from_files(
+        financial_report_path=report,
+        goals_document_path=goals,
+        settings=StreamlitRunSettings(
+            report_language="es",
+            period_override="2026-05",
+            source_revision_confirmed=True,
+        ),
+        runner=fake_runner,
+    )
+
+    assert captured["input_model"].source_revision_confirmed is True
+    assert not hasattr(captured["config"], "source_revision_confirmed")
+
+
+def test_streamlit_preflight_classification_does_not_raise_attribute_error(tmp_path: Path) -> None:
+    """Verify Streamlit calls the canonical MemoryRepository preflight API."""
+
+    classification = streamlit_app._classify_upload_for_period(
+        uploaded_file=FakeUpload("may_report.xlsx", b"may report bytes"),
+        document_type="financial_report",
+        effective_period="2026-05",
+        database_path=tmp_path / "memory.db",
+    )
+
+    assert classification is not None
+    assert classification["status"] == "new"
+    assert classification["effective_period"] == "2026-05"
 
 
 def test_ui_single_model_setting_routes_all_stages(tmp_path: Path) -> None:
@@ -252,6 +301,81 @@ def test_period_override_auto_returns_none() -> None:
     assert streamlit_app._period_override_from_selection("Monthly", "2026-06") == "2026-06"
 
 
+def test_supported_ui_period_options_are_monthly_only() -> None:
+    """Verify unsupported frequencies are not selectable in the UI."""
+
+    assert streamlit_app.SUPPORTED_UI_PERIOD_OPTIONS == ("Detectar automáticamente", "Mensual")
+    for unsupported in ("Trimestral", "Semestral", "Anual", "Personalizado"):
+        assert unsupported not in streamlit_app.SUPPORTED_UI_PERIOD_OPTIONS
+
+
+def test_monthly_readiness_accepts_automatic_monthly_detection(tmp_path: Path) -> None:
+    """Verify confident monthly detection enables the Streamlit monthly workflow."""
+
+    input_model = PipelineInputModel(
+        financial_report_path=tmp_path / "university_financial_report_2026_12.xlsx",
+        goals_document_path=tmp_path / "financial_goals_2026_12.pdf",
+        detected_period=DetectedPeriod(
+            period_type="monthly",
+            label="2026-12",
+            confidence=0.9,
+            year=2026,
+            month=12,
+        ),
+        period_type="monthly",
+        report_language="es",
+    )
+
+    ready, message = streamlit_app._monthly_readiness_message(
+        input_model=input_model,
+        override_mode="Detectar automáticamente",
+        override_value="",
+    )
+
+    assert ready is True
+    assert "Período detectado: Mensual" in message
+    assert "Dic 2026" in message
+
+
+def test_monthly_readiness_accepts_manual_monthly_selection() -> None:
+    """Verify manual monthly mode requires a concrete month/year."""
+
+    ready, message = streamlit_app._monthly_readiness_message(
+        input_model=None,
+        override_mode="Mensual",
+        override_value="2027-01",
+    )
+
+    assert ready is True
+    assert "2027-01" in message
+
+
+def test_monthly_readiness_blocks_ambiguous_detection() -> None:
+    """Verify ambiguous/non-monthly auto detection is blocked instead of guessed."""
+
+    ready, message = streamlit_app._monthly_readiness_message(
+        input_model=None,
+        override_mode="Detectar automáticamente",
+        override_value="",
+    )
+
+    assert ready is False
+    assert "Seleccione el reporte financiero" in message
+
+
+def test_monthly_readiness_blocks_invalid_manual_month() -> None:
+    """Verify manual monthly mode blocks unsupported labels."""
+
+    ready, message = streamlit_app._monthly_readiness_message(
+        input_model=None,
+        override_mode="Mensual",
+        override_value="2027-Q1",
+    )
+
+    assert ready is False
+    assert "formato 2026-12" in message
+
+
 def test_file_validation_messages_are_spanish() -> None:
     """Verify upload validation returns actionable Spanish messages."""
 
@@ -278,6 +402,7 @@ def test_ui_copy_contains_executive_workflow_cards_and_spanish_upload_copy() -> 
     assert "Archivos compatibles" in source
     assert "Seleccionar archivo" in source
     assert "Detectar automáticamente" in source
+    assert "Actualmente, el sistema procesa reportes mensuales" in source
     assert "Ningún archivo seleccionado" in source
     forbidden_native_copy = (
         "Drag" + " and drop file here",

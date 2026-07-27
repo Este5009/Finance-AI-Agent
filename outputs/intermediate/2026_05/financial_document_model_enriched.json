@@ -1462,7 +1462,7 @@
         "Status": "status"
       },
       "llm_confidence": 0.87,
-      "llm_reasoning_short": "Columns match Budget_vs_Actual pattern with department and status as dimensions, revenue/expense metrics with variance fields. Low confidence on Net_Contribution due to 0.55 score.",
+      "llm_reasoning_short": "Matches Budget_vs_Actual pattern with revenue/expense metrics and variance fields. Low confidence on Net_Contribution due to 0.55 score.",
       "final_table_type": "Department_Summary",
       "final_column_mappings": {
         "Department": "department",
@@ -3196,7 +3196,7 @@
   ],
   "enrichment": {
     "stage": "ollama_structure_fallback",
-    "generated_at_utc": "2026-07-20T20:08:43.499075+00:00",
+    "generated_at_utc": "2026-07-27T19:45:47.404877+00:00",
     "ollama_available": true,
     "items_detected": 5,
     "acceptance_threshold": 0.75,

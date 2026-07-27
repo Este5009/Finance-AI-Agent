@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -66,17 +67,22 @@ class MemoryRepository:
         self,
         *,
         document_type: str,
-        content_sha256: str,
         effective_period: str,
+        raw_bytes: bytes | None = None,
+        content_sha256: str | None = None,
     ) -> DocumentClassification:
         """Classify an upload before analysis using content identity.
 
-        Inputs: document role, SHA-256 hash, and effective period.
+        Inputs: document role, raw bytes or SHA-256 hash, and effective period.
         Outputs: duplicate/new/revision classification.
         Assumptions: filename is intentionally ignored for identity checks.
         """
 
         self._validate_document_type(document_type)
+        if raw_bytes is not None:
+            content_sha256 = hashlib.sha256(raw_bytes).hexdigest()
+        if not content_sha256:
+            raise ValueError("raw_bytes or content_sha256 is required for source document classification")
         with connect_database(self.database_path) as connection:
             duplicate = connection.execute(
                 """
