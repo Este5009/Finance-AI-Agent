@@ -3,7 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from finance_agent.orchestration import PipelineConfig, PipelineInputModel
+from finance_agent.orchestration import (
+    PipelineConfig,
+    PipelineInputModel,
+    PipelineProgressCallback,
+    PipelineProgressEvent as PublicPipelineProgressEvent,
+)
 from finance_agent.orchestration.pipeline_models import (
     DetectedPeriod,
     PipelineProgressEvent,
@@ -76,6 +81,13 @@ def test_streamlit_ui_imports_without_streamlit_dependency() -> None:
 
     assert callable(streamlit_app.main)
     assert callable(streamlit_app.run_analysis_from_files)
+
+
+def test_streamlit_progress_symbols_use_public_orchestration_api() -> None:
+    """Verify Streamlit-visible progress symbols import from the public package path."""
+
+    assert PublicPipelineProgressEvent is PipelineProgressEvent
+    assert PipelineProgressCallback is not None
 
 
 def test_uploaded_files_are_saved_safely(tmp_path: Path) -> None:
