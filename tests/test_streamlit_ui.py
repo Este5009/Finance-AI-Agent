@@ -90,6 +90,15 @@ def test_streamlit_progress_symbols_use_public_orchestration_api() -> None:
     assert PipelineProgressCallback is not None
 
 
+def test_friendly_stage_error_distinguishes_historical_context_failure() -> None:
+    """Verify memory-filter errors do not appear as strategic validation failures."""
+
+    message = streamlit_app._friendly_stage_error("department contains unsupported characters")
+
+    assert "historial" in message
+    assert "estratÃ©gico" not in message
+
+
 def test_uploaded_files_are_saved_safely(tmp_path: Path) -> None:
     """Verify uploaded filenames are sanitized before writing to disk."""
 

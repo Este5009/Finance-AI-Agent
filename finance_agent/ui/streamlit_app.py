@@ -884,6 +884,8 @@ def _render_stage_results(st: Any, result: PipelineRunResult) -> None:
     cache_label = "se reutilizó un análisis existente" if result.cache_hit else "análisis nuevo"
     st.info(f"Reutilización: {cache_label}.")
     st.dataframe(rows, use_container_width=True, hide_index=True)
+    for stage in (stage for stage in result.stages if not stage.success):
+        st.error(f"{_stage_display_name(stage)}: {_friendly_stage_error(stage.error)}")
     ollama_rows = [
         row
         for row in rows
@@ -929,6 +931,7 @@ def _render_stage_results(st: Any, result: PipelineRunResult) -> None:
                 "Paso": _stage_display_name(stage),
                 "Detalle técnico": "; ".join(stage.warnings)
                 or str(stage.error or ""),
+                "Traceback": str(stage.telemetry.get("traceback") or ""),
             }
             for stage in result.stages
             if stage.warnings or stage.error
@@ -966,6 +969,8 @@ def _friendly_stage_error(error: str | None) -> str:
     if not error:
         return ""
     lowered = str(error).casefold()
+    if "department contains unsupported characters" in lowered:
+        return "No se pudo consultar el historial de un departamento con el nombre recibido."
     if "unsupported" in lowered or "validation" in lowered:
         return "No se pudo validar parte del análisis estratégico con la evidencia disponible."
     return str(error)

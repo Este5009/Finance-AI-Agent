@@ -18,7 +18,12 @@ from finance_agent.memory.retrieval_models import (
 from finance_agent.retrieval.retrieval_models import RetrievalResult
 
 
-VALID_IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9_.% -]{1,120}$")
+# Memory filters are always bound as SQLite parameters, so this validator is a
+# conservative input sanity check rather than SQL escaping. Real university
+# names can contain safe punctuation such as ampersands or apostrophes
+# (for example, "Arts & Humanities"), while SQL/control delimiters remain
+# rejected.
+VALID_IDENTIFIER_RE = re.compile(r"^[\w .%&'()/-]{1,120}$", re.UNICODE)
 VALID_PERIOD_RE = re.compile(
     r"^(20\d{2})(?:[-_](0[1-9]|1[0-2]|Q[1-4]|S[1-2]))?$"
 )

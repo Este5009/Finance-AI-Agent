@@ -24,6 +24,7 @@ from finance_agent.orchestration.pipeline_orchestrator import (
     _load_valid_cache,
     _pipeline_cache_key,
     _ollama_client_for_stage,
+    _pending_after_failure_stage_results,
     _stage_command,
     _structure_fallback_needed,
     build_default_stages,
@@ -302,6 +303,21 @@ def test_output_summary_structure(tmp_path: Path) -> None:
     assert data["config"]["max_planner_anomalies"] == 5
     assert data["config"]["compact_context"] is True
     assert data["config"]["deduplicate_context"] is True
+
+
+def test_pending_stages_after_historical_context_failure_are_explicit() -> None:
+    """Verify failed object-pipeline diagnostics name skipped downstream stages."""
+
+    pending = _pending_after_failure_stage_results("historical_context")
+
+    assert [stage.stage_name for stage in pending[:3]] == [
+        "ollama_investigation_planner",
+        "retrieval_layer",
+        "strategic_analysis",
+    ]
+    assert all(stage.skipped for stage in pending)
+    assert all(stage.success for stage in pending)
+    assert all(stage.warnings == ("No ejecutado por fallo previo.",) for stage in pending)
 
 
 def test_structure_fallback_skipped_when_confidence_high(tmp_path: Path) -> None:

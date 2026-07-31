@@ -6,6 +6,7 @@ import json
 import hashlib
 import subprocess
 import time
+import traceback
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
@@ -72,6 +73,21 @@ from finance_agent.understanding.structure_fallback import (
 
 
 StageExecutor = Callable[["PipelineStage", PipelineConfig], PipelineStageResult]
+
+
+OBJECT_PIPELINE_STAGE_ORDER: tuple[tuple[str, str, bool], ...] = (
+    ("ingestion", "Document ingestion", True),
+    ("document_understanding", "Document understanding", True),
+    ("ollama_structure_fallback", "Ollama structure fallback", False),
+    ("finance_calculations", "Finance calculations", True),
+    ("anomaly_detection", "Anomaly detection", True),
+    ("historical_context", "Historical context", True),
+    ("ollama_investigation_planner", "Ollama investigation planner", True),
+    ("retrieval_layer", "Retrieval layer", True),
+    ("strategic_analysis", "Strategic analysis", False),
+    ("report_generation", "Report model and renderers", False),
+    ("memory_storage", "Memory storage", False),
+)
 
 
 PROGRESS_STAGES: tuple[dict[str, str], ...] = (
@@ -528,6 +544,37 @@ def _skipped_object_stage_result(
     )
 
 
+def _pending_after_failure_stage_results(failed_stage_name: str) -> tuple[PipelineStageResult, ...]:
+    """Create explicit pending-stage records after a fatal object-pipeline failure.
+
+    Inputs: name of the stage that failed.
+    Outputs: skipped stage results for later stages in object-pipeline order.
+    Assumptions: these records are diagnostic only and do not create artifacts.
+    """
+
+    names = [name for name, _display, _critical in OBJECT_PIPELINE_STAGE_ORDER]
+    if failed_stage_name not in names:
+        return ()
+    pending: list[PipelineStageResult] = []
+    for name, display, critical in OBJECT_PIPELINE_STAGE_ORDER[names.index(failed_stage_name) + 1 :]:
+        pending.append(
+            PipelineStageResult(
+                stage_name=name,
+                display_name=display,
+                critical=critical,
+                success=True,
+                skipped=True,
+                output_files=(),
+                warnings=("No ejecutado por fallo previo.",),
+                error=None,
+                runtime_seconds=0.0,
+                return_code=None,
+                telemetry={"skipped_reason": "prior_stage_failure"},
+            )
+        )
+    return tuple(pending)
+
+
 def _hash_file(path: Path) -> str:
     """Hash one input file in chunks for cache identity.
 
@@ -929,9 +976,9 @@ def _finalize_pipeline_result(
         total_runtime_seconds=time.perf_counter() - started,
         stages_requested=len(stages),
         stages_run=len(stages),
-        stages_succeeded=sum(stage.success for stage in stages),
+        stages_succeeded=sum(stage.success and not stage.skipped for stage in stages),
         stages_failed=sum(not stage.success for stage in stages),
-        stages_skipped=0,
+        stages_skipped=sum(stage.skipped for stage in stages),
     )
     return PipelineRunResult(
         success=not any(stage.critical and not stage.success for stage in stages),
@@ -1229,6 +1276,9 @@ def run_object_pipeline_for_report(
     report_label = input_model.effective_period_label
     report_prefix = clean_column_name(input_model.financial_report_path.stem)
     source_workbook = str(input_model.financial_report_path.resolve())
+    current_stage_name = "validate_documents"
+    current_stage_display = "Input validation"
+    current_stage_started = pipeline_started
 
     try:
         _emit_progress(
@@ -1237,7 +1287,10 @@ def run_object_pipeline_for_report(
             status="running",
             started=pipeline_started,
         )
+        current_stage_name = "ingestion"
+        current_stage_display = "Document ingestion"
         started = time.perf_counter()
+        current_stage_started = started
         workbook = load_excel_workbook(input_model.financial_report_path, header_row=4)
         inspection = inspect_workbook(workbook)
         goals = extract_goals_pdf(input_model.goals_document_path)
@@ -1256,7 +1309,10 @@ def run_object_pipeline_for_report(
             )
         )
 
+        current_stage_name = "document_understanding"
+        current_stage_display = "Document understanding"
         started = time.perf_counter()
+        current_stage_started = started
         intermediate_dir = outputs / "intermediate" / period_slug
         model = build_financial_document_model([input_model.financial_report_path])
         intermediate_paths = save_intermediate_outputs(model, intermediate_dir)
@@ -1275,7 +1331,10 @@ def run_object_pipeline_for_report(
             )
         )
 
+        current_stage_name = "ollama_structure_fallback"
+        current_stage_display = "Ollama structure fallback"
         started = time.perf_counter()
+        current_stage_started = started
         if _structure_fallback_needed(model.to_dict(), config):
             structure_client = _ollama_client_for_stage(
                 config,
@@ -1341,7 +1400,10 @@ def run_object_pipeline_for_report(
             status="running",
             started=pipeline_started,
         )
+        current_stage_name = "finance_calculations"
+        current_stage_display = "Finance calculations"
         started = time.perf_counter()
+        current_stage_started = started
         scope, monthly_trend_year = _period_scope_from_detected(
             input_model.detected_period,
             report_label,
@@ -1388,7 +1450,10 @@ def run_object_pipeline_for_report(
             status="running",
             started=pipeline_started,
         )
+        current_stage_name = "anomaly_detection"
+        current_stage_display = "Anomaly detection"
         started = time.perf_counter()
+        current_stage_started = started
         anomaly_report = run_anomaly_detection(
             calculation_bundle,
             thresholds=AnomalyThresholds(),
@@ -1413,7 +1478,10 @@ def run_object_pipeline_for_report(
             )
         )
 
+        current_stage_name = "historical_context"
+        current_stage_display = "Historical context"
         started = time.perf_counter()
+        current_stage_started = started
         trend_records = _records(calculation.monthly_trends)
         history_cache = HistoricalContextCache()
         history_dir = outputs / "history_reasoning"
@@ -1430,6 +1498,20 @@ def run_object_pipeline_for_report(
             planner_history.context,
             history_dir / "planner_context.json",
         )
+        stages.append(
+            _stage_result(
+                name="historical_context",
+                display="Historical context",
+                critical=True,
+                started=started,
+                outputs=(planner_context_path,),
+                telemetry=planner_history.telemetry,
+            )
+        )
+        current_stage_name = "ollama_investigation_planner"
+        current_stage_display = "Ollama investigation planner"
+        started = time.perf_counter()
+        current_stage_started = started
         baseline_plan = build_investigation_plan(
             finance_document=finance_document,
             anomaly_report=anomaly_document,
@@ -1498,7 +1580,10 @@ def run_object_pipeline_for_report(
             status="running",
             started=pipeline_started,
         )
+        current_stage_name = "retrieval_layer"
+        current_stage_display = "Retrieval layer"
         started = time.perf_counter()
+        current_stage_started = started
         retrieval_context = _make_retrieval_context(
             config=config,
             finance_document=finance_document,
@@ -1546,7 +1631,10 @@ def run_object_pipeline_for_report(
             status="running",
             started=pipeline_started,
         )
+        current_stage_name = "strategic_analysis"
+        current_stage_display = "Strategic analysis"
         started = time.perf_counter()
+        current_stage_started = started
         analysis_client = _ollama_client_for_stage(
             config,
             "strategic_analysis",
@@ -1664,7 +1752,10 @@ def run_object_pipeline_for_report(
             status="running",
             started=pipeline_started,
         )
+        current_stage_name = "report_generation"
+        current_stage_display = "Report model and renderers"
         started = time.perf_counter()
+        current_stage_started = started
         report_dir = outputs / "report"
         report_inputs = ReportInputBundle(
             period_slug=period_slug,
@@ -1721,6 +1812,7 @@ def run_object_pipeline_for_report(
             started=pipeline_started,
         )
     except Exception as exc:  # noqa: BLE001 - produce structured failure for UI.
+        technical_traceback = traceback.format_exc()
         _emit_progress(
             progress_callback,
             stage_id="analysis_completed",
@@ -1730,14 +1822,19 @@ def run_object_pipeline_for_report(
         )
         stages.append(
             _stage_result(
-                name="pipeline_error",
-                display="Pipeline error",
+                name=current_stage_name,
+                display=current_stage_display,
                 critical=True,
-                started=time.perf_counter(),
+                started=current_stage_started,
                 outputs=(),
                 error=str(exc),
+                telemetry={
+                    "error_type": type(exc).__name__,
+                    "traceback": technical_traceback,
+                },
             )
         )
+        stages.extend(_pending_after_failure_stage_results(current_stage_name))
 
     result = _finalize_pipeline_result(
         config=config,

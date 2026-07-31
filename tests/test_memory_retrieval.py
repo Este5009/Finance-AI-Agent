@@ -219,6 +219,20 @@ def test_department_history_summary_and_full(seeded_database: Path) -> None:
     assert full.data["records"]["anomalies"][0]["department"] == "Health Sciences"
 
 
+def test_department_history_accepts_ampersand_department_names(seeded_database: Path) -> None:
+    """Verify safe punctuation in real department names does not crash retrieval."""
+
+    result = get_department_history(
+        "Arts & Humanities",
+        6,
+        database_path=seeded_database,
+    )
+
+    assert result.success is False
+    assert result.unavailable_data
+    assert "Arts & Humanities" in result.data["summary"]
+
+
 def test_repeated_anomalies_and_filters(seeded_database: Path) -> None:
     """Verify repeated anomaly grouping and department filters."""
 

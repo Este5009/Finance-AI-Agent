@@ -71,6 +71,23 @@ def _anomaly_report() -> dict[str, Any]:
     }
 
 
+def _anomaly_report_with_arts_humanities() -> dict[str, Any]:
+    """Return current anomalies that mention a department with an ampersand."""
+
+    report = _anomaly_report()
+    report["anomalies"] = [
+        {
+            "anomaly_id": "A-ARTS",
+            "title": "Arts & Humanities department overspend",
+            "metric": "department_budget_variance",
+            "severity": "high",
+            "evidence": "Arts & Humanities exceeds its department budget.",
+            "rule_id": "DEPARTMENT_OVERSPEND",
+        }
+    ]
+    return report
+
+
 def _result(tool_name: str, records: list[dict[str, Any]] | None = None, success: bool = True) -> MemoryToolResult:
     """Build one fake memory retrieval result.
 
@@ -171,6 +188,22 @@ def test_context_builder_selects_relevant_history_and_order() -> None:
     assert result.context["summary"]["available_retrievals"] == len(calls)
     assert result.telemetry["database_queries"] == len(calls)
     assert result.context["history_policy"]["no_full_reports"] is True
+
+
+def test_context_builder_allows_ampersand_department_names() -> None:
+    """Verify historical context does not reject supported department punctuation."""
+
+    calls: list[str] = []
+    result = build_historical_context(
+        current_period="2026_06",
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report_with_arts_humanities(),
+        database_path=Path("memory.db"),
+        retrievers=_fake_retrievers(calls),
+    )
+
+    assert "get_department_history:Arts & Humanities" in calls
+    assert result.context["detected_signals"]["departments"] == ["Arts & Humanities"]
 
 
 def test_context_caching_and_retrieval_deduplication() -> None:
