@@ -6,6 +6,7 @@ from typing import Any
 from finance_agent.orchestration import PipelineConfig, PipelineInputModel
 from finance_agent.orchestration.pipeline_models import (
     DetectedPeriod,
+    PipelineProgressEvent,
     PipelineRunResult,
     PipelineStageResult,
     RuntimeSummary,
@@ -181,6 +182,94 @@ def test_run_analysis_from_files_invokes_pipeline_runner(tmp_path: Path) -> None
         "investigation_planner": "qwen3:30b-a3b",
         "strategic_analysis": "qwen3:30b-a3b",
     }
+
+
+def test_run_analysis_from_files_passes_progress_callback_when_supported(tmp_path: Path) -> None:
+    """Verify the UI helper forwards progress callbacks to compatible runners."""
+
+    report = tmp_path / "monthly_financial_report_june_2026.xlsx"
+    goals = tmp_path / "financial_goals_2026.pdf"
+    report.write_bytes(b"placeholder")
+    goals.write_bytes(b"placeholder")
+    received_events: list[PipelineProgressEvent] = []
+
+    def fake_runner(
+        input_model: PipelineInputModel,
+        config: PipelineConfig,
+        *,
+        progress_callback: Any = None,
+    ) -> PipelineRunResult:
+        """Emit one progress event through the supplied callback."""
+
+        assert input_model.period_override == "2026-06"
+        if progress_callback is not None:
+            progress_callback(
+                PipelineProgressEvent(
+                    stage_id="analysis_completed",
+                    label="Análisis completado",
+                    detail="Listo.",
+                    completed_steps=9,
+                    total_steps=9,
+                    status="completed",
+                )
+            )
+        return _pipeline_result(config)
+
+    result = run_analysis_from_files(
+        financial_report_path=report,
+        goals_document_path=goals,
+        settings=StreamlitRunSettings(report_language="es", period_override="2026-06"),
+        runner=fake_runner,
+        progress_callback=received_events.append,
+    )
+
+    assert result.success is True
+    assert received_events[0].stage_id == "analysis_completed"
+    assert received_events[0].status == "completed"
+
+
+def test_progress_event_merge_preserves_rerun_snapshot() -> None:
+    """Verify progress state can be stored and reused across Streamlit reruns."""
+
+    events = streamlit_app._initial_progress_events()
+    updated = streamlit_app._merge_progress_event(
+        events,
+        PipelineProgressEvent(
+            stage_id="query_history",
+            label="Consultando el historial",
+            detail="Historial recuperado.",
+            completed_steps=5,
+            total_steps=9,
+            status="completed",
+        ),
+    )
+
+    assert len(updated) == len(events)
+    assert updated[4]["stage_id"] == "query_history"
+    assert updated[4]["status"] == "completed"
+    assert streamlit_app._latest_active_progress(updated)["stage_id"] == "query_history"
+
+
+def test_failure_progress_snapshot_marks_analysis_completed_failed() -> None:
+    """Verify failure events produce a recoverable progress snapshot."""
+
+    failed = PipelineProgressEvent(
+        stage_id="analysis_completed",
+        label="Análisis completado",
+        detail="No se pudo iniciar el análisis.",
+        completed_steps=0,
+        total_steps=9,
+        status="failed",
+    )
+    updated = streamlit_app._merge_progress_event(
+        streamlit_app._initial_progress_events(),
+        failed,
+    )
+
+    latest = streamlit_app._latest_active_progress(updated)
+
+    assert latest["stage_id"] == "analysis_completed"
+    assert latest["status"] == "failed"
 
 
 def test_run_analysis_from_files_passes_revision_confirmation_on_input_model(tmp_path: Path) -> None:

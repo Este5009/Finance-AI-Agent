@@ -28,6 +28,7 @@ from finance_agent.orchestration.pipeline_orchestrator import (
     _structure_fallback_needed,
     build_default_stages,
     run_full_pipeline,
+    run_pipeline_for_report,
 )
 from finance_agent.orchestration.profiling import build_pipeline_profile
 
@@ -373,6 +374,100 @@ def test_cache_hit_reuses_valid_outputs(tmp_path: Path) -> None:
     assert result is not None
     assert result.cache_hit is True
     assert result.stages[0].skipped is True
+
+
+def test_progress_events_represent_cache_hit(tmp_path: Path) -> None:
+    """Verify run_pipeline_for_report emits validation, cache, save, and completion events."""
+
+    config = PipelineConfig.from_project_root(
+        tmp_path,
+        python_executable=sys.executable,
+        enable_memory_storage=False,
+    )
+    input_model = _input_model(tmp_path)
+    period_slug = "2026_06"
+    _valid_report_artifacts(config, period_slug)
+    cache_key = _pipeline_cache_key(input_model, config)
+    manifest = _cache_manifest_path(config, cache_key)
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(
+        json.dumps({"cache_key": cache_key, "period_slug": period_slug}),
+        encoding="utf-8",
+    )
+    events: list[dict[str, Any]] = []
+
+    result = run_pipeline_for_report(
+        input_model,
+        config,
+        progress_callback=lambda event: events.append(event.to_dict()),
+    )
+
+    assert result.cache_hit is True
+    assert [event["stage_id"] for event in events] == [
+        "validate_documents",
+        "validate_documents",
+        "prepare_interpret_files",
+        "analysis_completed",
+    ]
+    assert events[2]["status"] == "cache_hit"
+    assert events[-1]["completed_steps"] == events[-1]["total_steps"]
+    assert events[-1]["label"] == "Análisis completado"
+
+
+def test_progress_callback_is_optional_for_pipeline_use(tmp_path: Path) -> None:
+    """Verify callers can still run without a progress callback."""
+
+    config = PipelineConfig.from_project_root(
+        tmp_path,
+        python_executable=sys.executable,
+        enable_memory_storage=False,
+    )
+    input_model = _input_model(tmp_path)
+    period_slug = "2026_06"
+    _valid_report_artifacts(config, period_slug)
+    cache_key = _pipeline_cache_key(input_model, config)
+    manifest = _cache_manifest_path(config, cache_key)
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(
+        json.dumps({"cache_key": cache_key, "period_slug": period_slug}),
+        encoding="utf-8",
+    )
+
+    result = run_pipeline_for_report(input_model, config)
+
+    assert result.success is True
+    assert result.cache_hit is True
+
+
+def test_progress_events_mark_validation_failure(tmp_path: Path) -> None:
+    """Verify failed document validation emits a failed progress event."""
+
+    config = _config(tmp_path)
+    input_model = PipelineInputModel(
+        financial_report_path=tmp_path / "missing.xlsx",
+        goals_document_path=tmp_path / "missing.pdf",
+        detected_period=DetectedPeriod(
+            period_type="monthly",
+            label="2026-06",
+            confidence=0.9,
+            year=2026,
+            month=6,
+        ),
+        period_type="monthly",
+        period_override="2026-06",
+        report_language="es",
+    )
+    events: list[dict[str, Any]] = []
+
+    with pytest.raises(ValueError):
+        run_pipeline_for_report(
+            input_model,
+            config,
+            progress_callback=lambda event: events.append(event.to_dict()),
+        )
+
+    assert events[-1]["stage_id"] == "validate_documents"
+    assert events[-1]["status"] == "failed"
 
 
 def test_cache_invalid_if_strategy_unavailable(tmp_path: Path) -> None:

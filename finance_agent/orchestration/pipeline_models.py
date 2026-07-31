@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 
 SUPPORTED_PERIOD_TYPES = frozenset(
@@ -18,6 +18,38 @@ DEFAULT_OLLAMA_READ_TIMEOUT_SECONDS = 600.0
 DEFAULT_OLLAMA_STAGE_TIMEOUT_SECONDS = 900.0
 DEFAULT_OLLAMA_KEEP_ALIVE = "15m"
 PIPELINE_SCHEMA_VERSION = "finance-ai-agent-pipeline-v2"
+
+
+@dataclass(frozen=True)
+class PipelineProgressEvent:
+    """Structured progress update emitted by the orchestrator.
+
+    Inputs: stable stage identifier, Spanish label/detail, progress counters, and status.
+    Outputs: serializable event suitable for Streamlit, CLI logging, or tests.
+    Assumptions: progress percentages reflect completed major stages, not fabricated
+    sub-step progress inside long Ollama calls.
+    """
+
+    stage_id: str
+    label: str
+    detail: str
+    completed_steps: int
+    total_steps: int
+    status: str = "running"
+    elapsed_seconds: float = 0.0
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the progress event.
+
+        Inputs: this event.
+        Outputs: JSON-compatible dictionary.
+        Assumptions: labels are user-facing Spanish text.
+        """
+
+        return asdict(self)
+
+
+PipelineProgressCallback = Callable[[PipelineProgressEvent], None]
 
 
 @dataclass(frozen=True)

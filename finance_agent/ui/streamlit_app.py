@@ -7,6 +7,7 @@ import re
 import sys
 import time
 from dataclasses import dataclass
+from inspect import Parameter, signature
 from pathlib import Path
 from typing import Any, Callable, Protocol
 
@@ -17,6 +18,8 @@ from finance_agent.orchestration import (
     EXPERIMENTAL_FAST_OLLAMA_MODEL,
     PipelineConfig,
     PipelineInputModel,
+    PipelineProgressCallback,
+    PipelineProgressEvent,
     PipelineRunResult,
     build_pipeline_input_model,
     run_pipeline_for_report,
@@ -89,7 +92,56 @@ class StreamlitRunSettings:
     source_revision_confirmed: bool = False
 
 
-PipelineRunner = Callable[[PipelineInputModel, PipelineConfig], PipelineRunResult]
+PipelineRunner = Callable[..., PipelineRunResult]
+
+
+PROGRESS_UI_STAGES: tuple[dict[str, str], ...] = (
+    {
+        "stage_id": "validate_documents",
+        "label": "Validando documentos",
+        "detail": "Comprobando archivos, periodo y configuración antes de ejecutar el análisis.",
+    },
+    {
+        "stage_id": "prepare_interpret_files",
+        "label": "Preparando e interpretando archivos",
+        "detail": "Leyendo el reporte y normalizando la estructura financiera disponible.",
+    },
+    {
+        "stage_id": "calculate_financial_indicators",
+        "label": "Calculando indicadores financieros",
+        "detail": "Calculando KPIs, presupuestos, variaciones y resultados del periodo.",
+    },
+    {
+        "stage_id": "analyze_financial_performance",
+        "label": "Analizando el desempeño financiero",
+        "detail": "Detectando anomalías y preparando el plan de investigación validado.",
+    },
+    {
+        "stage_id": "query_history",
+        "label": "Consultando el historial",
+        "detail": "Recuperando evidencia y contexto histórico relevante para el periodo.",
+    },
+    {
+        "stage_id": "generate_strategic_recommendations",
+        "label": "Generando recomendaciones estratégicas",
+        "detail": "Ollama está procesando evidencia compacta y validada; esta etapa puede tardar varios minutos.",
+    },
+    {
+        "stage_id": "build_executive_report",
+        "label": "Construyendo el reporte ejecutivo",
+        "detail": "Armando el modelo de reporte y generando los archivos HTML/PDF.",
+    },
+    {
+        "stage_id": "save_results",
+        "label": "Guardando resultados",
+        "detail": "Registrando artefactos, caché y memoria histórica cuando corresponde.",
+    },
+    {
+        "stage_id": "analysis_completed",
+        "label": "Análisis completado",
+        "detail": "El análisis finalizó y los reportes están listos para revisar o descargar.",
+    },
+)
 
 
 STAGE_LABELS_ES: dict[str, str] = {
@@ -202,10 +254,11 @@ def run_analysis_from_files(
     goals_document_path: Path,
     settings: StreamlitRunSettings,
     runner: PipelineRunner = run_pipeline_for_report,
+    progress_callback: PipelineProgressCallback | None = None,
 ) -> PipelineRunResult:
     """Run the existing pipeline for saved upload files.
 
-    Inputs: saved report/goals paths, UI settings, and injectable runner.
+    Inputs: saved report/goals paths, UI settings, injectable runner, and optional progress callback.
     Outputs: structured PipelineRunResult.
     Assumptions: this function is the only place the UI triggers pipeline work.
     """
@@ -216,7 +269,26 @@ def run_analysis_from_files(
         settings=settings,
     )
     config = build_pipeline_config(input_model, settings)
-    return runner(input_model, config)
+    if progress_callback is None or not _runner_accepts_progress_callback(runner):
+        return runner(input_model, config)
+    return runner(input_model, config, progress_callback=progress_callback)
+
+
+def _runner_accepts_progress_callback(runner: PipelineRunner) -> bool:
+    """Return whether an injectable runner accepts progress callbacks.
+
+    Inputs: callable runner used by tests or the real orchestrator.
+    Outputs: True when ``progress_callback`` can be passed safely.
+    Assumptions: older two-argument test doubles should keep working unchanged.
+    """
+
+    try:
+        parameters = signature(runner).parameters
+    except (TypeError, ValueError):
+        return True
+    return "progress_callback" in parameters or any(
+        parameter.kind == Parameter.VAR_KEYWORD for parameter in parameters.values()
+    )
 
 
 def _period_override_from_selection(selection: str, value: str) -> str | None:
@@ -616,6 +688,139 @@ def _render_workflow_intro(st: Any) -> None:
     )
 
 
+def _initial_progress_events() -> list[dict[str, Any]]:
+    """Return the default progress timeline used before callbacks arrive.
+
+    Inputs: none.
+    Outputs: list of event-like dictionaries with pending statuses.
+    Assumptions: the UI owns display state; the orchestrator emits real updates.
+    """
+
+    return [
+        {
+            "stage_id": stage["stage_id"],
+            "label": stage["label"],
+            "detail": stage["detail"],
+            "completed_steps": 0,
+            "total_steps": len(PROGRESS_UI_STAGES),
+            "status": "pending",
+            "elapsed_seconds": 0.0,
+        }
+        for stage in PROGRESS_UI_STAGES
+    ]
+
+
+def _progress_status_icon(status: str) -> str:
+    """Return a compact icon for a progress status.
+
+    Inputs: progress status.
+    Outputs: visual indicator string.
+    Assumptions: icons are presentation-only and do not encode business state.
+    """
+
+    return {
+        "completed": "✅",
+        "cache_hit": "♻️",
+        "skipped": "⏭️",
+        "failed": "⚠️",
+        "running": "🔄",
+        "pending": "▫️",
+    }.get(status, "▫️")
+
+
+def _format_elapsed_seconds(seconds: float) -> str:
+    """Format elapsed seconds for the progress panel.
+
+    Inputs: elapsed seconds.
+    Outputs: Spanish duration string.
+    Assumptions: precision should be useful for administrators, not forensic.
+    """
+
+    seconds = max(0, int(seconds))
+    minutes, remainder = divmod(seconds, 60)
+    if minutes:
+        return f"{minutes} min {remainder:02d} s"
+    return f"{remainder} s"
+
+
+def _merge_progress_event(
+    events: list[dict[str, Any]],
+    event: PipelineProgressEvent,
+) -> list[dict[str, Any]]:
+    """Merge one orchestrator event into the persisted UI progress state.
+
+    Inputs: current event snapshots and a new structured event.
+    Outputs: updated list preserving the configured stage order.
+    Assumptions: stage IDs are stable internal identifiers; labels remain Spanish.
+    """
+
+    by_id = {item["stage_id"]: dict(item) for item in events}
+    by_id[event.stage_id] = event.to_dict()
+    return [by_id.get(stage["stage_id"], {**stage, "status": "pending"}) for stage in PROGRESS_UI_STAGES]
+
+
+def _latest_active_progress(events: list[dict[str, Any]]) -> dict[str, Any]:
+    """Return the most relevant progress event to display as current.
+
+    Inputs: progress events.
+    Outputs: the running/failed/latest completed event.
+    Assumptions: the latest non-pending event best represents user-facing state.
+    """
+
+    for event in reversed(events):
+        if event.get("status") in {"running", "failed", "cache_hit", "completed", "skipped"}:
+            return event
+    return events[0] if events else {}
+
+
+def _render_progress_panel(st: Any, placeholder: Any | None = None) -> None:
+    """Render the live analysis progress panel.
+
+    Inputs: Streamlit module and optional placeholder for in-place updates.
+    Outputs: progress bar, current stage, elapsed time, and checklist.
+    Assumptions: this is UI-only; percentages reflect completed major stages.
+    """
+
+    events = st.session_state.get("finance_ai_progress_events") or _initial_progress_events()
+    current = _latest_active_progress(events)
+    total_steps = int(current.get("total_steps") or len(PROGRESS_UI_STAGES))
+    completed_steps = int(current.get("completed_steps") or 0)
+    percent = int((completed_steps / max(total_steps, 1)) * 100)
+    started_at = st.session_state.get("finance_ai_progress_started_at")
+    completed_at = st.session_state.get("finance_ai_progress_completed_at")
+    if completed_at and started_at:
+        elapsed = float(completed_at) - float(started_at)
+    elif started_at:
+        elapsed = time.time() - float(started_at)
+    else:
+        elapsed = float(current.get("elapsed_seconds") or 0.0)
+
+    target = placeholder.container() if placeholder is not None else st.container()
+    with target:
+        st.markdown("### Progreso del análisis")
+        st.progress(percent, text=f"{current.get('label', 'Preparando análisis')} — {percent}%")
+        status = str(current.get("status") or "running")
+        if status == "failed":
+            st.error(f"{current.get('label')}: {current.get('detail')}")
+        elif status == "cache_hit":
+            st.info(f"{current.get('label')}: {current.get('detail')}")
+        elif status == "completed" and current.get("stage_id") == "analysis_completed":
+            st.success(f"Análisis completado en {_format_elapsed_seconds(elapsed)}.")
+        else:
+            st.info(f"{current.get('label')}: {current.get('detail')}")
+        st.caption(f"Tiempo transcurrido: {_format_elapsed_seconds(elapsed)}")
+        rows = []
+        for event in events:
+            rows.append(
+                {
+                    "Estado": _progress_status_icon(str(event.get("status") or "pending")),
+                    "Etapa": event.get("label"),
+                    "Detalle": event.get("detail"),
+                }
+            )
+        st.dataframe(rows, use_container_width=True, hide_index=True)
+
+
 def _section_by_id(report_model: dict[str, Any], section_id: str) -> dict[str, Any]:
     """Return one section from a renderer-agnostic report model.
 
@@ -921,6 +1126,9 @@ def _render_streamlit_app(st: Any) -> None:
     st.session_state.setdefault("finance_ai_result", None)
     st.session_state.setdefault("finance_ai_running", False)
     st.session_state.setdefault("finance_ai_error", "")
+    st.session_state.setdefault("finance_ai_progress_events", _initial_progress_events())
+    st.session_state.setdefault("finance_ai_progress_started_at", None)
+    st.session_state.setdefault("finance_ai_progress_completed_at", None)
 
     with st.sidebar:
         st.header("Configuración")
@@ -990,6 +1198,9 @@ def _render_streamlit_app(st: Any) -> None:
         if st.button("Nuevo análisis / limpiar resultados", use_container_width=True):
             st.session_state["finance_ai_result"] = None
             st.session_state["finance_ai_error"] = ""
+            st.session_state["finance_ai_progress_events"] = _initial_progress_events()
+            st.session_state["finance_ai_progress_started_at"] = None
+            st.session_state["finance_ai_progress_completed_at"] = None
             st.rerun()
 
     st.markdown("### 1. Cargue los documentos")
@@ -1127,9 +1338,11 @@ def _render_streamlit_app(st: Any) -> None:
     if not run_button:
         result = st.session_state.get("finance_ai_result")
         if result is not None:
+            _render_progress_panel(st)
             _render_stage_results(st, result)
             _render_results(st, result)
         elif st.session_state.get("finance_ai_error"):
+            _render_progress_panel(st)
             st.error(st.session_state["finance_ai_error"])
         return
 
@@ -1164,20 +1377,53 @@ def _render_streamlit_app(st: Any) -> None:
 
     try:
         st.session_state["finance_ai_running"] = True
-        progress = st.progress(0, text="Procesando archivos")
-        status_box = st.empty()
-        status_box.info("Procesando archivos y preparando la ejecución...")
-        with st.spinner("Ejecutando el análisis financiero..."):
-            result = run_analysis_from_files(
-                financial_report_path=report_path,
-                goals_document_path=goals_path,
-                settings=settings,
+        st.session_state["finance_ai_error"] = ""
+        st.session_state["finance_ai_progress_events"] = _initial_progress_events()
+        st.session_state["finance_ai_progress_started_at"] = time.time()
+        st.session_state["finance_ai_progress_completed_at"] = None
+        progress_placeholder = st.empty()
+        _render_progress_panel(st, progress_placeholder)
+
+        def handle_progress(event: PipelineProgressEvent) -> None:
+            """Refresh the Streamlit progress panel from an orchestrator event.
+
+            Inputs: structured progress event.
+            Outputs: updated session-state snapshot and rendered progress area.
+            Assumptions: the callback is synchronous and does not run business logic.
+            """
+
+            st.session_state["finance_ai_progress_events"] = _merge_progress_event(
+                st.session_state.get("finance_ai_progress_events") or _initial_progress_events(),
+                event,
             )
-        progress.progress(100, text="Reporte creado")
+            if event.stage_id == "analysis_completed" and event.status in {"completed", "failed"}:
+                st.session_state["finance_ai_progress_completed_at"] = time.time()
+            _render_progress_panel(st, progress_placeholder)
+
+        result = run_analysis_from_files(
+            financial_report_path=report_path,
+            goals_document_path=goals_path,
+            settings=settings,
+            progress_callback=handle_progress,
+        )
         st.session_state["finance_ai_result"] = result
         st.session_state["finance_ai_error"] = ""
     except Exception as exc:  # noqa: BLE001 - UI must display graceful failures.
         st.session_state["finance_ai_error"] = f"No se pudo iniciar el análisis: {exc}"
+        st.session_state["finance_ai_progress_completed_at"] = time.time()
+        failed_event = PipelineProgressEvent(
+            stage_id="analysis_completed",
+            label="Análisis completado",
+            detail=st.session_state["finance_ai_error"],
+            completed_steps=0,
+            total_steps=len(PROGRESS_UI_STAGES),
+            status="failed",
+        )
+        st.session_state["finance_ai_progress_events"] = _merge_progress_event(
+            st.session_state.get("finance_ai_progress_events") or _initial_progress_events(),
+            failed_event,
+        )
+        _render_progress_panel(st)
         st.error(st.session_state["finance_ai_error"])
         return
     finally:

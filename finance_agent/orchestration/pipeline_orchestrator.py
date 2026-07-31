@@ -46,6 +46,8 @@ from finance_agent.orchestration.pipeline_models import (
     PIPELINE_SCHEMA_VERSION,
     PipelineConfig,
     PipelineInputModel,
+    PipelineProgressCallback,
+    PipelineProgressEvent,
     PipelineRunResult,
     PipelineStageResult,
     RuntimeSummary,
@@ -70,6 +72,100 @@ from finance_agent.understanding.structure_fallback import (
 
 
 StageExecutor = Callable[["PipelineStage", PipelineConfig], PipelineStageResult]
+
+
+PROGRESS_STAGES: tuple[dict[str, str], ...] = (
+    {
+        "stage_id": "validate_documents",
+        "label": "Validando documentos",
+        "detail": "Comprobando archivos, periodo y configuración antes de ejecutar el análisis.",
+    },
+    {
+        "stage_id": "prepare_interpret_files",
+        "label": "Preparando e interpretando archivos",
+        "detail": "Leyendo el reporte y normalizando la estructura financiera disponible.",
+    },
+    {
+        "stage_id": "calculate_financial_indicators",
+        "label": "Calculando indicadores financieros",
+        "detail": "Calculando KPIs, presupuestos, variaciones y resultados del periodo.",
+    },
+    {
+        "stage_id": "analyze_financial_performance",
+        "label": "Analizando el desempeño financiero",
+        "detail": "Detectando anomalías y preparando el plan de investigación validado.",
+    },
+    {
+        "stage_id": "query_history",
+        "label": "Consultando el historial",
+        "detail": "Recuperando evidencia y contexto histórico relevante para el periodo.",
+    },
+    {
+        "stage_id": "generate_strategic_recommendations",
+        "label": "Generando recomendaciones estratégicas",
+        "detail": "Ollama está razonando con evidencia compacta y validada; esta etapa puede tardar varios minutos.",
+    },
+    {
+        "stage_id": "build_executive_report",
+        "label": "Construyendo el reporte ejecutivo",
+        "detail": "Armando el modelo de reporte y generando los archivos HTML/PDF.",
+    },
+    {
+        "stage_id": "save_results",
+        "label": "Guardando resultados",
+        "detail": "Registrando artefactos, caché y memoria histórica cuando corresponde.",
+    },
+    {
+        "stage_id": "analysis_completed",
+        "label": "Análisis completado",
+        "detail": "El análisis finalizó y los reportes están listos para revisar o descargar.",
+    },
+)
+
+PROGRESS_STAGE_INDEX = {
+    item["stage_id"]: index for index, item in enumerate(PROGRESS_STAGES)
+}
+
+
+def _emit_progress(
+    callback: PipelineProgressCallback | None,
+    *,
+    stage_id: str,
+    status: str = "running",
+    detail: str | None = None,
+    started: float | None = None,
+) -> None:
+    """Emit one optional structured progress event.
+
+    Inputs: optional callback, stage identifier, status, detail override, and run start time.
+    Outputs: none; callback receives PipelineProgressEvent when supplied.
+    Assumptions: callbacks are presentation/logging hooks and must not affect
+    financial processing. Callback exceptions are therefore swallowed.
+    """
+
+    if callback is None:
+        return
+    stage = PROGRESS_STAGES[PROGRESS_STAGE_INDEX[stage_id]]
+    completed_steps = PROGRESS_STAGE_INDEX[stage_id]
+    if status in {"completed", "skipped", "cache_hit"}:
+        completed_steps += 1
+    if stage_id == "analysis_completed":
+        completed_steps = len(PROGRESS_STAGES)
+    event = PipelineProgressEvent(
+        stage_id=stage_id,
+        label=stage["label"],
+        detail=detail or stage["detail"],
+        completed_steps=max(0, min(completed_steps, len(PROGRESS_STAGES))),
+        total_steps=len(PROGRESS_STAGES),
+        status=status,
+        elapsed_seconds=(time.perf_counter() - started) if started is not None else 0.0,
+    )
+    try:
+        callback(event)
+    except Exception:
+        # Progress is intentionally non-critical; UI/logging failures must not
+        # change deterministic pipeline behavior.
+        return
 
 
 @dataclass(frozen=True)
@@ -937,6 +1033,7 @@ def run_pipeline_for_report(
     *,
     stages: tuple[PipelineStage, ...] | None = None,
     stage_executor: StageExecutor = run_stage_subprocess,
+    progress_callback: PipelineProgressCallback | None = None,
 ) -> PipelineRunResult:
     """Run the object-based pipeline from the generic one-report input contract.
 
@@ -945,7 +1042,31 @@ def run_pipeline_for_report(
     Assumptions: compatibility arguments are retained; this path owns pipeline state.
     """
 
-    input_model.validate_for_execution()
+    validation_started = time.perf_counter()
+    _emit_progress(
+        progress_callback,
+        stage_id="validate_documents",
+        status="running",
+        started=validation_started,
+    )
+    try:
+        input_model.validate_for_execution()
+    except Exception:
+        _emit_progress(
+            progress_callback,
+            stage_id="validate_documents",
+            status="failed",
+            detail="No se pudieron validar los documentos o el periodo seleccionado.",
+            started=validation_started,
+        )
+        raise
+    _emit_progress(
+        progress_callback,
+        stage_id="validate_documents",
+        status="completed",
+        detail="Documentos y periodo validados correctamente.",
+        started=validation_started,
+    )
     config_with_input = PipelineConfig(
         project_root=config.project_root,
         python_executable=config.python_executable,
@@ -985,12 +1106,20 @@ def run_pipeline_for_report(
             stages=stages,
             stage_executor=stage_executor,
         )
-    return run_object_pipeline_for_report(input_model, config_with_input)
+    if progress_callback is None:
+        return run_object_pipeline_for_report(input_model, config_with_input)
+    return run_object_pipeline_for_report(
+        input_model,
+        config_with_input,
+        progress_callback=progress_callback,
+    )
 
 
 def run_object_pipeline_for_report(
     input_model: PipelineInputModel,
     config: PipelineConfig,
+    *,
+    progress_callback: PipelineProgressCallback | None = None,
 ) -> PipelineRunResult:
     """Execute all pipeline stages with orchestrator-owned Python objects.
 
@@ -1014,8 +1143,22 @@ def run_object_pipeline_for_report(
             pipeline_started=pipeline_started,
         )
         if cached_result is not None:
+            _emit_progress(
+                progress_callback,
+                stage_id="prepare_interpret_files",
+                status="cache_hit",
+                detail="Se encontró un análisis idéntico validado; se reutilizarán los resultados existentes.",
+                started=pipeline_started,
+            )
             if config.enable_memory_storage:
                 try:
+                    _emit_progress(
+                        progress_callback,
+                        stage_id="save_results",
+                        status="running",
+                        detail="Actualizando el registro histórico con los artefactos reutilizados.",
+                        started=pipeline_started,
+                    )
                     from finance_agent.memory.run_storage import persist_pipeline_run
 
                     persist_pipeline_run(
@@ -1024,14 +1167,41 @@ def run_object_pipeline_for_report(
                         database_path=config.memory_database_path
                         or config.project_root / "data" / "memory" / "finance_memory.db",
                     )
+                    _emit_progress(
+                        progress_callback,
+                        stage_id="save_results",
+                        status="completed",
+                        detail="Registro histórico actualizado para el análisis reutilizado.",
+                        started=pipeline_started,
+                    )
                 except Exception as exc:  # noqa: BLE001 - cache reuse remains valid.
                     print(f"Memory storage skipped after cache hit: {exc}")
+                    _emit_progress(
+                        progress_callback,
+                        stage_id="save_results",
+                        status="failed",
+                        detail="El análisis reutilizado está disponible, pero no se pudo actualizar la memoria histórica.",
+                        started=pipeline_started,
+                    )
+            _emit_progress(
+                progress_callback,
+                stage_id="analysis_completed",
+                status="completed",
+                detail="Análisis recuperado desde caché y listo para descargar.",
+                started=pipeline_started,
+            )
             return cached_result
     report_label = input_model.effective_period_label
     report_prefix = clean_column_name(input_model.financial_report_path.stem)
     source_workbook = str(input_model.financial_report_path.resolve())
 
     try:
+        _emit_progress(
+            progress_callback,
+            stage_id="prepare_interpret_files",
+            status="running",
+            started=pipeline_started,
+        )
         started = time.perf_counter()
         workbook = load_excel_workbook(input_model.financial_report_path, header_row=4)
         inspection = inspect_workbook(workbook)
@@ -1122,7 +1292,20 @@ def run_object_pipeline_for_report(
                     telemetry=fallback_summary.telemetry if fallback_summary else {},
                 )
             )
+        _emit_progress(
+            progress_callback,
+            stage_id="prepare_interpret_files",
+            status="completed",
+            detail="Archivos interpretados y estructura financiera preparada.",
+            started=pipeline_started,
+        )
 
+        _emit_progress(
+            progress_callback,
+            stage_id="calculate_financial_indicators",
+            status="running",
+            started=pipeline_started,
+        )
         started = time.perf_counter()
         scope, monthly_trend_year = _period_scope_from_detected(
             input_model.detected_period,
@@ -1156,7 +1339,20 @@ def run_object_pipeline_for_report(
                 warnings=tuple(calculation.calculation_warnings),
             )
         )
+        _emit_progress(
+            progress_callback,
+            stage_id="calculate_financial_indicators",
+            status="completed",
+            detail="Indicadores financieros calculados y guardados.",
+            started=pipeline_started,
+        )
 
+        _emit_progress(
+            progress_callback,
+            stage_id="analyze_financial_performance",
+            status="running",
+            started=pipeline_started,
+        )
         started = time.perf_counter()
         anomaly_report = run_anomaly_detection(
             calculation_bundle,
@@ -1253,7 +1449,20 @@ def run_object_pipeline_for_report(
                 },
             )
         )
+        _emit_progress(
+            progress_callback,
+            stage_id="analyze_financial_performance",
+            status="completed",
+            detail="Anomalías analizadas y plan de investigación preparado.",
+            started=pipeline_started,
+        )
 
+        _emit_progress(
+            progress_callback,
+            stage_id="query_history",
+            status="running",
+            started=pipeline_started,
+        )
         started = time.perf_counter()
         retrieval_context = _make_retrieval_context(
             config=config,
@@ -1288,7 +1497,20 @@ def run_object_pipeline_for_report(
                 outputs=(evidence_path, retrieval_summary_path),
             )
         )
+        _emit_progress(
+            progress_callback,
+            stage_id="query_history",
+            status="completed",
+            detail="Evidencia e historial relevante recuperados.",
+            started=pipeline_started,
+        )
 
+        _emit_progress(
+            progress_callback,
+            stage_id="generate_strategic_recommendations",
+            status="running",
+            started=pipeline_started,
+        )
         started = time.perf_counter()
         analysis_client = _ollama_client_for_stage(
             config,
@@ -1380,7 +1602,24 @@ def run_object_pipeline_for_report(
                 },
             )
         )
+        _emit_progress(
+            progress_callback,
+            stage_id="generate_strategic_recommendations",
+            status="completed" if analysis_result.accepted else "failed",
+            detail=(
+                "Recomendaciones estratégicas generadas y validadas."
+                if analysis_result.accepted
+                else "El análisis estratégico no fue aceptado por validación; se conservarán los artefactos de diagnóstico."
+            ),
+            started=pipeline_started,
+        )
 
+        _emit_progress(
+            progress_callback,
+            stage_id="build_executive_report",
+            status="running",
+            started=pipeline_started,
+        )
         started = time.perf_counter()
         report_dir = outputs / "report"
         if not analysis_result.accepted and not config.allow_draft_report:
@@ -1395,6 +1634,13 @@ def run_object_pipeline_for_report(
                         "was unavailable and draft reports are disabled.",
                     ),
                 )
+            )
+            _emit_progress(
+                progress_callback,
+                stage_id="build_executive_report",
+                status="skipped",
+                detail="Reporte ejecutivo omitido porque el análisis estratégico no fue aceptado.",
+                started=pipeline_started,
             )
         else:
             report_inputs = ReportInputBundle(
@@ -1439,7 +1685,21 @@ def run_object_pipeline_for_report(
                     ),
                 )
             )
+            _emit_progress(
+                progress_callback,
+                stage_id="build_executive_report",
+                status="completed",
+                detail="Reporte ejecutivo HTML/PDF construido correctamente.",
+                started=pipeline_started,
+            )
     except Exception as exc:  # noqa: BLE001 - produce structured failure for UI.
+        _emit_progress(
+            progress_callback,
+            stage_id="analysis_completed",
+            status="failed",
+            detail=f"El análisis se detuvo por un error: {exc}",
+            started=pipeline_started,
+        )
         stages.append(
             _stage_result(
                 name="pipeline_error",
@@ -1458,6 +1718,12 @@ def run_object_pipeline_for_report(
         cache_key=cache_key,
     )
     if cache_key:
+        _emit_progress(
+            progress_callback,
+            stage_id="save_results",
+            status="running",
+            started=pipeline_started,
+        )
         _write_cache_manifest(
             result=result,
             cache_key=cache_key,
@@ -1465,6 +1731,13 @@ def run_object_pipeline_for_report(
         )
     if result.success and config.enable_memory_storage:
         try:
+            _emit_progress(
+                progress_callback,
+                stage_id="save_results",
+                status="running",
+                detail="Guardando referencias de artefactos y memoria histórica.",
+                started=pipeline_started,
+            )
             from finance_agent.memory.run_storage import persist_pipeline_run
 
             persist_pipeline_run(
@@ -1473,9 +1746,42 @@ def run_object_pipeline_for_report(
                 database_path=config.memory_database_path
                 or config.project_root / "data" / "memory" / "finance_memory.db",
             )
+            _emit_progress(
+                progress_callback,
+                stage_id="save_results",
+                status="completed",
+                detail="Resultados guardados para futuras comparaciones históricas.",
+                started=pipeline_started,
+            )
         except Exception as exc:  # noqa: BLE001 - storage must not corrupt outputs.
             # Historical storage is post-run persistence. The report artifacts
             # remain valid even if SQLite is unavailable, so preserve existing
             # pipeline behavior and surface the error through a warning-like print.
             print(f"Memory storage skipped after pipeline run: {exc}")
+            _emit_progress(
+                progress_callback,
+                stage_id="save_results",
+                status="failed",
+                detail="Los reportes se generaron, pero no se pudo guardar la memoria histórica.",
+                started=pipeline_started,
+            )
+    elif result.success:
+        _emit_progress(
+            progress_callback,
+            stage_id="save_results",
+            status="completed",
+            detail="Resultados finales disponibles; almacenamiento histórico desactivado.",
+            started=pipeline_started,
+        )
+    _emit_progress(
+        progress_callback,
+        stage_id="analysis_completed",
+        status="completed" if result.success else "failed",
+        detail=(
+            "Análisis completado correctamente."
+            if result.success
+            else "El análisis terminó con una falla. Revise el mensaje principal."
+        ),
+        started=pipeline_started,
+    )
     return result
