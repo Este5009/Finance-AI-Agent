@@ -717,7 +717,16 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
     if view["recommendations"]["priorities"]:
         story.append(_para("Prioridades estratégicas", styles["h2"]))
         story.extend(_bullet_list(view["recommendations"]["priorities"], styles, limit=6))
-    if len(view["recommendations"]["cards"]) <= 5:
+    if not view["recommendations"]["cards"]:
+        story.append(
+            _info_card(
+                "No hay recomendaciones estratégicas validadas para este período. "
+                "El reporte conserva los hallazgos determinísticos, KPIs, anomalías, historial y evidencia procesada.",
+                styles,
+                title="Recomendaciones estratégicas",
+            )
+        )
+    elif len(view["recommendations"]["cards"]) <= 5:
         story.extend(_recommendation_cards(view, styles))
     else:
         story.append(

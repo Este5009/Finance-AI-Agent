@@ -888,6 +888,8 @@ def validate_evidence_bound_claims(
                         errors.append(f"{base} cites evidence_id not supporting section: {evidence_id}")
         causal_markers = (
             "causó",
+            "causada",
+            "causado",
             "causado por",
             "causa ",
             "causas ",

@@ -155,7 +155,12 @@ def _analysis_payload(document: dict[str, Any]) -> dict[str, Any]:
     outputs = state.get("reasoning_outputs", {})
     outputs = outputs if isinstance(outputs, dict) else {}
     synthesis = outputs.get("strategic_synthesis")
-    if isinstance(synthesis, dict) and synthesis:
+    if (
+        isinstance(synthesis, dict)
+        and synthesis
+        and not synthesis.get("_validation_failed")
+        and "executive_summary" in synthesis
+    ):
         return synthesis
     value = document.get("analysis", {})
     return value if isinstance(value, dict) else {}
@@ -190,8 +195,44 @@ def _analysis_unavailable_warnings(document: dict[str, Any]) -> tuple[str, ...]:
     errors = tuple(str(error) for error in document.get("validation_errors", []))
     if status == "accepted":
         return errors
-    warning = f"Strategic analysis is not accepted; status={status or 'unknown'}."
+    if status == "sanitized":
+        warning = "Strategic analysis was adjusted to remove unsupported claims."
+    else:
+        warning = f"Strategic analysis is not accepted; status={status or 'unknown'}."
     return (warning, *errors)
+
+
+def _deterministic_executive_summary(
+    *,
+    finance: dict[str, Any],
+    anomaly_report: dict[str, Any],
+    report_period: str,
+    analysis_status: str | None,
+) -> str:
+    """Build a deterministic fallback executive summary.
+
+    Inputs: finance summary, anomaly report, report period, and strategy status.
+    Outputs: concise Spanish summary using only processed deterministic values.
+    Assumptions: this is not strategic reasoning and must not fabricate causes or
+    recommendations.
+    """
+
+    revenue = finance.get("total_revenue")
+    expenses = finance.get("total_expenses")
+    result = finance.get("net_operating_result")
+    anomaly_count = anomaly_report.get("total_anomalies")
+    parts = [f"Reporte financiero determinístico para {report_period}."]
+    if revenue is not None and expenses is not None and result is not None:
+        parts.append(
+            "Ingresos, gastos y resultado operativo fueron calculados por el motor determinístico del pipeline."
+        )
+    if anomaly_count is not None:
+        parts.append(f"El detector determinístico registró {anomaly_count} anomalías del período.")
+    if analysis_status != "accepted":
+        parts.append(
+            "Las recomendaciones estratégicas validadas no están disponibles; el reporte conserva KPIs, comparaciones, anomalías, historial y evidencia procesada."
+        )
+    return " ".join(parts)
 
 
 def _section(
@@ -719,6 +760,20 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
     analysis_source = (inputs.source_files[4],)
 
     report_period = str(inputs.finance_summary.get("report_period", inputs.period_slug))
+    analysis_status = str(inputs.strategic_analysis.get("validation_status") or "unknown")
+    executive_summary = (
+        analysis.get("executive_summary")
+        or _deterministic_executive_summary(
+            finance=finance,
+            anomaly_report=inputs.anomaly_report,
+            report_period=report_period,
+            analysis_status=analysis_status,
+        )
+    )
+    strategy_recovery = inputs.strategic_analysis.get("strategic_recovery", {})
+    if not isinstance(strategy_recovery, dict):
+        strategy_recovery = analysis.get("_strategic_recovery", {})
+    strategy_recovery = strategy_recovery if isinstance(strategy_recovery, dict) else {}
     base_sections = (
         _section(
             "cover",
@@ -736,11 +791,12 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
             "executive_summary",
             "Executive Summary",
             {
-                "summary": analysis.get("executive_summary") or "",
+                "summary": executive_summary,
                 "key_findings": analysis.get("key_findings", []),
                 "root_causes": analysis.get("root_causes", []),
                 "confidence": analysis.get("confidence"),
-                "analysis_status": inputs.strategic_analysis.get("validation_status"),
+                "analysis_status": analysis_status,
+                "strategy_recovery": strategy_recovery,
             },
             analysis_source,
             analysis_warnings,
@@ -845,6 +901,14 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "strategic_priorities": analysis.get("strategic_priorities", []),
                 "reasoning_summary": analysis.get("reasoning_summary", ""),
                 "analysis": _analysis_text(analysis, "longitudinal_risk_analysis"),
+                "strategy_recovery": strategy_recovery,
+                "strategy_unavailable_note": (
+                    "No hay recomendaciones estratégicas validadas para este período; "
+                    "el reporte conserva los hallazgos determinísticos y la evidencia procesada."
+                    if analysis_status != "accepted"
+                    and not analysis.get("strategic_recommendations", analysis.get("recommendations", []))
+                    else ""
+                ),
             },
             analysis_source,
             analysis_warnings,

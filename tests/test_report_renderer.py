@@ -464,8 +464,8 @@ def test_report_model_quality_accepts_strategy_backed_model() -> None:
     assert result.recommendation_count == 1
 
 
-def test_report_model_quality_rejects_missing_strategy() -> None:
-    """Verify missing strategy and recommendations are blocking errors."""
+def test_report_model_quality_warns_for_missing_strategy() -> None:
+    """Verify missing strategy is warned about but deterministic reports remain valid."""
 
     model = _sample_report_model()
     sections = model["sections"]  # type: ignore[assignment]
@@ -479,8 +479,8 @@ def test_report_model_quality_rejects_missing_strategy() -> None:
     result = validate_report_model_quality(model)
 
     assert result.is_valid is False
-    assert any("not accepted" in error for error in result.errors)
     assert any("placeholder" in error for error in result.errors)
+    assert any("Strategic recommendations are not available" in warning for warning in result.warnings)
 
 
 def test_save_html_writes_document(tmp_path: Path) -> None:
@@ -516,8 +516,8 @@ def test_missing_and_empty_sections_render_gracefully(tmp_path: Path) -> None:
     assert pdf_path.read_bytes().startswith(b"%PDF")
 
 
-def test_strategy_validation_rejects_unavailable_analysis() -> None:
-    """Verify final rendering guard rejects report models without accepted strategy."""
+def test_strategy_validation_warns_for_unavailable_analysis() -> None:
+    """Verify final rendering guard allows deterministic fallback reports."""
 
     from finance_agent.reporting.renderers import report_strategy_warnings, validate_strategy_available
 
@@ -531,12 +531,7 @@ def test_strategy_validation_rejects_unavailable_analysis() -> None:
 
     warnings = report_strategy_warnings(model)
     assert warnings
-    try:
-        validate_strategy_available(model)
-    except ValueError as exc:
-        assert "Strategic analysis is unavailable" in str(exc)
-    else:
-        raise AssertionError("Expected ValueError for unavailable strategy")
+    validate_strategy_available(model)
 
 
 def test_load_report_model_rejects_non_object_json(tmp_path: Path) -> None:

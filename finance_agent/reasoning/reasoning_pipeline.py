@@ -228,21 +228,32 @@ def create_modular_strategic_analysis(
     accepted = state.stage_results[-1].accepted if state.stage_results else False
     analysis = state.stage_results[-1].payload if accepted else _empty_analysis()
     errors = state.stage_results[-1].validation_errors if state.stage_results else ("No reasoning stages ran.",)
+    sanitized_recovery = analysis.get("_strategic_recovery") if isinstance(analysis, dict) else None
+    validation_status = "accepted" if accepted else "rejected"
+    validation_errors: tuple[str, ...] = () if accepted else errors
+    if accepted and isinstance(sanitized_recovery, dict) and sanitized_recovery:
+        validation_status = "sanitized"
+        validation_errors = tuple(
+            str(error)
+            for error in sanitized_recovery.get("original_validation_errors", [])
+        )
     document = _analysis_document(
         period_slug=period_slug,
         report_period=str(finance_summary.get("report_period", period_slug)),
         ollama_available=True,
-        validation_status="accepted" if accepted else "rejected",
-        validation_errors=() if accepted else errors,
+        validation_status=validation_status,
+        validation_errors=validation_errors,
         analysis=analysis,
         historical_context=historical_context,
         evidence_ledger=evidence_ledger,
         reasoning_state=state,
     )
+    if isinstance(sanitized_recovery, dict) and sanitized_recovery:
+        document["strategic_recovery"] = sanitized_recovery
     return StrategicAnalysisResult(
         analysis_document=document,
         accepted=accepted,
-        validation_errors=() if accepted else errors,
+        validation_errors=validation_errors,
         telemetry={
             **telemetry,
             "total_stage_time_seconds": time.perf_counter() - started,
@@ -939,9 +950,244 @@ def validate_strategic_synthesis_response(
         evidence_ledger=evidence_ledger,
     )
     if claim_errors:
-        return ReasoningValidationResult(False, None, claim_errors)
+        sanitized, recovery = sanitize_strategic_analysis_claims(
+            validation.analysis,
+            claim_errors,
+            evidence_ledger=evidence_ledger,
+        )
+        sanitized_errors = validate_evidence_bound_claims(
+            sanitized,
+            finance_summary=finance_summary,
+            anomaly_report=anomaly_report,
+            evidence_package=evidence_package,
+            risk_summary=risk_summary,
+            historical_context=historical_context,
+            evidence_ledger=evidence_ledger,
+        )
+        if not sanitized_errors:
+            sanitized["_python_attached_evidence"] = True
+            sanitized["_strategic_recovery"] = recovery
+            return ReasoningValidationResult(True, sanitized, ())
+        return ReasoningValidationResult(False, sanitized, tuple(dict.fromkeys((*claim_errors, *sanitized_errors))))
     validation.analysis["_python_attached_evidence"] = True
     return ReasoningValidationResult(True, validation.analysis, ())
+
+
+def sanitize_strategic_analysis_claims(
+    analysis: dict[str, Any],
+    claim_errors: tuple[str, ...],
+    *,
+    evidence_ledger: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Remove or soften unsupported strategic enrichment without inventing facts.
+
+    Inputs: schema-valid strategic analysis, claim-validation errors, and evidence ledger.
+    Outputs: sanitized analysis plus recovery metadata.
+    Assumptions: deterministic facts remain untouched; unsupported observed
+    financial claims are removed from their field while recommendation prose may
+    be made qualitative.
+    """
+
+    del evidence_ledger
+    sanitized = json.loads(json.dumps(analysis, ensure_ascii=False))
+    repaired_fields: set[str] = set()
+    sanitized_fields: set[str] = set()
+    removed_fields: set[str] = set()
+    for error in claim_errors:
+        field_path = error.split(" contains ", 1)[0]
+        if field_path.startswith("strategic_recommendations["):
+            match = re.search(r"strategic_recommendations\[(\d+)\]", field_path)
+            if match:
+                index = int(match.group(1))
+                _sanitize_recommendation(
+                    sanitized,
+                    index,
+                    error=error,
+                    sanitized_fields=sanitized_fields,
+                    repaired_fields=repaired_fields,
+                )
+            continue
+        _remove_invalid_analysis_field(
+            sanitized,
+            field_path,
+            error=error,
+            removed_fields=removed_fields,
+            sanitized_fields=sanitized_fields,
+        )
+    recovery = {
+        "accepted_fields": _accepted_analysis_fields(sanitized, removed_fields),
+        "repaired_fields": sorted(repaired_fields),
+        "sanitized_fields": sorted(sanitized_fields),
+        "removed_fields": sorted(removed_fields),
+        "remaining_blocking_violations": [],
+        "original_validation_errors": list(claim_errors),
+        "status_message": (
+            "Algunas afirmaciones estratégicas fueron ajustadas o excluidas "
+            "por falta de evidencia suficiente."
+        ),
+    }
+    return sanitized, recovery
+
+
+def _sanitize_recommendation(
+    analysis: dict[str, Any],
+    index: int,
+    *,
+    error: str,
+    sanitized_fields: set[str],
+    repaired_fields: set[str],
+) -> None:
+    """Sanitize one invalid recommendation in place.
+
+    Inputs: analysis document, recommendation index, error, and audit sets.
+    Outputs: mutates the recommendation by removing unsupported specificity.
+    Assumptions: qualitative actions are safer than unsupported budgets/targets.
+    """
+
+    recommendations = analysis.get("strategic_recommendations", [])
+    if not isinstance(recommendations, list) or index >= len(recommendations):
+        return
+    recommendation = recommendations[index]
+    if not isinstance(recommendation, dict):
+        return
+    for key in ("action", "rationale", "expected_impact", "supporting_evidence"):
+        text = str(recommendation.get(key) or "")
+        if "unsupported number" in error or "unsupported causal claim" in error:
+            text = _remove_unsupported_numeric_specificity(text)
+            if key in {"action", "expected_impact"}:
+                text = _append_sentence_once(
+                    text,
+                    "Definir montos, porcentajes o metas cuantitativas después de validar la capacidad financiera.",
+                )
+            sanitized_fields.add(f"strategic_recommendations[{index}].{key}")
+        if "unsupported causal claim" in error:
+            text = _soften_causal_statement(text)
+            repaired_fields.add(f"strategic_recommendations[{index}].{key}")
+        recommendation[key] = text.strip() or "Requiere validación adicional con evidencia financiera suficiente."
+
+
+def _remove_invalid_analysis_field(
+    analysis: dict[str, Any],
+    field_path: str,
+    *,
+    error: str,
+    removed_fields: set[str],
+    sanitized_fields: set[str],
+) -> None:
+    """Remove unsupported observed narrative from one analysis field.
+
+    Inputs: analysis document, field path, validation error, and audit sets.
+    Outputs: mutates the invalid field to a conservative empty/neutral value.
+    Assumptions: unsupported KPI/revenue/period facts must not remain visible.
+    """
+
+    field_name = field_path.split("[", 1)[0]
+    if field_name not in analysis:
+        return
+    value = analysis.get(field_name)
+    if isinstance(value, list):
+        match = re.search(r"\[(\d+)\]", field_path)
+        if match:
+            index = int(match.group(1))
+            if 0 <= index < len(value):
+                value.pop(index)
+                removed_fields.add(field_path)
+        else:
+            analysis[field_name] = []
+            removed_fields.add(field_name)
+    elif isinstance(value, str):
+        if "unsupported causal claim" in error:
+            analysis[field_name] = _soften_causal_statement(value)
+            sanitized_fields.add(field_name)
+        else:
+            analysis[field_name] = _fallback_analysis_text(field_name)
+            removed_fields.add(field_name)
+    # Preserve Python-attached evidence IDs even when unsupported prose is
+    # removed. The remaining section stays auditable without inventing content.
+
+
+def _remove_unsupported_numeric_specificity(text: str) -> str:
+    """Remove numeric specificity from strategic recommendation prose.
+
+    Inputs: recommendation text.
+    Outputs: text without currency/percentage/large-number claims.
+    Assumptions: this never substitutes another number.
+    """
+
+    text = re.sub(r"\$?\s*\d{1,3}(?:,\d{3})+(?:\.\d+)?%?", "", text)
+    text = re.sub(r"\b\d+(?:[\.,]\d+)?\s*%", "", text)
+    text = re.sub(r"\b\d{4,}\b", "", text)
+    return re.sub(r"\s{2,}", " ", text).strip(" ,.;")
+
+
+def _soften_causal_statement(text: str) -> str:
+    """Turn unsupported causal certainty into a clearly labeled hypothesis.
+
+    Inputs: model-authored prose.
+    Outputs: cautious Spanish wording.
+    Assumptions: this only changes epistemic framing, not deterministic facts.
+    """
+
+    if not text.strip():
+        return "Una posible explicación requiere validación con evidencia adicional."
+    if any(marker in text.casefold() for marker in ("hipótesis", "posible", "podría", "requiere validación")):
+        return text
+    return f"Como hipótesis que requiere validación: {text}"
+
+
+def _append_sentence_once(text: str, sentence: str) -> str:
+    """Append a sentence unless it is already present.
+
+    Inputs: base text and sentence.
+    Outputs: combined text.
+    Assumptions: keeps sanitization messages concise.
+    """
+
+    if sentence in text:
+        return text
+    return (text.rstrip(". ") + ". " + sentence).strip() if text else sentence
+
+
+def _fallback_analysis_text(field_name: str) -> str:
+    """Return a conservative Spanish note for a removed strategic field.
+
+    Inputs: field name.
+    Outputs: bounded Spanish fallback text.
+    Assumptions: this states validation status only and does not add analysis.
+    """
+
+    labels = {
+        "executive_summary": "El análisis determinístico está disponible; se omitieron afirmaciones estratégicas sin evidencia suficiente.",
+        "financial_health_analysis": "La lectura financiera se limita a los indicadores determinísticos del reporte.",
+        "kpi_analysis": "La lectura de KPIs se limita a los valores determinísticos calculados.",
+        "historical_summary": "El resumen histórico se limita a los registros determinísticos disponibles.",
+        "historical_trend_analysis": "La tendencia histórica se presenta solo con evidencia validada.",
+        "department_analysis": "El análisis por departamento se limita a los datos procesados disponibles.",
+        "anomaly_analysis": "La lectura de anomalías se limita a los resultados determinísticos.",
+        "recommendation_follow_up_analysis": "El seguimiento de recomendaciones se limita a evidencia histórica validada.",
+        "longitudinal_risk_analysis": "La evaluación longitudinal se limita a riesgos históricos validados.",
+        "reasoning_summary": "Se excluyeron afirmaciones no respaldadas por evidencia suficiente.",
+    }
+    return labels.get(field_name, "")
+
+
+def _accepted_analysis_fields(analysis: dict[str, Any], removed_fields: set[str]) -> list[str]:
+    """List non-empty fields that survived strategic sanitization.
+
+    Inputs: sanitized analysis and removed-field set.
+    Outputs: sorted field names.
+    Assumptions: used for audit metadata only.
+    """
+
+    accepted: list[str] = []
+    for key, value in analysis.items():
+        if key.startswith("_") or key in removed_fields:
+            continue
+        if isinstance(value, (str, list, dict)) and value:
+            accepted.append(key)
+        elif value is not None:
+            accepted.append(key)
+    return sorted(accepted)
 
 
 def _run_structured_stage(
@@ -998,27 +1244,20 @@ def _run_structured_stage(
             setattr(client, "response_format", previous_response_format)
 
     elapsed_after_generation = time.perf_counter() - started
+    stage_timeout_exceeded_after_generation = (
+        stage_timeout_seconds is not None
+        and elapsed_after_generation > stage_timeout_seconds
+    )
     if stage_timeout_seconds is not None and elapsed_after_generation > stage_timeout_seconds:
-        telemetry = {
-            "stage_id": stage_id,
-            "prompt_characters": len(prompt),
-            "prompt_token_estimate": estimate_tokens_from_text(prompt),
-            "json_validation_time_seconds": 0.0,
-            "total_stage_time_seconds": elapsed_after_generation,
-            "timeout_error_category": "stage_timeout",
-            "error_category": "stage_timeout",
+        # A response that has already returned is still useful: validate it
+        # instead of discarding potentially salvageable strategy. The telemetry
+        # records the budget overrun without weakening evidence validation.
+        ollama_telemetry = {
             **ollama_telemetry,
+            "stage_timeout_budget_exceeded": True,
+            "stage_timeout_seconds": stage_timeout_seconds,
+            "timeout_error_category": "stage_timeout",
         }
-        return ReasoningStageResult(
-            stage_id=stage_id,
-            stage_name=stage_name,
-            accepted=False,
-            payload={},
-            validation_errors=(
-                f"{stage_name} exceeded stage timeout of {stage_timeout_seconds:.1f}s.",
-            ),
-            telemetry=telemetry,
-        )
 
     validation_started = time.perf_counter()
     validation = validator(response)
@@ -1063,6 +1302,7 @@ def _run_structured_stage(
         "total_stage_time_seconds": time.perf_counter() - started,
         "error_category": None if validation.is_valid else "validation_rejection",
         "timeout_error_category": ollama_telemetry.get("timeout_error_category"),
+        "stage_timeout_budget_exceeded": stage_timeout_exceeded_after_generation,
         "schema_retry_attempted": schema_retry_attempted,
         "placeholder_retry_attempted": False,
         **ollama_telemetry,
@@ -1846,7 +2086,7 @@ def _analysis_document(
         "analysis_source": "ollama_modular_reasoning",
         "ollama_available": ollama_available,
         "validation_status": validation_status,
-        "analysis_generated": validation_status == "accepted",
+        "analysis_generated": validation_status in {"accepted", "sanitized"},
         "validation_errors": list(validation_errors),
         "recommendation_count": len(recommendations),
         "historical_context_summary": (historical_context or {}).get("summary", {})

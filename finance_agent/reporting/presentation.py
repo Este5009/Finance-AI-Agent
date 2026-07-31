@@ -1415,7 +1415,11 @@ def validate_presentation_view(view: dict[str, Any], *, mode: str = "executive")
         for identifier in CANONICAL_IDENTIFIERS:
             if re.search(rf"\b{re.escape(identifier)}\b", text):
                 errors.append(f"Executive presentation exposes canonical identifier: {identifier}")
-        if not view.get("recommendations", {}).get("cards"):
+        analysis_status = view.get("executive_summary", {}).get("analysis_status")
+        if (
+            not view.get("recommendations", {}).get("cards")
+            and analysis_status in {"accepted", "sanitized"}
+        ):
             errors.append("Executive presentation is missing strategic recommendation cards.")
         if not view.get("executive_summary", {}).get("summary"):
             errors.append("Executive presentation is missing the executive summary.")

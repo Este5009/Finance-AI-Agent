@@ -876,8 +876,8 @@ def _render_stage_results(st: Any, result: PipelineRunResult) -> None:
                 "Estado": status,
                 "Tipo": "Obligatorio" if stage.critical else "Complementario",
                 "Tiempo (s)": round(stage.runtime_seconds, 2),
-                "Avisos": "; ".join(stage.warnings),
-                "Error accionable": stage.error or "",
+                "Avisos": _friendly_stage_warning(stage.warnings),
+                "Error accionable": _friendly_stage_error(stage.error),
             }
         )
     st.subheader("Progreso del análisis")
@@ -924,6 +924,51 @@ def _render_stage_results(st: Any, result: PipelineRunResult) -> None:
     if telemetry_rows:
         st.subheader("Diagnóstico avanzado de Ollama")
         st.dataframe(telemetry_rows, use_container_width=True, hide_index=True)
+        validation_rows = [
+            {
+                "Paso": _stage_display_name(stage),
+                "Detalle técnico": "; ".join(stage.warnings)
+                or str(stage.error or ""),
+            }
+            for stage in result.stages
+            if stage.warnings or stage.error
+        ]
+        if validation_rows and hasattr(st, "expander"):
+            with st.expander("Detalles técnicos de validación", expanded=False):
+                st.dataframe(validation_rows, use_container_width=True, hide_index=True)
+
+
+def _friendly_stage_warning(warnings: tuple[str, ...]) -> str:
+    """Return a concise non-technical warning for normal UI tables.
+
+    Inputs: raw stage warnings.
+    Outputs: Spanish user-facing warning.
+    Assumptions: raw validator details remain available in advanced diagnostics.
+    """
+
+    text = " ".join(str(warning) for warning in warnings)
+    if not text:
+        return ""
+    lowered = text.casefold()
+    if "unsupported" in lowered or "validation" in lowered or "strategic analysis" in lowered:
+        return "Algunas afirmaciones estratégicas fueron ajustadas o excluidas por falta de evidencia suficiente."
+    return text
+
+
+def _friendly_stage_error(error: str | None) -> str:
+    """Return a concise non-technical error for normal UI tables.
+
+    Inputs: raw error string.
+    Outputs: Spanish user-facing error.
+    Assumptions: advanced diagnostics retain raw details.
+    """
+
+    if not error:
+        return ""
+    lowered = str(error).casefold()
+    if "unsupported" in lowered or "validation" in lowered:
+        return "No se pudo validar parte del análisis estratégico con la evidencia disponible."
+    return str(error)
 
 
 def _render_overview_tab(st: Any, report_model: dict[str, Any], result: PipelineRunResult) -> None:
@@ -1437,7 +1482,7 @@ def _render_streamlit_app(st: Any) -> None:
     else:
         st.error("El análisis terminó con una falla crítica. Revise el paso marcado como 'Requiere atención'.")
     if result.warnings:
-        st.warning("Avisos: " + "; ".join(result.warnings))
+        st.warning("Avisos: " + _friendly_stage_warning(result.warnings))
     _render_stage_results(st, result)
     _render_results(st, result)
 

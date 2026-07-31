@@ -945,6 +945,41 @@ def _finalize_pipeline_result(
     )
 
 
+def _aggregate_stage_telemetry(telemetry: dict[str, Any]) -> dict[str, Any]:
+    """Aggregate nested modular reasoning telemetry for UI summaries.
+
+    Inputs: telemetry dictionary from strategic analysis.
+    Outputs: telemetry with top-level summed Ollama timing fields when nested
+    stage telemetry exists.
+    Assumptions: missing metrics stay missing/zero; values are never invented.
+    """
+
+    stage_items = telemetry.get("stage_telemetry", [])
+    if not isinstance(stage_items, list):
+        return telemetry
+    aggregate = dict(telemetry)
+    numeric_keys = (
+        "model_load_time_seconds",
+        "prompt_evaluation_time_seconds",
+        "generation_time_seconds",
+        "json_validation_time_seconds",
+        "python_preprocessing_time_seconds",
+        "context_characters",
+        "context_token_estimate",
+        "prompt_characters",
+        "prompt_token_estimate",
+    )
+    for key in numeric_keys:
+        values = [
+            item.get(key)
+            for item in stage_items
+            if isinstance(item, dict) and isinstance(item.get(key), (int, float))
+        ]
+        if values:
+            aggregate[key] = sum(float(value) for value in values)
+    return aggregate
+
+
 def run_full_pipeline(
     config: PipelineConfig,
     *,
@@ -1595,21 +1630,30 @@ def run_object_pipeline_for_report(
                     reasoning_state_path,
                     analysis_path,
                 ),
-                warnings=tuple(analysis_result.validation_errors) if not analysis_result.accepted else (),
-                telemetry={
-                    **(analysis_result.telemetry or {}),
-                    "historical_context": strategic_history.telemetry,
-                },
+                warnings=(
+                    tuple(analysis_result.validation_errors)
+                    if (
+                        not analysis_result.accepted
+                        or analysis_result.analysis_document.get("validation_status") == "sanitized"
+                    )
+                    else ()
+                ),
+                telemetry=_aggregate_stage_telemetry(
+                    {
+                        **(analysis_result.telemetry or {}),
+                        "historical_context": strategic_history.telemetry,
+                    }
+                ),
             )
         )
         _emit_progress(
             progress_callback,
             stage_id="generate_strategic_recommendations",
-            status="completed" if analysis_result.accepted else "failed",
+            status="completed",
             detail=(
                 "Recomendaciones estratégicas generadas y validadas."
                 if analysis_result.accepted
-                else "El análisis estratégico no fue aceptado por validación; se conservarán los artefactos de diagnóstico."
+                else "El análisis estratégico terminó sin recomendaciones validadas; el reporte se construirá con evidencia determinística."
             ),
             started=pipeline_started,
         )
@@ -1622,76 +1666,60 @@ def run_object_pipeline_for_report(
         )
         started = time.perf_counter()
         report_dir = outputs / "report"
-        if not analysis_result.accepted and not config.allow_draft_report:
-            stages.append(
-                _skipped_object_stage_result(
-                    name="report_generation",
-                    display="Report model and renderers",
-                    critical=False,
-                    started=started,
-                    warnings=(
-                        "Skipped final report rendering because strategic analysis "
-                        "was unavailable and draft reports are disabled.",
-                    ),
-                )
+        report_inputs = ReportInputBundle(
+            period_slug=period_slug,
+            finance_summary=finance_document,
+            kpi_summary=tuple(json.loads(calculation.kpi_summary.to_json(orient="records"))),
+            anomaly_report=anomaly_document,
+            evidence_package=evidence_package,
+            strategic_analysis=analysis_result.analysis_document,
+            source_files=(
+                str(calculation_paths["finance_summary"]),
+                str(calculation_paths["kpi_summary"]),
+                str(anomaly_paths["json"]),
+                str(evidence_path),
+                str(analysis_path),
+            ),
+        )
+        report_model = build_report_model(report_inputs)
+        report_model_path = save_report_model(
+            report_model,
+            report_dir / f"report_model_{period_slug}.json",
+        )
+        html_path = save_report_html(
+            report_model.to_dict(),
+            report_dir / f"financial_report_{period_slug}.html",
+        )
+        pdf_path = render_report_pdf(
+            report_model.to_dict(),
+            report_dir / f"financial_report_{period_slug}.pdf",
+        )
+        report_warning = ()
+        if not analysis_result.accepted:
+            report_warning = (
+                "Strategic analysis was unavailable or rejected; deterministic report rendered without validated recommendations.",
             )
-            _emit_progress(
-                progress_callback,
-                stage_id="build_executive_report",
-                status="skipped",
-                detail="Reporte ejecutivo omitido porque el análisis estratégico no fue aceptado.",
-                started=pipeline_started,
+        elif analysis_result.analysis_document.get("validation_status") == "sanitized":
+            report_warning = (
+                "Strategic analysis was adjusted to remove unsupported claims before rendering.",
             )
-        else:
-            report_inputs = ReportInputBundle(
-                period_slug=period_slug,
-                finance_summary=finance_document,
-                kpi_summary=tuple(json.loads(calculation.kpi_summary.to_json(orient="records"))),
-                anomaly_report=anomaly_document,
-                evidence_package=evidence_package,
-                strategic_analysis=analysis_result.analysis_document,
-                source_files=(
-                    str(calculation_paths["finance_summary"]),
-                    str(calculation_paths["kpi_summary"]),
-                    str(anomaly_paths["json"]),
-                    str(evidence_path),
-                    str(analysis_path),
-                ),
+        stages.append(
+            _stage_result(
+                name="report_generation",
+                display="Report model and renderers",
+                critical=False,
+                started=started,
+                outputs=(report_model_path, html_path, pdf_path),
+                warnings=report_warning,
             )
-            report_model = build_report_model(report_inputs)
-            report_model_path = save_report_model(
-                report_model,
-                report_dir / f"report_model_{period_slug}.json",
-            )
-            html_path = save_report_html(
-                report_model.to_dict(),
-                report_dir / f"financial_report_{period_slug}.html",
-            )
-            pdf_path = render_report_pdf(
-                report_model.to_dict(),
-                report_dir / f"financial_report_{period_slug}.pdf",
-            )
-            stages.append(
-                _stage_result(
-                    name="report_generation",
-                    display="Report model and renderers",
-                    critical=False,
-                    started=started,
-                    outputs=(report_model_path, html_path, pdf_path),
-                    warnings=(
-                        ("Strategic analysis was unavailable; report rendered as draft.",)
-                        if not analysis_result.accepted
-                        else ()
-                    ),
-                )
-            )
-            _emit_progress(
-                progress_callback,
-                stage_id="build_executive_report",
-                status="completed",
-                detail="Reporte ejecutivo HTML/PDF construido correctamente.",
-                started=pipeline_started,
-            )
+        )
+        _emit_progress(
+            progress_callback,
+            stage_id="build_executive_report",
+            status="completed",
+            detail="Reporte ejecutivo HTML/PDF construido correctamente, con modo determinístico si fue necesario.",
+            started=pipeline_started,
+        )
     except Exception as exc:  # noqa: BLE001 - produce structured failure for UI.
         _emit_progress(
             progress_callback,

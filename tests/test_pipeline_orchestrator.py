@@ -501,8 +501,8 @@ def test_cache_invalid_if_strategy_unavailable(tmp_path: Path) -> None:
     assert result is None
 
 
-def test_timeout_style_unavailable_strategy_skips_final_report() -> None:
-    """Verify rejected strategy behavior is represented as a skipped report stage."""
+def test_timeout_style_unavailable_strategy_allows_fallback_report() -> None:
+    """Verify rejected strategy behavior can still produce a report stage."""
 
     result = PipelineRunResult(
         success=True,
@@ -523,11 +523,11 @@ def test_timeout_style_unavailable_strategy_skips_final_report() -> None:
                 display_name="Report model and renderers",
                 critical=False,
                 success=True,
-                skipped=True,
-                output_files=(),
-                warnings=("Skipped final report rendering because strategic analysis was unavailable.",),
+                skipped=False,
+                output_files=("outputs/report/financial_report_2026_05.html",),
+                warnings=("Strategic analysis was unavailable or rejected; deterministic report rendered without validated recommendations.",),
                 error=None,
-                runtime_seconds=0.0,
+                runtime_seconds=0.2,
             ),
         ),
         output_files=(),
@@ -535,16 +535,16 @@ def test_timeout_style_unavailable_strategy_skips_final_report() -> None:
         runtime_summary=RuntimeSummary(
             total_runtime_seconds=1.0,
             stages_requested=2,
-            stages_run=1,
-            stages_succeeded=1,
+            stages_run=2,
+            stages_succeeded=2,
             stages_failed=0,
-            stages_skipped=1,
+            stages_skipped=0,
         ),
         config=_config(Path(".")),
     )
 
-    assert result.stages[-1].skipped is True
-    assert "strategic analysis was unavailable" in result.stages[-1].warnings[0]
+    assert result.stages[-1].skipped is False
+    assert "deterministic report rendered" in result.stages[-1].warnings[0]
 
 
 def test_stage_specific_model_routing_uses_expected_models(tmp_path: Path) -> None:

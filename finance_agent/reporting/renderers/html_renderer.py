@@ -727,6 +727,12 @@ def _render_recommendations(view: dict[str, Any]) -> str:
         if len(recs["cards"]) <= 5
         else _table(["Prioridad", "Acción", "Impacto esperado", "Responsable", "Estado"], rows, force=True)
     )
+    if not recs["cards"]:
+        recommendation_display = _info_card(
+            "Recomendaciones estratégicas",
+            "No hay recomendaciones estratégicas validadas para este período. El reporte conserva los hallazgos determinísticos, KPIs, anomalías, historial y evidencia procesada.",
+            klass="warning",
+        )
     return (
         "<section id='strategic_recommendations'>"
         f"<h2>{SECTION_LABELS_ES['strategic_recommendations']}</h2>"
@@ -764,34 +770,34 @@ def _render_missing_and_appendix(view: dict[str, Any]) -> str:
 
 
 def report_strategy_warnings(report_model: dict[str, Any]) -> list[str]:
-    """Identify whether a report model lacks accepted strategic analysis.
+    """Identify whether a report model lacks full accepted strategic analysis.
 
     Inputs: renderer-agnostic report model dictionary.
     Outputs: warning strings; empty when final strategy is present.
-    Assumptions: Step 9 writes analysis_status='accepted' into executive content.
+    Assumptions: deterministic reports remain renderable without full strategy.
     """
 
     executive = get_section(report_model, "executive_summary").get("content", {})
     recommendations = get_section(report_model, "strategic_recommendations").get("content", {})
     warnings: list[str] = []
-    if executive.get("analysis_status") != "accepted":
+    if executive.get("analysis_status") not in {"accepted", "sanitized"}:
         warnings.append(f"Strategic analysis is unavailable or not accepted for {report_model.get('report_id', 'report')}.")
     if not recommendations.get("recommendations"):
-        warnings.append("No accepted strategic recommendations are present in the report model.")
+        warnings.append("No accepted strategic recommendations are present; deterministic report sections remain available.")
     return warnings
 
 
 def validate_strategy_available(report_model: dict[str, Any]) -> None:
-    """Raise when final rendering would omit accepted strategic analysis.
+    """Validate the report has enough deterministic content to render.
 
     Inputs: renderer-agnostic report model dictionary.
-    Outputs: None; raises ValueError on missing strategy.
-    Assumptions: draft rendering must be explicitly allowed by the caller.
+    Outputs: None; raises ValueError only when deterministic executive content is missing.
+    Assumptions: strategic enrichment is optional and should not block rendering.
     """
 
-    warnings = report_strategy_warnings(report_model)
-    if warnings:
-        raise ValueError("; ".join(warnings))
+    executive = get_section(report_model, "executive_summary").get("content", {})
+    if not str(executive.get("summary") or "").strip():
+        raise ValueError("Executive summary is missing.")
 
 
 def _styles() -> str:

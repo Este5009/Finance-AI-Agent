@@ -15,6 +15,8 @@ from finance_agent.reasoning.reasoning_pipeline import (
 )
 from finance_agent.analysis.strategic_analysis import build_evidence_ledger
 from finance_agent.reporting.report_engine import ReportInputBundle, build_report_model
+from finance_agent.reporting.renderers import render_report_html
+from finance_agent.reporting.report_quality import validate_report_model_quality
 from finance_agent.reasoning.fact_registry import FactRegistry
 from finance_agent.reasoning.reasoning_models import ReasoningStageResult
 from finance_agent.reasoning.reasoning_state import ReasoningState
@@ -247,6 +249,29 @@ def _stage_3() -> dict[str, Any]:
         "confidence": 0.82,
         "reasoning_summary": "La síntesis usa únicamente evidencia validada por etapas.",
     }
+
+
+def _stage_3_with_unsupported_recommendation_budget() -> dict[str, Any]:
+    """Return Stage 3 output with repairable unsupported recommendation specifics."""
+
+    payload = _stage_3()
+    payload["strategic_recommendations"][0]["action"] = (
+        "Invertir $50,000 para corregir el gasto de Health Sciences."
+    )
+    payload["strategic_recommendations"][0]["expected_impact"] = (
+        "Reducir el gasto en 90.0% por esta acciÃ³n."
+    )
+    return payload
+
+
+def _stage_3_with_unsupported_causal_statement() -> dict[str, Any]:
+    """Return Stage 3 output with repairable causal certainty."""
+
+    payload = _stage_3()
+    payload["strategic_recommendations"][0]["rationale"] = (
+        "La desviaciÃ³n fue causada por aprobaciones internas sin evidencia validada."
+    )
+    return payload
 
 
 def _ledger() -> dict[str, Any]:
@@ -562,8 +587,89 @@ def test_modular_pipeline_runs_three_stages_with_mocked_ollama() -> None:
     assert "finance.metric.net_operating_result" not in result.analysis_document["analysis"]["executive_summary"]
 
 
+def test_unsupported_recommendation_budget_is_sanitized_not_fatal() -> None:
+    """Verify unsupported recommendation amounts/percentages are sanitized."""
+
+    result = create_modular_strategic_analysis(
+        client=FakeReasoningClient((_stage_1(), _stage_2(), _stage_3_with_unsupported_recommendation_budget())),
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="2026_12",
+    )
+
+    recommendation = result.analysis_document["analysis"]["strategic_recommendations"][0]
+    combined = json.dumps(recommendation, ensure_ascii=False)
+
+    assert result.accepted is True
+    assert result.analysis_document["validation_status"] == "sanitized"
+    assert "$50,000" not in combined
+    assert "90.0%" not in combined
+    assert "Definir montos" in combined
+    assert result.analysis_document["strategic_recovery"]["sanitized_fields"]
+
+
+def test_unsupported_causal_recommendation_is_softened_not_fatal() -> None:
+    """Verify unsupported causal certainty is converted into a hypothesis."""
+
+    result = create_modular_strategic_analysis(
+        client=FakeReasoningClient((_stage_1(), _stage_2(), _stage_3_with_unsupported_causal_statement())),
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="2026_12",
+    )
+
+    recommendation = result.analysis_document["analysis"]["strategic_recommendations"][0]
+
+    assert result.accepted is True
+    assert result.analysis_document["validation_status"] == "sanitized"
+    assert "hipótesis" in recommendation["rationale"].casefold()
+    assert "requiere validación" in recommendation["rationale"].casefold()
+
+
+def test_failed_strategy_still_builds_deterministic_report_model() -> None:
+    """Verify deterministic report content remains renderable when strategy fails."""
+
+    result = create_modular_strategic_analysis(
+        client=FakeReasoningClient(({"bad": "shape"}, {"bad": "shape"})),
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="2026_12",
+    )
+    model = build_report_model(
+        ReportInputBundle(
+            period_slug="2026_12",
+            finance_summary=_finance_summary(),
+            kpi_summary=(),
+            anomaly_report=_anomaly_report(),
+            evidence_package=_evidence_package(),
+            strategic_analysis=result.analysis_document,
+            source_files=(
+                "outputs/calculations/finance_summary_2026_12.json",
+                "outputs/calculations/kpi_summary_2026_12.json",
+                "outputs/anomalies/anomaly_report_2026_12.json",
+                "outputs/evidence/evidence_package_2026_12.json",
+                "outputs/analysis/strategic_analysis_2026_12.json",
+            ),
+        )
+    )
+    model_dict = model.to_dict()
+    quality = validate_report_model_quality(model_dict)
+    html = render_report_html(model_dict)
+
+    assert result.accepted is False
+    assert quality.is_valid is True
+    assert "Reporte financiero determinístico" in html
+    assert "No hay recomendaciones estratégicas validadas" in html
+
+
 def test_stage_timeout_checkpoint_metadata_is_preserved() -> None:
-    """Verify a timed-out modular stage is recorded in ReasoningState."""
+    """Verify a late returned response remains usable with timeout telemetry."""
 
     class SlowClient(FakeReasoningClient):
         """Fake client whose call exceeds the configured stage timeout."""
@@ -584,9 +690,11 @@ def test_stage_timeout_checkpoint_metadata_is_preserved() -> None:
         stage_timeout_seconds=0.0,
     )
 
-    assert not result.accepted
+    assert result.accepted
     first_stage = result.analysis_document["reasoning_state"]["stage_results"][0]
-    assert first_stage["telemetry"]["error_category"] == "stage_timeout"
+    assert first_stage["accepted"] is True
+    assert first_stage["telemetry"]["stage_timeout_budget_exceeded"] is True
+    assert first_stage["telemetry"]["timeout_error_category"] == "stage_timeout"
 
 
 def test_report_generation_reads_validated_reasoning_state() -> None:
