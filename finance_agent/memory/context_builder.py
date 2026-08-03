@@ -133,7 +133,26 @@ def build_historical_context(
 
             return active_retrievers[call["tool_name"]](**call["arguments"])
 
-        result, hit = active_cache.get_or_call(key, callback)
+        try:
+            result, hit = active_cache.get_or_call(key, callback)
+        except ValueError as exc:
+            if call["tool_name"] != "get_department_history":
+                raise
+            department = call.get("arguments", {}).get("department")
+            result = MemoryToolResult(
+                "get_department_history",
+                False,
+                {
+                    "summary": f"Department history omitted for {department!r}: {exc}",
+                    "department": str(department),
+                    "record_count": 0,
+                    "records": [],
+                },
+                warnings=(f"Department history omitted for {department!r}: {exc}",),
+                unavailable_data=(f"Department history unavailable for {department!r}",),
+                confidence=0.0,
+            )
+            hit = False
         if hit:
             cache_hits += 1
         else:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import unicodedata
 from pathlib import Path
 
 import pytest
@@ -231,6 +232,77 @@ def test_department_history_accepts_ampersand_department_names(seeded_database: 
     assert result.success is False
     assert result.unavailable_data
     assert "Arts & Humanities" in result.data["summary"]
+
+
+@pytest.mark.parametrize(
+    "department",
+    [
+        "Arts & Humanities",
+        "Ciencias de la Salud",
+        "Investigación, Desarrollo e Innovación",
+        "Administración y Finanzas",
+        "Ingeniería / Tecnología",
+        "O'Brien Center",
+        "Dirección Académica (Central)",
+    ],
+)
+def test_department_history_accepts_real_business_names(seeded_database: Path, department: str) -> None:
+    """Verify department filters are validated as bound text values, not identifiers."""
+
+    result = get_department_history(department, 6, database_path=seeded_database)
+
+    assert result.success is False
+    assert result.unavailable_data
+    assert department in result.data["summary"]
+
+
+def test_department_history_normalizes_unicode_and_whitespace(tmp_path: Path) -> None:
+    """Verify department lookups normalize accents and accidental whitespace."""
+
+    db_path = tmp_path / "memory.db"
+    payload = _payload("2026_01", 0)
+    department = "Dirección Académica (Central)"
+    adjusted = StoredPipelineRun(
+        **{
+            **payload.__dict__,
+            "kpis": (
+                KpiRecord("2026_01", department, "department_budget_variance", 0.02, "ratio", "ok"),
+            ),
+            "anomalies": (),
+            "recommendations": (),
+            "goals": (),
+            "memory_facts": (),
+        }
+    )
+    MemoryRepository(db_path).save_pipeline_run(adjusted)
+    decomposed = unicodedata.normalize("NFD", "  Dirección   Académica   (Central)  ")
+
+    result = get_department_history(decomposed, 6, database_path=db_path)
+
+    assert result.success is True
+    assert result.data["department"] == department
+    assert result.data["counts"]["kpis"] == 1
+
+
+@pytest.mark.parametrize("department", ["Bad\x00Name", "Bad\nName", "Bad\tName", "Bad\u200bName"])
+def test_department_history_rejects_control_characters(seeded_database: Path, department: str) -> None:
+    """Verify hidden/control characters are rejected before SQLite lookup."""
+
+    with pytest.raises(ValueError, match="control characters"):
+        get_department_history(department, 6, database_path=seeded_database)
+
+
+def test_department_history_sql_like_text_is_bound_not_executed(seeded_database: Path) -> None:
+    """Verify SQL-looking department text is treated only as a bound value."""
+
+    result = get_department_history(
+        "Health Sciences' OR 1=1 --",
+        6,
+        database_path=seeded_database,
+    )
+
+    assert result.success is False
+    assert result.unavailable_data
 
 
 def test_repeated_anomalies_and_filters(seeded_database: Path) -> None:

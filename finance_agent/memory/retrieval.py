@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -18,15 +19,11 @@ from finance_agent.memory.retrieval_models import (
 from finance_agent.retrieval.retrieval_models import RetrievalResult
 
 
-# Memory filters are always bound as SQLite parameters, so this validator is a
-# conservative input sanity check rather than SQL escaping. Real university
-# names can contain safe punctuation such as ampersands or apostrophes
-# (for example, "Arts & Humanities"), while SQL/control delimiters remain
-# rejected.
-VALID_IDENTIFIER_RE = re.compile(r"^[\w .%&'()/-]{1,120}$", re.UNICODE)
+VALID_IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9_.% -]{1,120}$")
 VALID_PERIOD_RE = re.compile(
     r"^(20\d{2})(?:[-_](0[1-9]|1[0-2]|Q[1-4]|S[1-2]))?$"
 )
+MAX_TEXT_VALUE_LENGTH = 240
 
 
 def _repository(database_path: str | Path | None = None) -> MemoryRepository:
@@ -99,11 +96,12 @@ def _validate_limit(value: Any, field_name: str, *, minimum: int = 1, maximum: i
 
 
 def _validate_identifier(value: str | None, field_name: str) -> str | None:
-    """Validate a metric, department, category, or subject filter.
+    """Validate an internal canonical identifier filter.
 
     Inputs: optional text value and field name.
     Outputs: stripped value or None.
-    Assumptions: identifiers are user filters, never SQL fragments.
+    Assumptions: this is for internal metric/artifact/status identifiers, not
+    business names from uploaded data. SQL still uses bound parameters.
     """
 
     if value is None:
@@ -114,6 +112,38 @@ def _validate_identifier(value: str | None, field_name: str) -> str | None:
     if not VALID_IDENTIFIER_RE.match(stripped):
         raise ValueError(f"{field_name} contains unsupported characters")
     return stripped
+
+
+def _validate_text_value(
+    value: str | None,
+    field_name: str,
+    *,
+    required: bool = False,
+    maximum_length: int = MAX_TEXT_VALUE_LENGTH,
+) -> str | None:
+    """Normalize and validate a bound SQL text value.
+
+    Inputs: raw value, field name, required flag, and maximum length.
+    Outputs: Unicode-normalized text value or None.
+    Assumptions: returned values are used only as SQLite bound parameters, never
+    as table/column names or SQL snippets.
+    """
+
+    if value is None:
+        if required:
+            raise ValueError(f"{field_name} is required")
+        return None
+    normalized = unicodedata.normalize("NFC", str(value))
+    if any(char == "\x00" or unicodedata.category(char) in {"Cc", "Cf"} for char in normalized):
+        raise ValueError(f"{field_name} contains control characters")
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    if not normalized:
+        if required:
+            raise ValueError(f"{field_name} is required")
+        return None
+    if len(normalized) > maximum_length:
+        raise ValueError(f"{field_name} is too long")
+    return normalized
 
 
 def _validate_detail_level(value: str) -> str:
@@ -296,7 +326,7 @@ def get_metric_history(
     metric_name = _validate_identifier(metric, "metric")
     if metric_name is None:
         raise ValueError("metric is required")
-    dept = _validate_identifier(department, "department")
+    dept = _validate_text_value(department, "department")
     period_count = _validate_limit(periods, "periods")
     repository = _repository(database_path)
     selected = _selected_periods(repository, periods=period_count, before_period=before_period)
@@ -356,9 +386,7 @@ def get_department_history(
     Assumptions: detail_level='full' remains structured and bounded by periods.
     """
 
-    dept = _validate_identifier(department, "department")
-    if dept is None:
-        raise ValueError("department is required")
+    dept = _validate_text_value(department, "department", required=True)
     level = _validate_detail_level(detail_level)
     period_count = _validate_limit(periods, "periods")
     repository = _repository(database_path)
@@ -398,7 +426,7 @@ def get_repeated_anomalies(
 
     period_count = _validate_limit(periods, "periods")
     minimum = _validate_limit(min_occurrences, "min_occurrences", minimum=2, maximum=24)
-    dept = _validate_identifier(department, "department")
+    dept = _validate_text_value(department, "department")
     repository = _repository(database_path)
     selected = _selected_periods(repository, periods=period_count, before_period=before_period)
     where = ""
@@ -456,8 +484,8 @@ def get_previous_recommendations(
     """
 
     period_count = _validate_limit(periods, "periods")
-    dept = _validate_identifier(department, "department")
-    status_filter = _validate_identifier(status, "status")
+    dept = _validate_text_value(department, "department")
+    status_filter = _validate_text_value(status, "status")
     repository = _repository(database_path)
     selected = _selected_periods(repository, periods=period_count, before_period=before_period)
     predicates: list[str] = []
@@ -537,8 +565,8 @@ def get_memory_facts(
     Assumptions: facts are concise retrieval aids from accepted runs.
     """
 
-    category_filter = _validate_identifier(category, "category")
-    subject_filter = _validate_identifier(subject, "subject")
+    category_filter = _validate_text_value(category, "category")
+    subject_filter = _validate_text_value(subject, "subject")
     period_count = _validate_limit(periods, "periods")
     repository = _repository(database_path)
     selected = _selected_periods(repository, periods=period_count, before_period=before_period)

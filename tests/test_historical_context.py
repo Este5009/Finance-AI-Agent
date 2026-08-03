@@ -206,6 +206,37 @@ def test_context_builder_allows_ampersand_department_names() -> None:
     assert result.context["detected_signals"]["departments"] == ["Arts & Humanities"]
 
 
+def test_context_builder_omits_one_malformed_department_lookup() -> None:
+    """Verify one bad optional department history query does not crash context."""
+
+    calls: list[str] = []
+    retrievers = _fake_retrievers(calls)
+
+    def bad_department(**kwargs: Any) -> MemoryToolResult:
+        """Simulate text validation failure for one department lookup."""
+
+        calls.append(f"get_department_history:{kwargs.get('department')}")
+        raise ValueError("department contains control characters")
+
+    retrievers["get_department_history"] = bad_department
+
+    result = build_historical_context(
+        current_period="2026_06",
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report_with_arts_humanities(),
+        database_path=Path("memory.db"),
+        retrievers=retrievers,
+    )
+
+    department_results = [
+        item for item in result.context["retrievals"] if item["tool_name"] == "get_department_history"
+    ]
+    assert department_results
+    assert department_results[0]["success"] is False
+    assert department_results[0]["warnings"]
+    assert result.context["summary"]["available_retrievals"] > 0
+
+
 def test_context_caching_and_retrieval_deduplication() -> None:
     """Verify repeated builder calls reuse cached retrievals."""
 
