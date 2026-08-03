@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
@@ -215,9 +214,10 @@ def test_kpi_card_css_has_light_and_dark_contrast_rules() -> None:
 
     assert ".ui-kpi-card" in css
     assert "@media (prefers-color-scheme: dark)" in css
-    assert "background: #ffffff" in css
-    assert "background: #172033" in css
-    assert "color: #172033" in css
+    assert "--fa-surface: #ffffff" in css
+    assert "--fa-surface: #172033" in css
+    assert "background: var(--fa-surface)" in css
+    assert "color: var(--fa-text)" in css
     assert "color: #f5f7fa" in css or "color: #f8fafc" in css
 
 
@@ -835,10 +835,23 @@ def test_custom_ui_css_uses_accessible_card_contrast() -> None:
     source = Path(streamlit_app.__file__).read_text(encoding="utf-8")
 
     assert ".run-action-card" in source
-    assert "color: #33485c" in source
-    assert "color: #435466" in source
+    assert "--fa-text: #172033" in source
+    assert "--fa-muted: #526273" in source
+    assert "--fa-text: #f5f7fa" in source
+    assert "--fa-muted: #c5d0dc" in source
     assert "color: white" not in source
     assert "color: #fff" not in source
+
+
+def test_card_variants_use_accent_borders_not_full_solid_alert_backgrounds() -> None:
+    """Verify semantic cards stay restrained and reserve solid colors for chips."""
+
+    source = Path(streamlit_app.__file__).read_text(encoding="utf-8")
+
+    assert ".ui-card--negative { border-left-color: var(--fa-negative); background: var(--fa-surface); }" in source
+    assert ".ui-card--positive { border-left-color: var(--fa-positive); background: var(--fa-surface); }" in source
+    assert "background: #b42318" not in source
+    assert "background: #1b7f4a" not in source
 
 
 def test_ui_stage_results_display_cache_and_skipped_status() -> None:

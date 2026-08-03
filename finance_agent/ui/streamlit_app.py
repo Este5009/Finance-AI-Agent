@@ -218,6 +218,15 @@ UI_SECTION_TAB_BY_ID: dict[str, str] = {
     "appendix": "Descargas",
 }
 
+KPI_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    (
+        "Desempeño financiero",
+        ("total_revenue", "total_expenses", "net_operating_result"),
+    ),
+    ("Liquidez", ("net_cash_flow", "ending_cash")),
+    ("Eficiencia operativa", ("payroll_percentage_of_revenue", "collection_rate")),
+)
+
 STATUS_LABELS_ES: dict[str, str] = {
     "ok": "Completado",
     "skipped": "Omitido",
@@ -678,6 +687,200 @@ def _render_section_card(
         for label, value in (rows or [])
         if _safe_display_text(value)
     )
+
+
+def _analysis_mode_label(report_model: dict[str, Any]) -> tuple[str, str]:
+    """Return the user-facing mode label for one report model.
+
+    Inputs: report model.
+    Outputs: Spanish mode label and semantic variant.
+    Assumptions: analysis status is metadata; this does not change report facts.
+    """
+
+    executive = _section_by_id(report_model, "executive_summary").get("content", {})
+    status = str(executive.get("analysis_status") or "").lower()
+    warnings = _section_by_id(report_model, "executive_summary").get("warnings", [])
+    recommendations = build_presentation_view(report_model).get("recommendations", {}) if report_model else {}
+    if status == "accepted" and recommendations.get("cards"):
+        return "Análisis estratégico validado", "positive"
+    if status == "sanitized" or warnings:
+        return "Análisis estratégico ajustado", "warning"
+    return "Reporte determinístico", "info"
+
+
+def _report_status_label(result: PipelineRunResult, artifacts: dict[str, Path | None]) -> tuple[str, str]:
+    """Return a concise report generation status for the result header.
+
+    Inputs: pipeline result and artifact map.
+    Outputs: Spanish status label and semantic variant.
+    Assumptions: HTML/PDF file existence means deterministic rendering completed.
+    """
+
+    if not result.success:
+        return "Ejecución con errores", "negative"
+    if artifacts.get("PDF") and artifacts["PDF"].is_file() and artifacts.get("HTML") and artifacts["HTML"].is_file():
+        return "Reporte listo para descargar", "positive"
+    return "Reporte parcialmente disponible", "warning"
+
+
+def _count_anomalies(view: dict[str, Any], severity_name: str) -> int:
+    """Count anomalies with one Spanish severity label.
+
+    Inputs: presentation view and severity label.
+    Outputs: integer count.
+    Assumptions: anomaly counts were produced by deterministic anomaly detection.
+    """
+
+    rows = view.get("anomalies", {}).get("severity_rows", []) if isinstance(view, dict) else []
+    for row in rows if isinstance(rows, list) else []:
+        if isinstance(row, dict) and str(row.get("severity", "")).casefold() == severity_name.casefold():
+            return int(row.get("count") or 0)
+    return 0
+
+
+def _render_results_header(
+    st: Any,
+    *,
+    report_model: dict[str, Any],
+    result: PipelineRunResult,
+    artifacts: dict[str, Path | None],
+) -> None:
+    """Render the completed-results executive header.
+
+    Inputs: Streamlit module, report model, pipeline result, and artifacts.
+    Outputs: compact header cards.
+    Assumptions: all values are metadata from pipeline/report artifacts.
+    """
+
+    view = build_presentation_view(report_model) if report_model else {}
+    mode_label, mode_variant = _analysis_mode_label(report_model)
+    status_label, status_variant = _report_status_label(result, artifacts)
+    st.markdown("## Resultado del análisis financiero")
+    st.caption("Vista ejecutiva generada desde el modelo de reporte determinístico.")
+    columns = st.columns(5)
+    header_cards = (
+        ("Periodo", view.get("period") or "No disponible", "info", "Informativo"),
+        ("Modo de análisis", mode_label, mode_variant, mode_label),
+        ("Datos verificados", "Cifras procesadas por Python", "positive", "Verificado"),
+        ("Tiempo total", _format_elapsed_seconds(result.runtime_summary.total_runtime_seconds), "info", "Informativo"),
+        ("Estado del reporte", status_label, status_variant, status_label),
+    )
+    for column, (title, body, variant, badge) in zip(columns, header_cards):
+        with column:
+            _render_section_card(st, title=title, body=body, variant=variant, badge=badge)
+
+
+def _render_attention_summary(st: Any, report_model: dict[str, Any]) -> None:
+    """Render a compact attention summary for executives.
+
+    Inputs: Streamlit module and report model.
+    Outputs: anomaly/risk/strategy status cards.
+    Assumptions: counts and statuses are read-only report-model/presentation data.
+    """
+
+    view = build_presentation_view(report_model) if report_model else {}
+    historical = view.get("historical", {}) if isinstance(view, dict) else {}
+    recommendations = view.get("recommendations", {}) if isinstance(view, dict) else {}
+    critical = _count_anomalies(view, "Crítica")
+    high = _count_anomalies(view, "Alta")
+    recurring_risks = len(historical.get("recurring_risks", []) or []) if isinstance(historical, dict) else 0
+    follow_up = len(historical.get("recommendation_follow_up", []) or []) if isinstance(historical, dict) else 0
+    strategy_available = bool(recommendations.get("cards")) if isinstance(recommendations, dict) else False
+    st.markdown("### Resumen de atención")
+    columns = st.columns(4)
+    cards = (
+        (
+            "Anomalías críticas",
+            f"{critical}",
+            "negative" if critical else "positive",
+            "Crítica" if critical else "Favorable",
+            [("Alta severidad", high)],
+        ),
+        (
+            "Riesgos recurrentes",
+            f"{recurring_risks}",
+            "warning" if recurring_risks else "info",
+            "En seguimiento" if recurring_risks else "Informativo",
+            [],
+        ),
+        (
+            "Recomendaciones previas",
+            f"{follow_up}",
+            "info",
+            "Seguimiento",
+            [],
+        ),
+        (
+            "Enriquecimiento estratégico",
+            "Disponible" if strategy_available else "No validado",
+            "positive" if strategy_available else "warning",
+            "Validado" if strategy_available else "Advertencia",
+            [],
+        ),
+    )
+    for column, (title, body, variant, badge, rows) in zip(columns, cards):
+        with column:
+            _render_section_card(st, title=title, body=body, variant=variant, badge=badge, rows=rows)
+
+
+def _render_grouped_kpi_cards(st: Any, cards: list[dict[str, Any]]) -> None:
+    """Render KPI cards grouped by executive meaning.
+
+    Inputs: Streamlit module and presentation KPI cards.
+    Outputs: grouped KPI card layout.
+    Assumptions: cards are built from deterministic report-model comparisons.
+    """
+
+    by_id = {str(card.get("id")): card for card in cards if isinstance(card, dict)}
+    rendered: set[str] = set()
+    for group_title, metric_ids in KPI_GROUPS:
+        group_cards = [by_id[metric_id] for metric_id in metric_ids if metric_id in by_id]
+        if not group_cards:
+            continue
+        st.markdown(f"#### {group_title}")
+        columns = st.columns(min(3, len(group_cards)))
+        for index, card in enumerate(group_cards):
+            rendered.add(str(card.get("id")))
+            with columns[index % len(columns)]:
+                _render_financial_health_card(st, card)
+    remaining = [card for card in cards if str(card.get("id")) not in rendered]
+    if remaining:
+        st.markdown("#### Otros indicadores")
+        columns = st.columns(min(3, len(remaining)))
+        for index, card in enumerate(remaining):
+            with columns[index % len(columns)]:
+                _render_financial_health_card(st, card)
+
+
+def _render_download_card(st: Any, label: str, path: Path, mime: str) -> None:
+    """Render one prominent download card and button.
+
+    Inputs: Streamlit module, Spanish label, path, and MIME type.
+    Outputs: card with download button.
+    Assumptions: caller verified the file exists.
+    """
+
+    descriptions = {
+        "PDF": "Reporte ejecutivo listo para compartir.",
+        "HTML": "Versión navegable del reporte.",
+        "modelo JSON del reporte": "Estructura completa usada por la interfaz y renderizadores.",
+        "análisis estratégico JSON": "Salida estratégica validada o diagnóstico de rechazo.",
+        "evidencia JSON": "Evidencia determinística consultada por el pipeline.",
+    }
+    _render_section_card(
+        st,
+        title=label,
+        body=descriptions.get(label, "Artefacto generado por el pipeline."),
+        variant="info",
+        badge="Disponible",
+        rows=[("Archivo", path.name)],
+    )
+    st.download_button(
+        label=f"Descargar {label}",
+        data=path.read_bytes(),
+        file_name=path.name,
+        mime=mime,
+    )
     badge_html = _status_badge_html(badge or variant)
     st.markdown(
         """
@@ -839,25 +1042,40 @@ def _apply_page_styles(st: Any) -> None:
     st.markdown(
         """
         <style>
-        .main .block-container { padding-top: 1.1rem; max-width: 1180px; }
+        :root {
+            --fa-bg: #f5f7fa;
+            --fa-surface: #ffffff;
+            --fa-surface-elevated: #fbfdff;
+            --fa-border: #d8e1ea;
+            --fa-text: #172033;
+            --fa-text-strong: #10243a;
+            --fa-muted: #526273;
+            --fa-positive: #1b7f4a;
+            --fa-negative: #b42318;
+            --fa-warning: #b7791f;
+            --fa-info: #39739d;
+            --fa-neutral: #697586;
+        }
+        .main .block-container { padding-top: 1.0rem; max-width: 1220px; }
+        .stApp { background: var(--fa-bg); }
         div[data-testid="stMetric"] {
-            background: #fbfdff;
-            border: 1px solid #d8e1ea;
+            background: var(--fa-surface-elevated);
+            border: 1px solid var(--fa-border);
             border-radius: 14px;
             padding: 14px 16px;
         }
         .finance-card {
-            background: #fbfdff;
-            border: 1px solid #d8e1ea;
+            background: var(--fa-surface-elevated);
+            border: 1px solid var(--fa-border);
             border-radius: 16px;
             padding: 16px 18px;
             margin: 10px 0 16px;
         }
         .step-card {
             min-height: 112px;
-            background: linear-gradient(180deg, #ffffff 0%, #f6f9fc 100%);
-            border: 1px solid #d8e1ea;
-            border-left: 5px solid #245b89;
+            background: linear-gradient(180deg, var(--fa-surface) 0%, var(--fa-surface-elevated) 100%);
+            border: 1px solid var(--fa-border);
+            border-left: 5px solid var(--fa-info);
             border-radius: 14px;
             padding: 16px 18px;
             margin: 4px 0 8px;
@@ -874,33 +1092,33 @@ def _apply_page_styles(st: Any) -> None:
             margin-right: 8px;
         }
         .step-title {
-            color: #12314d;
+            color: var(--fa-text-strong);
             font-size: 1.02rem;
             font-weight: 700;
         }
         .step-description {
-            color: #435466;
+            color: var(--fa-muted);
             line-height: 1.38;
             margin-top: 8px;
             font-size: 0.94rem;
         }
         .compat-card {
-            background: #f8fbff;
-            border: 1px solid #d8e1ea;
+            background: var(--fa-surface-elevated);
+            border: 1px solid var(--fa-border);
             border-radius: 14px;
             padding: 14px 16px;
             margin: 2px 0 14px;
-            color: #33485c;
+            color: var(--fa-text);
         }
         .run-action-card {
-            background: #f5f9fd;
-            border: 1px solid #d8e1ea;
+            background: var(--fa-surface-elevated);
+            border: 1px solid var(--fa-border);
             border-radius: 16px;
             padding: 14px 16px 10px;
             margin-top: 8px;
         }
         .safe-text-block {
-            color: #172033;
+            color: var(--fa-text);
             line-height: 1.58;
             margin: 0.2rem 0 0.8rem;
         }
@@ -918,29 +1136,29 @@ def _apply_page_styles(st: Any) -> None:
             margin: 0.2rem 0 0.9rem;
         }
         .ui-kpi-card {
-            background: #ffffff;
-            color: #172033;
-            border: 1px solid #d8e1ea;
-            border-left: 6px solid #39739d;
+            background: var(--fa-surface);
+            color: var(--fa-text);
+            border: 1px solid var(--fa-border);
+            border-left: 5px solid var(--fa-info);
             border-radius: 16px;
             padding: 16px 17px;
             margin: 0.25rem 0 1rem;
             box-shadow: 0 1px 3px rgba(23, 43, 77, 0.06);
         }
         .ui-dashboard-card {
-            background: #ffffff;
-            color: #172033;
-            border: 1px solid #d8e1ea;
-            border-left: 6px solid #39739d;
+            background: var(--fa-surface);
+            color: var(--fa-text);
+            border: 1px solid var(--fa-border);
+            border-left: 5px solid var(--fa-info);
             border-radius: 16px;
             padding: 16px 18px;
             margin: 0.35rem 0 1rem;
             box-shadow: 0 1px 3px rgba(23, 43, 77, 0.06);
         }
-        .ui-card--positive { border-left-color: #1b7f4a; background: #f4fbf7; }
-        .ui-card--negative { border-left-color: #b42318; background: #fff7f6; }
-        .ui-card--warning { border-left-color: #b7791f; background: #fffaf0; }
-        .ui-card--neutral, .ui-card--info { border-left-color: #39739d; background: #f7fbff; }
+        .ui-card--positive { border-left-color: var(--fa-positive); background: var(--fa-surface); }
+        .ui-card--negative { border-left-color: var(--fa-negative); background: var(--fa-surface); }
+        .ui-card--warning { border-left-color: var(--fa-warning); background: var(--fa-surface); }
+        .ui-card--neutral, .ui-card--info { border-left-color: var(--fa-info); background: var(--fa-surface); }
         .ui-card-header {
             display: flex;
             align-items: flex-start;
@@ -949,13 +1167,13 @@ def _apply_page_styles(st: Any) -> None:
             margin-bottom: 0.45rem;
         }
         .ui-card-title {
-            color: #10243a;
+            color: var(--fa-text-strong);
             font-weight: 800;
             font-size: 1rem;
             line-height: 1.25;
         }
         .ui-card-body {
-            color: #45576a;
+            color: var(--fa-muted);
             line-height: 1.45;
             font-size: 0.92rem;
             margin: 0.3rem 0 0.55rem;
@@ -967,22 +1185,22 @@ def _apply_page_styles(st: Any) -> None:
             border-top: 1px solid #e6edf3;
             padding-top: 0.48rem;
             margin-top: 0.48rem;
-            color: #45576a;
+            color: var(--fa-muted);
             font-size: 0.85rem;
         }
         .ui-card-row strong {
-            color: #10243a;
+            color: var(--fa-text-strong);
             text-align: right;
         }
         .ui-kpi-label {
-            color: #526273;
+            color: var(--fa-muted);
             font-size: 0.84rem;
             font-weight: 700;
             letter-spacing: 0.01em;
             min-height: 2.2rem;
         }
         .ui-kpi-value {
-            color: #10243a;
+            color: var(--fa-text-strong);
             font-size: 1.75rem;
             font-weight: 800;
             line-height: 1.12;
@@ -1032,7 +1250,7 @@ def _apply_page_styles(st: Any) -> None:
             border-color: #c9dceb;
         }
         .ui-kpi-description {
-            color: #526273;
+            color: var(--fa-muted);
             font-size: 0.86rem;
             line-height: 1.35;
             margin: 0.65rem 0;
@@ -1044,15 +1262,29 @@ def _apply_page_styles(st: Any) -> None:
             border-top: 1px solid #e6edf3;
             padding-top: 0.5rem;
             margin-top: 0.5rem;
-            color: #45576a;
+            color: var(--fa-muted);
             font-size: 0.82rem;
         }
         .ui-kpi-row strong {
-            color: #10243a;
+            color: var(--fa-text-strong);
             text-align: right;
             white-space: nowrap;
         }
         @media (prefers-color-scheme: dark) {
+            :root {
+                --fa-bg: #0f1724;
+                --fa-surface: #172033;
+                --fa-surface-elevated: #1b2638;
+                --fa-border: #35465a;
+                --fa-text: #f5f7fa;
+                --fa-text-strong: #f8fafc;
+                --fa-muted: #c5d0dc;
+                --fa-positive: #3ab777;
+                --fa-negative: #f07067;
+                --fa-warning: #e2ad43;
+                --fa-info: #6ca7d8;
+                --fa-neutral: #a8b3c0;
+            }
             .safe-text-block { color: #f5f7fa; }
             .verified-data-note {
                 color: #d8f8e7;
@@ -1071,9 +1303,9 @@ def _apply_page_styles(st: Any) -> None:
                 border-color: #35465a;
                 box-shadow: none;
             }
-            .ui-card--positive { background: #102c20; border-left-color: #3ab777; }
-            .ui-card--negative { background: #321717; border-left-color: #f07067; }
-            .ui-card--warning { background: #302611; border-left-color: #e2ad43; }
+            .ui-card--positive { background: var(--fa-surface); border-left-color: var(--fa-positive); }
+            .ui-card--negative { background: var(--fa-surface); border-left-color: var(--fa-negative); }
+            .ui-card--warning { background: var(--fa-surface); border-left-color: var(--fa-warning); }
             .ui-card--neutral, .ui-card--info { background: #172033; border-left-color: #6ca7d8; }
             .ui-kpi-label,
             .ui-kpi-description,
@@ -1141,6 +1373,24 @@ def _apply_page_styles(st: Any) -> None:
             color: #526273 !important;
             border: 1px solid #b8c4d0 !important;
             opacity: 1 !important;
+        }
+        @media (prefers-color-scheme: dark) {
+            div[data-testid="stButton"] button:disabled {
+                background-color: #243247 !important;
+                color: #c5d0dc !important;
+                border: 1px solid #43546a !important;
+            }
+        }
+        @media (max-width: 760px) {
+            .ui-card-header,
+            .ui-card-row,
+            .ui-kpi-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .ui-card-row strong,
+            .ui-kpi-row strong { text-align: left; white-space: normal; }
+            .ui-kpi-value { font-size: 1.45rem; }
         }
         </style>
         """,
@@ -1681,10 +1931,8 @@ def _render_overview_tab(st: Any, report_model: dict[str, Any], result: Pipeline
             )
     st.markdown("### Salud financiera")
     if health_cards:
-        columns = st.columns(min(4, len(health_cards)))
-        for index, card in enumerate(health_cards[:8]):
-            with columns[index % len(columns)]:
-                _render_financial_health_card(st, card)
+        _render_grouped_kpi_cards(st, health_cards[:8])
+        _render_attention_summary(st, report_model)
     else:
         st.info("No hay indicadores financieros para mostrar en esta vista.")
 
@@ -1698,6 +1946,10 @@ def _render_kpi_tab(st: Any, report_model: dict[str, Any]) -> None:
     """
 
     view = build_presentation_view(report_model) if report_model else {}
+    cards = view.get("financial_health", {}).get("cards", []) if isinstance(view, dict) else []
+    if cards:
+        st.markdown("### Indicadores principales")
+        _render_grouped_kpi_cards(st, cards[:8])
     rows = [
         {
             "Indicador": item.get("indicator"),
@@ -1708,7 +1960,30 @@ def _render_kpi_tab(st: Any, report_model: dict[str, Any]) -> None:
         for item in view.get("kpis", [])
     ]
     if rows:
-        st.dataframe(rows, use_container_width=True, hide_index=True)
+        with st.expander("Ver tabla completa de KPIs", expanded=False):
+            st.dataframe(rows, use_container_width=True, hide_index=True)
+        health_section = _section_by_id(report_model, "financial_health_overview")
+        comparisons = health_section.get("content", {}).get("kpi_comparisons", {})
+        if isinstance(comparisons, dict) and comparisons.get("items"):
+            with st.expander("Proveniencia y cálculo determinístico", expanded=False):
+                st.dataframe(
+                    [
+                        {
+                            "Indicador": item.get("metric"),
+                            "Fuente": item.get("provenance", {}).get("source_artifact"),
+                            "Valor actual": item.get("current_value"),
+                            "Comparación": item.get("previous_value"),
+                            "Cambio calculado": item.get("absolute_change")
+                            if item.get("unit") != "ratio"
+                            else item.get("percentage_point_change"),
+                            "Método": item.get("provenance", {}).get("calculation_method"),
+                        }
+                        for item in comparisons.get("items", {}).values()
+                        if isinstance(item, dict)
+                    ],
+                    use_container_width=True,
+                    hide_index=True,
+                )
     else:
         st.info("No hay KPIs disponibles para este periodo.")
 
@@ -2069,24 +2344,21 @@ def _render_downloads_tab(
         "Strategic analysis JSON": "análisis estratégico JSON",
         "Evidence package JSON": "evidencia JSON",
     }
-    for label, path in artifacts.items():
+    st.markdown("### Archivos disponibles")
+    columns = st.columns(2)
+    for index, (label, path) in enumerate(artifacts.items()):
         display_label = label_by_artifact.get(label, label)
-        if path and path.is_file():
-            label_es = {
-                "PDF": "Descargar PDF",
-                "HTML": "Descargar HTML",
-                "Report model JSON": "Descargar modelo JSON",
-                "Strategic analysis JSON": "Descargar análisis JSON",
-                "Evidence package JSON": "Descargar evidencia JSON",
-            }.get(label, f"Descargar {label}")
-            st.download_button(
-                label=label_es,
-                data=path.read_bytes(),
-                file_name=path.name,
-                mime=mime_by_label.get(label, "application/octet-stream"),
-            )
-        else:
-            st.info(f"El archivo {display_label} no está disponible para esta ejecución.")
+        with columns[index % 2]:
+            if path and path.is_file():
+                _render_download_card(st, display_label, path, mime_by_label.get(label, "application/octet-stream"))
+            else:
+                _render_section_card(
+                    st,
+                    title=display_label,
+                    body=f"El archivo {display_label} no está disponible para esta ejecución.",
+                    variant="warning",
+                    badge="No disponible",
+                )
     if report_model and hasattr(st, "expander"):
         with st.expander("Auditoría de cobertura del reporte", expanded=False):
             st.dataframe(
@@ -2110,6 +2382,7 @@ def _render_results(st: Any, result: PipelineRunResult) -> None:
 
     artifacts = _artifact_paths(result)
     report_model = _load_json(artifacts["Report model JSON"])
+    _render_results_header(st, report_model=report_model, result=result, artifacts=artifacts)
     overview, kpis, anomalies, analysis, recommendations, downloads = st.tabs(
         ["Resumen", "KPIs", "Anomalías", "Análisis", "Recomendaciones", "Descargas"]
     )
