@@ -717,6 +717,32 @@ def display_risk_name(value: Any, metric: Any = None) -> str:
     return sanitize_text(text.replace("_", " ").capitalize() or "Riesgo recurrente")
 
 
+def _format_anomaly_value(metric: Any, value: Any) -> str:
+    """Format an anomaly threshold/observed value without rescaling source facts.
+
+    Inputs: anomaly metric identifier and processed numeric value.
+    Outputs: display string using percentage, currency, or plain numeric units.
+    Assumptions: anomaly reports may store percentage metrics either as ratios
+    (0.85) or percent values (85.0/100.0); this helper preserves source scale
+    and never recalculates the anomaly.
+    """
+
+    numeric = number_value(value)
+    if numeric is None:
+        return ""
+    metric_text = str(metric or "").casefold()
+    if any(token in metric_text for token in ("percentage", "percent", "pct", "rate", "ratio")):
+        if abs(numeric) > 1:
+            return f"{numeric:,.1f}%"
+        return format_value(numeric, "ratio")
+    if any(
+        token in metric_text
+        for token in ("amount", "payment", "cash", "flow", "result", "revenue", "expense", "budget", "payroll")
+    ):
+        return format_value(numeric, "USD")
+    return f"{numeric:,.2f}".rstrip("0").rstrip(".")
+
+
 def status_badge(status: str) -> dict[str, str]:
     """Return display metadata for a KPI or risk status badge.
 
@@ -1144,8 +1170,13 @@ def build_anomaly_summary(report_model: dict[str, Any]) -> dict[str, Any]:
         for key, value in severity.items()
     ]
     top_rows: list[dict[str, str]] = []
-    for item in (content.get("top_anomalies", []) or [])[:8]:
+    source_rows = content.get("top_anomalies") or content.get("anomalies") or []
+    for item in (source_rows or [])[:12]:
         if isinstance(item, dict):
+            observed = _format_anomaly_value(item.get("metric"), item.get("observed_value"))
+            reference = _format_anomaly_value(item.get("metric"), item.get("threshold_value"))
+            observed = "" if observed in EMPTY_DISPLAY_VALUES else observed
+            reference = "" if reference in EMPTY_DISPLAY_VALUES else reference
             top_rows.append(
                 {
                     "title": sanitize_text(item.get("title") or item.get("description") or "Anomalía detectada"),
@@ -1153,7 +1184,15 @@ def build_anomaly_summary(report_model: dict[str, Any]) -> dict[str, Any]:
                     "severity_class": str(item.get("severity", "")).lower() or "info",
                     "recurrence": "Recurrente" if item.get("recurrence_count") or item.get("periods") else "Periodo actual",
                     "period_chips": [str(period) for period in (item.get("periods") or [])[:6]],
+                    "period": format_period_label(item.get("period")),
+                    "metric": display_metric_name(item.get("metric")),
+                    "entity": display_entity_name(item.get("department") or item.get("entity") or item.get("vendor") or ""),
+                    "observed_value": observed,
+                    "reference_value": reference,
                     "evidence": sanitize_text(item.get("evidence") or item.get("description") or ""),
+                    "description": sanitize_text(item.get("description") or ""),
+                    "recommended_next_check": sanitize_text(item.get("recommended_next_check") or ""),
+                    "source": compact_source_label(item.get("source_file") or ""),
                 }
             )
     if not top_rows and (not severity_rows or not any(row["count"] for row in severity_rows)):
@@ -1369,6 +1408,20 @@ def build_presentation_view(report_model: dict[str, Any], *, mode: str = "execut
             "priorities": sanitize_items(recommendations.get("strategic_priorities"), limit=6),
             "reasoning_summary": sanitize_text(recommendations.get("reasoning_summary") or ""),
             "cards": build_recommendation_cards(report_model),
+            "strategy_unavailable_note": sanitize_text(recommendations.get("strategy_unavailable_note") or ""),
+            "attention_items": [
+                {
+                    "title": sanitize_text(item.get("title") or "Hallazgo determinístico"),
+                    "severity": _localize_severity(item.get("severity")),
+                    "metric": display_metric_name(item.get("metric")),
+                    "department": display_entity_name(item.get("department") or ""),
+                    "period": format_period_label(item.get("period")),
+                    "evidence": sanitize_text(item.get("evidence") or ""),
+                    "source": compact_source_label(item.get("source") or ""),
+                }
+                for item in recommendations.get("deterministic_attention_items", []) or []
+                if isinstance(item, dict)
+            ],
         },
         "missing_information": build_missing_information(report_model),
         "appendix": build_appendix(report_model),

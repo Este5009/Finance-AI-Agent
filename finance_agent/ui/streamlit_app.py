@@ -688,6 +688,20 @@ def _render_section_card(
         for label, value in (rows or [])
         if _safe_display_text(value)
     )
+    badge_html = _status_badge_html(badge or VARIANT_LABELS_ES.get(variant, "Informativo"))
+    st.markdown(
+        (
+            f"<div class='ui-card ui-card-{escape(str(variant or 'neutral'))}'>"
+            "<div class='ui-card-header'>"
+            f"<h4>{escape(_safe_display_text(title) or 'Sección')}</h4>"
+            f"{badge_html}"
+            "</div>"
+            f"<p>{escape(_safe_display_text(body))}</p>"
+            f"{row_html}"
+            "</div>"
+        ),
+        unsafe_allow_html=True,
+    )
 
 
 def _analysis_mode_label(report_model: dict[str, Any]) -> tuple[str, str]:
@@ -2016,9 +2030,15 @@ def _render_anomaly_tab(st: Any, report_model: dict[str, Any]) -> None:
                     variant=_card_variant_from_text(item.get("severity"), item.get("severity_class")),
                     badge=item.get("severity"),
                     rows=[
+                        ("Indicador afectado", item.get("metric")),
+                        ("Entidad/departamento", item.get("entity")),
+                        ("Valor observado", item.get("observed_value")),
+                        ("Referencia", item.get("reference_value")),
+                        ("Periodo", item.get("period")),
                         ("Severidad", item.get("severity")),
                         ("Recurrencia", item.get("recurrence")),
                         ("Períodos afectados", item.get("period_chips")),
+                        ("Próxima verificación", item.get("recommended_next_check")),
                     ],
                 )
     elif not anomalies.get("current_period_status"):
@@ -2049,6 +2069,23 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
     evidence = view.get("evidence", []) if isinstance(view, dict) else []
 
     st.markdown("### Análisis determinístico del reporte")
+    narratives = view.get("section_narratives", {}) if isinstance(view, dict) else {}
+    for section_id, title in (
+        ("financial_health_overview", "Lectura financiera"),
+        ("revenue_expense_analysis", "Lectura de ingresos y gastos"),
+        ("department_analysis", "Lectura departamental"),
+        ("anomaly_summary", "Lectura de anomalías"),
+        ("historical_trends", "Lectura histórica"),
+    ):
+        text = narratives.get(section_id) if isinstance(narratives, dict) else ""
+        if text:
+            _render_section_card(
+                st,
+                title=title,
+                body=_safe_display_text(text),
+                variant="info",
+                badge="Determinístico",
+            )
     rows = revenue_expense.get("rows", []) if isinstance(revenue_expense, dict) else []
     if rows:
         st.markdown("#### Ingresos, gastos y presupuesto")
@@ -2172,7 +2209,7 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
                         variant=_card_variant_from_text(item.get("progress")),
                         badge=item.get("progress") or "En seguimiento",
                         rows=[
-                            ("Emitida en", item.get("origin_period")),
+                            ("Emitida en", item.get("origin_period") or item.get("issued_period")),
                             ("Objetivo original", item.get("objective")),
                             ("Evidencia actual", item.get("current_evidence")),
                             ("Siguiente acción", item.get("next_action")),
@@ -2248,13 +2285,37 @@ def _render_recommendations_tab(st: Any, report_model: dict[str, Any]) -> None:
         _render_section_card(
             st,
             title="Recomendaciones estratégicas no validadas",
-            body=(
-                "Se generó el reporte financiero con información determinística validada. "
-                "Las recomendaciones estratégicas no se incluyeron porque no superaron la validación de evidencia."
+            body=_safe_display_text(
+                recommendations.get("strategy_unavailable_note")
+                or (
+                    "No se incluyeron recomendaciones estratégicas nuevas porque el análisis generado "
+                    "no superó la validación de evidencia."
+                )
             ),
             variant="warning",
             badge="Advertencia",
         )
+        attention_items = recommendations.get("attention_items", []) if isinstance(recommendations, dict) else []
+        if attention_items:
+            st.markdown("#### Hallazgos determinísticos que requieren atención")
+            columns = st.columns(2)
+            for index, item in enumerate(attention_items[:6]):
+                if not isinstance(item, dict):
+                    continue
+                with columns[index % 2]:
+                    _render_section_card(
+                        st,
+                        title=_safe_display_text(item.get("title") or "Hallazgo determinístico"),
+                        body=_safe_display_text(item.get("evidence")),
+                        variant=_card_variant_from_text(item.get("severity")),
+                        badge=item.get("severity") or "Atención",
+                        rows=[
+                            ("Indicador", item.get("metric")),
+                            ("Departamento/entidad", item.get("department")),
+                            ("Periodo", item.get("period")),
+                            ("Fuente", item.get("source")),
+                        ],
+                    )
 
     follow_up = historical.get("recommendation_follow_up", []) if isinstance(historical, dict) else []
     if follow_up:
@@ -2279,11 +2340,22 @@ def _render_recommendations_tab(st: Any, report_model: dict[str, Any]) -> None:
                     variant=_card_variant_from_text(item.get("progress")),
                     badge=item.get("progress") or "En seguimiento",
                     rows=[
-                        ("Emitida en", item.get("origin_period")),
+                        ("Emitida en", item.get("origin_period") or item.get("issued_period")),
                         ("Objetivo original", item.get("objective")),
                         ("Evidencia actual", item.get("current_evidence")),
                     ],
                 )
+    else:
+        _render_section_card(
+            st,
+            title="Sin recomendaciones previas aceptadas",
+            body=(
+                "No hay recomendaciones emitidas en informes anteriores aceptados para dar seguimiento "
+                "con la evidencia histórica disponible."
+            ),
+            variant="info",
+            badge="Informativo",
+        )
 
     if missing_items:
         st.markdown("### Información pendiente")

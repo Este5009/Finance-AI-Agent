@@ -240,6 +240,159 @@ def _deterministic_executive_summary(
     return " ".join(parts)
 
 
+def _comparison_sentence(
+    label: str,
+    item: dict[str, Any],
+    *,
+    favorable_when_lower: bool = False,
+) -> str:
+    """Build one deterministic comparison sentence for fallback analysis.
+
+    Inputs: display label, KPI comparison item, and optional inverse favorability.
+    Outputs: Spanish sentence using only current, previous, and computed deltas.
+    Assumptions: values were calculated upstream in ``_build_kpi_comparisons``;
+    this helper only formats them for readable deterministic fallback text.
+    """
+
+    current = item.get("current_value")
+    previous = item.get("previous_value")
+    unit = str(item.get("unit") or "")
+    if number_value(current) is None:
+        return ""
+    parts = [f"{label}: {format_value(current, unit)}."]
+    change = item.get("percentage_point_change") if unit == "ratio" else item.get("absolute_change")
+    if number_value(previous) is not None and number_value(change) is not None:
+        direction = "aumentó" if float(change) > 0 else ("disminuyó" if float(change) < 0 else "se mantuvo")
+        change_text = format_value(change, "ratio" if unit == "ratio" else unit)
+        if unit == "ratio":
+            parts.append(
+                f"Respecto al período anterior ({format_value(previous, unit)}), {direction} {change_text}."
+            )
+        else:
+            pct = item.get("percent_change")
+            pct_suffix = f" ({format_value(pct, 'ratio')})" if number_value(pct) is not None else ""
+            parts.append(
+                f"Respecto al período anterior ({format_value(previous, unit)}), {direction} {change_text}{pct_suffix}."
+            )
+    budget = item.get("budget_value")
+    budget_change = item.get("budget_change")
+    if number_value(budget) is not None and number_value(budget_change) is not None:
+        variance = float(budget_change)
+        status = "por encima" if variance > 0 else ("por debajo" if variance < 0 else "en línea")
+        if favorable_when_lower and variance > 0:
+            status = "por encima del presupuesto"
+        elif favorable_when_lower and variance < 0:
+            status = "por debajo del presupuesto"
+        parts.append(
+            f"Frente al presupuesto ({format_value(budget, unit)}), quedó {status} por {format_value(budget_change, unit)}."
+        )
+    return " ".join(parts)
+
+
+def _department_fallback_sentence(departments: list[dict[str, Any]]) -> str:
+    """Summarize department ranking from processed department totals.
+
+    Inputs: processed department summary rows.
+    Outputs: concise deterministic Spanish sentence or empty text.
+    Assumptions: this describes highest/lowest operating result only and does
+    not infer causes.
+    """
+
+    rows = [item for item in departments if isinstance(item, dict)]
+    if not rows:
+        return ""
+    ranked = sorted(rows, key=lambda item: number_value(item.get("net_operating_result")) or 0.0)
+    lowest = ranked[0]
+    highest = ranked[-1]
+    return (
+        "Por resultado operativo, "
+        f"{highest.get('department') or 'el mejor departamento'} presenta el resultado más alto "
+        f"({format_value(highest.get('net_operating_result'), 'USD')}) y "
+        f"{lowest.get('department') or 'el departamento con mayor presión'} presenta el resultado más bajo "
+        f"({format_value(lowest.get('net_operating_result'), 'USD')})."
+    )
+
+
+def _deterministic_analysis_summaries(
+    *,
+    kpi_comparisons: dict[str, Any],
+    anomaly_report: dict[str, Any],
+    department_summary: list[dict[str, Any]],
+    historical_context: dict[str, Any],
+) -> dict[str, str]:
+    """Build reusable deterministic analysis fallback text.
+
+    Inputs: KPI comparisons, anomaly report, department rows, and historical
+    context already produced by deterministic pipeline stages.
+    Outputs: section-name to Spanish fallback text.
+    Assumptions: text reports only observed values, deltas, counts, and
+    retrieved deterministic context; it does not infer causes or recommend
+    strategy.
+    """
+
+    items = kpi_comparisons.get("items", {}) if isinstance(kpi_comparisons, dict) else {}
+    revenue = _comparison_sentence("Ingresos", items.get("total_revenue", {}) if isinstance(items, dict) else {})
+    expenses = _comparison_sentence(
+        "Gastos",
+        items.get("total_expenses", {}) if isinstance(items, dict) else {},
+        favorable_when_lower=True,
+    )
+    result = _comparison_sentence("Resultado operativo", items.get("net_operating_result", {}) if isinstance(items, dict) else {})
+    cash = _comparison_sentence("Flujo neto de caja", items.get("net_cash_flow", {}) if isinstance(items, dict) else {})
+    payroll = _comparison_sentence("Nómina sobre ingresos", items.get("payroll_percentage_of_revenue", {}) if isinstance(items, dict) else {})
+    collections = _comparison_sentence("Tasa de cobranza", items.get("collection_rate", {}) if isinstance(items, dict) else {})
+    department_text = _department_fallback_sentence(department_summary)
+    anomaly_count = int(anomaly_report.get("total_anomalies") or 0)
+    severity = anomaly_report.get("anomalies_by_severity", {})
+    severity = severity if isinstance(severity, dict) else {}
+    critical = int(severity.get("critical") or 0)
+    high = int(severity.get("high") or 0)
+    anomaly_text = (
+        f"El detector determinístico registró {anomaly_count} anomalías del período"
+        + (f", incluyendo {critical} críticas y {high} de severidad alta." if anomaly_count else ".")
+    )
+    summary = historical_context.get("summary", {}) if isinstance(historical_context, dict) else {}
+    historical_text = ""
+    if isinstance(summary, dict) and summary.get("available_retrievals"):
+        topics = ", ".join(str(topic).replace("get_", "").replace("_", " ") for topic in summary.get("topics", [])[:4])
+        historical_text = (
+            f"El contexto histórico consultó {summary.get('available_retrievals')} fuentes compactas"
+            + (f" sobre {topics}." if topics else ".")
+        )
+    financial_parts = [part for part in (revenue, expenses, result, cash, payroll, collections) if part]
+    return {
+        "financial_health_analysis": " ".join(financial_parts[:4]),
+        "kpi_analysis": " ".join(part for part in (payroll, collections) if part),
+        "revenue_analysis": revenue,
+        "expense_analysis": expenses,
+        "department_analysis": department_text,
+        "anomaly_analysis": anomaly_text if anomaly_count else "",
+        "historical_summary": historical_text,
+        "historical_trend_analysis": historical_text,
+    }
+
+
+def _rank_anomalies_for_report(anomaly_report: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return deterministic anomaly rows ordered by executive priority.
+
+    Inputs: processed anomaly report.
+    Outputs: anomaly dictionaries sorted by severity and absolute impact.
+    Assumptions: no anomaly fields are modified; this only orders processed
+    rows for report consumption.
+    """
+
+    severity_score = {"critical": 4, "high": 3, "medium": 2, "low": 1}
+    rows = [item for item in anomaly_report.get("anomalies", []) if isinstance(item, dict)]
+    return sorted(
+        rows,
+        key=lambda item: (
+            severity_score.get(str(item.get("severity") or "").lower(), 0),
+            abs(number_value(item.get("observed_value")) or 0.0),
+        ),
+        reverse=True,
+    )
+
+
 def _percentage_tokens(text: str) -> set[str]:
     """Extract normalized percentage displays from user-facing prose.
 
@@ -655,6 +808,7 @@ def _historical_sections(
     historical_context: dict[str, Any],
     analysis: dict[str, Any],
     analysis_source: tuple[str, ...],
+    deterministic_summaries: dict[str, str] | None = None,
 ) -> tuple[ReportSection, ...]:
     """Build optional historical report sections when compact history exists.
 
@@ -663,6 +817,7 @@ def _historical_sections(
     Assumptions: no sections are emitted when no historical retrieval succeeded.
     """
 
+    deterministic_summaries = deterministic_summaries or {}
     if not historical_context:
         return ()
     summary = historical_context.get("summary", {})
@@ -703,7 +858,8 @@ def _historical_sections(
             "historical_summary",
             "Historical Summary",
             {
-                "analysis": _analysis_text(analysis, "historical_summary"),
+                "analysis": _analysis_text(analysis, "historical_summary")
+                or deterministic_summaries.get("historical_summary", ""),
                 "historical_context": historical_context,
                 "narrative": historical.get("narrative", []),
                 "retrieval_count": summary.get("available_retrievals", 0),
@@ -718,7 +874,8 @@ def _historical_sections(
             "historical_trends",
             "Historical Trends",
             {
-                "analysis": _analysis_text(analysis, "historical_trend_analysis"),
+                "analysis": _analysis_text(analysis, "historical_trend_analysis")
+                or deterministic_summaries.get("historical_trend_analysis", ""),
                 "historical_context": historical_context,
                 "trend_series": trend_overview,
                 "narrative": historical.get("narrative", []),
@@ -857,6 +1014,26 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
     if not isinstance(strategy_recovery, dict):
         strategy_recovery = analysis.get("_strategic_recovery", {})
     strategy_recovery = strategy_recovery if isinstance(strategy_recovery, dict) else {}
+    deterministic_summaries = _deterministic_analysis_summaries(
+        kpi_comparisons=kpi_comparisons,
+        anomaly_report=inputs.anomaly_report,
+        department_summary=inputs.finance_summary.get("department_summary", []),
+        historical_context=historical_context,
+    )
+    ranked_anomalies = _rank_anomalies_for_report(inputs.anomaly_report)
+    deterministic_attention_items = [
+        {
+            "title": item.get("title") or item.get("description") or "Anomalía detectada",
+            "severity": item.get("severity"),
+            "metric": item.get("metric"),
+            "department": item.get("department") or item.get("entity"),
+            "period": item.get("period"),
+            "evidence": item.get("evidence") or item.get("description"),
+            "source": item.get("source_file"),
+        }
+        for item in ranked_anomalies
+        if str(item.get("severity") or "").lower() in {"critical", "high"}
+    ][:5]
     base_sections = (
         _section(
             "cover",
@@ -896,7 +1073,8 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "payroll_percentage_of_revenue": finance.get("payroll_percentage_of_revenue"),
                 "collection_rate": payments.get("collection_rate"),
                 "kpi_comparisons": kpi_comparisons,
-                "analysis": _analysis_text(analysis, "financial_health_analysis"),
+                "analysis": _analysis_text(analysis, "financial_health_analysis")
+                or deterministic_summaries.get("financial_health_analysis", ""),
             },
             finance_source,
         ),
@@ -905,7 +1083,8 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
             "KPI Overview",
             {
                 "kpis": list(inputs.kpi_summary),
-                "analysis": _analysis_text(analysis, "kpi_analysis"),
+                "analysis": _analysis_text(analysis, "kpi_analysis")
+                or deterministic_summaries.get("kpi_analysis", ""),
             },
             kpi_source,
         ),
@@ -918,7 +1097,8 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "revenue_variance": budget.get("revenue_variance"),
                 "revenue_variance_pct": budget.get("revenue_variance_pct"),
                 "department_summary": inputs.finance_summary.get("department_summary", []),
-                "analysis": _analysis_text(analysis, "financial_health_analysis"),
+                "analysis": _analysis_text(analysis, "financial_health_analysis")
+                or deterministic_summaries.get("revenue_analysis", ""),
             },
             finance_source,
         ),
@@ -932,7 +1112,8 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "expense_variance_pct": budget.get("expense_variance_pct"),
                 "payroll_total": finance.get("payroll_total"),
                 "category_summary": inputs.finance_summary.get("category_summary", []),
-                "analysis": _analysis_text(analysis, "financial_health_analysis"),
+                "analysis": _analysis_text(analysis, "financial_health_analysis")
+                or deterministic_summaries.get("expense_analysis", ""),
             },
             finance_source,
         ),
@@ -946,7 +1127,8 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                     for item in _evidence_items(inputs.evidence_package)
                     if item.get("retrieval_name") == "department_history"
                 ],
-                "analysis": _analysis_text(analysis, "department_analysis"),
+                "analysis": _analysis_text(analysis, "department_analysis")
+                or deterministic_summaries.get("department_analysis", ""),
             },
             (inputs.source_files[0], inputs.source_files[3]),
         ),
@@ -957,9 +1139,11 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "report_period": report_period,
                 "total_anomalies": inputs.anomaly_report.get("total_anomalies"),
                 "anomalies_by_severity": inputs.anomaly_report.get("anomalies_by_severity", {}),
-                "top_anomalies": inputs.anomaly_report.get("anomalies", [])[:10],
+                "anomalies": ranked_anomalies,
+                "top_anomalies": ranked_anomalies[:20],
                 "analysis": (
                     _analysis_text(analysis, "anomaly_analysis")
+                    or deterministic_summaries.get("anomaly_analysis", "")
                     if int(inputs.anomaly_report.get("total_anomalies") or 0) > 0
                     else ""
                 ),
@@ -985,6 +1169,7 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "reasoning_summary": analysis.get("reasoning_summary", ""),
                 "analysis": _analysis_text(analysis, "longitudinal_risk_analysis"),
                 "strategy_recovery": strategy_recovery,
+                "deterministic_attention_items": deterministic_attention_items,
                 "strategy_unavailable_note": (
                     "No hay recomendaciones estratégicas validadas para este período; "
                     "el reporte conserva los hallazgos determinísticos y la evidencia procesada."
@@ -1026,7 +1211,12 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
             inputs.source_files,
         ),
     )
-    historical_sections = _historical_sections(historical_context, analysis, analysis_source)
+    historical_sections = _historical_sections(
+        historical_context,
+        analysis,
+        analysis_source,
+        deterministic_summaries,
+    )
     sections = (*base_sections[:-2], *historical_sections, *base_sections[-2:])
     model = ReportModel(
         report_id=f"REPORT-MODEL-{inputs.period_slug.upper().replace('_', '-')}",

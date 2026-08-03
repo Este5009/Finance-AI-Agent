@@ -620,18 +620,41 @@ def _render_anomalies(view: dict[str, Any]) -> str:
 
     anomalies = view["anomalies"]
     severity_rows = [[row["severity"], row["count"]] for row in anomalies["severity_rows"]]
-    top_rows = [[row["title"], row["severity"], row["evidence"]] for row in anomalies["top_rows"]]
+    top_rows = [
+        [
+            row["title"],
+            row["severity"],
+            row.get("metric"),
+            row.get("observed_value"),
+            row.get("reference_value"),
+            row["evidence"],
+        ]
+        for row in anomalies["top_rows"]
+    ]
     severity_chart = anomalies.get("severity_chart", [])
     risk_card_items: list[str] = []
     for row in anomalies["top_rows"]:
         klass = row.get("severity_class", "info")
         chips = "".join(f"<span>{_escape(chip)}</span>" for chip in row.get("period_chips", []))
+        meta = "".join(
+            f"<p><strong>{_escape(label)}:</strong> {_escape(value)}</p>"
+            for label, value in (
+                ("Indicador afectado", row.get("metric")),
+                ("Entidad/departamento", row.get("entity")),
+                ("Valor observado", row.get("observed_value")),
+                ("Referencia", row.get("reference_value")),
+                ("Periodo", row.get("period")),
+                ("Próxima verificación", row.get("recommended_next_check")),
+            )
+            if value
+        )
         risk_card_items.append(
             "<article class='risk-card'>"
             f"<div><em class='badge {klass}'>{_escape(row['severity'])}</em> "
             f"<em class='badge neutral'>{_escape(row.get('recurrence'))}</em></div>"
             f"<h3>{_escape(row['title'])}</h3>"
             f"<p>{_escape(row['evidence'])}</p>"
+            f"{meta}"
             f"<div class='chips'>{chips}</div>"
             "</article>"
         )
@@ -652,7 +675,11 @@ def _render_anomalies(view: dict[str, Any]) -> str:
         )
     detail_markup = ""
     if len(top_rows) > 3:
-        detail_markup = _table(["Anomalía", "Severidad", "Evidencia"], top_rows, force=True)
+        detail_markup = _table(
+            ["Anomalía", "Severidad", "Indicador", "Valor observado", "Referencia", "Evidencia"],
+            top_rows,
+            force=True,
+        )
     return (
         "<section id='anomaly_summary'>"
         f"<h2>{SECTION_LABELS_ES['anomaly_summary']}</h2>"
@@ -728,10 +755,26 @@ def _render_recommendations(view: dict[str, Any]) -> str:
         else _table(["Prioridad", "Acción", "Impacto esperado", "Responsable", "Estado"], rows, force=True)
     )
     if not recs["cards"]:
+        attention_cards = "".join(
+            "<article class='risk-card'>"
+            f"<div><em class='badge warning'>{_escape(item.get('severity') or 'Atención')}</em></div>"
+            f"<h3>{_escape(item.get('title') or 'Hallazgo determinístico')}</h3>"
+            f"<p>{_escape(item.get('evidence') or '')}</p>"
+            f"<p><strong>Indicador:</strong> {_escape(item.get('metric') or '')}</p>"
+            f"<p><strong>Departamento/entidad:</strong> {_escape(item.get('department') or '')}</p>"
+            f"<p><strong>Periodo:</strong> {_escape(item.get('period') or '')}</p>"
+            "</article>"
+            for item in recs.get("attention_items", [])[:6]
+        )
         recommendation_display = _info_card(
             "Recomendaciones estratégicas",
-            "No hay recomendaciones estratégicas validadas para este período. El reporte conserva los hallazgos determinísticos, KPIs, anomalías, historial y evidencia procesada.",
+            recs.get("strategy_unavailable_note")
+            or "No hay recomendaciones estratégicas validadas para este período. El reporte conserva los hallazgos determinísticos, KPIs, anomalías, historial y evidencia procesada.",
             klass="warning",
+        ) + (
+            f"<h3>Hallazgos determinísticos que requieren atención</h3><div class='recommendation-grid'>{attention_cards}</div>"
+            if attention_cards
+            else ""
         )
     return (
         "<section id='strategic_recommendations'>"

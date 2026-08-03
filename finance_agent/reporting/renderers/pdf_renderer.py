@@ -692,10 +692,20 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
         if len(anomalies["top_rows"]) > 3:
             story.append(
                 _table(
-                    ["Anomalía", "Severidad", "Evidencia"],
-                    [[row["title"], row["severity"], row["evidence"]] for row in anomalies["top_rows"]],
+                    ["Anomalía", "Severidad", "Indicador", "Valor", "Referencia", "Evidencia"],
+                    [
+                        [
+                            row["title"],
+                            row["severity"],
+                            row.get("metric"),
+                            row.get("observed_value"),
+                            row.get("reference_value"),
+                            row["evidence"],
+                        ]
+                        for row in anomalies["top_rows"]
+                    ],
                     styles,
-                    widths=[2.1 * inch, 0.9 * inch, 3.4 * inch],
+                    widths=[1.35 * inch, 0.7 * inch, 0.95 * inch, 0.75 * inch, 0.75 * inch, 2.0 * inch],
                     force=True,
                 )
             )
@@ -720,12 +730,36 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
     if not view["recommendations"]["cards"]:
         story.append(
             _info_card(
-                "No hay recomendaciones estratégicas validadas para este período. "
-                "El reporte conserva los hallazgos determinísticos, KPIs, anomalías, historial y evidencia procesada.",
+                view["recommendations"].get("strategy_unavailable_note")
+                or (
+                    "No hay recomendaciones estratégicas validadas para este período. "
+                    "El reporte conserva los hallazgos determinísticos, KPIs, anomalías, historial y evidencia procesada."
+                ),
                 styles,
                 title="Recomendaciones estratégicas",
             )
         )
+        attention_items = view["recommendations"].get("attention_items", [])
+        if attention_items:
+            story.append(_para("Hallazgos determinísticos que requieren atención", styles["h2"]))
+            story.append(
+                _table(
+                    ["Hallazgo", "Severidad", "Indicador", "Periodo", "Evidencia"],
+                    [
+                        [
+                            item.get("title"),
+                            item.get("severity"),
+                            item.get("metric"),
+                            item.get("period"),
+                            item.get("evidence"),
+                        ]
+                        for item in attention_items[:6]
+                    ],
+                    styles,
+                    widths=[1.4 * inch, 0.75 * inch, 1.1 * inch, 0.75 * inch, 2.5 * inch],
+                    force=True,
+                )
+            )
     elif len(view["recommendations"]["cards"]) <= 5:
         story.extend(_recommendation_cards(view, styles))
     else:

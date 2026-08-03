@@ -369,6 +369,51 @@ def test_rejected_modular_synthesis_is_not_used_as_visible_report_text() -> None
     assert "Reporte financiero determinístico" in executive["content"]["summary"]
 
 
+def test_rejected_strategy_preserves_deterministic_analysis_and_anomaly_rows() -> None:
+    """Verify rejected strategy still leaves useful deterministic report content.
+
+    Inputs: a report bundle with rejected strategic analysis.
+    Outputs: report model with fallback analysis, anomaly detail rows, and
+    attention items.
+    Assumptions: invalid Ollama prose must not be shown, but Python-derived
+    facts remain safe to render.
+    """
+
+    bundle = _bundle()
+    rejected_strategy = {
+        "validation_status": "rejected",
+        "validation_errors": ["risks[2] contains unsupported number: 15.0%"],
+        "analysis": {
+            "executive_summary": "Unsupported text must not be shown.",
+            "recommendations": [{"action": "Unsupported"}],
+        },
+    }
+
+    model = build_report_model(
+        ReportInputBundle(
+            period_slug=bundle.period_slug,
+            finance_summary=bundle.finance_summary,
+            kpi_summary=bundle.kpi_summary,
+            anomaly_report=bundle.anomaly_report,
+            evidence_package=bundle.evidence_package,
+            strategic_analysis=rejected_strategy,
+            source_files=bundle.source_files,
+        )
+    ).to_dict()
+    sections = {section["section_id"]: section for section in model["sections"]}
+
+    health = sections["financial_health_overview"]["content"]
+    anomaly = sections["anomaly_summary"]["content"]
+    recommendations = sections["strategic_recommendations"]["content"]
+
+    assert "Ingresos:" in health["analysis"]
+    assert anomaly["anomalies"][0]["anomaly_id"] == "ANOM-1"
+    assert anomaly["top_anomalies"][0]["title"] == "Operating deficit"
+    assert anomaly["analysis"].startswith("El detector determinístico registró 1 anomalías")
+    assert recommendations["recommendations"] == []
+    assert recommendations["deterministic_attention_items"][0]["title"] == "Operating deficit"
+
+
 def test_unsupported_previous_period_percentage_claim_uses_deterministic_summary(tmp_path: Path) -> None:
     """Verify misleading model prose cannot relabel budget variance as prior change."""
 

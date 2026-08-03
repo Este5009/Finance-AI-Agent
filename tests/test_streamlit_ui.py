@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import csv
+import json
 from typing import Any
 
 import pytest
@@ -19,6 +21,7 @@ from finance_agent.orchestration.pipeline_models import (
     RuntimeSummary,
 )
 from finance_agent.ui import streamlit_app
+from finance_agent.reporting import ReportInputBundle, build_report_model
 from finance_agent.ui.streamlit_app import (
     StreamlitRunSettings,
     build_input_model_from_uploads,
@@ -141,10 +144,31 @@ class FakeStreamlitRenderer:
 def _july_report_model() -> dict[str, Any]:
     """Load the existing July report model used for UI presentation validation."""
 
-    path = Path("outputs/report/report_model_2026_07.json")
-    if not path.is_file():
-        pytest.skip("July report model artifact is not available in this checkout.")
-    return streamlit_app._load_json(path)
+    paths = {
+        "finance": Path("outputs/calculations/finance_summary_2026_07.json"),
+        "kpis": Path("outputs/calculations/kpi_summary_2026_07.csv"),
+        "anomalies": Path("outputs/anomalies/anomaly_report_2026_07.json"),
+        "evidence": Path("outputs/evidence/evidence_package_2026_07.json"),
+        "analysis": Path("outputs/analysis/strategic_analysis_2026_07.json"),
+    }
+    if not all(path.is_file() for path in paths.values()):
+        fallback = Path("outputs/report/report_model_2026_07.json")
+        if not fallback.is_file():
+            pytest.skip("July report artifacts are not available in this checkout.")
+        return streamlit_app._load_json(fallback)
+    with paths["kpis"].open("r", encoding="utf-8-sig", newline="") as handle:
+        kpis = tuple(dict(row) for row in csv.DictReader(handle))
+    return build_report_model(
+        ReportInputBundle(
+            period_slug="2026_07",
+            finance_summary=json.loads(paths["finance"].read_text(encoding="utf-8")),
+            kpi_summary=kpis,
+            anomaly_report=json.loads(paths["anomalies"].read_text(encoding="utf-8")),
+            evidence_package=json.loads(paths["evidence"].read_text(encoding="utf-8")),
+            strategic_analysis=json.loads(paths["analysis"].read_text(encoding="utf-8")),
+            source_files=tuple(str(path) for path in paths.values()),
+        )
+    ).to_dict()
 
 
 def _july_result() -> PipelineRunResult:
@@ -502,6 +526,55 @@ def test_each_results_tab_renders_from_july_report_model() -> None:
         fake_st = FakeStreamlitRenderer()
         renderer(fake_st)
         assert not fake_st.error_messages
+
+
+def test_july_anomaly_tab_renders_deterministic_detail_cards() -> None:
+    """Verify severity counts with anomaly rows render concrete anomaly details."""
+
+    report_model = _july_report_model()
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_anomaly_tab(fake_st, report_model)
+
+    visible = "\n".join(fake_st.markdown_calls)
+    assert "Anomalías detectadas" in visible
+    assert "Indicador afectado" in visible
+    assert "Valor observado" in visible
+    assert "Referencia" in visible
+    assert "Overdue student payments above limit" in visible or "Negative or low cash flow" in visible
+    assert "No hay anomalías relevantes para mostrar." not in fake_st.info_messages
+
+
+def test_july_analysis_tab_contains_deterministic_fallback_text() -> None:
+    """Verify rejected strategy does not empty deterministic analysis sections."""
+
+    report_model = _july_report_model()
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_analysis_tab(fake_st, report_model)
+
+    visible = "\n".join(fake_st.markdown_calls)
+    assert "Lectura financiera" in visible
+    assert "Ingresos:" in visible
+    assert "Resultado operativo" in visible
+    assert "Lectura de anomalías" in visible
+
+
+def test_july_recommendations_tab_shows_fallback_follow_up_and_missing_state() -> None:
+    """Verify recommendations tab never leaves headings without visible content."""
+
+    report_model = _july_report_model()
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_recommendations_tab(fake_st, report_model)
+
+    visible = "\n".join(fake_st.markdown_calls)
+    assert "Recomendaciones estratégicas no validadas" in visible
+    assert "Hallazgos determinísticos que requieren atención" in visible
+    assert "Seguimiento determinístico de recomendaciones previas" in visible
+    assert "Emitida en" in visible
+    assert "Jun 2026" in visible
+    assert fake_st.success_messages == ["No se reporta información faltante relevante."]
 
 
 def test_download_tab_presentation_error_does_not_break_other_result_tabs(monkeypatch: pytest.MonkeyPatch) -> None:
