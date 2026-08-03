@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from finance_agent.orchestration import (
     PipelineConfig,
     PipelineInputModel,
@@ -38,6 +40,142 @@ class FakeUpload:
         """Return the fake upload bytes as Streamlit would."""
 
         return memoryview(self._payload)
+
+
+class FakeStreamlitRenderer:
+    """Reusable Streamlit stand-in for result-tab rendering tests."""
+
+    def __init__(self) -> None:
+        """Initialize capture lists for visible UI calls."""
+
+        self.markdown_calls: list[str] = []
+        self.info_messages: list[str] = []
+        self.success_messages: list[str] = []
+        self.warning_messages: list[str] = []
+        self.error_messages: list[str] = []
+        self.code_blocks: list[str] = []
+        self.tables: list[Any] = []
+        self.downloads: list[dict[str, str]] = []
+        self.tab_labels: list[str] = []
+
+    def __enter__(self) -> "FakeStreamlitRenderer":
+        """Return this object for ``with`` blocks."""
+
+        return self
+
+    def __exit__(self, *_args: object) -> bool:
+        """Do not suppress exceptions unless the UI guard catches them."""
+
+        return False
+
+    def markdown(self, text: str, *, unsafe_allow_html: bool = False) -> None:
+        """Capture markdown/HTML output."""
+
+        self.markdown_calls.append(text)
+
+    def info(self, text: str) -> None:
+        """Capture informational messages."""
+
+        self.info_messages.append(text)
+
+    def success(self, text: str) -> None:
+        """Capture success messages."""
+
+        self.success_messages.append(text)
+
+    def warning(self, text: str) -> None:
+        """Capture warning messages."""
+
+        self.warning_messages.append(text)
+
+    def error(self, text: str) -> None:
+        """Capture error messages."""
+
+        self.error_messages.append(text)
+
+    def code(self, text: str) -> None:
+        """Capture technical traceback blocks."""
+
+        self.code_blocks.append(text)
+
+    def caption(self, text: str) -> None:
+        """Capture caption text as markdown-like output."""
+
+        self.markdown_calls.append(text)
+
+    def subheader(self, text: str) -> None:
+        """Capture subheaders."""
+
+        self.markdown_calls.append(text)
+
+    def dataframe(self, rows: Any, **_kwargs: object) -> None:
+        """Capture dataframe payloads."""
+
+        self.tables.append(rows)
+
+    def columns(self, count: int) -> list["FakeStreamlitRenderer"]:
+        """Return context managers for column layouts."""
+
+        return [self for _ in range(count)]
+
+    def tabs(self, labels: list[str]) -> list["FakeStreamlitRenderer"]:
+        """Return context managers for tab layouts."""
+
+        self.tab_labels = list(labels)
+        return [self for _ in labels]
+
+    def expander(self, _label: str, *, expanded: bool = False) -> "FakeStreamlitRenderer":
+        """Return this object for collapsed diagnostic blocks."""
+
+        return self
+
+    def download_button(self, *, label: str, data: bytes, file_name: str, mime: str) -> None:
+        """Capture download button metadata."""
+
+        self.downloads.append({"label": label, "file_name": file_name, "mime": mime})
+
+    def progress(self, *_args: object, **_kwargs: object) -> None:
+        """Accept progress calls without rendering."""
+
+
+def _july_report_model() -> dict[str, Any]:
+    """Load the existing July report model used for UI presentation validation."""
+
+    path = Path("outputs/report/report_model_2026_07.json")
+    if not path.is_file():
+        pytest.skip("July report model artifact is not available in this checkout.")
+    return streamlit_app._load_json(path)
+
+
+def _july_result() -> PipelineRunResult:
+    """Build a pipeline result pointing at existing July presentation artifacts."""
+
+    config = PipelineConfig.from_project_root(Path("."), python_executable="python")
+    outputs = (
+        "outputs/report/report_model_2026_07.json",
+        "outputs/report/financial_report_2026_07.html",
+        "outputs/report/financial_report_2026_07.pdf",
+        "outputs/analysis/strategic_analysis_2026_07.json",
+        "outputs/evidence/evidence_package_2026_07.json",
+    )
+    missing = [path for path in outputs if not Path(path).is_file()]
+    if missing:
+        pytest.skip(f"July artifacts are not available: {missing}")
+    return PipelineRunResult(
+        success=True,
+        stages=(),
+        output_files=outputs,
+        warnings=(),
+        runtime_summary=RuntimeSummary(
+            total_runtime_seconds=1.0,
+            stages_requested=0,
+            stages_run=0,
+            stages_succeeded=0,
+            stages_failed=0,
+            stages_skipped=0,
+        ),
+        config=config,
+    )
 
 
 def _pipeline_result(config: PipelineConfig) -> PipelineRunResult:
@@ -313,6 +451,98 @@ def test_artifact_paths_restore_downloads_from_period_slug_siblings(tmp_path: Pa
     assert artifacts["Report model JSON"] == report_model
     assert artifacts["Strategic analysis JSON"] == strategic
     assert artifacts["Evidence package JSON"] == evidence
+
+
+def test_render_download_card_uses_default_badge_without_name_error(tmp_path: Path) -> None:
+    """Verify download cards do not reference undefined presentation variables."""
+
+    path = tmp_path / "financial_report_2026_07.pdf"
+    path.write_bytes(b"%PDF demo")
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_download_card(fake_st, "PDF", path, "application/pdf")
+
+    assert fake_st.downloads == [
+        {"label": "Descargar PDF", "file_name": path.name, "mime": "application/pdf"}
+    ]
+    assert not fake_st.error_messages
+
+
+def test_render_downloads_tab_has_no_name_error_for_july_artifacts() -> None:
+    """Verify the downloads tab renders existing July files without NameError."""
+
+    result = _july_result()
+    artifacts = streamlit_app._artifact_paths(result)
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_downloads_tab(fake_st, artifacts, _july_report_model())
+
+    downloaded = {item["file_name"] for item in fake_st.downloads}
+    assert "financial_report_2026_07.pdf" in downloaded
+    assert "financial_report_2026_07.html" in downloaded
+    assert not fake_st.error_messages
+
+
+def test_each_results_tab_renders_from_july_report_model() -> None:
+    """Verify every results tab can render independently from the July model."""
+
+    report_model = _july_report_model()
+    result = _july_result()
+    artifacts = streamlit_app._artifact_paths(result)
+    renderers = (
+        lambda st: streamlit_app._render_overview_tab(st, report_model, result),
+        lambda st: streamlit_app._render_kpi_tab(st, report_model),
+        lambda st: streamlit_app._render_anomaly_tab(st, report_model),
+        lambda st: streamlit_app._render_analysis_tab(st, report_model),
+        lambda st: streamlit_app._render_recommendations_tab(st, report_model),
+        lambda st: streamlit_app._render_downloads_tab(st, artifacts, report_model),
+    )
+
+    for renderer in renderers:
+        fake_st = FakeStreamlitRenderer()
+        renderer(fake_st)
+        assert not fake_st.error_messages
+
+
+def test_download_tab_presentation_error_does_not_break_other_result_tabs(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify one tab failure is isolated to that tab."""
+
+    result = _july_result()
+    fake_st = FakeStreamlitRenderer()
+
+    def fail_downloads(*_args: object, **_kwargs: object) -> None:
+        """Raise a presentation-only error for the downloads tab."""
+
+        raise NameError("simulated downloads presentation bug")
+
+    monkeypatch.setattr(streamlit_app, "_render_downloads_tab", fail_downloads)
+
+    streamlit_app._render_results(fake_st, result)
+
+    visible_text = "\n".join(fake_st.markdown_calls)
+    assert fake_st.tab_labels == ["Resumen", "KPIs", "Anomalías", "Análisis", "Recomendaciones", "Descargas"]
+    assert "Resumen ejecutivo" in visible_text
+    assert "Indicadores principales" in visible_text
+    assert "Anomalías del periodo" in visible_text
+    assert "Análisis determinístico del reporte" in visible_text
+    assert "Recomendaciones estratégicas actuales" in visible_text
+    assert len(fake_st.error_messages) == 1
+    assert "No se pudo mostrar la pestaña Descargas" in fake_st.error_messages[0]
+    assert fake_st.code_blocks and "simulated downloads presentation bug" in fake_st.code_blocks[0]
+
+
+def test_no_stale_undefined_download_helper_variables_remain() -> None:
+    """Verify stale redesign variables are not referenced in download cards."""
+
+    source = Path(streamlit_app.__file__).read_text(encoding="utf-8")
+    start = source.index("def _render_download_card")
+    end = source.index("def _stage_status", start)
+    body = source[start:end]
+
+    assert "badge or variant" not in body
+    assert "row_html" not in body
+    assert "card_class" not in body
+    assert "tone" not in body
 
 
 def test_report_model_sections_are_mapped_to_streamlit_tabs() -> None:

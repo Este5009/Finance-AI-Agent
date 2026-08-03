@@ -6,6 +6,7 @@ import json
 import re
 import sys
 import time
+import traceback
 from dataclasses import dataclass
 from html import escape
 from inspect import Parameter, signature
@@ -880,26 +881,6 @@ def _render_download_card(st: Any, label: str, path: Path, mime: str) -> None:
         data=path.read_bytes(),
         file_name=path.name,
         mime=mime,
-    )
-    badge_html = _status_badge_html(badge or variant)
-    st.markdown(
-        """
-        <div class="ui-dashboard-card ui-card--{variant}">
-            <div class="ui-card-header">
-                <div class="ui-card-title">{title}</div>
-                {badge}
-            </div>
-            <div class="ui-card-body">{body}</div>
-            {rows}
-        </div>
-        """.format(
-            variant=escape(variant),
-            title=escape(title),
-            badge=badge_html,
-            body=escape(body),
-            rows=row_html,
-        ),
-        unsafe_allow_html=True,
     )
 
 
@@ -2372,6 +2353,25 @@ def _render_downloads_tab(
             )
 
 
+def _render_tab_safely(st: Any, tab_name: str, renderer: Callable[[], None]) -> None:
+    """Render one results tab without breaking sibling tabs.
+
+    Inputs: Streamlit module, Spanish tab name, and zero-argument render callable.
+    Outputs: tab content or a contained presentation error.
+    Assumptions: this catches presentation-only exceptions after the pipeline has
+    completed; pipeline execution errors are still reported by stage results.
+    """
+
+    try:
+        renderer()
+    except Exception:
+        details = traceback.format_exc()
+        st.error(f"No se pudo mostrar la pestaña {tab_name}. El resto del reporte sigue disponible.")
+        if hasattr(st, "expander"):
+            with st.expander("Detalles técnicos de esta pestaña", expanded=False):
+                st.code(details)
+
+
 def _render_results(st: Any, result: PipelineRunResult) -> None:
     """Render all result tabs for a completed pipeline run.
 
@@ -2387,17 +2387,17 @@ def _render_results(st: Any, result: PipelineRunResult) -> None:
         ["Resumen", "KPIs", "Anomalías", "Análisis", "Recomendaciones", "Descargas"]
     )
     with overview:
-        _render_overview_tab(st, report_model, result)
+        _render_tab_safely(st, "Resumen", lambda: _render_overview_tab(st, report_model, result))
     with kpis:
-        _render_kpi_tab(st, report_model)
+        _render_tab_safely(st, "KPIs", lambda: _render_kpi_tab(st, report_model))
     with anomalies:
-        _render_anomaly_tab(st, report_model)
+        _render_tab_safely(st, "Anomalías", lambda: _render_anomaly_tab(st, report_model))
     with analysis:
-        _render_analysis_tab(st, report_model)
+        _render_tab_safely(st, "Análisis", lambda: _render_analysis_tab(st, report_model))
     with recommendations:
-        _render_recommendations_tab(st, report_model)
+        _render_tab_safely(st, "Recomendaciones", lambda: _render_recommendations_tab(st, report_model))
     with downloads:
-        _render_downloads_tab(st, artifacts, report_model)
+        _render_tab_safely(st, "Descargas", lambda: _render_downloads_tab(st, artifacts, report_model))
 
 
 def _render_streamlit_app(st: Any) -> None:
