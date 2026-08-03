@@ -191,6 +191,11 @@ VARIANT_LABELS_ES: dict[str, str] = {
     "warning": "Advertencia",
     "neutral": "Informativo",
     "info": "Informativo",
+    "verified": "Verificado",
+    "stable": "Estable",
+    "risk": "Riesgo",
+    "attention": "Requiere atención",
+    "hypothesis": "Hipótesis",
     "critical": "Crítica",
     "high": "Alta",
     "medium": "Media",
@@ -546,7 +551,10 @@ def _render_financial_health_card(st: Any, card: dict[str, Any]) -> None:
         "</div>"
         for label, value in rows
     )
-    badge_html = _status_badge_html(card.get("badge"))
+    badge = card.get("badge")
+    if isinstance(badge, dict) and str(badge.get("label", "")).casefold() == "informativo":
+        badge = {"label": "Verificado", "class": "verified", "icon": "✓"}
+    badge_html = _status_badge_html(badge)
     variant = _variant_from_card(card)
     st.markdown(
         """
@@ -704,6 +712,70 @@ def _render_section_card(
     )
 
 
+def _section_card_html(
+    *,
+    title: str,
+    body: str = "",
+    variant: str = "neutral",
+    badge: Any = None,
+    rows: list[tuple[str, Any]] | None = None,
+) -> str:
+    """Return escaped HTML for one executive dashboard card.
+
+    Inputs: title, body, variant, optional badge and rows.
+    Outputs: HTML string for a presentation card.
+    Assumptions: this mirrors ``_render_section_card`` for CSS-grid layouts and
+    performs no calculations or report-model mutations.
+    """
+
+    row_html = "".join(
+        "<div class='ui-card-row'>"
+        f"<span>{escape(label)}</span><strong>{escape(_safe_display_text(value) or 'No disponible')}</strong>"
+        "</div>"
+        for label, value in (rows or [])
+        if _safe_display_text(value)
+    )
+    badge_html = _status_badge_html(badge or VARIANT_LABELS_ES.get(variant, "Informativo"))
+    return (
+        f"<div class='ui-card ui-card-{escape(str(variant or 'neutral'))}'>"
+        "<div class='ui-card-header'>"
+        f"<h4>{escape(_safe_display_text(title) or 'Sección')}</h4>"
+        f"{badge_html}"
+        "</div>"
+        f"<p>{escape(_safe_display_text(body))}</p>"
+        f"{row_html}"
+        "</div>"
+    )
+
+
+def _render_responsive_card_grid(st: Any, cards: list[dict[str, Any]], *, min_width_px: int = 220) -> None:
+    """Render cards in a responsive CSS grid instead of rigid columns.
+
+    Inputs: Streamlit module, card dictionaries, and minimum card width.
+    Outputs: a single grid of cards that adapts to desktop and narrow windows.
+    Assumptions: cards contain display-ready values; this helper only improves
+    layout and prevents vertical letter wrapping in narrow columns.
+    """
+
+    if not cards:
+        return
+    html = "".join(
+        _section_card_html(
+            title=str(card.get("title") or "Sección"),
+            body=str(card.get("body") or ""),
+            variant=str(card.get("variant") or "neutral"),
+            badge=card.get("badge"),
+            rows=card.get("rows") if isinstance(card.get("rows"), list) else None,
+        )
+        for card in cards
+        if isinstance(card, dict)
+    )
+    st.markdown(
+        f"<div class='ui-responsive-grid' style='--fa-grid-min: {int(min_width_px)}px'>{html}</div>",
+        unsafe_allow_html=True,
+    )
+
+
 def _analysis_mode_label(report_model: dict[str, Any]) -> tuple[str, str]:
     """Return the user-facing mode label for one report model.
 
@@ -720,7 +792,7 @@ def _analysis_mode_label(report_model: dict[str, Any]) -> tuple[str, str]:
         return "Análisis estratégico validado", "positive"
     if status == "sanitized" or warnings:
         return "Análisis estratégico ajustado", "warning"
-    return "Reporte determinístico", "info"
+    return "Reporte verificado", "info"
 
 
 def _report_status_label(result: PipelineRunResult, artifacts: dict[str, Path | None]) -> tuple[str, str]:
@@ -771,18 +843,23 @@ def _render_results_header(
     mode_label, mode_variant = _analysis_mode_label(report_model)
     status_label, status_variant = _report_status_label(result, artifacts)
     st.markdown("## Resultado del análisis financiero")
-    st.caption("Vista ejecutiva generada desde el modelo de reporte determinístico.")
-    columns = st.columns(5)
-    header_cards = (
-        ("Periodo", view.get("period") or "No disponible", "info", "Informativo"),
-        ("Modo de análisis", mode_label, mode_variant, mode_label),
-        ("Datos verificados", "Cifras procesadas por Python", "positive", "Verificado"),
-        ("Tiempo total", _format_elapsed_seconds(result.runtime_summary.total_runtime_seconds), "info", "Informativo"),
-        ("Estado del reporte", status_label, status_variant, status_label),
+    st.caption("Vista ejecutiva generada con cifras verificadas y evidencia procesada.")
+    _render_responsive_card_grid(
+        st,
+        [
+            {"title": "Periodo", "body": view.get("period") or "No disponible", "variant": "info", "badge": "Verificado"},
+            {"title": "Modo de análisis", "body": mode_label, "variant": mode_variant, "badge": mode_label},
+            {"title": "Datos verificados", "body": "Cifras procesadas por Python", "variant": "positive", "badge": "Verificado"},
+            {
+                "title": "Tiempo total",
+                "body": _format_elapsed_seconds(result.runtime_summary.total_runtime_seconds),
+                "variant": "info",
+                "badge": "Estable",
+            },
+            {"title": "Estado del reporte", "body": status_label, "variant": status_variant, "badge": status_label},
+        ],
+        min_width_px=210,
     )
-    for column, (title, body, variant, badge) in zip(columns, header_cards):
-        with column:
-            _render_section_card(st, title=title, body=body, variant=variant, badge=badge)
 
 
 def _render_attention_summary(st: Any, report_model: dict[str, Any]) -> None:
@@ -802,40 +879,37 @@ def _render_attention_summary(st: Any, report_model: dict[str, Any]) -> None:
     follow_up = len(historical.get("recommendation_follow_up", []) or []) if isinstance(historical, dict) else 0
     strategy_available = bool(recommendations.get("cards")) if isinstance(recommendations, dict) else False
     st.markdown("### Resumen de atención")
-    columns = st.columns(4)
-    cards = (
-        (
-            "Anomalías críticas",
-            f"{critical}",
-            "negative" if critical else "positive",
-            "Crítica" if critical else "Favorable",
-            [("Alta severidad", high)],
-        ),
-        (
-            "Riesgos recurrentes",
-            f"{recurring_risks}",
-            "warning" if recurring_risks else "info",
-            "En seguimiento" if recurring_risks else "Informativo",
-            [],
-        ),
-        (
-            "Recomendaciones previas",
-            f"{follow_up}",
-            "info",
-            "Seguimiento",
-            [],
-        ),
-        (
-            "Enriquecimiento estratégico",
-            "Disponible" if strategy_available else "No validado",
-            "positive" if strategy_available else "warning",
-            "Validado" if strategy_available else "Advertencia",
-            [],
-        ),
+    _render_responsive_card_grid(
+        st,
+        [
+            {
+                "title": "Anomalías críticas",
+                "body": f"{critical}",
+                "variant": "negative" if critical else "positive",
+                "badge": "Riesgo" if critical else "Favorable",
+                "rows": [("Alta severidad", high)],
+            },
+            {
+                "title": "Riesgos recurrentes",
+                "body": f"{recurring_risks}",
+                "variant": "warning" if recurring_risks else "info",
+                "badge": "Requiere atención" if recurring_risks else "Estable",
+            },
+            {
+                "title": "Recomendaciones previas",
+                "body": f"{follow_up}",
+                "variant": "info",
+                "badge": "En seguimiento" if follow_up else "Estable",
+            },
+            {
+                "title": "Interpretación estratégica",
+                "body": "Disponible" if strategy_available else "No validada",
+                "variant": "positive" if strategy_available else "warning",
+                "badge": "Verificado" if strategy_available else "Advertencia",
+            },
+        ],
+        min_width_px=220,
     )
-    for column, (title, body, variant, badge, rows) in zip(columns, cards):
-        with column:
-            _render_section_card(st, title=title, body=body, variant=variant, badge=badge, rows=rows)
 
 
 def _render_grouped_kpi_cards(st: Any, cards: list[dict[str, Any]]) -> None:
@@ -880,7 +954,7 @@ def _render_download_card(st: Any, label: str, path: Path, mime: str) -> None:
         "HTML": "Versión navegable del reporte.",
         "modelo JSON del reporte": "Estructura completa usada por la interfaz y renderizadores.",
         "análisis estratégico JSON": "Salida estratégica validada o diagnóstico de rechazo.",
-        "evidencia JSON": "Evidencia determinística consultada por el pipeline.",
+        "evidencia JSON": "Evidencia verificada consultada por el pipeline.",
     }
     _render_section_card(
         st,
@@ -1150,10 +1224,26 @@ def _apply_page_styles(st: Any) -> None:
             margin: 0.35rem 0 1rem;
             box-shadow: 0 1px 3px rgba(23, 43, 77, 0.06);
         }
+        .ui-responsive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--fa-grid-min, 220px)), 1fr));
+            gap: 1rem;
+            align-items: stretch;
+            margin: 0.35rem 0 1.25rem;
+        }
+        .ui-responsive-grid .ui-card {
+            height: 100%;
+            min-width: 0;
+            margin: 0;
+        }
         .ui-card--positive { border-left-color: var(--fa-positive); background: var(--fa-surface); }
         .ui-card--negative { border-left-color: var(--fa-negative); background: var(--fa-surface); }
         .ui-card--warning { border-left-color: var(--fa-warning); background: var(--fa-surface); }
         .ui-card--neutral, .ui-card--info { border-left-color: var(--fa-info); background: var(--fa-surface); }
+        .ui-card-positive { border-left-color: var(--fa-positive); background: var(--fa-surface); }
+        .ui-card-negative { border-left-color: var(--fa-negative); background: var(--fa-surface); }
+        .ui-card-warning { border-left-color: var(--fa-warning); background: var(--fa-surface); }
+        .ui-card-neutral, .ui-card-info { border-left-color: var(--fa-info); background: var(--fa-surface); }
         .ui-card-header {
             display: flex;
             align-items: flex-start;
@@ -1166,6 +1256,22 @@ def _apply_page_styles(st: Any) -> None:
             font-weight: 800;
             font-size: 1rem;
             line-height: 1.25;
+        }
+        .ui-card h4 {
+            color: var(--fa-text-strong);
+            font-size: 1rem;
+            line-height: 1.25;
+            margin: 0;
+            overflow-wrap: normal;
+            word-break: normal;
+            hyphens: none;
+        }
+        .ui-card p {
+            color: var(--fa-muted);
+            line-height: 1.45;
+            margin: 0.3rem 0 0.55rem;
+            overflow-wrap: break-word;
+            word-break: normal;
         }
         .ui-card-body {
             color: var(--fa-muted);
@@ -1239,10 +1345,23 @@ def _apply_page_styles(st: Any) -> None:
         }
         .ui-status-neutral,
         .ui-status-info,
+        .ui-status-verified,
+        .ui-status-stable,
         .ui-status-low {
             color: #17324d;
             background: #e8f0f8;
             border-color: #c9dceb;
+        }
+        .ui-status-risk,
+        .ui-status-attention {
+            color: #842029;
+            background: #fde2e1;
+            border-color: #f5b5b1;
+        }
+        .ui-status-hypothesis {
+            color: #5b3f87;
+            background: #efe7fb;
+            border-color: #d1b7f0;
         }
         .ui-kpi-description {
             color: var(--fa-muted);
@@ -1342,10 +1461,23 @@ def _apply_page_styles(st: Any) -> None:
             }
             .ui-status-neutral,
             .ui-status-info,
+            .ui-status-verified,
+            .ui-status-stable,
             .ui-status-low {
                 color: #dcecff;
                 background: #243c58;
                 border-color: #3b5878;
+            }
+            .ui-status-risk,
+            .ui-status-attention {
+                color: #ffd9d7;
+                background: #4a1d1d;
+                border-color: #8d3430;
+            }
+            .ui-status-hypothesis {
+                color: #ecdfff;
+                background: #302345;
+                border-color: #61448e;
             }
             .ui-kpi-row,
             .ui-card-row { border-top-color: #33465a; }
@@ -1899,31 +2031,25 @@ def _render_overview_tab(st: Any, report_model: dict[str, Any], result: Pipeline
         unsafe_allow_html=True,
     )
     if detected:
-        col_a, col_b, col_c = st.columns(3)
-        with col_a:
-            _render_section_card(
-                st,
-                title="Periodo detectado",
-                body=str(detected.label),
-                variant="info",
-                badge="Informativo",
-            )
-        with col_b:
-            _render_section_card(
-                st,
-                title="Tipo de periodo",
-                body=_period_type_label(detected.period_type),
-                variant="info",
-                badge="Informativo",
-            )
-        with col_c:
-            _render_section_card(
-                st,
-                title="Confianza de detección del periodo",
-                body=f"{detected.confidence:.0%}",
-                variant="info",
-                badge="Determinístico",
-            )
+        _render_responsive_card_grid(
+            st,
+            [
+                {"title": "Periodo detectado", "body": str(detected.label), "variant": "info", "badge": "Verificado"},
+                {
+                    "title": "Tipo de periodo",
+                    "body": _period_type_label(detected.period_type),
+                    "variant": "info",
+                    "badge": "Mensual" if detected.period_type == "monthly" else "Verificado",
+                },
+                {
+                    "title": "Confianza de detección del periodo",
+                    "body": f"{detected.confidence:.0%}",
+                    "variant": "positive" if detected.confidence >= 0.8 else "warning",
+                    "badge": "Verificado" if detected.confidence >= 0.8 else "Advertencia",
+                },
+            ],
+            min_width_px=230,
+        )
     st.markdown("### Salud financiera")
     if health_cards:
         _render_grouped_kpi_cards(st, health_cards[:8])
@@ -1960,7 +2086,7 @@ def _render_kpi_tab(st: Any, report_model: dict[str, Any]) -> None:
         health_section = _section_by_id(report_model, "financial_health_overview")
         comparisons = health_section.get("content", {}).get("kpi_comparisons", {})
         if isinstance(comparisons, dict) and comparisons.get("items"):
-            with st.expander("Proveniencia y cálculo determinístico", expanded=False):
+            with st.expander("Proveniencia y método de cálculo", expanded=False):
                 st.dataframe(
                     [
                         {
@@ -2018,18 +2144,15 @@ def _render_anomaly_tab(st: Any, report_model: dict[str, Any]) -> None:
     top_rows = anomalies.get("top_rows", []) if isinstance(anomalies, dict) else []
     if top_rows:
         st.markdown("#### Anomalías detectadas")
-        columns = st.columns(2)
-        for index, item in enumerate(top_rows):
-            if not isinstance(item, dict):
-                continue
-            with columns[index % 2]:
-                _render_section_card(
-                    st,
-                    title=_safe_display_text(item.get("title") or "Anomalía detectada"),
-                    body=_safe_display_text(item.get("evidence")),
-                    variant=_card_variant_from_text(item.get("severity"), item.get("severity_class")),
-                    badge=item.get("severity"),
-                    rows=[
+        _render_responsive_card_grid(
+            st,
+            [
+                {
+                    "title": item.get("title") or "Anomalía detectada",
+                    "body": item.get("evidence"),
+                    "variant": _card_variant_from_text(item.get("severity"), item.get("severity_class")),
+                    "badge": item.get("severity") or "Riesgo",
+                    "rows": [
                         ("Indicador afectado", item.get("metric")),
                         ("Entidad/departamento", item.get("entity")),
                         ("Valor observado", item.get("observed_value")),
@@ -2040,7 +2163,12 @@ def _render_anomaly_tab(st: Any, report_model: dict[str, Any]) -> None:
                         ("Períodos afectados", item.get("period_chips")),
                         ("Próxima verificación", item.get("recommended_next_check")),
                     ],
-                )
+                }
+                for item in top_rows
+                if isinstance(item, dict)
+            ],
+            min_width_px=300,
+        )
     elif not anomalies.get("current_period_status"):
         st.info("No hay anomalías relevantes para mostrar.")
     if anomalies.get("distinction_note"):
@@ -2054,154 +2182,303 @@ def _render_anomaly_tab(st: Any, report_model: dict[str, Any]) -> None:
 
 
 def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
-    """Render deterministic analysis sections from the report model.
+    """Render the analysis tab as executive sections instead of raw artifacts.
 
     Inputs: Streamlit module and report model.
-    Outputs: historical, departmental, revenue/expense, evidence, and follow-up views.
-    Assumptions: this function only presents report-model data; it performs no
-    calculations and never calls Ollama.
+    Outputs: grouped cards, compact highlights, and collapsed detailed tables.
+    Assumptions: all values come from ``build_presentation_view``; this function
+    performs no calculations, retrieval, reasoning, or report-model changes.
     """
 
     view = build_presentation_view(report_model) if report_model else {}
+    financial = view.get("financial_health", {}) if isinstance(view, dict) else {}
     revenue_expense = view.get("revenue_expense", {}) if isinstance(view, dict) else {}
     departments = view.get("departments", []) if isinstance(view, dict) else []
+    anomalies = view.get("anomalies", {}) if isinstance(view, dict) else {}
     historical = view.get("historical", {}) if isinstance(view, dict) else {}
+    recommendations = view.get("recommendations", {}) if isinstance(view, dict) else {}
     evidence = view.get("evidence", []) if isinstance(view, dict) else []
-
-    st.markdown("### Análisis determinístico del reporte")
     narratives = view.get("section_narratives", {}) if isinstance(view, dict) else {}
-    for section_id, title in (
-        ("financial_health_overview", "Lectura financiera"),
-        ("revenue_expense_analysis", "Lectura de ingresos y gastos"),
-        ("department_analysis", "Lectura departamental"),
-        ("anomaly_summary", "Lectura de anomalías"),
-        ("historical_trends", "Lectura histórica"),
-    ):
-        text = narratives.get(section_id) if isinstance(narratives, dict) else ""
-        if text:
-            _render_section_card(
-                st,
-                title=title,
-                body=_safe_display_text(text),
-                variant="info",
-                badge="Determinístico",
-            )
-    rows = revenue_expense.get("rows", []) if isinstance(revenue_expense, dict) else []
-    if rows:
-        st.markdown("#### Ingresos, gastos y presupuesto")
-        summary_columns = st.columns(3)
-        for index, row in enumerate(rows[:9]):
-            if not isinstance(row, dict):
-                continue
-            with summary_columns[index % 3]:
-                _render_section_card(
-                    st,
-                    title=_safe_display_text(row.get("metric")),
-                    body=_safe_display_text(row.get("description")),
-                    variant="neutral",
-                    badge="Informativo",
-                    rows=[("Valor", row.get("value"))],
-                )
-        if revenue_expense.get("chart_insight"):
-            _render_section_card(
-                st,
-                title="Conclusión ejecutiva",
-                body=_safe_display_text(revenue_expense.get("chart_insight")),
-                variant="info",
-                badge="Informativo",
-            )
-        if revenue_expense.get("budget_chart_insight"):
-            _render_section_card(
-                st,
-                title="Comparación contra presupuesto",
-                body=_safe_display_text(revenue_expense.get("budget_chart_insight")),
-                variant="warning",
-                badge="Advertencia",
-            )
 
-    if departments:
-        st.markdown("#### Resultados por departamento")
-        st.dataframe(
-            [
-                {
-                    "Departamento": row.get("department"),
-                    "Ingresos": row.get("revenue"),
-                    "Gastos": row.get("expenses"),
-                    "Resultado": row.get("result"),
-                    "Presión": row.get("rank_badge") or "",
-                }
-                for row in departments
-                if isinstance(row, dict)
-            ],
-            use_container_width=True,
-            hide_index=True,
+    kpi_cards = financial.get("cards", []) if isinstance(financial, dict) else []
+    kpi_by_id = {str(card.get("id")): card for card in kpi_cards if isinstance(card, dict)}
+    rows = revenue_expense.get("rows", []) if isinstance(revenue_expense, dict) else []
+    top_anomalies = anomalies.get("top_rows", []) if isinstance(anomalies, dict) else []
+
+    st.markdown("### Situación financiera actual")
+    current_cards = []
+    for metric_id in ("total_revenue", "total_expenses", "net_operating_result", "ending_cash"):
+        card = kpi_by_id.get(metric_id)
+        if not card:
+            continue
+        current_cards.append(
+            {
+                "title": card.get("label"),
+                "body": card.get("value"),
+                "variant": _variant_from_card(card),
+                "badge": "Verificado",
+                "rows": [("Descripción", card.get("description"))],
+            }
+        )
+    if current_cards:
+        _render_responsive_card_grid(st, current_cards, min_width_px=230)
+    if narratives.get("financial_health_overview"):
+        _render_section_card(
+            st,
+            title="Lectura ejecutiva",
+            body=_safe_display_text(narratives.get("financial_health_overview")),
+            variant="info",
+            badge="Verificado",
         )
 
-    if historical.get("available"):
-        st.markdown("#### Contexto histórico")
-        narrative = historical.get("narrative", []) or []
-        for item in narrative[:3] if isinstance(narrative, list) else []:
+    st.markdown("### Cambios frente al período anterior")
+    comparison_cards = []
+    for metric_id in ("total_revenue", "total_expenses", "net_operating_result", "payroll_percentage_of_revenue", "collection_rate"):
+        card = kpi_by_id.get(metric_id)
+        if not card:
+            continue
+        previous = _comparison_value(card, "Periodo anterior")
+        change = _comparison_value(card, "Variación respecto al periodo anterior")
+        if previous or change:
+            comparison_cards.append(
+                {
+                    "title": card.get("label"),
+                    "body": change or "Sin variación calculada",
+                    "variant": _variant_from_card(card),
+                    "badge": "Estable" if str(change or "").startswith("$0") or str(change or "").startswith("0") else "Verificado",
+                    "rows": [("Período anterior", previous), ("Cambio calculado", change)],
+                }
+            )
+    if comparison_cards:
+        _render_responsive_card_grid(st, comparison_cards, min_width_px=250)
+    else:
+        _render_section_card(
+            st,
+            title="Comparación no disponible",
+            body="No existe un período mensual anterior aceptado para comparar estos indicadores.",
+            variant="info",
+            badge="No disponible",
+        )
+
+    st.markdown("### Presiones y riesgos")
+    severity_rows = anomalies.get("severity_rows", []) if isinstance(anomalies, dict) else []
+    severity_cards = [
+        {
+            "title": f"Severidad {row.get('severity')}",
+            "body": f"{row.get('count')} anomalía(s)",
+            "variant": _card_variant_from_text(row.get("severity")),
+            "badge": "Riesgo" if str(row.get("severity", "")).casefold() in {"crítica", "critica", "alta"} else "Advertencia",
+        }
+        for row in severity_rows
+        if isinstance(row, dict) and int(row.get("count") or 0) > 0
+    ]
+    if severity_cards:
+        _render_responsive_card_grid(st, severity_cards, min_width_px=210)
+    elif anomalies.get("current_period_status"):
+        _render_section_card(
+            st,
+            title="Sin anomalías nuevas",
+            body=_safe_display_text(anomalies.get("current_period_status")),
+            variant="positive",
+            badge="Favorable",
+        )
+    if top_anomalies:
+        _render_responsive_card_grid(
+            st,
+            [
+                {
+                    "title": item.get("title") or "Anomalía detectada",
+                    "body": item.get("evidence") or item.get("description"),
+                    "variant": _card_variant_from_text(item.get("severity"), item.get("severity_class")),
+                    "badge": item.get("severity") or "Riesgo",
+                    "rows": [
+                        ("Indicador", item.get("metric")),
+                        ("Entidad/departamento", item.get("entity")),
+                        ("Valor observado", item.get("observed_value")),
+                        ("Referencia", item.get("reference_value")),
+                    ],
+                }
+                for item in top_anomalies[:4]
+                if isinstance(item, dict)
+            ],
+            min_width_px=280,
+        )
+
+    st.markdown("### Resultados por departamento")
+    if departments:
+        best = next((row for row in departments if isinstance(row, dict) and row.get("rank_badge") == "Mejor"), None)
+        weakest = next((row for row in departments if isinstance(row, dict) and row.get("rank_badge") == "Mayor presión"), None)
+        dept_cards = []
+        if best:
+            dept_cards.append(
+                {
+                    "title": f"Mejor resultado: {best.get('department')}",
+                    "body": best.get("result"),
+                    "variant": "positive",
+                    "badge": "Favorable",
+                    "rows": [("Ingresos", best.get("revenue")), ("Gastos", best.get("expenses"))],
+                }
+            )
+        if weakest:
+            dept_cards.append(
+                {
+                    "title": f"Mayor presión: {weakest.get('department')}",
+                    "body": weakest.get("result"),
+                    "variant": "warning",
+                    "badge": "Requiere atención",
+                    "rows": [("Ingresos", weakest.get("revenue")), ("Gastos", weakest.get("expenses"))],
+                }
+            )
+        if dept_cards:
+            _render_responsive_card_grid(st, dept_cards, min_width_px=300)
+        if narratives.get("department_analysis"):
             _render_section_card(
                 st,
-                title="Lectura histórica",
+                title="Lectura departamental",
+                body=_safe_display_text(narratives.get("department_analysis")),
+                variant="info",
+                badge="Verificado",
+            )
+        with st.expander("Ver tabla completa por departamento", expanded=False):
+            st.dataframe(
+                [
+                    {
+                        "Departamento": row.get("department"),
+                        "Ingresos": row.get("revenue"),
+                        "Gastos": row.get("expenses"),
+                        "Resultado": row.get("result"),
+                        "Señal": row.get("rank_badge") or "Sin señal destacada",
+                    }
+                    for row in departments
+                    if isinstance(row, dict)
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
+    else:
+        _render_section_card(
+            st,
+            title="Sin detalle departamental",
+            body="El modelo de reporte no incluye filas departamentales para este período.",
+            variant="info",
+            badge="No disponible",
+        )
+
+    st.markdown("### Tendencias históricas")
+    if historical.get("available"):
+        narrative = historical.get("narrative", []) or []
+        trend_cards = []
+        for trend in historical.get("trends", []) or []:
+            if not isinstance(trend, dict):
+                continue
+            points = trend.get("points", []) or []
+            trend_cards.append(
+                {
+                    "title": trend.get("metric") or "Indicador histórico",
+                    "body": trend.get("insight") or "Historial disponible.",
+                    "variant": "info" if len(points) > 1 else "neutral",
+                    "badge": trend.get("direction_label") or ("Historial limitado" if len(points) <= 1 else "Estable"),
+                    "rows": [("Períodos disponibles", len(points))],
+                }
+            )
+        if trend_cards:
+            _render_responsive_card_grid(st, trend_cards[:4], min_width_px=260)
+        else:
+            _render_section_card(
+                st,
+                title="Historial sin tendencia suficiente",
+                body="Hay memoria histórica disponible, pero no una serie con suficientes puntos para graficar una tendencia ejecutiva.",
+                variant="info",
+                badge="No disponible",
+            )
+        for item in narrative[:2] if isinstance(narrative, list) else []:
+            _render_section_card(
+                st,
+                title="Contexto histórico",
                 body=_safe_display_text(item),
                 variant="info",
-                badge="Informativo",
+                badge="Verificado",
             )
-        trends = historical.get("trends", []) or []
-        if trends:
-            trend_rows = []
-            for trend in trends:
-                if isinstance(trend, dict):
-                    points = trend.get("points", []) or []
-                    trend_rows.append(
-                        {
-                            "Indicador": trend.get("metric"),
-                            "Dirección": trend.get("direction"),
-                            "Períodos": len(points),
-                            "Primer valor": points[0].get("value") if points and isinstance(points[0], dict) else "",
-                            "Último valor": points[-1].get("value") if points and isinstance(points[-1], dict) else "",
-                        }
-                    )
-            st.dataframe(trend_rows, use_container_width=True, hide_index=True)
         risks = historical.get("recurring_risks", []) or []
         if risks:
             st.markdown("#### Riesgos históricos recurrentes")
-            risk_columns = st.columns(2)
-            for index, risk in enumerate(risks):
-                if not isinstance(risk, dict):
-                    continue
-                with risk_columns[index % 2]:
-                    _render_section_card(
-                        st,
-                        title=_safe_display_text(risk.get("risk") or "Riesgo recurrente"),
-                        body=_safe_display_text(risk.get("why_it_matters") or risk.get("status_reason")),
-                        variant="warning",
-                        badge=risk.get("status") or "En seguimiento",
-                        rows=[
+            _render_responsive_card_grid(
+                st,
+                [
+                    {
+                        "title": risk.get("risk") or "Riesgo recurrente",
+                        "body": risk.get("why_it_matters") or risk.get("status_reason"),
+                        "variant": "warning",
+                        "badge": risk.get("status") or "Riesgo",
+                        "rows": [
                             ("Departamento", risk.get("department")),
                             ("Frecuencia", risk.get("frequency") or risk.get("occurrences")),
                             ("Períodos afectados", risk.get("affected_periods") or risk.get("periods")),
                         ],
-                    )
-        follow_up = historical.get("recommendation_follow_up", []) or []
-        if follow_up:
-            st.markdown("#### Seguimiento de recomendaciones emitidas anteriormente")
+                    }
+                    for risk in risks[:4]
+                    if isinstance(risk, dict)
+                ],
+                min_width_px=300,
+            )
+    else:
+        _render_section_card(
+            st,
+            title="Historial insuficiente",
+            body="Todavía no hay registros históricos aceptados suficientes para construir tendencias comparables.",
+            variant="info",
+            badge="No disponible",
+        )
+
+    st.markdown("### Acciones para la gestión")
+    action_cards = recommendations.get("cards", []) if isinstance(recommendations, dict) else []
+    follow_up = historical.get("recommendation_follow_up", []) if isinstance(historical, dict) else []
+    if action_cards:
+        _render_responsive_card_grid(
+            st,
+            [
+                {
+                    "title": item.get("action") or "Recomendación",
+                    "body": item.get("rationale"),
+                    "variant": _card_variant_from_text(item.get("priority")),
+                    "badge": item.get("priority") or "Requiere atención",
+                    "rows": [("Impacto esperado", item.get("expected_impact")), ("Responsable sugerido", item.get("owner"))],
+                }
+                for item in action_cards[:4]
+                if isinstance(item, dict)
+            ],
+            min_width_px=300,
+        )
+    elif recommendations.get("attention_items"):
+        _render_responsive_card_grid(
+            st,
+            [
+                {
+                    "title": item.get("title") or "Hallazgo que requiere atención",
+                    "body": item.get("evidence"),
+                    "variant": _card_variant_from_text(item.get("severity")),
+                    "badge": item.get("severity") or "Requiere atención",
+                    "rows": [("Indicador", item.get("metric")), ("Departamento/entidad", item.get("department"))],
+                }
+                for item in (recommendations.get("attention_items") or [])[:4]
+                if isinstance(item, dict)
+            ],
+            min_width_px=300,
+        )
+    else:
+        _render_section_card(
+            st,
+            title="Sin acciones nuevas validadas",
+            body="No hay recomendaciones estratégicas nuevas aceptadas para este período.",
+            variant="warning",
+            badge="Advertencia",
+        )
+    if follow_up:
+        with st.expander("Ver seguimiento de recomendaciones anteriores", expanded=False):
             if historical.get("recommendation_intro"):
                 st.caption(_safe_display_text(historical.get("recommendation_intro")))
-            if historical.get("recommendation_summary"):
-                _render_section_card(
-                    st,
-                    title="Estado del seguimiento",
-                    body=_safe_display_text(historical.get("recommendation_summary")),
-                    variant="info",
-                    badge="Informativo",
-                )
-            columns = st.columns(2)
-            for index, item in enumerate(follow_up):
-                if not isinstance(item, dict):
-                    continue
-                with columns[index % 2]:
+            for item in follow_up:
+                if isinstance(item, dict):
                     _render_section_card(
                         st,
                         title=_safe_display_text(item.get("recommendation") or "Recomendación previa"),
@@ -2215,9 +2492,22 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
                             ("Siguiente acción", item.get("next_action")),
                         ],
                     )
-    else:
-        st.info("No hay contexto histórico suficiente para este periodo.")
 
+    if rows:
+        with st.expander("Detalle completo de ingresos, gastos y presupuesto", expanded=False):
+            st.dataframe(
+                [
+                    {
+                        "Indicador": row.get("metric"),
+                        "Valor": row.get("value"),
+                        "Descripción": row.get("description"),
+                    }
+                    for row in rows
+                    if isinstance(row, dict)
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
     if evidence:
         with st.expander("Evidencia determinística consultada", expanded=False):
             st.dataframe(
@@ -2264,23 +2554,25 @@ def _render_recommendations_tab(st: Any, report_model: dict[str, Any]) -> None:
             )
     cards = recommendations.get("cards", []) or []
     if cards:
-        columns = st.columns(2)
-        for index, item in enumerate(cards):
-            if not isinstance(item, dict):
-                continue
-            with columns[index % 2]:
-                _render_section_card(
-                    st,
-                    title=_safe_display_text(item.get("action") or "Recomendación"),
-                    body=_safe_display_text(item.get("rationale")),
-                    variant=_card_variant_from_text(item.get("priority")),
-                    badge=item.get("priority") or "Media",
-                    rows=[
+        _render_responsive_card_grid(
+            st,
+            [
+                {
+                    "title": item.get("action") or "Recomendación",
+                    "body": item.get("rationale"),
+                    "variant": _card_variant_from_text(item.get("priority")),
+                    "badge": item.get("priority") or "Requiere atención",
+                    "rows": [
                         ("Impacto esperado", item.get("expected_impact")),
                         ("Responsable sugerido", item.get("owner")),
                         ("Estado", item.get("status")),
                     ],
-                )
+                }
+                for item in cards
+                if isinstance(item, dict)
+            ],
+            min_width_px=300,
+        )
     else:
         _render_section_card(
             st,
@@ -2297,54 +2589,58 @@ def _render_recommendations_tab(st: Any, report_model: dict[str, Any]) -> None:
         )
         attention_items = recommendations.get("attention_items", []) if isinstance(recommendations, dict) else []
         if attention_items:
-            st.markdown("#### Hallazgos determinísticos que requieren atención")
-            columns = st.columns(2)
-            for index, item in enumerate(attention_items[:6]):
-                if not isinstance(item, dict):
-                    continue
-                with columns[index % 2]:
-                    _render_section_card(
-                        st,
-                        title=_safe_display_text(item.get("title") or "Hallazgo determinístico"),
-                        body=_safe_display_text(item.get("evidence")),
-                        variant=_card_variant_from_text(item.get("severity")),
-                        badge=item.get("severity") or "Atención",
-                        rows=[
+            st.markdown("#### Hallazgos verificados que requieren atención")
+            _render_responsive_card_grid(
+                st,
+                [
+                    {
+                        "title": item.get("title") or "Hallazgo verificado",
+                        "body": item.get("evidence"),
+                        "variant": _card_variant_from_text(item.get("severity")),
+                        "badge": item.get("severity") or "Requiere atención",
+                        "rows": [
                             ("Indicador", item.get("metric")),
                             ("Departamento/entidad", item.get("department")),
                             ("Periodo", item.get("period")),
                             ("Fuente", item.get("source")),
                         ],
-                    )
+                    }
+                    for item in attention_items[:6]
+                    if isinstance(item, dict)
+                ],
+                min_width_px=300,
+            )
 
     follow_up = historical.get("recommendation_follow_up", []) if isinstance(historical, dict) else []
     if follow_up:
-        st.markdown("### Seguimiento determinístico de recomendaciones previas")
+        st.markdown("### Seguimiento verificado de recomendaciones previas")
         if historical.get("recommendation_summary"):
             _render_section_card(
                 st,
                 title="Lectura del seguimiento",
                 body=_safe_display_text(historical.get("recommendation_summary")),
                 variant="info",
-                badge="Informativo",
+                badge="Verificado",
             )
-        columns = st.columns(2)
-        for index, item in enumerate(follow_up):
-            if not isinstance(item, dict):
-                continue
-            with columns[index % 2]:
-                _render_section_card(
-                    st,
-                    title=_safe_display_text(item.get("recommendation") or "Recomendación previa"),
-                    body=_safe_display_text(item.get("status_reason") or item.get("current_evidence")),
-                    variant=_card_variant_from_text(item.get("progress")),
-                    badge=item.get("progress") or "En seguimiento",
-                    rows=[
+        _render_responsive_card_grid(
+            st,
+            [
+                {
+                    "title": item.get("recommendation") or "Recomendación previa",
+                    "body": item.get("status_reason") or item.get("current_evidence"),
+                    "variant": _card_variant_from_text(item.get("progress")),
+                    "badge": item.get("progress") or "En seguimiento",
+                    "rows": [
                         ("Emitida en", item.get("origin_period") or item.get("issued_period")),
                         ("Objetivo original", item.get("objective")),
                         ("Evidencia actual", item.get("current_evidence")),
                     ],
-                )
+                }
+                for item in follow_up
+                if isinstance(item, dict)
+            ],
+            min_width_px=300,
+        )
     else:
         _render_section_card(
             st,
@@ -2398,20 +2694,22 @@ def _render_downloads_tab(
         "Evidence package JSON": "evidencia JSON",
     }
     st.markdown("### Archivos disponibles")
-    columns = st.columns(2)
-    for index, (label, path) in enumerate(artifacts.items()):
+    download_cards: list[dict[str, Any]] = []
+    for label, path in artifacts.items():
         display_label = label_by_artifact.get(label, label)
-        with columns[index % 2]:
-            if path and path.is_file():
-                _render_download_card(st, display_label, path, mime_by_label.get(label, "application/octet-stream"))
-            else:
-                _render_section_card(
-                    st,
-                    title=display_label,
-                    body=f"El archivo {display_label} no está disponible para esta ejecución.",
-                    variant="warning",
-                    badge="No disponible",
-                )
+        if path and path.is_file():
+            _render_download_card(st, display_label, path, mime_by_label.get(label, "application/octet-stream"))
+        else:
+            download_cards.append(
+                {
+                    "title": display_label,
+                    "body": f"El archivo {display_label} no está disponible para esta ejecución.",
+                    "variant": "warning",
+                    "badge": "No disponible",
+                }
+            )
+    if download_cards:
+        _render_responsive_card_grid(st, download_cards, min_width_px=300)
     if report_model and hasattr(st, "expander"):
         with st.expander("Auditoría de cobertura del reporte", expanded=False):
             st.dataframe(

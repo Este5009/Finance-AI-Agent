@@ -171,6 +171,15 @@ def _july_report_model() -> dict[str, Any]:
     ).to_dict()
 
 
+def _october_report_model() -> dict[str, Any]:
+    """Load the existing October report model for presentation-only validation."""
+
+    path = Path("outputs/report/report_model_2026_10.json")
+    if not path.is_file():
+        pytest.skip("October report model is not available in this checkout.")
+    return streamlit_app._load_json(path)
+
+
 def _july_result() -> PipelineRunResult:
     """Build a pipeline result pointing at existing July presentation artifacts."""
 
@@ -185,6 +194,37 @@ def _july_result() -> PipelineRunResult:
     missing = [path for path in outputs if not Path(path).is_file()]
     if missing:
         pytest.skip(f"July artifacts are not available: {missing}")
+    return PipelineRunResult(
+        success=True,
+        stages=(),
+        output_files=outputs,
+        warnings=(),
+        runtime_summary=RuntimeSummary(
+            total_runtime_seconds=1.0,
+            stages_requested=0,
+            stages_run=0,
+            stages_succeeded=0,
+            stages_failed=0,
+            stages_skipped=0,
+        ),
+        config=config,
+    )
+
+
+def _october_result() -> PipelineRunResult:
+    """Build a pipeline result pointing at existing October presentation artifacts."""
+
+    config = PipelineConfig.from_project_root(Path("."), python_executable="python")
+    outputs = (
+        "outputs/report/report_model_2026_10.json",
+        "outputs/report/financial_report_2026_10.html",
+        "outputs/report/financial_report_2026_10.pdf",
+        "outputs/analysis/strategic_analysis_2026_10.json",
+        "outputs/evidence/evidence_package_2026_10.json",
+    )
+    missing = [path for path in outputs if not Path(path).is_file()]
+    if missing:
+        pytest.skip(f"October artifacts are not available: {missing}")
     return PipelineRunResult(
         success=True,
         stages=(),
@@ -541,12 +581,14 @@ def test_july_anomaly_tab_renders_deterministic_detail_cards() -> None:
     assert "Indicador afectado" in visible
     assert "Valor observado" in visible
     assert "Referencia" in visible
-    assert "Overdue student payments above limit" in visible or "Negative or low cash flow" in visible
+    assert "Pagos estudiantiles vencidos por encima del límite" in visible or "Flujo de caja bajo o negativo" in visible
+    assert "Overdue student payments above limit" not in visible
+    assert "Negative or low cash flow" not in visible
     assert "No hay anomalías relevantes para mostrar." not in fake_st.info_messages
 
 
 def test_july_analysis_tab_contains_deterministic_fallback_text() -> None:
-    """Verify rejected strategy does not empty deterministic analysis sections."""
+    """Verify rejected strategy does not empty executive analysis sections."""
 
     report_model = _july_report_model()
     fake_st = FakeStreamlitRenderer()
@@ -554,10 +596,13 @@ def test_july_analysis_tab_contains_deterministic_fallback_text() -> None:
     streamlit_app._render_analysis_tab(fake_st, report_model)
 
     visible = "\n".join(fake_st.markdown_calls)
-    assert "Lectura financiera" in visible
-    assert "Ingresos:" in visible
+    assert "Situación financiera actual" in visible
+    assert "Cambios frente al período anterior" in visible
+    assert "Presiones y riesgos" in visible
+    assert "Resultados por departamento" in visible
+    assert "Tendencias históricas" in visible
+    assert "Acciones para la gestión" in visible
     assert "Resultado operativo" in visible
-    assert "Lectura de anomalías" in visible
 
 
 def test_july_recommendations_tab_shows_fallback_follow_up_and_missing_state() -> None:
@@ -570,8 +615,8 @@ def test_july_recommendations_tab_shows_fallback_follow_up_and_missing_state() -
 
     visible = "\n".join(fake_st.markdown_calls)
     assert "Recomendaciones estratégicas no validadas" in visible
-    assert "Hallazgos determinísticos que requieren atención" in visible
-    assert "Seguimiento determinístico de recomendaciones previas" in visible
+    assert "Hallazgos verificados que requieren atención" in visible
+    assert "Seguimiento verificado de recomendaciones previas" in visible
     assert "Emitida en" in visible
     assert "Jun 2026" in visible
     assert fake_st.success_messages == ["No se reporta información faltante relevante."]
@@ -597,11 +642,132 @@ def test_download_tab_presentation_error_does_not_break_other_result_tabs(monkey
     assert "Resumen ejecutivo" in visible_text
     assert "Indicadores principales" in visible_text
     assert "Anomalías del periodo" in visible_text
-    assert "Análisis determinístico del reporte" in visible_text
+    assert "Situación financiera actual" in visible_text
+    assert "Acciones para la gestión" in visible_text
     assert "Recomendaciones estratégicas actuales" in visible_text
     assert len(fake_st.error_messages) == 1
     assert "No se pudo mostrar la pestaña Descargas" in fake_st.error_messages[0]
     assert fake_st.code_blocks and "simulated downloads presentation bug" in fake_st.code_blocks[0]
+
+
+def test_results_header_uses_responsive_grid_not_rigid_five_columns() -> None:
+    """Verify summary cards avoid the narrow fixed-column layout that wrapped letters."""
+
+    source = Path(streamlit_app.__file__).read_text(encoding="utf-8")
+    start = source.index("def _render_results_header")
+    end = source.index("def _render_attention_summary", start)
+    header_body = source[start:end]
+
+    assert "_render_responsive_card_grid" in header_body
+    assert "st.columns(5)" not in header_body
+    assert "ui-responsive-grid" in source
+    assert "word-break: normal" in source
+    assert "hyphens: none" in source
+
+
+def test_october_anomaly_labels_are_spanish_in_presentation_view() -> None:
+    """Verify deterministic anomaly names/descriptions are localized for users."""
+
+    report_model = _october_report_model()
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_anomaly_tab(fake_st, report_model)
+
+    visible = "\n".join(fake_st.markdown_calls)
+    assert "Nómina sobre ingresos por encima del umbral" in visible
+    assert "Cobranza de matrícula por debajo de la meta" in visible
+    assert "Payroll exceeds revenue threshold" not in visible
+    assert "Tuition collection below target" not in visible
+    assert "Collection rate is" not in visible
+
+
+def test_october_analysis_tab_uses_grouped_executive_sections() -> None:
+    """Verify the analysis tab answers management questions through grouped sections."""
+
+    report_model = _october_report_model()
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_analysis_tab(fake_st, report_model)
+
+    visible = "\n".join(fake_st.markdown_calls)
+    for heading in (
+        "Situación financiera actual",
+        "Cambios frente al período anterior",
+        "Presiones y riesgos",
+        "Resultados por departamento",
+        "Tendencias históricas",
+        "Acciones para la gestión",
+    ):
+        assert heading in visible
+    assert "Ver tabla completa por departamento" in visible or fake_st.tables
+
+
+def test_semantic_badges_show_variety_in_results_dashboard() -> None:
+    """Verify cards use meaningful executive badges instead of all Informativo."""
+
+    report_model = _october_report_model()
+    result = _october_result()
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_results_header(
+        fake_st,
+        report_model=report_model,
+        result=result,
+        artifacts=streamlit_app._artifact_paths(result),
+    )
+    streamlit_app._render_attention_summary(fake_st, report_model)
+    streamlit_app._render_analysis_tab(fake_st, report_model)
+
+    visible = "\n".join(fake_st.markdown_calls)
+    assert "Verificado" in visible
+    assert "Favorable" in visible or "Estable" in visible
+    assert "Riesgo" in visible or "Requiere atención" in visible or "Advertencia" in visible
+    assert visible.count("Informativo") < 4
+
+
+def test_october_results_do_not_expose_raw_dicts_or_internal_ids() -> None:
+    """Verify normal result tabs do not show raw objects, tools, or canonical IDs."""
+
+    report_model = _october_report_model()
+    result = _october_result()
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_results(fake_st, result)
+
+    visible = "\n".join(fake_st.markdown_calls + fake_st.info_messages + fake_st.success_messages + fake_st.warning_messages)
+    forbidden = ("{'", "total_revenue", "payroll_percentage_of_revenue", "get_metric_history", "Report model and renderers", "Historical context", "monthly")
+    for text in forbidden:
+        assert text not in visible
+    assert fake_st.downloads
+    assert not fake_st.error_messages
+
+
+def test_custom_card_css_uses_theme_safe_light_and_dark_colors() -> None:
+    """Verify responsive cards retain contrast in light and dark themes."""
+
+    class FakeStreamlit:
+        """Capture CSS emitted by the app."""
+
+        def __init__(self) -> None:
+            """Create a markdown capture list."""
+
+            self.markdown_calls: list[str] = []
+
+        def markdown(self, text: str, *, unsafe_allow_html: bool = False) -> None:
+            """Capture CSS markdown."""
+
+            self.markdown_calls.append(text)
+
+    fake_st = FakeStreamlit()
+    streamlit_app._apply_page_styles(fake_st)
+    css = "\n".join(fake_st.markdown_calls)
+
+    assert ".ui-responsive-grid" in css
+    assert "var(--fa-surface)" in css
+    assert "var(--fa-text)" in css
+    assert "@media (prefers-color-scheme: dark)" in css
+    assert ".ui-status-risk" in css
+    assert ".ui-status-verified" in css
 
 
 def test_no_stale_undefined_download_helper_variables_remain() -> None:

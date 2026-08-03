@@ -141,6 +141,38 @@ RISK_TYPE_LABELS_ES: dict[str, str] = {
     "CATEGORY_OVERSPEND_FLAG": "Sobregasto recurrente por categoría",
 }
 
+ANOMALY_TITLE_LABELS_ES: dict[str, str] = {
+    "Negative or low cash flow": "Flujo de caja bajo o negativo",
+    "Overdue student payments above limit": "Pagos estudiantiles vencidos por encima del límite",
+    "Negative or zero operating result": "Resultado operativo negativo o nulo",
+    "Vendor payment exceeds review threshold": "Pago a proveedor supera el umbral de revisión",
+    "Tuition collection below target": "Cobranza de matrícula por debajo de la meta",
+    "Payroll exceeds revenue threshold": "Nómina sobre ingresos por encima del umbral",
+    "Supplies category overspending": "Sobregasto en suministros",
+    "Facilities category overspending": "Sobregasto en instalaciones",
+    "Services category overspending": "Sobregasto en servicios",
+    "Technology category overspending": "Sobregasto en tecnología",
+}
+
+ANOMALY_TEXT_PHRASES_ES: tuple[tuple[str, str], ...] = (
+    ("Net cash flow is at or below the configured minimum.", "El flujo neto de caja está en o por debajo del mínimo configurado."),
+    ("The share of overdue student invoices exceeds policy.", "La proporción de facturas estudiantiles vencidas supera la política."),
+    ("Operating expenses meet or exceed operating revenue.", "Los gastos operativos igualan o superan los ingresos operativos."),
+    ("At least one vendor payment exceeds the configured review value.", "Al menos un pago a proveedor supera el valor configurado para revisión."),
+    ("Student payment collections are below the configured minimum.", "La cobranza estudiantil está por debajo del mínimo configurado."),
+    ("Payroll cost is above the configured maximum share of revenue.", "El costo de nómina supera la participación máxima configurada sobre ingresos."),
+    ("Expense category actual value exceeds its budget range.", "El valor real de la categoría de gasto supera su rango presupuestario."),
+    ("Department expense variance is outside the configured +/- range.", "La variación de gastos del departamento está fuera del rango configurado."),
+    ("Review operating, scholarship, and capital cash outflows.", "Revisar salidas operativas, becas y desembolsos de capital."),
+    ("Review student receivables by aging and department.", "Revisar cuentas por cobrar estudiantiles por antigüedad y departamento."),
+    ("Review revenue shortfalls and expense drivers by department.", "Revisar brechas de ingresos e impulsores de gasto por departamento."),
+    ("Inspect the underlying vendor invoice, approval, and duplicate checks.", "Inspeccionar factura, aprobación y controles de duplicidad del proveedor."),
+    ("Inspect overdue invoices, aging buckets, and payment plans.", "Inspeccionar facturas vencidas, antigüedad de saldos y planes de pago."),
+    ("Review payroll by department, overtime, benefits, and headcount.", "Revisar nómina por departamento, horas extra, beneficios y dotación."),
+    ("Review the category by department and underlying transactions.", "Revisar la categoría por departamento y sus transacciones de soporte."),
+    ("Confirm whether the variance is timing-related or structural.", "Confirmar si la variación responde a calendario o a una causa estructural."),
+)
+
 RECOMMENDATION_TOPIC_LABELS_ES: dict[str, str] = {
     "payroll_overtime": "Control de horas extra y nómina",
     "collections": "Gestión de cobranza estudiantil",
@@ -717,6 +749,67 @@ def display_risk_name(value: Any, metric: Any = None) -> str:
     return sanitize_text(text.replace("_", " ").capitalize() or "Riesgo recurrente")
 
 
+def display_anomaly_title(value: Any) -> str:
+    """Return a Spanish display title for deterministic anomaly rules.
+
+    Inputs: anomaly title from processed anomaly artifacts.
+    Outputs: Spanish title when the rule is known; sanitized source otherwise.
+    Assumptions: this localizes rule labels for presentation only and keeps the
+    underlying anomaly identifiers/source artifact unchanged.
+    """
+
+    text = sanitize_text(value)
+    if not text:
+        return "Anomalía detectada"
+    if text in ANOMALY_TITLE_LABELS_ES:
+        return ANOMALY_TITLE_LABELS_ES[text]
+    budget_suffix = " outside budget target range"
+    if text.endswith(budget_suffix):
+        entity = text[: -len(budget_suffix)]
+        return f"{display_entity_name(entity)} fuera del rango presupuestario objetivo"
+    return text
+
+
+def display_anomaly_text(value: Any) -> str:
+    """Return Spanish display text for deterministic anomaly rule descriptions.
+
+    Inputs: anomaly evidence/description/next-check text.
+    Outputs: localized text for known deterministic rule phrases.
+    Assumptions: this does not translate strategic narrative or infer meaning;
+    it replaces only stable phrases emitted by Python anomaly rules.
+    """
+
+    text = sanitize_text(value)
+    if not text:
+        return ""
+    for source, target in ANOMALY_TEXT_PHRASES_ES:
+        text = text.replace(source, target)
+    text = re.sub(r"\b([A-Za-z &]+) expense variance is", lambda match: f"La variación de gastos de {display_entity_name(match.group(1).strip())} es", text)
+    text = text.replace(" versus a +/-", " frente a un objetivo de +/-")
+    text = text.replace(" target.", ".")
+    text = text.replace("Net cash flow is", "El flujo neto de caja es")
+    text = text.replace("ending cash is", "la caja final es")
+    text = re.sub(r"(\d+)\s+of\s+(\d+)\s+invoices are overdue", r"\1 de \2 facturas están vencidas", text)
+    text = text.replace("Net operating result is", "El resultado operativo es")
+    text = text.replace(" on $", " sobre $")
+    text = text.replace(" of revenue.", " de ingresos.")
+    text = text.replace("Maximum payment is", "El pago máximo es")
+    text = text.replace("versus a", "frente a un")
+    text = text.replace("threshold.", "umbral.")
+    text = text.replace("Collection rate is", "La tasa de cobranza es")
+    text = text.replace("from ", "con ")
+    text = text.replace(" paid against ", " pagados frente a ")
+    text = text.replace(" due.", " adeudados.")
+    text = text.replace("Calculated payroll/revenue is", "La nómina sobre ingresos calculada es")
+    text = text.replace("maximum.", "máximo.")
+    text = re.sub(r"frente a un (\$[\d,]+) umbral", r"frente a un umbral de \1", text)
+    text = re.sub(r"frente a un ([\d.]+%) máximo", r"frente a un máximo de \1", text)
+    text = text.replace("actual", "real")
+    text = text.replace("versus budget", "frente a presupuesto")
+    text = text.replace("variance", "variación")
+    return text
+
+
 def _format_anomaly_value(metric: Any, value: Any) -> str:
     """Format an anomaly threshold/observed value without rescaling source facts.
 
@@ -1179,7 +1272,7 @@ def build_anomaly_summary(report_model: dict[str, Any]) -> dict[str, Any]:
             reference = "" if reference in EMPTY_DISPLAY_VALUES else reference
             top_rows.append(
                 {
-                    "title": sanitize_text(item.get("title") or item.get("description") or "Anomalía detectada"),
+                    "title": display_anomaly_title(item.get("title") or item.get("description") or "Anomalía detectada"),
                     "severity": SEVERITY_LABELS_ES.get(str(item.get("severity", "")).lower(), str(item.get("severity", ""))),
                     "severity_class": str(item.get("severity", "")).lower() or "info",
                     "recurrence": "Recurrente" if item.get("recurrence_count") or item.get("periods") else "Periodo actual",
@@ -1189,9 +1282,9 @@ def build_anomaly_summary(report_model: dict[str, Any]) -> dict[str, Any]:
                     "entity": display_entity_name(item.get("department") or item.get("entity") or item.get("vendor") or ""),
                     "observed_value": observed,
                     "reference_value": reference,
-                    "evidence": sanitize_text(item.get("evidence") or item.get("description") or ""),
-                    "description": sanitize_text(item.get("description") or ""),
-                    "recommended_next_check": sanitize_text(item.get("recommended_next_check") or ""),
+                    "evidence": display_anomaly_text(item.get("evidence") or item.get("description") or ""),
+                    "description": display_anomaly_text(item.get("description") or ""),
+                    "recommended_next_check": display_anomaly_text(item.get("recommended_next_check") or ""),
                     "source": compact_source_label(item.get("source_file") or ""),
                 }
             )
