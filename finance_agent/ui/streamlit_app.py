@@ -7,6 +7,7 @@ import re
 import sys
 import time
 from dataclasses import dataclass
+from html import escape
 from inspect import Parameter, signature
 from pathlib import Path
 from typing import Any, Callable, Protocol
@@ -157,6 +158,30 @@ STAGE_LABELS_ES: dict[str, str] = {
     "report_renderer": "Creando reporte descargable",
     "pipeline_cache": "Reutilizando análisis existente",
     "memory_storage": "Guardando memoria histórica",
+}
+
+STAGE_DISPLAY_LABELS_ES: dict[str, str] = {
+    "Document ingestion": "Procesamiento de archivos",
+    "Document understanding": "Interpretación de documentos",
+    "Finance calculations": "Cálculo de indicadores financieros",
+    "Anomaly detection": "Detección de anomalías",
+    "Ollama structure fallback": "Revisión de estructura",
+    "Ollama investigation planner": "Plan de investigación",
+    "Retrieval layer": "Recuperación de evidencia",
+    "Historical context": "Contexto histórico",
+    "Strategic analysis": "Análisis estratégico",
+    "Report model and renderers": "Generación del reporte",
+    "Memory storage": "Guardado de resultados",
+    "Pipeline error": "Error del pipeline",
+}
+
+PERIOD_TYPE_LABELS_ES: dict[str, str] = {
+    "monthly": "Mensual",
+    "quarterly": "Trimestral",
+    "semester": "Semestral",
+    "annual": "Anual",
+    "custom": "Personalizado",
+    "unknown": "No determinado",
 }
 
 STATUS_LABELS_ES: dict[str, str] = {
@@ -405,7 +430,96 @@ def _stage_display_name(stage: Any) -> str:
     if key in STAGE_LABELS_ES:
         return STAGE_LABELS_ES[key]
     raw = str(getattr(stage, "display_name", "") or key).replace("_", " ")
-    return raw.capitalize()
+    return STAGE_DISPLAY_LABELS_ES.get(raw, raw.capitalize())
+
+
+def _period_type_label(period_type: str | None) -> str:
+    """Return a Spanish label for a detected period type.
+
+    Inputs: canonical period type from the pipeline.
+    Outputs: administrator-facing Spanish label.
+    Assumptions: internal period identifiers remain English.
+    """
+
+    key = str(period_type or "unknown").strip().lower()
+    return PERIOD_TYPE_LABELS_ES.get(key, key.capitalize() if key else "No determinado")
+
+
+def _render_safe_text_block(st: Any, text: str, *, css_class: str = "safe-text-block") -> None:
+    """Render user-facing prose without Markdown math side effects.
+
+    Inputs: Streamlit module and already-validated prose.
+    Outputs: escaped HTML paragraph.
+    Assumptions: escaping keeps Ollama/deterministic text from becoming HTML or
+    LaTeX; this is presentation-only and performs no narrative rewriting.
+    """
+
+    st.markdown(
+        f"<div class='{css_class}'>{escape(text or '')}</div>",
+        unsafe_allow_html=True,
+    )
+
+
+def _comparison_value(card: dict[str, Any], label: str) -> str:
+    """Return one deterministic KPI comparison row value by Spanish label.
+
+    Inputs: presentation KPI card and expected row label.
+    Outputs: formatted value or an empty string.
+    Assumptions: rows are built upstream from report-model comparisons.
+    """
+
+    for row in card.get("comparison_rows", []) or []:
+        if isinstance(row, dict) and row.get("label") == label:
+            return str(row.get("value") or "")
+    return ""
+
+
+def _render_financial_health_card(st: Any, card: dict[str, Any]) -> None:
+    """Render one deterministic KPI card without misusing Streamlit deltas.
+
+    Inputs: Streamlit module and presentation card.
+    Outputs: theme-safe HTML card.
+    Assumptions: previous values and changes are displayed as separate facts so
+    a previous-period value is never shown as an up/down delta.
+    """
+
+    previous = _comparison_value(card, "Periodo anterior")
+    prior_change = _comparison_value(card, "Variación respecto al periodo anterior")
+    budget = _comparison_value(card, "Presupuesto / meta")
+    budget_change = _comparison_value(card, "Variación respecto al presupuesto")
+    rows = []
+    if previous:
+        rows.append(("Período anterior", previous))
+    if prior_change:
+        rows.append(("Variación respecto al período anterior", prior_change))
+    if budget:
+        rows.append(("Presupuesto / meta", budget))
+    if budget_change:
+        rows.append(("Variación respecto al presupuesto", budget_change))
+    row_html = "".join(
+        "<div class='ui-kpi-row'>"
+        f"<span>{escape(label)}</span><strong>{escape(value)}</strong>"
+        "</div>"
+        for label, value in rows
+    )
+    st.markdown(
+        """
+        <div class="ui-kpi-card">
+            <div class="ui-kpi-label">{label}</div>
+            <div class="ui-kpi-value">{value}</div>
+            <div class="ui-kpi-badge">{badge}</div>
+            <div class="ui-kpi-description">{description}</div>
+            {rows}
+        </div>
+        """.format(
+            label=escape(str(card.get("label") or "Indicador")),
+            value=escape(str(card.get("value") or "No disponible")),
+            badge=escape(str(card.get("badge") or "")),
+            description=escape(str(card.get("description") or "")),
+            rows=row_html,
+        ),
+        unsafe_allow_html=True,
+    )
 
 
 def _stage_status(stage: Any) -> tuple[str, str]:
@@ -606,6 +720,102 @@ def _apply_page_styles(st: Any) -> None:
             border-radius: 16px;
             padding: 14px 16px 10px;
             margin-top: 8px;
+        }
+        .safe-text-block {
+            color: #172033;
+            line-height: 1.58;
+            margin: 0.2rem 0 0.8rem;
+        }
+        .verified-data-note {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #0f5132;
+            background: #dff4e8;
+            border: 1px solid #9ed6b5;
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 0.86rem;
+            font-weight: 650;
+            margin: 0.2rem 0 0.9rem;
+        }
+        .ui-kpi-card {
+            background: #ffffff;
+            color: #172033;
+            border: 1px solid #d8e1ea;
+            border-radius: 16px;
+            padding: 16px 17px;
+            margin: 0.25rem 0 1rem;
+            box-shadow: 0 1px 3px rgba(23, 43, 77, 0.06);
+        }
+        .ui-kpi-label {
+            color: #526273;
+            font-size: 0.84rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            min-height: 2.2rem;
+        }
+        .ui-kpi-value {
+            color: #10243a;
+            font-size: 1.75rem;
+            font-weight: 800;
+            line-height: 1.12;
+            margin-top: 0.4rem;
+        }
+        .ui-kpi-badge {
+            display: inline-block;
+            color: #17324d;
+            background: #e8f0f8;
+            border-radius: 999px;
+            padding: 3px 9px;
+            margin-top: 0.7rem;
+            font-size: 0.82rem;
+            font-weight: 650;
+        }
+        .ui-kpi-description {
+            color: #526273;
+            font-size: 0.86rem;
+            line-height: 1.35;
+            margin: 0.65rem 0;
+        }
+        .ui-kpi-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.85rem;
+            border-top: 1px solid #e6edf3;
+            padding-top: 0.5rem;
+            margin-top: 0.5rem;
+            color: #45576a;
+            font-size: 0.82rem;
+        }
+        .ui-kpi-row strong {
+            color: #10243a;
+            text-align: right;
+            white-space: nowrap;
+        }
+        @media (prefers-color-scheme: dark) {
+            .safe-text-block { color: #f5f7fa; }
+            .verified-data-note {
+                color: #d8f8e7;
+                background: #123925;
+                border-color: #2b6f49;
+            }
+            .ui-kpi-card {
+                background: #172033;
+                color: #f5f7fa;
+                border-color: #35465a;
+                box-shadow: none;
+            }
+            .ui-kpi-label,
+            .ui-kpi-description,
+            .ui-kpi-row { color: #c5d0dc; }
+            .ui-kpi-value,
+            .ui-kpi-row strong { color: #f8fafc; }
+            .ui-kpi-badge {
+                color: #dcecff;
+                background: #243c58;
+            }
+            .ui-kpi-row { border-top-color: #33465a; }
         }
         div[data-testid="stFileUploaderDropzoneInstructions"] {
             display: none;
@@ -990,23 +1200,26 @@ def _render_overview_tab(st: Any, report_model: dict[str, Any], result: Pipeline
     executive = view.get("executive_summary", {}) if isinstance(view, dict) else {}
     health_cards = view.get("financial_health", {}).get("cards", []) if isinstance(view, dict) else []
     st.markdown("### Resumen ejecutivo")
-    st.write(executive.get("summary") or "El resumen ejecutivo no está disponible.")
+    _render_safe_text_block(
+        st,
+        executive.get("summary") or "El resumen ejecutivo no está disponible.",
+        css_class="safe-text-block",
+    )
+    st.markdown(
+        "<div class='verified-data-note'>✓ Cifras verificadas con datos procesados</div>",
+        unsafe_allow_html=True,
+    )
     if detected:
         col_a, col_b, col_c = st.columns(3)
         col_a.metric("Periodo detectado", detected.label)
-        col_b.metric("Tipo de periodo", detected.period_type)
+        col_b.metric("Tipo de periodo", _period_type_label(detected.period_type))
         col_c.metric("Confianza", f"{detected.confidence:.0%}")
     st.markdown("### Salud financiera")
     if health_cards:
         columns = st.columns(min(4, len(health_cards)))
         for index, card in enumerate(health_cards[:8]):
             with columns[index % len(columns)]:
-                st.metric(
-                    card.get("label", "Indicador"),
-                    card.get("value", "No disponible"),
-                    card.get("comparison_rows", [{}])[0].get("value", "") if card.get("comparison_rows") else None,
-                )
-                st.caption(card.get("description", ""))
+                _render_financial_health_card(st, card)
     else:
         st.info("No hay indicadores financieros para mostrar en esta vista.")
 

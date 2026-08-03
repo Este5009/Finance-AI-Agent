@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -25,6 +26,7 @@ from finance_agent.reporting.presentation import (
     build_recommendation_cards,
     build_revenue_expense_summary,
     compact_source_label,
+    format_value,
     number_value,
     sanitize_items,
     sanitize_text,
@@ -150,6 +152,9 @@ def _analysis_payload(document: dict[str, Any]) -> dict[str, Any]:
     ReasoningState; legacy runs still expose the same payload under ``analysis``.
     """
 
+    status = str(document.get("validation_status") or "").lower()
+    if status not in {"accepted", "sanitized"}:
+        return {}
     state = document.get("reasoning_state", {})
     state = state if isinstance(state, dict) else {}
     outputs = state.get("reasoning_outputs", {})
@@ -233,6 +238,66 @@ def _deterministic_executive_summary(
             "Las recomendaciones estratégicas validadas no están disponibles; el reporte conserva KPIs, comparaciones, anomalías, historial y evidencia procesada."
         )
     return " ".join(parts)
+
+
+def _percentage_tokens(text: str) -> set[str]:
+    """Extract normalized percentage displays from user-facing prose.
+
+    Inputs: narrative text.
+    Outputs: percentage strings such as ``7.0%`` found in the text.
+    Assumptions: this is a conservative display-level audit, not NLP reasoning.
+    """
+
+    tokens = set()
+    for value in re.findall(r"(?<![\w])[-+]?\d+(?:[.,]\d+)?\s*%", text):
+        tokens.add(value.replace(" ", "").replace(",", "."))
+    return tokens
+
+
+def _allowed_previous_change_percentages(kpi_comparisons: dict[str, Any]) -> set[str]:
+    """Return exact percentage displays approved for prior-period comparison.
+
+    Inputs: report-model KPI comparison block.
+    Outputs: normalized percentage strings from deterministic previous deltas.
+    Assumptions: ratio KPIs use percentage points; non-ratio KPIs use percent
+    change relative to the previous absolute value.
+    """
+
+    allowed: set[str] = set()
+    items = kpi_comparisons.get("items", {}) if isinstance(kpi_comparisons, dict) else {}
+    for item in items.values() if isinstance(items, dict) else []:
+        if not isinstance(item, dict):
+            continue
+        for field_name in ("percent_change", "percentage_point_change"):
+            value = number_value(item.get(field_name))
+            if value is not None:
+                formatted = format_value(value, "ratio").replace(" ", "").replace(",", ".")
+                allowed.add(formatted)
+                allowed.add(formatted.lstrip("+-"))
+    return allowed
+
+
+def _narrative_quantitative_claims_supported(text: str, kpi_comparisons: dict[str, Any]) -> bool:
+    """Return whether display prose passes conservative numeric-context checks.
+
+    Inputs: visible narrative text and deterministic KPI comparisons.
+    Outputs: True when the paragraph can be shown; False when it should fall
+    back to deterministic prose.
+    Assumptions: upstream Step 9 remains the primary evidence validator. This
+    last-mile guard catches obvious presentation-critical mismatches, such as
+    budget variance percentages described as previous-period changes.
+    """
+
+    if not text:
+        return True
+    lowered = text.casefold()
+    if "periodo anterior" not in lowered and "período anterior" not in lowered:
+        return True
+    percentages = _percentage_tokens(text)
+    if not percentages:
+        return True
+    allowed_previous = _allowed_previous_change_percentages(kpi_comparisons)
+    return percentages.issubset(allowed_previous)
 
 
 def _section(
@@ -444,6 +509,20 @@ def _comparison_item(
             "current": current_source,
             "previous": previous_source,
             "budget": current_source if budget is not None else None,
+        },
+        "provenance": {
+            "source_artifact": current_source,
+            "previous_source_artifact": previous_source,
+            "source_metric_id": metric,
+            "current_value": current,
+            "comparison_value": previous,
+            "computed_change": change,
+            "unit": unit,
+            "calculation_method": (
+                "current_minus_previous; ratio_metrics_use_percentage_points"
+                if unit == "ratio"
+                else "current_minus_previous; percent_change_uses_previous_absolute_value"
+            ),
         },
     }
     return item
@@ -761,15 +840,19 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
 
     report_period = str(inputs.finance_summary.get("report_period", inputs.period_slug))
     analysis_status = str(inputs.strategic_analysis.get("validation_status") or "unknown")
-    executive_summary = (
-        analysis.get("executive_summary")
-        or _deterministic_executive_summary(
-            finance=finance,
-            anomaly_report=inputs.anomaly_report,
-            report_period=report_period,
-            analysis_status=analysis_status,
-        )
+    deterministic_summary = _deterministic_executive_summary(
+        finance=finance,
+        anomaly_report=inputs.anomaly_report,
+        report_period=report_period,
+        analysis_status=analysis_status,
     )
+    executive_summary = analysis.get("executive_summary") or deterministic_summary
+    if not _narrative_quantitative_claims_supported(str(executive_summary), kpi_comparisons):
+        executive_summary = deterministic_summary
+        analysis_warnings = (
+            *analysis_warnings,
+            "Executive summary was replaced because a quantitative comparison claim did not match processed data.",
+        )
     strategy_recovery = inputs.strategic_analysis.get("strategic_recovery", {})
     if not isinstance(strategy_recovery, dict):
         strategy_recovery = analysis.get("_strategic_recovery", {})

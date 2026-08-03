@@ -261,6 +261,191 @@ def test_kpi_comparisons_use_previous_processed_summary(tmp_path: Path) -> None:
     assert comparisons["ending_cash"]["previous_value"] == 4800
 
 
+def test_kpi_comparison_provenance_separates_current_previous_and_change(tmp_path: Path) -> None:
+    """Verify report-model KPI provenance keeps deterministic values distinct."""
+
+    current_path = tmp_path / "finance_summary_2026_06.json"
+    previous_path = tmp_path / "finance_summary_2026_05.json"
+    previous_path.write_text(
+        json.dumps(
+            {
+                "report_period": "2026-05",
+                "finance_summary": {
+                    "total_revenue": 2_005_584,
+                    "total_expenses": 2_126_584,
+                    "net_operating_result": -121_000,
+                    "payroll_percentage_of_revenue": 0.47,
+                    "student_payments": {"collection_rate": 0.86},
+                    "cash_flow": {"net_cash_flow": -220_000, "ending_cash": 2_410_000},
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    current_path.write_text("{}", encoding="utf-8")
+    bundle = _bundle()
+    finance_summary = {
+        **bundle.finance_summary,
+        "report_period": "2026-06",
+        "finance_summary": {
+            **bundle.finance_summary["finance_summary"],
+            "total_revenue": 1_992_060,
+            "total_expenses": 2_366_060,
+            "net_operating_result": -374_000,
+            "payroll_percentage_of_revenue": 0.53,
+            "student_payments": {"collection_rate": 0.84},
+            "cash_flow": {"net_cash_flow": -680_000, "ending_cash": 1_730_000},
+        },
+    }
+    model = build_report_model(
+        ReportInputBundle(
+            period_slug="2026_06",
+            finance_summary=finance_summary,
+            kpi_summary=bundle.kpi_summary,
+            anomaly_report=bundle.anomaly_report,
+            evidence_package=bundle.evidence_package,
+            strategic_analysis=bundle.strategic_analysis,
+            source_files=(
+                str(current_path),
+                "outputs/calculations/kpi_summary_2026_06.csv",
+                "outputs/anomalies/anomaly_report_2026_06.json",
+                "outputs/evidence/evidence_package_2026_06.json",
+                "outputs/analysis/strategic_analysis_2026_06.json",
+            ),
+        )
+    ).to_dict()
+    section = next(section for section in model["sections"] if section["section_id"] == "financial_health_overview")
+    comparisons = section["content"]["kpi_comparisons"]["items"]
+
+    revenue = comparisons["total_revenue"]
+    expenses = comparisons["total_expenses"]
+    payroll_ratio = comparisons["payroll_percentage_of_revenue"]
+
+    assert revenue["current_value"] == 1_992_060
+    assert revenue["previous_value"] == 2_005_584
+    assert revenue["absolute_change"] == -13_524
+    assert revenue["provenance"]["computed_change"] == -13_524
+    assert revenue["provenance"]["calculation_method"].startswith("current_minus_previous")
+    assert expenses["absolute_change"] == 239_476
+    assert payroll_ratio["percentage_point_change"] == pytest.approx(0.06)
+    assert payroll_ratio["percent_change"] is None
+    assert payroll_ratio["provenance"]["unit"] == "ratio"
+
+
+def test_rejected_modular_synthesis_is_not_used_as_visible_report_text() -> None:
+    """Verify rejected strategy cannot leak unsupported Ollama prose into reports."""
+
+    bundle = _bundle()
+    rejected_strategy = {
+        "validation_status": "rejected",
+        "validation_errors": ["unsupported quantitative claim"],
+        "reasoning_state": {
+            "reasoning_outputs": {
+                "strategic_synthesis": {
+                    "executive_summary": "Los gastos aumentaron 18.8% frente al periodo anterior.",
+                    "recommendations": [{"action": "Unsupported"}],
+                }
+            }
+        },
+        "analysis": {
+            "executive_summary": "Este texto tampoco debe aparecer.",
+        },
+    }
+    model = build_report_model(
+        ReportInputBundle(
+            period_slug=bundle.period_slug,
+            finance_summary=bundle.finance_summary,
+            kpi_summary=bundle.kpi_summary,
+            anomaly_report=bundle.anomaly_report,
+            evidence_package=bundle.evidence_package,
+            strategic_analysis=rejected_strategy,
+            source_files=bundle.source_files,
+        )
+    ).to_dict()
+    executive = next(section for section in model["sections"] if section["section_id"] == "executive_summary")
+
+    assert "18.8%" not in executive["content"]["summary"]
+    assert "Este texto tampoco" not in executive["content"]["summary"]
+    assert "Reporte financiero determinístico" in executive["content"]["summary"]
+
+
+def test_unsupported_previous_period_percentage_claim_uses_deterministic_summary(tmp_path: Path) -> None:
+    """Verify misleading model prose cannot relabel budget variance as prior change."""
+
+    current_path = tmp_path / "finance_summary_2026_06.json"
+    previous_path = tmp_path / "finance_summary_2026_05.json"
+    previous_path.write_text(
+        json.dumps(
+            {
+                "report_period": "2026-05",
+                "finance_summary": {
+                    "total_revenue": 2_005_584,
+                    "total_expenses": 2_126_584,
+                    "net_operating_result": -121_000,
+                    "student_payments": {"collection_rate": 0.86},
+                    "cash_flow": {"net_cash_flow": -220_000, "ending_cash": 2_410_000},
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    current_path.write_text("{}", encoding="utf-8")
+    bundle = _bundle()
+    strategic_analysis = {
+        **bundle.strategic_analysis,
+        "analysis": {
+            **bundle.strategic_analysis["analysis"],
+            "executive_summary": (
+                "Los gastos aumentaron un 18.8% en comparación con el periodo anterior, "
+                "mientras que los ingresos disminuyeron un 7.0%."
+            ),
+        },
+    }
+    finance_summary = {
+        **bundle.finance_summary,
+        "report_period": "2026-06",
+        "finance_summary": {
+            **bundle.finance_summary["finance_summary"],
+            "total_revenue": 1_992_060,
+            "total_expenses": 2_366_060,
+            "net_operating_result": -374_000,
+            "budget_vs_actual": {
+                "revenue_budget": 2_142_000,
+                "revenue_variance": -149_940,
+                "revenue_variance_pct": -0.07,
+                "expense_budget": 1_992_060,
+                "expense_variance": 374_000,
+                "expense_variance_pct": 0.188,
+            },
+            "student_payments": {"collection_rate": 0.84},
+            "cash_flow": {"net_cash_flow": -680_000, "ending_cash": 1_730_000},
+        },
+    }
+
+    model = build_report_model(
+        ReportInputBundle(
+            period_slug="2026_06",
+            finance_summary=finance_summary,
+            kpi_summary=bundle.kpi_summary,
+            anomaly_report=bundle.anomaly_report,
+            evidence_package=bundle.evidence_package,
+            strategic_analysis=strategic_analysis,
+            source_files=(
+                str(current_path),
+                "outputs/calculations/kpi_summary_2026_06.csv",
+                "outputs/anomalies/anomaly_report_2026_06.json",
+                "outputs/evidence/evidence_package_2026_06.json",
+                "outputs/analysis/strategic_analysis_2026_06.json",
+            ),
+        )
+    ).to_dict()
+    executive = next(section for section in model["sections"] if section["section_id"] == "executive_summary")
+
+    assert "18.8%" not in executive["content"]["summary"]
+    assert "7.0%" not in executive["content"]["summary"]
+    assert any("quantitative comparison" in warning for warning in executive["warnings"])
+
+
 def test_json_schema_validation_and_save(tmp_path: Path) -> None:
     """Verify saved report model JSON keeps the expected schema."""
 

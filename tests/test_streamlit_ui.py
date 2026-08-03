@@ -90,6 +90,136 @@ def test_streamlit_progress_symbols_use_public_orchestration_api() -> None:
     assert PipelineProgressCallback is not None
 
 
+def test_stage_and_period_labels_are_spanish_for_normal_ui() -> None:
+    """Verify internal English labels are localized before display."""
+
+    historical_stage = PipelineStageResult(
+        stage_name="historical_context",
+        display_name="Historical context",
+        critical=False,
+        success=True,
+        skipped=False,
+        output_files=(),
+        warnings=(),
+        error=None,
+        runtime_seconds=0.1,
+    )
+    renderer_stage = PipelineStageResult(
+        stage_name="report_model_and_renderers",
+        display_name="Report model and renderers",
+        critical=False,
+        success=True,
+        skipped=False,
+        output_files=(),
+        warnings=(),
+        error=None,
+        runtime_seconds=0.1,
+    )
+
+    assert streamlit_app._stage_display_name(historical_stage) == "Contexto histórico"
+    assert streamlit_app._stage_display_name(renderer_stage) == "Generación del reporte"
+    assert streamlit_app._period_type_label("monthly") == "Mensual"
+
+
+def test_financial_health_card_does_not_render_previous_value_as_delta() -> None:
+    """Verify KPI cards keep previous value and change as separate rows."""
+
+    class FakeStreamlit:
+        """Capture markdown rendered by the KPI card helper."""
+
+        def __init__(self) -> None:
+            """Create a markdown capture list."""
+
+            self.markdown_calls: list[tuple[str, bool]] = []
+
+        def markdown(self, text: str, *, unsafe_allow_html: bool = False) -> None:
+            """Capture markdown text and HTML flag."""
+
+            self.markdown_calls.append((text, unsafe_allow_html))
+
+        def metric(self, *_args: object, **_kwargs: object) -> None:
+            """Fail if a financial card tries to use Streamlit delta rendering."""
+
+            raise AssertionError("KPI comparison cards must not call st.metric")
+
+    fake_st = FakeStreamlit()
+    streamlit_app._render_financial_health_card(
+        fake_st,
+        {
+            "label": "Ingresos",
+            "value": "$1,992,060",
+            "badge": "Atención",
+            "description": "Ingresos totales del periodo.",
+            "comparison_rows": [
+                {"label": "Periodo anterior", "value": "$2,005,584"},
+                {"label": "Variación respecto al periodo anterior", "value": "-$13,524 (-0.7%)"},
+            ],
+        },
+    )
+    html = fake_st.markdown_calls[0][0]
+
+    assert "Período anterior" in html
+    assert "$2,005,584" in html
+    assert "Variación respecto al período anterior" in html
+    assert "-$13,524 (-0.7%)" in html
+
+
+def test_executive_summary_renders_without_markdown_math() -> None:
+    """Verify currency prose is escaped instead of passed through st.write/LaTeX."""
+
+    class FakeStreamlit:
+        """Capture escaped summary rendering."""
+
+        def __init__(self) -> None:
+            """Create a markdown capture list."""
+
+            self.markdown_calls: list[tuple[str, bool]] = []
+
+        def markdown(self, text: str, *, unsafe_allow_html: bool = False) -> None:
+            """Capture rendered paragraph."""
+
+            self.markdown_calls.append((text, unsafe_allow_html))
+
+    fake_st = FakeStreamlit()
+    streamlit_app._render_safe_text_block(
+        fake_st,
+        "Resultado operativo de $-374,000 USD, con ingresos de $1,992,060 USD.",
+    )
+
+    html, unsafe = fake_st.markdown_calls[0]
+    assert unsafe is True
+    assert "$-374,000 USD, con ingresos" in html
+    assert "st.write" not in html
+
+
+def test_kpi_card_css_has_light_and_dark_contrast_rules() -> None:
+    """Verify custom KPI card colors define readable light/dark foregrounds."""
+
+    class FakeStreamlit:
+        """Capture injected CSS."""
+
+        def __init__(self) -> None:
+            """Create a markdown capture list."""
+
+            self.markdown_calls: list[str] = []
+
+        def markdown(self, text: str, *, unsafe_allow_html: bool = False) -> None:
+            """Capture CSS markdown."""
+
+            self.markdown_calls.append(text)
+
+    fake_st = FakeStreamlit()
+    streamlit_app._apply_page_styles(fake_st)
+    css = "\n".join(fake_st.markdown_calls)
+
+    assert ".ui-kpi-card" in css
+    assert "@media (prefers-color-scheme: dark)" in css
+    assert "background: #ffffff" in css
+    assert "background: #172033" in css
+    assert "color: #172033" in css
+    assert "color: #f5f7fa" in css or "color: #f8fafc" in css
+
+
 def test_friendly_stage_error_distinguishes_historical_context_failure() -> None:
     """Verify memory-filter errors do not appear as strategic validation failures."""
 
