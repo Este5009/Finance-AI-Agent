@@ -826,7 +826,7 @@ def test_september_analysis_tab_preserves_july_and_august_points() -> None:
 def test_streamlit_chart_input_preserves_exact_september_revenue_and_expense_points(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Verify Streamlit receives exact Jun-Jul-Aug-Sep chart points."""
+    """Verify Streamlit receives exact Apr-Sep chart points."""
 
     report_model = _july_report_model()
     report_model["period_slug"] = "2026_09"
@@ -848,6 +848,8 @@ def test_streamlit_chart_input_preserves_exact_september_revenue_and_expense_poi
                         "metric": "Ingresos",
                         "unit": "USD",
                         "points": [
+                            {"period": "2026_04", "value": 2_018_940.0},
+                            {"period": "2026_05", "value": 2_005_584.0},
                             {"period": "2026_06", "value": 1_992_060.0},
                             {"period": "2026_07", "value": 2_021_376.0},
                             {"period": "2026_08", "value": 2_072_448.0},
@@ -858,6 +860,8 @@ def test_streamlit_chart_input_preserves_exact_september_revenue_and_expense_poi
                         "metric": "Gastos",
                         "unit": "USD",
                         "points": [
+                            {"period": "2026_04", "value": 2_084_940.0},
+                            {"period": "2026_05", "value": 2_126_584.0},
                             {"period": "2026_06", "value": 2_366_060.0},
                             {"period": "2026_07", "value": 2_213_876.0},
                             {"period": "2026_08", "value": 2_138_448.0},
@@ -890,19 +894,23 @@ def test_streamlit_chart_input_preserves_exact_september_revenue_and_expense_poi
     streamlit_app._render_analysis_tab(fake_st, report_model)
 
     assert captured["total_revenue"] == [
+        ("2026_04", 2_018_940.0),
+        ("2026_05", 2_005_584.0),
         ("2026_06", 1_992_060.0),
         ("2026_07", 2_021_376.0),
         ("2026_08", 2_072_448.0),
         ("2026_09", 2_123_856.0),
     ]
     assert captured["total_expenses"] == [
+        ("2026_04", 2_084_940.0),
+        ("2026_05", 2_126_584.0),
         ("2026_06", 2_366_060.0),
         ("2026_07", 2_213_876.0),
         ("2026_08", 2_138_448.0),
         ("2026_09", 2_096_356.0),
     ]
-    assert len(captured["total_revenue"]) == 4
-    assert len(captured["total_expenses"]) == 4
+    assert len(captured["total_revenue"]) == 6
+    assert len(captured["total_expenses"]) == 6
 
 
 def test_analysis_tab_uses_one_point_history_fallback_card() -> None:

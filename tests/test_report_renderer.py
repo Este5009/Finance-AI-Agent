@@ -769,7 +769,7 @@ def test_pdf_chart_input_preserves_exact_september_revenue_and_expense_points(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """Verify PDF chart input receives exact Jun-Jul-Aug-Sep points, not endpoints."""
+    """Verify PDF chart input receives exact Apr-Sep points, not endpoints."""
 
     model = _sample_report_model()
     model["period_slug"] = "2026_09"  # type: ignore[index]
@@ -788,6 +788,8 @@ def test_pdf_chart_input_preserves_exact_september_revenue_and_expense_points(
                         "metric": "Ingresos",
                         "unit": "USD",
                         "points": [
+                            {"period": "2026_04", "value": 2_018_940.0},
+                            {"period": "2026_05", "value": 2_005_584.0},
                             {"period": "2026_06", "value": 1_992_060.0},
                             {"period": "2026_07", "value": 2_021_376.0},
                             {"period": "2026_08", "value": 2_072_448.0},
@@ -798,6 +800,8 @@ def test_pdf_chart_input_preserves_exact_september_revenue_and_expense_points(
                         "metric": "Gastos",
                         "unit": "USD",
                         "points": [
+                            {"period": "2026_04", "value": 2_084_940.0},
+                            {"period": "2026_05", "value": 2_126_584.0},
                             {"period": "2026_06", "value": 2_366_060.0},
                             {"period": "2026_07", "value": 2_213_876.0},
                             {"period": "2026_08", "value": 2_138_448.0},
@@ -818,6 +822,7 @@ def test_pdf_chart_input_preserves_exact_september_revenue_and_expense_points(
         def __init__(self, series: dict[str, object], width: float = 6.7 * 72) -> None:
             """Record series points before delegating to the real PDF flowable."""
 
+            super().__init__(series, width=width)
             metric = str(series.get("metric_id") or "")
             if metric in {"total_revenue", "total_expenses"}:
                 captured[metric] = [
@@ -825,26 +830,167 @@ def test_pdf_chart_input_preserves_exact_september_revenue_and_expense_points(
                     for point in series.get("points", [])  # type: ignore[union-attr]
                     if isinstance(point, dict)
                 ]
-            super().__init__(series, width=width)
+                captured[f"{metric}_dimensions"] = [("width", self.width), ("height", self.height)]
 
     monkeypatch.setattr(pdf_renderer_module, "LineChart", SpyLineChart)
 
     render_report_pdf(model, tmp_path / "september.pdf")
 
     assert captured["total_revenue"] == [
+        ("2026_04", 2_018_940.0),
+        ("2026_05", 2_005_584.0),
         ("2026_06", 1_992_060.0),
         ("2026_07", 2_021_376.0),
         ("2026_08", 2_072_448.0),
         ("2026_09", 2_123_856.0),
     ]
     assert captured["total_expenses"] == [
+        ("2026_04", 2_084_940.0),
+        ("2026_05", 2_126_584.0),
         ("2026_06", 2_366_060.0),
         ("2026_07", 2_213_876.0),
         ("2026_08", 2_138_448.0),
         ("2026_09", 2_096_356.0),
     ]
-    assert len(captured["total_revenue"]) == 4
-    assert len(captured["total_expenses"]) == 4
+    assert len(captured["total_revenue"]) == 6
+    assert len(captured["total_expenses"]) == 6
+    assert dict(captured["total_revenue_dimensions"])["width"] <= 3.25 * 72
+    assert 170 <= dict(captured["total_revenue_dimensions"])["height"] <= 210
+
+
+def test_html_chart_input_preserves_exact_september_revenue_and_expense_points(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify HTML chart helper receives all six September trend points."""
+
+    model = _sample_report_model()
+    model["period_slug"] = "2026_09"  # type: ignore[index]
+    model["report_period"] = "2026_09"  # type: ignore[index]
+    for section in model["sections"]:  # type: ignore[index]
+        if section["section_id"] == "financial_health_overview":
+            section["content"].update({"total_revenue": 2_123_856.0, "total_expenses": 2_096_356.0})
+    model["sections"].append(  # type: ignore[union-attr]
+        {
+            "section_id": "historical_trends",
+            "title": "Historical Trends",
+            "content": {
+                "trend_series": [
+                    {
+                        "metric_id": "total_revenue",
+                        "metric": "Ingresos",
+                        "unit": "USD",
+                        "points": [
+                            {"period": "2026_04", "value": 2_018_940.0},
+                            {"period": "2026_05", "value": 2_005_584.0},
+                            {"period": "2026_06", "value": 1_992_060.0},
+                            {"period": "2026_07", "value": 2_021_376.0},
+                            {"period": "2026_08", "value": 2_072_448.0},
+                        ],
+                    },
+                    {
+                        "metric_id": "total_expenses",
+                        "metric": "Gastos",
+                        "unit": "USD",
+                        "points": [
+                            {"period": "2026_04", "value": 2_084_940.0},
+                            {"period": "2026_05", "value": 2_126_584.0},
+                            {"period": "2026_06", "value": 2_366_060.0},
+                            {"period": "2026_07", "value": 2_213_876.0},
+                            {"period": "2026_08", "value": 2_138_448.0},
+                        ],
+                    },
+                ]
+            },
+            "source_references": [],
+            "warnings": [],
+        }
+    )
+    from finance_agent.reporting.renderers import html_renderer as html_renderer_module
+
+    captured: dict[str, list[tuple[str, float]]] = {}
+    original_line_chart = html_renderer_module._line_chart
+
+    def spy_line_chart(series: dict[str, object]) -> str:
+        """Capture exact HTML chart helper points."""
+
+        metric = str(series.get("metric_id") or "")
+        if metric in {"total_revenue", "total_expenses"}:
+            captured[metric] = [
+                (str(point.get("period_label")), float(point.get("value")))
+                for point in series.get("points", [])  # type: ignore[union-attr]
+                if isinstance(point, dict)
+            ]
+        return original_line_chart(series)
+
+    monkeypatch.setattr(html_renderer_module, "_line_chart", spy_line_chart)
+
+    html = render_report_html(model)
+
+    assert captured["total_revenue"] == [
+        ("Abr 2026", 2_018_940.0),
+        ("May 2026", 2_005_584.0),
+        ("Jun 2026", 1_992_060.0),
+        ("Jul 2026", 2_021_376.0),
+        ("Ago 2026", 2_072_448.0),
+        ("Sep 2026", 2_123_856.0),
+    ]
+    assert captured["total_expenses"] == [
+        ("Abr 2026", 2_084_940.0),
+        ("May 2026", 2_126_584.0),
+        ("Jun 2026", 2_366_060.0),
+        ("Jul 2026", 2_213_876.0),
+        ("Ago 2026", 2_138_448.0),
+        ("Sep 2026", 2_096_356.0),
+    ]
+    for label in ("Abr 2026", "May 2026", "Jun 2026", "Jul 2026", "Ago 2026", "Sep 2026"):
+        assert label in html
+    assert html.count("<circle") >= 12
+
+
+def test_generated_september_pdf_contains_all_month_labels_and_compact_charts(tmp_path: Path) -> None:
+    """Verify the final PDF artifact exposes all labels and compact chart dimensions."""
+
+    model = _sample_report_model()
+    model["period_slug"] = "2026_09"  # type: ignore[index]
+    model["report_period"] = "2026_09"  # type: ignore[index]
+    for section in model["sections"]:  # type: ignore[index]
+        if section["section_id"] == "financial_health_overview":
+            section["content"].update({"total_revenue": 2_123_856.0, "total_expenses": 2_096_356.0})
+    model["sections"].append(  # type: ignore[union-attr]
+        {
+            "section_id": "historical_trends",
+            "title": "Historical Trends",
+            "content": {
+                "trend_series": [
+                    {
+                        "metric_id": "total_revenue",
+                        "metric": "Ingresos",
+                        "unit": "USD",
+                        "points": [
+                            {"period": "2026_04", "value": 2_018_940.0},
+                            {"period": "2026_05", "value": 2_005_584.0},
+                            {"period": "2026_06", "value": 1_992_060.0},
+                            {"period": "2026_07", "value": 2_021_376.0},
+                            {"period": "2026_08", "value": 2_072_448.0},
+                        ],
+                    }
+                ]
+            },
+            "source_references": [],
+            "warnings": [],
+        }
+    )
+    pdf_path = render_report_pdf(model, tmp_path / "september_labels.pdf")
+
+    from pypdf import PdfReader
+
+    text = "\n".join(page.extract_text() or "" for page in PdfReader(str(pdf_path)).pages)
+
+    for label in ("Abr 2026", "May 2026", "Jun 2026", "Jul 2026", "Ago 2026", "Sep 2026"):
+        assert label in text
+    chart = pdf_renderer_module.LineChart({"points": [{"period": "2026_04", "value": 1}, {"period": "2026_05", "value": 2}]})
+    assert chart.width <= 3.25 * 72
+    assert 170 <= chart.height <= 210
 
 
 def test_august_report_renders_all_historical_charts(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

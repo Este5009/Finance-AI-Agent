@@ -131,7 +131,7 @@ class LineChart(Flowable):
     Assumptions: points are ordered chronologically upstream.
     """
 
-    def __init__(self, series: dict[str, Any], width: float = 6.7 * inch) -> None:
+    def __init__(self, series: dict[str, Any], width: float = 3.15 * inch) -> None:
         """Initialize a line chart.
 
         Inputs: trend series dictionary and width.
@@ -142,7 +142,9 @@ class LineChart(Flowable):
         super().__init__()
         self.series = series
         self.width = width
-        self.height = 2.35 * inch
+        # Keep historical charts compact enough for a two-column executive
+        # layout while preserving readable axes and point markers.
+        self.height = 2.6 * inch
 
     def draw(self) -> None:
         """Draw the line chart onto the PDF canvas.
@@ -206,7 +208,17 @@ class LineChart(Flowable):
         canvas.setFont("Helvetica", 6.5)
         canvas.setFillColor(MUTED)
         for x, _, point in coords:
-            canvas.drawCentredString(x, bottom - 13, str(point.get("period_label") or format_period_label(point.get("period"))))
+            label = str(point.get("period_label") or format_period_label(point.get("period")))
+            canvas.saveState()
+            canvas.translate(x, bottom - 10)
+            # Six monthly labels fit much better when slightly rotated; every
+            # supplied point still receives a visible marker and month label.
+            if len(coords) <= 6:
+                canvas.rotate(32)
+                canvas.drawCentredString(0, 0, label)
+            else:
+                canvas.drawCentredString(0, 0, label)
+            canvas.restoreState()
         canvas.setFont("Helvetica-Bold", 6.3)
         canvas.setFillColor(NAVY)
         canvas.drawCentredString(left + chart_width / 2, 6, "Periodo")
@@ -592,11 +604,16 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
         _append_narrative(story, view, "historical_trends", styles)
         chartable_ids = {id(series) for series in historical_chart_series(historical)}
         rendered_chart_count = 0
+        chart_cells: list[list[Any]] = []
         for series in historical.get("trends", []):
             points = series.get("points", []) if isinstance(series, dict) else []
             if id(series) in chartable_ids:
-                story.append(LineChart(series))
-                story.append(_insight_para(series.get("insight", ""), styles["insight"]))
+                chart_cells.append(
+                    [
+                        LineChart(series, width=3.15 * inch),
+                        _insight_para(series.get("insight", ""), styles["insight"]),
+                    ]
+                )
                 rendered_chart_count += 1
             else:
                 available = points[0] if points else {}
@@ -606,8 +623,33 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
                     f"{available.get('period_label') or format_period_label(available.get('period'))} — "
                     f"{available.get('display') or format_value(available.get('value'), series.get('unit'))}."
                 )
-                story.append(_info_card(message, styles, title="Historial insuficiente"))
-            story.append(Spacer(1, 0.08 * inch))
+                chart_cells.append([_info_card(message, styles, title="Historial insuficiente")])
+        if chart_cells:
+            rows = []
+            for index in range(0, len(chart_cells), 2):
+                row = chart_cells[index : index + 2]
+                if len(row) == 1:
+                    row.append("")
+                rows.append(row)
+            chart_table = Table(
+                rows,
+                colWidths=[3.22 * inch, 3.22 * inch],
+                hAlign="LEFT",
+                spaceBefore=4,
+                spaceAfter=10,
+            )
+            chart_table.setStyle(
+                TableStyle(
+                    [
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 3),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+                        ("TOPPADDING", (0, 0), (-1, -1), 5),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                    ]
+                )
+            )
+            story.append(chart_table)
         validate_historical_chart_rendering(
             historical,
             rendered_chart_count,
