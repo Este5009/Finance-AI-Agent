@@ -812,6 +812,11 @@ def _historical_sections(
     historical_context: dict[str, Any],
     analysis: dict[str, Any],
     analysis_source: tuple[str, ...],
+    *,
+    period_slug: str,
+    finance: dict[str, Any],
+    payments: dict[str, Any],
+    cash_flow: dict[str, Any],
     deterministic_summaries: dict[str, str] | None = None,
 ) -> tuple[ReportSection, ...]:
     """Build optional historical report sections when compact history exists.
@@ -829,11 +834,26 @@ def _historical_sections(
         return ()
     presentation_seed = {
         "report_id": "historical-context-seed",
-        "report_period": "",
+        "period_slug": period_slug,
+        "report_period": period_slug,
         "sections": [
             {
                 "section_id": "historical_summary",
                 "content": {"historical_context": historical_context},
+                "source_references": list(analysis_source),
+                "warnings": [],
+            },
+            {
+                "section_id": "financial_health_overview",
+                "content": {
+                    "total_revenue": finance.get("total_revenue"),
+                    "total_expenses": finance.get("total_expenses"),
+                    "net_operating_result": finance.get("net_operating_result"),
+                    "net_cash_flow": cash_flow.get("net_cash_flow"),
+                    "ending_cash": cash_flow.get("ending_cash"),
+                    "payroll_percentage_of_revenue": finance.get("payroll_percentage_of_revenue"),
+                    "collection_rate": payments.get("collection_rate"),
+                },
                 "source_references": list(analysis_source),
                 "warnings": [],
             }
@@ -843,6 +863,7 @@ def _historical_sections(
     historical = build_historical_presentation(presentation_seed)
     trend_overview = [
         {
+            "metric_id": trend.get("metric_id"),
             "metric": trend.get("metric"),
             "unit": trend.get("unit"),
             "direction": trend.get("direction"),
@@ -1244,7 +1265,11 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
         historical_context,
         analysis,
         analysis_source,
-        deterministic_summaries,
+        period_slug=inputs.period_slug,
+        finance=finance,
+        payments=payments,
+        cash_flow=cash_flow,
+        deterministic_summaries=deterministic_summaries,
     )
     sections = (*base_sections[:-2], *historical_sections, *base_sections[-2:])
     model = ReportModel(

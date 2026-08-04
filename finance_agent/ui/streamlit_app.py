@@ -26,7 +26,7 @@ from finance_agent.orchestration import (
     build_pipeline_input_model,
     run_pipeline_for_report,
 )
-from finance_agent.reporting.presentation import build_presentation_view
+from finance_agent.reporting.presentation import build_presentation_view, format_value
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -776,6 +776,124 @@ def _render_responsive_card_grid(st: Any, cards: list[dict[str, Any]], *, min_wi
     )
 
 
+def _number_or_none(value: Any) -> float | None:
+    """Return a float value or None for presentation-only helpers.
+
+    Inputs: scalar value.
+    Outputs: float or None.
+    Assumptions: callers use this only for already-calculated report values.
+    """
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _trend_card_payload(trend: dict[str, Any]) -> dict[str, Any]:
+    """Build a Streamlit card payload from one canonical historical trend.
+
+    Inputs: trend series from the report presentation view.
+    Outputs: card dictionary with latest value, direction, span, and min/max.
+    Assumptions: the series already comes from deterministic report-model data.
+    """
+
+    points = [point for point in trend.get("points", []) or [] if isinstance(point, dict)]
+    unit = str(trend.get("unit") or "")
+    numeric = [
+        (point, _number_or_none(point.get("value")))
+        for point in points
+        if _number_or_none(point.get("value")) is not None
+    ]
+    if not numeric:
+        return {
+            "title": trend.get("metric") or "Indicador histórico",
+            "body": "No hay valores históricos suficientes para construir una tendencia.",
+            "variant": "neutral",
+            "badge": "Historial insuficiente",
+            "rows": [("Periodos disponibles", 0)],
+        }
+    first_point, first_value = numeric[0]
+    latest_point, latest_value = numeric[-1]
+    min_point, min_value = min(numeric, key=lambda item: item[1])
+    max_point, max_value = max(numeric, key=lambda item: item[1])
+    change = latest_value - first_value
+    badge = trend.get("direction_label") or "Estable"
+    badge_text = str(badge).casefold()
+    variant = "positive" if "mejor" in badge_text else ("negative" if "deter" in badge_text else "neutral")
+    return {
+        "title": trend.get("metric") or "Indicador histórico",
+        "body": trend.get("insight") or "Serie histórica disponible.",
+        "variant": variant,
+        "badge": badge if len(points) >= 2 else "Historial insuficiente",
+        "rows": [
+            ("Último valor", latest_point.get("display") or format_value(latest_value, unit)),
+            ("Cambio desde el primer periodo", format_value(change, unit)),
+            ("Mínimo", f"{min_point.get('period_label')}: {format_value(min_value, unit)}"),
+            ("Máximo", f"{max_point.get('period_label')}: {format_value(max_value, unit)}"),
+            ("Periodos disponibles", len(points)),
+        ],
+    }
+
+
+def _trend_svg_html(trend: dict[str, Any]) -> str:
+    """Render a compact SVG trend chart for Streamlit.
+
+    Inputs: one canonical trend series.
+    Outputs: escaped HTML/SVG string.
+    Assumptions: this visualizes supplied points only and performs no retrieval.
+    """
+
+    points = [point for point in trend.get("points", []) or [] if isinstance(point, dict)]
+    if len(points) < 2:
+        return ""
+    numeric_values = [_number_or_none(point.get("value")) for point in points]
+    if any(value is None for value in numeric_values):
+        return ""
+    values = [float(value) for value in numeric_values if value is not None]
+    min_value = min(values)
+    max_value = max(values)
+    span = max(max_value - min_value, 1e-9)
+    width = 520
+    height = 210
+    left = 54
+    right = 18
+    top = 24
+    bottom = 48
+    coords = []
+    for index, point in enumerate(points):
+        x = left + (width - left - right) * index / max(1, len(points) - 1)
+        y = height - bottom - ((float(point.get("value") or 0.0) - min_value) / span) * (height - top - bottom)
+        coords.append((x, y, point))
+    polyline = " ".join(f"{x:.1f},{y:.1f}" for x, y, _ in coords)
+    grid: list[str] = []
+    labels: list[str] = []
+    for tick in range(4):
+        value = min_value + span * tick / 3
+        y = height - bottom - tick / 3 * (height - top - bottom)
+        grid.append(f"<line x1='{left}' x2='{width-right}' y1='{y:.1f}' y2='{y:.1f}' class='ui-trend-grid' />")
+        labels.append(
+            f"<text x='{left-7}' y='{y+4:.1f}' text-anchor='end' class='ui-trend-tick'>"
+            f"{escape(format_value(value, trend.get('unit')))}</text>"
+        )
+    for x, _, point in coords:
+        labels.append(
+            f"<text x='{x:.1f}' y='{height-bottom+22}' text-anchor='middle' class='ui-trend-tick'>"
+            f"{escape(_safe_display_text(point.get('period_label')))}</text>"
+        )
+    dots = "".join(
+        f"<circle cx='{x:.1f}' cy='{y:.1f}' r='4.5' class='{'ui-trend-current' if index == len(coords) - 1 else 'ui-trend-dot'}' />"
+        for index, (x, y, _) in enumerate(coords)
+    )
+    return (
+        "<div class='ui-trend-chart'>"
+        f"<h4>{escape(_safe_display_text(trend.get('metric')))}</h4>"
+        f"<svg viewBox='0 0 {width} {height}' role='img' aria-label='{escape(_safe_display_text(trend.get('metric')))}'>"
+        f"{''.join(grid)}<polyline points='{polyline}' class='ui-trend-line' />{dots}{''.join(labels)}</svg>"
+        "</div>"
+    )
+
+
 def _analysis_mode_label(report_model: dict[str, Any]) -> tuple[str, str]:
     """Return the user-facing mode label for one report model.
 
@@ -1293,6 +1411,51 @@ def _apply_page_styles(st: Any) -> None:
         .ui-card-row strong {
             color: var(--fa-text-strong);
             text-align: right;
+        }
+        .ui-trend-chart {
+            background: var(--fa-surface);
+            color: var(--fa-text);
+            border: 1px solid var(--fa-border);
+            border-radius: 18px;
+            padding: 16px 18px 12px;
+            margin: 0.3rem 0 1rem;
+            box-shadow: 0 6px 18px rgba(23, 43, 77, 0.06);
+        }
+        .ui-trend-chart h4 {
+            margin: 0 0 0.35rem;
+            color: var(--fa-text-strong);
+            font-size: 0.98rem;
+            line-height: 1.25;
+        }
+        .ui-trend-chart svg {
+            width: 100%;
+            max-width: 620px;
+            height: auto;
+            display: block;
+        }
+        .ui-trend-grid {
+            stroke: var(--fa-border);
+            stroke-width: 1;
+        }
+        .ui-trend-line {
+            fill: none;
+            stroke: var(--fa-info);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .ui-trend-dot {
+            fill: var(--fa-info);
+        }
+        .ui-trend-current {
+            fill: var(--fa-positive);
+            stroke: var(--fa-surface);
+            stroke-width: 2;
+        }
+        .ui-trend-tick {
+            fill: var(--fa-muted);
+            font-size: 10px;
+            font-weight: 600;
         }
         .ui-kpi-label {
             color: var(--fa-muted);
@@ -2375,21 +2538,23 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
     if historical.get("available"):
         narrative = historical.get("narrative", []) or []
         trend_cards = []
+        trend_charts = []
         for trend in historical.get("trends", []) or []:
             if not isinstance(trend, dict):
                 continue
             points = trend.get("points", []) or []
-            trend_cards.append(
-                {
-                    "title": trend.get("metric") or "Indicador histórico",
-                    "body": trend.get("insight") or "Historial disponible.",
-                    "variant": "info" if len(points) > 1 else "neutral",
-                    "badge": trend.get("direction_label") or ("Historial limitado" if len(points) <= 1 else "Estable"),
-                    "rows": [("Períodos disponibles", len(points))],
-                }
-            )
+            trend_cards.append(_trend_card_payload(trend))
+            if len(points) >= 2:
+                trend_charts.append(_trend_svg_html(trend))
         if trend_cards:
-            _render_responsive_card_grid(st, trend_cards[:4], min_width_px=260)
+            _render_responsive_card_grid(st, trend_cards, min_width_px=260)
+            if trend_charts:
+                st.markdown(
+                    "<div class='ui-responsive-grid' style='--fa-grid-min: 320px'>"
+                    + "".join(trend_charts)
+                    + "</div>",
+                    unsafe_allow_html=True,
+                )
         else:
             _render_section_card(
                 st,

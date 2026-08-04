@@ -588,8 +588,19 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
         _section_title(story, "historical_trends", styles)
         _append_narrative(story, view, "historical_summary", styles)
         _append_narrative(story, view, "historical_trends", styles)
-        for series in historical.get("trends", [])[:3]:
-            story.append(KeepTogether([LineChart(series), _insight_para(series.get("insight", ""), styles["insight"])]))
+        for series in historical.get("trends", []):
+            points = series.get("points", []) if isinstance(series, dict) else []
+            if len(points) < 2:
+                available = points[0] if points else {}
+                message = (
+                    f"{series.get('metric') or 'Indicador histórico'}: historial insuficiente para graficar "
+                    f"una tendencia. Dato disponible: "
+                    f"{available.get('period_label') or format_period_label(available.get('period'))} — "
+                    f"{available.get('display') or format_value(available.get('value'), series.get('unit'))}."
+                )
+                story.append(_info_card(message, styles, title="Historial insuficiente"))
+            else:
+                story.append(KeepTogether([LineChart(series), _insight_para(series.get("insight", ""), styles["insight"])]))
             story.append(Spacer(1, 0.08 * inch))
         _section_title(story, "recommendation_follow_up", styles)
         if historical.get("recommendation_intro"):

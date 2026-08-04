@@ -225,10 +225,14 @@ def _finance_metrics(finance_summary: dict[str, Any]) -> dict[str, Any]:
     cash = finance.get("cash_flow", {})
     cash = cash if isinstance(cash, dict) else {}
     return {
+        "total_revenue": finance.get("total_revenue"),
+        "total_expenses": finance.get("total_expenses"),
+        "net_operating_result": finance.get("net_operating_result"),
         "payroll_percentage_of_revenue": finance.get("payroll_percentage_of_revenue"),
         "student_payment_collection_rate": payments.get("collection_rate")
         or finance.get("student_payment_collection_rate"),
         "net_cash_flow": cash.get("net_cash_flow") or finance.get("net_cash_flow"),
+        "ending_cash": cash.get("ending_cash") or finance.get("ending_cash"),
     }
 
 
@@ -336,12 +340,17 @@ def _planned_calls(
     database_arg = {"before_period": current_period, "database_path": database_path}
     calls: list[dict[str, Any]] = []
     current_metrics = signals.get("current_metrics", {})
+    for metric in ("total_revenue", "total_expenses", "net_operating_result"):
+        if current_metrics.get(metric) is not None:
+            calls.append(_call("get_metric_history", metric=metric, periods=periods, **database_arg))
     if signals["payroll_anomaly"] or current_metrics.get("payroll_percentage_of_revenue") is not None:
         calls.append(_call("get_metric_history", metric="payroll_percentage_of_revenue", periods=periods, **database_arg))
     if signals["collection_anomaly"] or current_metrics.get("student_payment_collection_rate") is not None:
         calls.append(_call("get_metric_history", metric="student_payment_collection_rate", periods=periods, **database_arg))
     if signals["cashflow_anomaly"] or current_metrics.get("net_cash_flow") is not None:
         calls.append(_call("get_metric_history", metric="net_cash_flow", periods=periods, **database_arg))
+    if current_metrics.get("ending_cash") is not None:
+        calls.append(_call("get_metric_history", metric="ending_cash", periods=periods, **database_arg))
     if signals["department_overspending"]:
         for department in signals.get("departments", []) or ["Health Sciences"]:
             calls.append(_call("get_department_history", department=department, periods=periods, detail_level="summary", **database_arg))

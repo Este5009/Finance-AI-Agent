@@ -702,6 +702,99 @@ def test_october_analysis_tab_uses_grouped_executive_sections() -> None:
     assert "Ver tabla completa por departamento" in visible or fake_st.tables
 
 
+def test_analysis_tab_renders_canonical_historical_trend_cards_and_charts() -> None:
+    """Verify Streamlit shows historical trend cards/charts from the report view."""
+
+    report_model = _july_report_model()
+    report_model["period_slug"] = "2026_08"
+    report_model["report_period"] = "2026_08"
+    report_model["sections"] = [
+        section for section in report_model["sections"] if section["section_id"] != "historical_trends"
+    ]
+    for section in report_model["sections"]:
+        if section["section_id"] == "financial_health_overview":
+            section["content"]["collection_rate"] = 0.9
+            section["content"]["payroll_percentage_of_revenue"] = 0.49
+    report_model["sections"].append(
+        {
+            "section_id": "historical_trends",
+            "title": "Historical Trends",
+            "content": {
+                "trend_series": [
+                    {
+                        "metric_id": "collection_rate",
+                        "metric": "Tasa de cobranza",
+                        "unit": "ratio",
+                        "direction": "improving",
+                        "points": [
+                            {"period": "2026_06", "value": 0.84},
+                            {"period": "2026_07", "value": 0.85},
+                        ],
+                    },
+                    {
+                        "metric_id": "payroll_percentage_of_revenue",
+                        "metric": "Nómina / ingresos",
+                        "unit": "ratio",
+                        "direction": "improving",
+                        "points": [
+                            {"period": "2026_06", "value": 0.53},
+                            {"period": "2026_07", "value": 0.52},
+                        ],
+                    },
+                ]
+            },
+            "source_references": ["outputs/analysis/strategic_analysis_2026_08.json"],
+            "warnings": [],
+        }
+    )
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_analysis_tab(fake_st, report_model)
+    html = "\n".join(fake_st.markdown_calls)
+
+    assert "ui-trend-chart" in html
+    assert "Último valor" in html
+    assert "Ago 2026" in html
+    assert "get_metric_history" not in html
+
+
+def test_analysis_tab_uses_one_point_history_fallback_card() -> None:
+    """Verify Streamlit avoids empty charts when only one trend point exists."""
+
+    report_model = _july_report_model()
+    report_model["period_slug"] = "2026_06"
+    report_model["report_period"] = "2026_06"
+    report_model["sections"] = [
+        section for section in report_model["sections"] if section["section_id"] != "historical_trends"
+    ]
+    report_model["sections"].append(
+        {
+            "section_id": "historical_trends",
+            "title": "Historical Trends",
+            "content": {
+                "trend_series": [
+                    {
+                        "metric_id": "collection_rate",
+                        "metric": "Tasa de cobranza",
+                        "unit": "ratio",
+                        "direction": "stable",
+                        "points": [{"period": "2026_06", "value": 0.84}],
+                    }
+                ]
+            },
+            "source_references": ["outputs/analysis/strategic_analysis_2026_06.json"],
+            "warnings": [],
+        }
+    )
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_analysis_tab(fake_st, report_model)
+    html = "\n".join(fake_st.markdown_calls)
+
+    assert "Historial insuficiente" in html
+    assert "ui-trend-chart" not in html
+
+
 def test_semantic_badges_show_variety_in_results_dashboard() -> None:
     """Verify cards use meaningful executive badges instead of all Informativo."""
 

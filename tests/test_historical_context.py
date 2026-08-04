@@ -190,6 +190,53 @@ def test_context_builder_selects_relevant_history_and_order() -> None:
     assert result.context["history_policy"]["no_full_reports"] is True
 
 
+def test_august_context_keeps_all_prior_monthly_metric_points() -> None:
+    """Verify August context carries all prior monthly points and no future rows."""
+
+    calls: list[str] = []
+    periods = [f"2026_{month:02d}" for month in range(1, 8)]
+
+    def metric(**kwargs: Any) -> MemoryToolResult:
+        """Return seven prior monthly records for the requested metric."""
+
+        calls.append(f"get_metric_history:{kwargs.get('metric')}")
+        records = [
+            {"period": period, "metric": kwargs.get("metric"), "value": index + 1}
+            for index, period in enumerate(periods)
+        ]
+        return _result("get_metric_history", records)
+
+    retrievers = _fake_retrievers(calls)
+    retrievers["get_metric_history"] = metric
+    finance = _finance_summary()
+    finance["finance_summary"].update(
+        {
+            "total_revenue": 100,
+            "total_expenses": 90,
+            "net_operating_result": 10,
+            "cash_flow": {"net_cash_flow": 5, "ending_cash": 50},
+        }
+    )
+
+    result = build_historical_context(
+        current_period="2026_08",
+        finance_summary=finance,
+        anomaly_report=_anomaly_report(),
+        database_path=Path("memory.db"),
+        retrievers=retrievers,
+    )
+
+    metric_results = [
+        item for item in result.context["retrievals"] if item["tool_name"] == "get_metric_history"
+    ]
+    assert metric_results
+    for item in metric_results:
+        item_periods = [record["period"] for record in item["records"]]
+        assert item_periods == periods
+        assert "2026_08" not in item_periods
+        assert "2026_09" not in item_periods
+
+
 def test_context_builder_allows_ampersand_department_names() -> None:
     """Verify historical context does not reject supported department punctuation."""
 

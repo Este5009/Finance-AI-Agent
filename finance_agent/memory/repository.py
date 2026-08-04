@@ -389,7 +389,7 @@ class MemoryRepository:
             return ()
         placeholders = ",".join("?" for _ in periods)
         query = (
-            f"SELECT child.*, runs.period AS run_period, runs.period_type "
+            f"SELECT child.*, runs.period AS run_period, runs.period_type, runs.updated_at_utc "
             f"FROM {table} AS child "
             "JOIN pipeline_runs AS runs ON child.run_id = runs.run_id "
             f"WHERE runs.period IN ({placeholders})"

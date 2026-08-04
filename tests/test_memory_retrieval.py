@@ -198,6 +198,51 @@ def test_metric_history_filters_and_orders(seeded_database: Path) -> None:
     assert result.data["records"][-1]["value"] == pytest.approx(0.41)
 
 
+def test_metric_history_accepts_collection_rate_alias(seeded_database: Path) -> None:
+    """Verify legacy collection-rate metric aliases resolve to stored KPI rows."""
+
+    result = get_metric_history(
+        "student_payment_collection_rate",
+        6,
+        database_path=seeded_database,
+    )
+
+    assert result.success is True
+    assert [row["period"] for row in result.data["records"]] == list(SEEDED_PERIODS)
+    assert result.data["records"][-1]["value"] == pytest.approx(0.84 + (5 * 0.015))
+
+
+def test_metric_history_uses_latest_completed_row_for_duplicate_period(tmp_path: Path) -> None:
+    """Verify repeated accepted runs for one period do not duplicate trend points."""
+
+    db_path = tmp_path / "memory.db"
+    repository = MemoryRepository(db_path)
+    repository.save_pipeline_run(_payload("2026_07", 6))
+    revised = _payload("2026_07", 7)
+    revised = StoredPipelineRun(
+        **{
+            **revised.__dict__,
+            "run_id": "RUN-2026_07-REV",
+            "idempotency_key": "key-2026_07-revision",
+            "kpis": (
+                KpiRecord("2026_07", None, "payroll_percentage_of_revenue", 0.5, "ratio", "available"),
+            ),
+        }
+    )
+    repository.save_pipeline_run(revised)
+
+    result = get_metric_history(
+        "payroll_percentage_of_revenue",
+        12,
+        before_period="2026_08",
+        database_path=db_path,
+    )
+
+    assert result.success is True
+    assert [row["period"] for row in result.data["records"]] == ["2026_07"]
+    assert result.data["records"][0]["value"] == pytest.approx(0.5)
+
+
 def test_department_history_summary_and_full(seeded_database: Path) -> None:
     """Verify department history supports summary and full detail levels."""
 

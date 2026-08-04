@@ -24,6 +24,20 @@ VALID_PERIOD_RE = re.compile(
     r"^(20\d{2})(?:[-_](0[1-9]|1[0-2]|Q[1-4]|S[1-2]))?$"
 )
 MAX_TEXT_VALUE_LENGTH = 240
+METRIC_ALIASES = {
+    "collection_rate": ("collection_rate", "student_payment_collection_rate"),
+    "student_payment_collection_rate": ("student_payment_collection_rate", "collection_rate"),
+}
+FINANCE_SUMMARY_METRIC_PATHS = {
+    "total_revenue": ("finance_summary", "total_revenue"),
+    "total_expenses": ("finance_summary", "total_expenses"),
+    "net_operating_result": ("finance_summary", "net_operating_result"),
+    "net_cash_flow": ("finance_summary", "cash_flow", "net_cash_flow"),
+    "ending_cash": ("finance_summary", "cash_flow", "ending_cash"),
+    "payroll_percentage_of_revenue": ("finance_summary", "payroll_percentage_of_revenue"),
+    "collection_rate": ("finance_summary", "student_payments", "collection_rate"),
+    "student_payment_collection_rate": ("finance_summary", "student_payments", "collection_rate"),
+}
 
 
 def _repository(database_path: str | Path | None = None) -> MemoryRepository:
@@ -186,6 +200,7 @@ def _period_rows(
     """
 
     rows = [_row_dict(row) for row in repository.fetch_periods()]
+    rows = [row for row in rows if str(row.get("status") or "").lower() == "completed"]
     if before_period is not None:
         before = _validate_period(before_period, "before_period")
         rows = [
@@ -194,8 +209,31 @@ def _period_rows(
             if period_sort_key(row["period"]) < period_sort_key(before)
             or (include_current and period_sort_key(row["period"]) == period_sort_key(before))
         ]
+    rows = _latest_row_per_period(rows)
     rows = sorted(rows, key=lambda row: period_sort_key(row["period"]))
     return tuple(rows[-limit:])
+
+
+def _latest_row_per_period(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep one completed run row per period, preferring the latest update.
+
+    Inputs: pipeline run rows from SQLite.
+    Outputs: de-duplicated rows keyed by period.
+    Assumptions: repeated completed rows for a period represent reprocessing or
+    revision history; read-only retrieval should use the newest accepted row.
+    """
+
+    latest: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        period = str(row.get("period") or "")
+        if not period:
+            continue
+        current = latest.get(period)
+        row_stamp = str(row.get("updated_at_utc") or row.get("completed_at_utc") or "")
+        current_stamp = str(current.get("updated_at_utc") or current.get("completed_at_utc") or "") if current else ""
+        if current is None or row_stamp >= current_stamp:
+            latest[period] = row
+    return list(latest.values())
 
 
 def _unavailable(tool_name: str, message: str) -> MemoryToolResult:
@@ -330,8 +368,10 @@ def get_metric_history(
     period_count = _validate_limit(periods, "periods")
     repository = _repository(database_path)
     selected = _selected_periods(repository, periods=period_count, before_period=before_period)
-    where = "child.metric = ?"
-    params: list[object] = [metric_name]
+    metric_names = METRIC_ALIASES.get(metric_name, (metric_name,))
+    metric_placeholders = ",".join("?" for _ in metric_names)
+    where = f"child.metric IN ({metric_placeholders})"
+    params: list[object] = list(metric_names)
     if dept is not None:
         where += " AND COALESCE(child.department, '') = ?"
         params.append(dept)
@@ -341,17 +381,32 @@ def get_metric_history(
         extra_where=where,
         params=tuple(params),
     )
-    points = [
-        HistoricalMetricPoint(
-            period=str(row["run_period"]),
-            department=row["department"],
-            metric=str(row["metric"]),
-            value=row["value"],
-            unit=row["unit"],
-            status=row["status"],
-        ).to_dict()
-        for row in sorted(rows, key=lambda item: period_sort_key(str(item["run_period"])))
-    ]
+    points = _deduplicate_metric_points(
+        [
+            HistoricalMetricPoint(
+                period=str(row["run_period"]),
+                department=row["department"],
+                metric=str(row["metric"]),
+                value=row["value"],
+                unit=row["unit"],
+                status=row["status"],
+            ).to_dict()
+            for row in sorted(
+                rows,
+                key=lambda item: (
+                    period_sort_key(str(item["run_period"])),
+                    str(item["updated_at_utc"] or ""),
+                ),
+            )
+        ]
+    )
+    points = _augment_metric_points_from_finance_artifacts(
+        repository,
+        selected_periods=selected,
+        metric_name=metric_name,
+        existing_points=points,
+        department=dept,
+    )
     if not points:
         return _unavailable(
             "get_metric_history",
@@ -369,6 +424,108 @@ def get_metric_history(
         },
         confidence=0.95,
     )
+
+
+def _deduplicate_metric_points(points: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Return one KPI point per period and department.
+
+    Inputs: metric points sorted by period/update time.
+    Outputs: chronologically ordered de-duplicated points.
+    Assumptions: later rows for the same period/department supersede earlier
+    rows in read-only historical views.
+    """
+
+    latest: dict[tuple[str, str], dict[str, Any]] = {}
+    for point in points:
+        key = (str(point.get("period") or ""), str(point.get("department") or ""))
+        latest[key] = point
+    return sorted(latest.values(), key=lambda item: period_sort_key(str(item.get("period") or "")))
+
+
+def _augment_metric_points_from_finance_artifacts(
+    repository: MemoryRepository,
+    *,
+    selected_periods: tuple[str, ...],
+    metric_name: str,
+    existing_points: list[dict[str, Any]],
+    department: str | None,
+) -> list[dict[str, Any]]:
+    """Fill missing scalar KPI history from stored finance-summary artifacts.
+
+    Inputs: repository, selected periods, metric name, existing KPI points, and
+    optional department filter.
+    Outputs: existing points plus artifact-derived points for missing periods.
+    Assumptions: artifact references point to processed JSON summaries; this
+    does not read raw Excel/PDF files or recalculate any value.
+    """
+
+    if department is not None or metric_name not in FINANCE_SUMMARY_METRIC_PATHS:
+        return existing_points
+    existing_periods = {str(point.get("period") or "") for point in existing_points}
+    missing_periods = tuple(period for period in selected_periods if period not in existing_periods)
+    if not missing_periods:
+        return existing_points
+    rows = repository.fetch_rows_for_periods(
+        "artifacts",
+        missing_periods,
+        extra_where="child.artifact_type = ?",
+        params=("finance_summary",),
+    )
+    artifact_points: list[dict[str, Any]] = []
+    for row in sorted(
+        rows,
+        key=lambda item: (
+            period_sort_key(str(item["run_period"])),
+            str(item["updated_at_utc"] or ""),
+        ),
+    ):
+        period = str(row["run_period"])
+        if period in existing_periods:
+            continue
+        value = _value_from_finance_summary_artifact(row["path"], metric_name)
+        if value is None:
+            continue
+        artifact_points.append(
+            HistoricalMetricPoint(
+                period=period,
+                department=None,
+                metric=metric_name,
+                value=value,
+                unit="ratio" if metric_name in {"payroll_percentage_of_revenue", "collection_rate", "student_payment_collection_rate"} else "USD",
+                status="available",
+            ).to_dict()
+        )
+        existing_periods.add(period)
+    return _deduplicate_metric_points([*existing_points, *artifact_points])
+
+
+def _value_from_finance_summary_artifact(path_value: Any, metric_name: str) -> float | None:
+    """Read one approved scalar value from a processed finance-summary JSON.
+
+    Inputs: artifact path and metric name.
+    Outputs: numeric value or None.
+    Assumptions: only allowlisted JSON paths are used; malformed artifacts are
+    treated as unavailable evidence.
+    """
+
+    path = Path(str(path_value))
+    if not path.is_absolute():
+        return None
+    if not path.is_file():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    current: Any = payload
+    for key in FINANCE_SUMMARY_METRIC_PATHS[metric_name]:
+        if not isinstance(current, dict):
+            return None
+        current = current.get(key)
+    try:
+        return float(current)
+    except (TypeError, ValueError):
+        return None
 
 
 def get_department_history(

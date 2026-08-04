@@ -1394,6 +1394,7 @@ def build_historical_presentation(report_model: dict[str, Any]) -> dict[str, Any
         context = _historical_context(report_model)
         context_risks = _recurring_risk_rows(context)
         context_follow_up = _recommendation_follow_up_rows(context)
+        clean["trends"] = _append_current_metric_points(report_model, clean.get("trends", []))
         # Older report models may contain sparse, database-shaped rows while
         # still carrying the compact historical context needed to build an
         # executive view. Prefer the richer deterministic mapping when present.
@@ -1412,12 +1413,13 @@ def build_historical_presentation(report_model: dict[str, Any]) -> dict[str, Any
         kpi_trends = _trend_items_from_retrievals(context, kpi_trends)
     trends = [_trend_series(item) for item in kpi_trends if isinstance(item, dict)]
     trends = [item for item in trends if item["points"]]
+    trends = _append_current_metric_points(report_model, trends)
     risks = _recurring_risk_rows(context)
     follow_up = _recommendation_follow_up_rows(context)
     return {
         "available": bool(trends or risks or follow_up),
         "narrative": [],
-        "trends": trends[:4],
+        "trends": trends[:7],
         "recurring_risks": risks[:8],
         "risk_summary": _risk_summary(risks),
         "recommendation_intro": RECOMMENDATION_FOLLOW_UP_INTRO,
@@ -1586,7 +1588,7 @@ def _visible_strings(value: Any) -> list[str]:
     strings: list[str] = []
     if isinstance(value, dict):
         for key, child in value.items():
-            if key in {"id", "unit", "mode", "period_slug", "report_id", "labels", "sections"}:
+            if key in {"id", "metric_id", "unit", "mode", "period_slug", "report_id", "labels", "sections"}:
                 continue
             strings.extend(_visible_strings(child))
     elif isinstance(value, list):
@@ -1666,8 +1668,9 @@ def _trend_series(item: dict[str, Any]) -> dict[str, Any]:
     Assumptions: values are processed historical KPI records.
     """
 
-    metric = str(item.get("metric") or "")
-    label, unit, _ = METRIC_LABELS_ES.get(metric, (display_metric_name(metric), "", ""))
+    metric = str(item.get("metric") or item.get("metric_id") or "")
+    metric_id = _canonical_trend_metric(metric)
+    label, unit, _ = METRIC_LABELS_ES.get(metric_id, (display_metric_name(metric_id), "", ""))
     points = []
     for point in item.get("points", []) or []:
         if isinstance(point, dict):
@@ -1682,14 +1685,9 @@ def _trend_series(item: dict[str, Any]) -> dict[str, Any]:
                         "display": format_value(numeric, unit),
                     }
                 )
-    direction = str(item.get("direction") or "stable")
-    if points and metric == "payroll_percentage_of_revenue":
-        direction = "improving" if points[-1]["value"] <= points[0]["value"] else "worsening"
-    if points and metric == "student_payment_collection_rate":
-        direction = "improving" if points[-1]["value"] >= points[0]["value"] else "worsening"
-    if points and metric == "net_cash_flow":
-        direction = "improving" if points[-1]["value"] >= points[0]["value"] else "worsening"
+    direction = _trend_direction_for_metric(metric_id, points, str(item.get("direction") or "stable"))
     series = {
+        "metric_id": metric_id,
         "metric": label,
         "unit": unit,
         "direction": direction,
@@ -1728,6 +1726,121 @@ def _trend_items_from_retrievals(context: dict[str, Any], trend_summary: dict[st
                 }
             )
     return items
+
+
+def _canonical_trend_metric(metric: str) -> str:
+    """Return the presentation canonical ID for a historical metric.
+
+    Inputs: metric ID from retrieval or report model.
+    Outputs: canonical report metric ID.
+    Assumptions: internal aliases remain accepted for backward compatibility.
+    """
+
+    aliases = {"student_payment_collection_rate": "collection_rate"}
+    return aliases.get(str(metric or ""), str(metric or ""))
+
+
+def _current_metric_values(report_model: dict[str, Any]) -> dict[str, float]:
+    """Extract current deterministic metric values for chart display.
+
+    Inputs: report model.
+    Outputs: canonical metric ID to numeric value.
+    Assumptions: values come from processed finance-summary sections, not LLM
+    prose or renderer calculations.
+    """
+
+    content = get_section(report_model, "financial_health_overview").get("content", {})
+    content = content if isinstance(content, dict) else {}
+    values: dict[str, float] = {}
+    for metric in (
+        "total_revenue",
+        "total_expenses",
+        "net_operating_result",
+        "net_cash_flow",
+        "ending_cash",
+        "payroll_percentage_of_revenue",
+        "collection_rate",
+    ):
+        numeric = number_value(content.get(metric))
+        if numeric is not None:
+            values[metric] = numeric
+    return values
+
+
+def _append_current_metric_points(report_model: dict[str, Any], trends: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Append the current report point to each comparable historical series.
+
+    Inputs: report model and chart-ready trend series.
+    Outputs: trend series with current deterministic point when available.
+    Assumptions: historical retrieval excludes the current period for LLM
+    context; presentation may add the current processed value for chart clarity.
+    """
+
+    current_period = str(report_model.get("period_slug") or report_model.get("report_period") or "")
+    current_values = _current_metric_values(report_model)
+    enriched: list[dict[str, Any]] = []
+    for series in trends:
+        if not isinstance(series, dict):
+            continue
+        metric_id = _canonical_trend_metric(str(series.get("metric_id") or series.get("metric") or ""))
+        value = current_values.get(metric_id)
+        points = [point for point in series.get("points", []) or [] if isinstance(point, dict)]
+        if value is not None and current_period and all(str(point.get("period") or "") != current_period for point in points):
+            points.append(
+                {
+                    "period": current_period,
+                    "period_label": format_period_label(current_period),
+                    "value": value,
+                    "display": format_value(value, series.get("unit")),
+                    "is_current": True,
+                }
+            )
+        else:
+            for point in points:
+                if str(point.get("period") or "") == current_period:
+                    point["is_current"] = True
+        points = sorted(points, key=lambda point: _period_sort_for_presentation(str(point.get("period") or "")))
+        updated = {**series, "metric_id": metric_id, "points": points}
+        updated["direction"] = _trend_direction_for_metric(metric_id, points, str(updated.get("direction") or "stable"))
+        updated["direction_label"] = _localize_direction(updated["direction"])
+        updated["insight"] = line_chart_insight(updated)
+        enriched.append(updated)
+    return enriched
+
+
+def _period_sort_for_presentation(period: str) -> tuple[int, int, str]:
+    """Return a lightweight chronological sort key for presentation points.
+
+    Inputs: period slug or label.
+    Outputs: sortable tuple.
+    Assumptions: report periods are monthly slugs such as 2026_08.
+    """
+
+    match = re.match(r"^(20\d{2})[-_](0[1-9]|1[0-2])$", str(period or ""))
+    if not match:
+        return (9999, 99, str(period or ""))
+    return (int(match.group(1)), int(match.group(2)), str(period))
+
+
+def _trend_direction_for_metric(metric_id: str, points: list[dict[str, Any]], fallback: str) -> str:
+    """Return deterministic direction using metric-specific semantics.
+
+    Inputs: metric ID, ordered points, and fallback direction.
+    Outputs: localized direction code.
+    Assumptions: higher is favorable for revenue/result/cash/collection, lower
+    is favorable for expenses and payroll burden.
+    """
+
+    if len(points) < 2:
+        return fallback or "stable"
+    first = number_value(points[0].get("value"))
+    latest = number_value(points[-1].get("value"))
+    if first is None or latest is None or abs(latest - first) < 1e-12:
+        return "stable"
+    lower_is_better = {"total_expenses", "payroll_percentage_of_revenue"}
+    if metric_id in lower_is_better:
+        return "improving" if latest < first else "worsening"
+    return "improving" if latest > first else "worsening"
 
 
 def _trend_narrative(series: dict[str, Any]) -> str:
@@ -1880,6 +1993,7 @@ def _clean_historical_sections(report_model: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(series, dict):
             continue
         series = {
+                "metric_id": _canonical_trend_metric(str(series.get("metric_id") or series.get("metric") or "")),
                 "metric": sanitize_text(series.get("metric") or ""),
                 "unit": str(series.get("unit") or ""),
                 "direction": str(series.get("direction") or "stable"),

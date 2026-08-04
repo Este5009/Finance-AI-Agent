@@ -503,6 +503,99 @@ def test_pdf_generation_writes_pdf_file(tmp_path: Path) -> None:
     assert len(data) > 1000
 
 
+def test_historical_trend_series_append_current_period_for_all_renderers(tmp_path: Path) -> None:
+    """Verify report-model trend data reaches HTML/PDF presentation consistently."""
+
+    model = _sample_report_model()
+    model["period_slug"] = "2026_08"  # type: ignore[index]
+    model["report_period"] = "2026_08"  # type: ignore[index]
+    for section in model["sections"]:  # type: ignore[index]
+        if section["section_id"] == "financial_health_overview":
+            section["content"].update(
+                {
+                    "total_revenue": 1300,
+                    "total_expenses": 1000,
+                    "net_operating_result": 300,
+                    "net_cash_flow": 200,
+                    "ending_cash": 900,
+                    "payroll_percentage_of_revenue": 0.40,
+                    "collection_rate": 0.93,
+                }
+            )
+    metrics = (
+        ("total_revenue", "USD", 1000, 1100),
+        ("total_expenses", "USD", 900, 950),
+        ("net_operating_result", "USD", 100, 150),
+        ("payroll_percentage_of_revenue", "ratio", 0.50, 0.45),
+        ("collection_rate", "ratio", 0.84, 0.88),
+        ("net_cash_flow", "USD", -100, 50),
+        ("ending_cash", "USD", 700, 800),
+    )
+    model["sections"].append(  # type: ignore[union-attr]
+        {
+            "section_id": "historical_trends",
+            "title": "Historical Trends",
+            "content": {
+                "trend_series": [
+                    {
+                        "metric_id": metric,
+                        "metric": metric,
+                        "unit": unit,
+                        "direction": "stable",
+                        "points": [
+                            {"period": "2026_06", "value": first},
+                            {"period": "2026_07", "value": second},
+                        ],
+                    }
+                    for metric, unit, first, second in metrics
+                ]
+            },
+            "source_references": ["outputs/analysis/strategic_analysis_2026_08.json"],
+            "warnings": [],
+        }
+    )
+
+    view = build_presentation_view(model)
+    html = render_report_html(model)
+    pdf_path = render_report_pdf(model, tmp_path / "report.pdf")
+
+    assert len(view["historical"]["trends"]) == 7
+    assert all(series["points"][-1]["period"] == "2026_08" for series in view["historical"]["trends"])
+    assert "Ago 2026" in html
+    assert pdf_path.exists()
+
+
+def test_one_point_historical_series_renders_insufficient_history_card() -> None:
+    """Verify one-point trend series do not render as large empty line charts."""
+
+    model = _sample_report_model()
+    model["period_slug"] = "2026_06"  # type: ignore[index]
+    model["report_period"] = "2026_06"  # type: ignore[index]
+    model["sections"].append(  # type: ignore[union-attr]
+        {
+            "section_id": "historical_trends",
+            "title": "Historical Trends",
+            "content": {
+                "trend_series": [
+                    {
+                        "metric_id": "collection_rate",
+                        "metric": "Tasa de cobranza",
+                        "unit": "ratio",
+                        "direction": "stable",
+                        "points": [{"period": "2026_06", "value": 0.9}],
+                    }
+                ]
+            },
+            "source_references": ["outputs/analysis/strategic_analysis_2026_06.json"],
+            "warnings": [],
+        }
+    )
+
+    html = render_report_html(model)
+
+    assert "Historial insuficiente para graficar una tendencia" in html
+
+
 def test_missing_and_empty_sections_render_gracefully(tmp_path: Path) -> None:
     """Verify missing sections and empty tables produce readable placeholders."""
 

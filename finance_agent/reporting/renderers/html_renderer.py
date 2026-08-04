@@ -299,6 +299,18 @@ def _line_chart(series: dict[str, Any]) -> str:
     points = series.get("points", [])
     if not points:
         return ""
+    if len(points) < 2:
+        label = _escape(series.get("metric") or "Indicador histórico")
+        period = _escape(points[0].get("period_label") or format_period_label(points[0].get("period")))
+        value = _escape(points[0].get("display") or format_value(points[0].get("value"), series.get("unit")))
+        return (
+            "<div class='trend-card status-card'>"
+            f"<h4>{label}</h4>"
+            "<p class='muted chart-caption'>Historial insuficiente para graficar una tendencia.</p>"
+            f"<p><strong>Dato disponible:</strong> {period} — {value}</p>"
+            f"{_insight_box(series.get('insight'))}"
+            "</div>"
+        )
     values = [float(point.get("value") or 0.0) for point in points]
     width = 600
     height = 280
