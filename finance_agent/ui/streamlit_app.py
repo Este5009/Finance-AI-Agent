@@ -26,7 +26,12 @@ from finance_agent.orchestration import (
     build_pipeline_input_model,
     run_pipeline_for_report,
 )
-from finance_agent.reporting.presentation import build_presentation_view, format_value
+from finance_agent.reporting.presentation import (
+    build_presentation_view,
+    format_value,
+    historical_chart_series,
+    validate_historical_chart_rendering,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -2539,13 +2544,19 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
         narrative = historical.get("narrative", []) or []
         trend_cards = []
         trend_charts = []
+        chartable_ids = {id(series) for series in historical_chart_series(historical)}
         for trend in historical.get("trends", []) or []:
             if not isinstance(trend, dict):
                 continue
             points = trend.get("points", []) or []
             trend_cards.append(_trend_card_payload(trend))
-            if len(points) >= 2:
+            if id(trend) in chartable_ids:
                 trend_charts.append(_trend_svg_html(trend))
+        validate_historical_chart_rendering(
+            historical,
+            len([chart for chart in trend_charts if chart]),
+            renderer_name="Streamlit renderer",
+        )
         if trend_cards:
             _render_responsive_card_grid(st, trend_cards, min_width_px=260)
             if trend_charts:

@@ -16,10 +16,12 @@ from finance_agent.reporting.presentation import (
     format_period_label,
     format_value,
     get_section,
+    historical_chart_series,
     is_empty_display_value,
     number_value,
     table_has_useful_detail,
     trim_low_value_columns,
+    validate_historical_chart_rendering,
 )
 
 
@@ -506,7 +508,19 @@ def _render_historical(view: dict[str, Any]) -> str:
     historical = view["historical"]
     if not historical.get("available"):
         return ""
-    charts = "".join(_line_chart(series) for series in historical.get("trends", []))
+    chartable = historical_chart_series(historical)
+    chartable_ids = {id(series) for series in chartable}
+    charts = "".join(_line_chart(series) for series in chartable)
+    fallback_cards = "".join(
+        _line_chart(series)
+        for series in historical.get("trends", [])
+        if isinstance(series, dict) and id(series) not in chartable_ids
+    )
+    validate_historical_chart_rendering(
+        historical,
+        charts.count("line-chart"),
+        renderer_name="HTML renderer",
+    )
     risks = [
         [row["risk"], row["department"], row.get("frequency", row.get("occurrences", "")), row.get("status", ""), row["periods"]]
         for row in historical.get("recurring_risks", [])
@@ -540,7 +554,7 @@ def _render_historical(view: dict[str, Any]) -> str:
         f"<h2>{SECTION_LABELS_ES['historical_trends']}</h2>"
         + _narrative(view, "historical_summary")
         + _narrative(view, "historical_trends")
-        + f"<div class='trend-grid'>{charts}</div>"
+        + f"<div class='trend-grid'>{charts}{fallback_cards}</div>"
         "</section>"
         "<section id='recommendation_follow_up'>"
         f"<h2>{SECTION_LABELS_ES['recommendation_follow_up']}</h2>"

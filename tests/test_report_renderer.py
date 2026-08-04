@@ -5,12 +5,15 @@ from __future__ import annotations
 from pathlib import Path
 import inspect
 
+import pytest
+
 from finance_agent.reporting.renderers import (
     load_report_model,
     render_report_html,
     render_report_pdf,
     save_report_html,
 )
+from finance_agent.reporting.renderers import pdf_renderer as pdf_renderer_module
 from finance_agent.reporting.presentation import REPORT_SECTION_TEMPLATES, build_presentation_view
 import finance_agent.reporting.presentation as presentation
 from finance_agent.reporting.report_quality import (
@@ -594,6 +597,203 @@ def test_one_point_historical_series_renders_insufficient_history_card() -> None
     html = render_report_html(model)
 
     assert "Historial insuficiente para graficar una tendencia" in html
+
+
+def test_historical_trend_window_preserves_intermediate_months() -> None:
+    """Verify trend charts keep each real month inside the rolling window."""
+
+    model = _sample_report_model()
+    model["period_slug"] = "2026_09"  # type: ignore[index]
+    model["report_period"] = "2026_09"  # type: ignore[index]
+    for section in model["sections"]:  # type: ignore[index]
+        if section["section_id"] == "financial_health_overview":
+            section["content"]["collection_rate"] = 0.92
+    model["sections"].append(  # type: ignore[union-attr]
+        {
+            "section_id": "historical_trends",
+            "title": "Historical Trends",
+            "content": {
+                "trend_series": [
+                    {
+                        "metric_id": "collection_rate",
+                        "metric": "Tasa de cobranza",
+                        "unit": "ratio",
+                        "direction": "improving",
+                        "points": [
+                            {"period": "2026_04", "value": 0.89},
+                            {"period": "2026_05", "value": 0.86},
+                            {"period": "2026_06", "value": 0.84},
+                            {"period": "2026_07", "value": 0.85},
+                            {"period": "2026_08", "value": 0.90},
+                        ],
+                    }
+                ]
+            },
+            "source_references": [],
+            "warnings": [],
+        }
+    )
+
+    view = build_presentation_view(model)
+    series = view["historical"]["trends"][0]
+
+    assert [point["period"] for point in series["points"]] == [
+        "2026_04",
+        "2026_05",
+        "2026_06",
+        "2026_07",
+        "2026_08",
+        "2026_09",
+    ]
+    assert series["window"]["missing_periods"] == []
+
+
+def test_historical_trend_window_limits_to_six_months() -> None:
+    """Verify older months are dropped while all months inside the window remain."""
+
+    model = _sample_report_model()
+    model["period_slug"] = "2026_09"  # type: ignore[index]
+    model["report_period"] = "2026_09"  # type: ignore[index]
+    for section in model["sections"]:  # type: ignore[index]
+        if section["section_id"] == "financial_health_overview":
+            section["content"]["total_revenue"] = 1_090_000
+    model["sections"].append(  # type: ignore[union-attr]
+        {
+            "section_id": "historical_trends",
+            "title": "Historical Trends",
+            "content": {
+                "trend_series": [
+                    {
+                        "metric_id": "total_revenue",
+                        "metric": "Ingresos",
+                        "unit": "USD",
+                        "points": [
+                            {"period": f"2026_{month:02d}", "value": 1_000_000 + month}
+                            for month in range(1, 9)
+                        ],
+                    }
+                ]
+            },
+            "source_references": [],
+            "warnings": [],
+        }
+    )
+
+    series = build_presentation_view(model)["historical"]["trends"][0]
+
+    assert [point["period"] for point in series["points"]] == [
+        "2026_04",
+        "2026_05",
+        "2026_06",
+        "2026_07",
+        "2026_08",
+        "2026_09",
+    ]
+    assert "2026_03" not in [point["period"] for point in series["points"]]
+    assert len(series["points"]) == 6
+
+
+def test_february_historical_trend_uses_two_available_months() -> None:
+    """Verify early-year reports show the available Jan-Feb progression."""
+
+    model = _sample_report_model()
+    model["period_slug"] = "2026_02"  # type: ignore[index]
+    model["report_period"] = "2026_02"  # type: ignore[index]
+    for section in model["sections"]:  # type: ignore[index]
+        if section["section_id"] == "financial_health_overview":
+            section["content"]["payroll_percentage_of_revenue"] = 0.39
+    model["sections"].append(  # type: ignore[union-attr]
+        {
+            "section_id": "historical_trends",
+            "title": "Historical Trends",
+            "content": {
+                "trend_series": [
+                    {
+                        "metric_id": "payroll_percentage_of_revenue",
+                        "metric": "Nómina / ingresos",
+                        "unit": "ratio",
+                        "points": [{"period": "2026_01", "value": 0.38}],
+                    }
+                ]
+            },
+            "source_references": [],
+            "warnings": [],
+        }
+    )
+
+    series = build_presentation_view(model)["historical"]["trends"][0]
+
+    assert [point["period"] for point in series["points"]] == ["2026_01", "2026_02"]
+    assert series["window"]["missing_periods"] == ["2025_09", "2025_10", "2025_11", "2025_12"]
+
+
+def test_missing_months_are_not_fabricated_in_historical_trends() -> None:
+    """Verify gaps are metadata only and do not create artificial chart points."""
+
+    model = _sample_report_model()
+    model["period_slug"] = "2026_09"  # type: ignore[index]
+    model["report_period"] = "2026_09"  # type: ignore[index]
+    for section in model["sections"]:  # type: ignore[index]
+        if section["section_id"] == "financial_health_overview":
+            section["content"]["net_cash_flow"] = -20_000
+    model["sections"].append(  # type: ignore[union-attr]
+        {
+            "section_id": "historical_trends",
+            "title": "Historical Trends",
+            "content": {
+                "trend_series": [
+                    {
+                        "metric_id": "net_cash_flow",
+                        "metric": "Flujo neto de caja",
+                        "unit": "USD",
+                        "points": [
+                            {"period": "2026_06", "value": -680_000},
+                            {"period": "2026_08", "value": -120_000},
+                        ],
+                    }
+                ]
+            },
+            "source_references": [],
+            "warnings": [],
+        }
+    )
+
+    series = build_presentation_view(model)["historical"]["trends"][0]
+
+    assert [point["period"] for point in series["points"]] == ["2026_06", "2026_08", "2026_09"]
+    assert "2026_07" in series["window"]["missing_periods"]
+    assert all(point["period"] != "2026_07" for point in series["points"])
+
+
+def test_august_report_renders_all_historical_charts(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Verify August's rolling-window series render as seven HTML/PDF charts."""
+
+    path = Path("outputs/report/report_model_2026_08.json")
+    if not path.is_file():
+        pytest.skip("August report model artifact is not available.")
+    model = load_report_model(path)
+    chart_calls: list[str] = []
+    original_line_chart = pdf_renderer_module.LineChart
+
+    class SpyLineChart(original_line_chart):
+        """Count PDF historical chart flowables created by the renderer."""
+
+        def __init__(self, series: dict[str, object], width: float = 6.7 * 72) -> None:
+            """Record the metric and delegate to the real chart flowable."""
+
+            chart_calls.append(str(series.get("metric_id") or series.get("metric")))
+            super().__init__(series, width=width)
+
+    monkeypatch.setattr(pdf_renderer_module, "LineChart", SpyLineChart)
+
+    html = render_report_html(model)
+    render_report_pdf(model, tmp_path / "august.pdf")
+
+    assert html.count("line-chart") >= 7
+    assert len(chart_calls) == 7
+    for label in ("Mar 2026", "Abr 2026", "May 2026", "Jun 2026", "Jul 2026", "Ago 2026"):
+        assert label in html
+    assert "historial insuficiente" not in html.casefold()
 
 
 def test_missing_and_empty_sections_render_gracefully(tmp_path: Path) -> None:

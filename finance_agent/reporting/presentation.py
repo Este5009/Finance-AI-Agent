@@ -1549,6 +1549,46 @@ def build_presentation_view(report_model: dict[str, Any], *, mode: str = "execut
     return view
 
 
+def historical_chart_series(historical: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return canonical historical trend series that must render as charts.
+
+    Inputs: ``view["historical"]`` presentation payload.
+    Outputs: series with two or more deterministic points.
+    Assumptions: renderers use this shared selector so PDF, HTML, and
+    Streamlit never diverge on which historical charts are required.
+    """
+
+    trends = historical.get("trends", []) if isinstance(historical, dict) else []
+    return [
+        series
+        for series in trends
+        if isinstance(series, dict)
+        and len([point for point in series.get("points", []) or [] if isinstance(point, dict)]) >= 2
+    ]
+
+
+def validate_historical_chart_rendering(
+    historical: dict[str, Any],
+    rendered_chart_count: int,
+    *,
+    renderer_name: str,
+) -> None:
+    """Fail when a renderer drops required historical trend charts.
+
+    Inputs: historical presentation payload, rendered chart count, renderer name.
+    Outputs: none; raises ValueError on regression.
+    Assumptions: one-point series may use an insufficient-history card, but
+    every 2+ point series must produce a chart in every renderer.
+    """
+
+    required = len(historical_chart_series(historical))
+    if required and rendered_chart_count < required:
+        raise ValueError(
+            f"{renderer_name} rendered {rendered_chart_count} historical trend chart(s), "
+            f"but {required} canonical 2+ point series require charts."
+        )
+
+
 def validate_presentation_view(view: dict[str, Any], *, mode: str = "executive") -> PresentationValidationResult:
     """Validate the executive presentation view.
 
@@ -1768,10 +1808,11 @@ def _current_metric_values(report_model: dict[str, Any]) -> dict[str, float]:
 
 
 def _append_current_metric_points(report_model: dict[str, Any], trends: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Append the current report point to each comparable historical series.
+    """Append the current report point and apply the rolling chart window.
 
     Inputs: report model and chart-ready trend series.
-    Outputs: trend series with current deterministic point when available.
+    Outputs: trend series with current deterministic point and up to five
+    comparable prior monthly points when available.
     Assumptions: historical retrieval excludes the current period for LLM
     context; presentation may add the current processed value for chart clarity.
     """
@@ -1800,12 +1841,108 @@ def _append_current_metric_points(report_model: dict[str, Any], trends: list[dic
                 if str(point.get("period") or "") == current_period:
                     point["is_current"] = True
         points = sorted(points, key=lambda point: _period_sort_for_presentation(str(point.get("period") or "")))
-        updated = {**series, "metric_id": metric_id, "points": points}
-        updated["direction"] = _trend_direction_for_metric(metric_id, points, str(updated.get("direction") or "stable"))
+        windowed_points, window_metadata = _monthly_chart_window(points, current_period=current_period, max_points=6)
+        updated = {**series, "metric_id": metric_id, "points": windowed_points}
+        if window_metadata:
+            updated["window"] = window_metadata
+        updated["direction"] = _trend_direction_for_metric(metric_id, windowed_points, str(updated.get("direction") or "stable"))
         updated["direction_label"] = _localize_direction(updated["direction"])
         updated["insight"] = line_chart_insight(updated)
         enriched.append(updated)
     return enriched
+
+
+def _monthly_chart_window(
+    points: list[dict[str, Any]],
+    *,
+    current_period: str,
+    max_points: int = 6,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Select the canonical rolling monthly chart window.
+
+    Inputs: sorted deterministic points, current period, and maximum display
+    point count.
+    Outputs: selected points plus metadata about the chart window.
+    Assumptions: monthly report periods use slugs such as ``2026_09``. Missing
+    months are never fabricated; metadata records gaps for diagnostics only.
+    """
+
+    cleaned = [
+        point
+        for point in points
+        if isinstance(point, dict)
+        and str(point.get("period") or "")
+        and number_value(point.get("value")) is not None
+    ]
+    if not cleaned:
+        return [], {}
+    current_index = _monthly_period_index(current_period)
+    if current_index is None:
+        # Non-monthly/custom periods keep the latest bounded deterministic
+        # values without inventing a calendar window.
+        selected = cleaned[-max_points:]
+        return selected, {
+            "policy": "latest_available_points",
+            "max_points": max_points,
+            "displayed_periods": [str(point.get("period") or "") for point in selected],
+            "missing_periods": [],
+        }
+
+    earliest_index = current_index - (max_points - 1)
+    selected: list[dict[str, Any]] = []
+    seen_periods: set[str] = set()
+    for point in cleaned:
+        period = str(point.get("period") or "")
+        period_index = _monthly_period_index(period)
+        if period_index is None:
+            continue
+        # Strictly avoid future leakage and preserve every real point inside
+        # the rolling window instead of reducing the series to endpoints.
+        if earliest_index <= period_index <= current_index:
+            selected.append(point)
+            seen_periods.add(_monthly_period_slug(period_index))
+    selected = selected[-max_points:]
+    missing = [
+        _monthly_period_slug(index)
+        for index in range(earliest_index, current_index + 1)
+        if _monthly_period_slug(index) not in seen_periods
+    ]
+    return selected, {
+        "policy": "current_plus_previous_five_months",
+        "max_points": max_points,
+        "current_period": current_period,
+        "displayed_periods": [str(point.get("period") or "") for point in selected],
+        "missing_periods": missing,
+    }
+
+
+def _monthly_period_index(period: str) -> int | None:
+    """Convert a monthly period slug to a monotonically increasing month index.
+
+    Inputs: period slug such as ``2026_09`` or ``2026-09``.
+    Outputs: integer month index or None when the period is not monthly.
+    Assumptions: only 2000-era monthly slugs are chart-window comparable.
+    """
+
+    match = re.match(r"^(20\d{2})[-_](0[1-9]|1[0-2])$", str(period or ""))
+    if not match:
+        return None
+    year = int(match.group(1))
+    month = int(match.group(2))
+    return year * 12 + month
+
+
+def _monthly_period_slug(index: int) -> str:
+    """Convert a monotonic month index back to a canonical period slug.
+
+    Inputs: month index produced by ``_monthly_period_index``.
+    Outputs: ``YYYY_MM`` period slug.
+    Assumptions: index values use ``year * 12 + month`` with month 1-12.
+    """
+
+    year = (index - 1) // 12
+    month = index - year * 12
+    return f"{year:04d}_{month:02d}"
 
 
 def _period_sort_for_presentation(period: str) -> tuple[int, int, str]:

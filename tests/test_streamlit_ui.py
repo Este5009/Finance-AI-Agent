@@ -758,6 +758,71 @@ def test_analysis_tab_renders_canonical_historical_trend_cards_and_charts() -> N
     assert "get_metric_history" not in html
 
 
+def test_august_analysis_tab_renders_all_historical_charts() -> None:
+    """Verify existing August artifact renders all seven rolling-window charts."""
+
+    path = Path("outputs/report/report_model_2026_08.json")
+    if not path.is_file():
+        pytest.skip("August report model artifact is not available.")
+    report_model = streamlit_app._load_json(path)
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_analysis_tab(fake_st, report_model)
+    html = "\n".join(fake_st.markdown_calls)
+
+    assert html.count("ui-trend-chart") == 7
+    for label in ("Mar 2026", "Abr 2026", "May 2026", "Jun 2026", "Jul 2026", "Ago 2026"):
+        assert label in html
+    assert "Historial insuficiente" not in html
+
+
+def test_september_analysis_tab_preserves_july_and_august_points() -> None:
+    """Verify September trend charts are not collapsed to June and September only."""
+
+    report_model = _july_report_model()
+    report_model["period_slug"] = "2026_09"
+    report_model["report_period"] = "2026_09"
+    report_model["sections"] = [
+        section for section in report_model["sections"] if section["section_id"] != "historical_trends"
+    ]
+    for section in report_model["sections"]:
+        if section["section_id"] == "financial_health_overview":
+            section["content"]["collection_rate"] = 0.92
+    report_model["sections"].append(
+        {
+            "section_id": "historical_trends",
+            "title": "Historical Trends",
+            "content": {
+                "trend_series": [
+                    {
+                        "metric_id": "collection_rate",
+                        "metric": "Tasa de cobranza",
+                        "unit": "ratio",
+                        "direction": "improving",
+                        "points": [
+                            {"period": "2026_06", "value": 0.84},
+                            {"period": "2026_07", "value": 0.85},
+                            {"period": "2026_08", "value": 0.90},
+                        ],
+                    }
+                ]
+            },
+            "source_references": ["outputs/analysis/strategic_analysis_2026_09.json"],
+            "warnings": [],
+        }
+    )
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_analysis_tab(fake_st, report_model)
+    html = "\n".join(fake_st.markdown_calls)
+
+    assert "Jun 2026" in html
+    assert "Jul 2026" in html
+    assert "Ago 2026" in html
+    assert "Sep 2026" in html
+    assert "ui-trend-chart" in html
+
+
 def test_analysis_tab_uses_one_point_history_fallback_card() -> None:
     """Verify Streamlit avoids empty charts when only one trend point exists."""
 

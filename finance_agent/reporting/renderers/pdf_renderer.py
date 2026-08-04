@@ -29,8 +29,10 @@ from finance_agent.reporting.presentation import (
     format_compact_axis_value,
     format_period_label,
     format_value,
+    historical_chart_series,
     table_has_useful_detail,
     trim_low_value_columns,
+    validate_historical_chart_rendering,
 )
 
 
@@ -588,9 +590,15 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
         _section_title(story, "historical_trends", styles)
         _append_narrative(story, view, "historical_summary", styles)
         _append_narrative(story, view, "historical_trends", styles)
+        chartable_ids = {id(series) for series in historical_chart_series(historical)}
+        rendered_chart_count = 0
         for series in historical.get("trends", []):
             points = series.get("points", []) if isinstance(series, dict) else []
-            if len(points) < 2:
+            if id(series) in chartable_ids:
+                story.append(LineChart(series))
+                story.append(_insight_para(series.get("insight", ""), styles["insight"]))
+                rendered_chart_count += 1
+            else:
                 available = points[0] if points else {}
                 message = (
                     f"{series.get('metric') or 'Indicador histórico'}: historial insuficiente para graficar "
@@ -599,9 +607,12 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
                     f"{available.get('display') or format_value(available.get('value'), series.get('unit'))}."
                 )
                 story.append(_info_card(message, styles, title="Historial insuficiente"))
-            else:
-                story.append(KeepTogether([LineChart(series), _insight_para(series.get("insight", ""), styles["insight"])]))
             story.append(Spacer(1, 0.08 * inch))
+        validate_historical_chart_rendering(
+            historical,
+            rendered_chart_count,
+            renderer_name="PDF renderer",
+        )
         _section_title(story, "recommendation_follow_up", styles)
         if historical.get("recommendation_intro"):
             story.append(_para(historical.get("recommendation_intro"), styles["body"]))
