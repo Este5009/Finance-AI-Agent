@@ -1209,20 +1209,21 @@ def _apply_page_styles(st: Any) -> None:
             color: var(--fa-text);
             border: 1px solid var(--fa-border);
             border-left: 5px solid var(--fa-info);
-            border-radius: 16px;
-            padding: 16px 17px;
+            border-radius: 18px;
+            padding: 17px 18px;
             margin: 0.25rem 0 1rem;
-            box-shadow: 0 1px 3px rgba(23, 43, 77, 0.06);
+            box-shadow: 0 6px 18px rgba(23, 43, 77, 0.07);
         }
-        .ui-dashboard-card {
+        .ui-dashboard-card,
+        .ui-card {
             background: var(--fa-surface);
             color: var(--fa-text);
             border: 1px solid var(--fa-border);
             border-left: 5px solid var(--fa-info);
-            border-radius: 16px;
-            padding: 16px 18px;
+            border-radius: 18px;
+            padding: 17px 19px;
             margin: 0.35rem 0 1rem;
-            box-shadow: 0 1px 3px rgba(23, 43, 77, 0.06);
+            box-shadow: 0 6px 18px rgba(23, 43, 77, 0.07);
         }
         .ui-responsive-grid {
             display: grid;
@@ -1412,6 +1413,12 @@ def _apply_page_styles(st: Any) -> None:
                 box-shadow: none;
             }
             .ui-dashboard-card {
+                background: #172033;
+                color: #f5f7fa;
+                border-color: #35465a;
+                box-shadow: none;
+            }
+            .ui-card {
                 background: #172033;
                 color: #f5f7fa;
                 border-color: #35465a;

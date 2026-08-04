@@ -765,6 +765,8 @@ def test_custom_card_css_uses_theme_safe_light_and_dark_colors() -> None:
     assert ".ui-responsive-grid" in css
     assert "var(--fa-surface)" in css
     assert "var(--fa-text)" in css
+    assert "border-radius: 18px" in css
+    assert "0 6px 18px" in css
     assert "@media (prefers-color-scheme: dark)" in css
     assert ".ui-status-risk" in css
     assert ".ui-status-verified" in css

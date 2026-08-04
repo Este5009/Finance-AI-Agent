@@ -1291,7 +1291,10 @@ def build_anomaly_summary(report_model: dict[str, Any]) -> dict[str, Any]:
     if not top_rows and (not severity_rows or not any(row["count"] for row in severity_rows)):
         return {
             "positive_status": "",
-            "current_period_status": f"No se detectaron anomalías en {format_period_label(content.get('report_period') or get_section(report_model, 'cover').get('content', {}).get('report_period') or report_model.get('report_period'))}.",
+            "current_period_status": (
+                "No se detectaron desviaciones que superaran los umbrales configurados en "
+                f"{format_period_label(content.get('report_period') or get_section(report_model, 'cover').get('content', {}).get('report_period') or report_model.get('report_period'))}."
+            ),
             "severity_rows": [],
             "top_rows": [],
         }

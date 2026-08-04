@@ -14,6 +14,7 @@ from finance_agent.reporting import (
     save_report_model,
     validate_report_model,
 )
+from finance_agent.reporting.presentation import build_presentation_view
 from finance_agent.reporting.report_engine import _previous_month_slug
 
 
@@ -184,6 +185,137 @@ def test_strategic_analysis_fields_are_preserved_for_renderers() -> None:
     assert recommendations["strategic_priorities"] == ["Stabilize cash flow."]
     assert recommendations["root_causes"] == ["Expenses grew faster than revenue."]
     assert missing["missing_information"] == ["Vendor invoice notes."]
+
+
+def test_report_model_removes_false_arts_humanities_missing_information() -> None:
+    """Verify report mapping checks processed department evidence before publishing missing claims."""
+
+    bundle = _bundle()
+    finance_summary = {
+        **bundle.finance_summary,
+        "report_period": "2026-11",
+        "department_summary": [
+            {
+                "department": "Arts & Humanities",
+                "budget_revenue": 305760.0,
+                "actual_revenue": 311875.2,
+                "budget_expenses": 284356.8,
+                "actual_expenses": 287235.21,
+                "net_operating_result": 24639.99,
+                "expense_variance": 2878.41,
+            }
+        ],
+    }
+    strategic_analysis = {
+        **bundle.strategic_analysis,
+        "analysis": {
+            **bundle.strategic_analysis["analysis"],
+            "department_analysis": (
+                "El departamento de Artes y Humanidades reporta gastos, "
+                "pero no se proporcionan ingresos para este departamento."
+            ),
+            "missing_information": [
+                "Ingresos del departamento de Artes y Humanidades para completar el análisis financiero.",
+                "Actas de aprobación de proveedores.",
+            ],
+        },
+    }
+    model = build_report_model(
+        ReportInputBundle(
+            period_slug="2026_11",
+            finance_summary=finance_summary,
+            kpi_summary=bundle.kpi_summary,
+            anomaly_report=bundle.anomaly_report,
+            evidence_package=bundle.evidence_package,
+            strategic_analysis=strategic_analysis,
+            source_files=(
+                "outputs/calculations/finance_summary_2026_11.json",
+                "outputs/calculations/kpi_summary_2026_11.csv",
+                "outputs/anomalies/anomaly_report_2026_11.json",
+                "outputs/evidence/evidence_package_2026_11.json",
+                "outputs/analysis/strategic_analysis_2026_11.json",
+            ),
+        )
+    ).to_dict()
+    section_by_id = {section["section_id"]: section for section in model["sections"]}
+
+    missing = section_by_id["missing_information"]["content"]
+    department = section_by_id["department_analysis"]["content"]
+
+    assert missing["missing_information"] == ["Actas de aprobación de proveedores."]
+    assert missing["missing_information_provenance"][0]["checked_sources"][0]["field"] == "actual_revenue"
+    assert "no se proporcionan ingresos" not in department["analysis"]
+    assert "Por resultado operativo" in department["analysis"]
+    assert department["department_summary"][0]["actual_revenue"] == 311875.2
+
+
+def test_zero_anomaly_message_names_configured_thresholds() -> None:
+    """Verify zero-anomaly reports explain threshold-based decisions."""
+
+    bundle = _bundle()
+    zero_anomalies = {
+        "report_period": "2026-11",
+        "total_anomalies": 0,
+        "anomalies_by_severity": {"critical": 0, "high": 0, "medium": 0, "low": 0},
+        "anomalies": [],
+    }
+    model = build_report_model(
+        ReportInputBundle(
+            period_slug="2026_11",
+            finance_summary={**bundle.finance_summary, "report_period": "2026-11"},
+            kpi_summary=bundle.kpi_summary,
+            anomaly_report=zero_anomalies,
+            evidence_package=bundle.evidence_package,
+            strategic_analysis=bundle.strategic_analysis,
+            source_files=bundle.source_files,
+        )
+    ).to_dict()
+
+    view = build_presentation_view(model)
+
+    assert "umbrales configurados" in view["anomalies"]["current_period_status"]
+    assert view["anomalies"]["top_rows"] == []
+
+
+def test_university_wide_anomalies_are_not_hidden_without_department_rows() -> None:
+    """Verify current-period anomaly display does not depend on department anomalies."""
+
+    bundle = _bundle()
+    anomaly_report = {
+        "report_period": "2026-11",
+        "total_anomalies": 1,
+        "anomalies_by_severity": {"critical": 1, "high": 0, "medium": 0, "low": 0},
+        "anomalies": [
+            {
+                "anomaly_id": "ANOM-UNIV-1",
+                "title": "Negative or low cash flow",
+                "description": "Net cash flow is at or below the configured minimum.",
+                "severity": "critical",
+                "metric": "net_cash_flow",
+                "observed_value": -1.0,
+                "threshold_value": 0.0,
+                "period": "2026-11",
+                "source_file": "finance_summary_2026_11.json",
+                "evidence": "Net cash flow is $-1; ending cash is $100.",
+            }
+        ],
+    }
+
+    model = build_report_model(
+        ReportInputBundle(
+            period_slug="2026_11",
+            finance_summary={**bundle.finance_summary, "report_period": "2026-11", "department_summary": []},
+            kpi_summary=bundle.kpi_summary,
+            anomaly_report=anomaly_report,
+            evidence_package=bundle.evidence_package,
+            strategic_analysis=bundle.strategic_analysis,
+            source_files=bundle.source_files,
+        )
+    ).to_dict()
+    view = build_presentation_view(model)
+
+    assert view["anomalies"]["top_rows"]
+    assert view["anomalies"]["top_rows"][0]["title"] == "Flujo de caja bajo o negativo"
 
 
 def test_generic_period_source_files_are_preserved() -> None:

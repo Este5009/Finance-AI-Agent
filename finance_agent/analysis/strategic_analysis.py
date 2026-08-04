@@ -20,6 +20,10 @@ from finance_agent.common.context_optimization import (
     merge_telemetry,
     rank_anomalies,
 )
+from finance_agent.common.evidence_availability import (
+    filter_contradicted_missing_information,
+    remove_contradicted_department_absence_text,
+)
 from finance_agent.llm.ollama_client import OllamaError
 
 
@@ -1397,7 +1401,21 @@ def _remove_false_missing_information(
         if has_benefits and ("benefit" in lowered or "beneficio" in lowered):
             continue
         cleaned_missing.append(item)
-    return {**analysis, "missing_information": cleaned_missing}
+    cleaned_missing, department_provenance = filter_contradicted_missing_information(
+        cleaned_missing,
+        finance_summary,
+    )
+    cleaned_analysis = {**analysis, "missing_information": cleaned_missing}
+    department_text = cleaned_analysis.get("department_analysis", "")
+    cleaned_department_text = remove_contradicted_department_absence_text(
+        department_text,
+        finance_summary,
+    )
+    if cleaned_department_text != department_text:
+        cleaned_analysis["department_analysis"] = cleaned_department_text
+    if department_provenance:
+        cleaned_analysis["missing_information_provenance"] = department_provenance
+    return cleaned_analysis
 
 
 def _compact_finance_summary(

@@ -428,7 +428,7 @@ def test_current_anomalies_are_separate_from_historical_risks() -> None:
     html = render_report_html(model)
 
     assert "Anomalías del período" in html
-    assert "No se detectaron anomalías en Dic 2026." in html
+    assert "No se detectaron desviaciones que superaran los umbrales configurados en Dic 2026." in html
     assert "Riesgos históricos recurrentes" in html
     assert "Seguimiento de recomendaciones emitidas anteriormente" in html
     assert "Las siguientes recomendaciones fueron emitidas en informes financieros de meses anteriores" in html

@@ -9,6 +9,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from finance_agent.common.evidence_availability import (
+    filter_contradicted_missing_information,
+    remove_contradicted_department_absence_text,
+)
 from finance_agent.reporting.report_models import (
     REQUIRED_SECTION_IDS,
     ReportModel,
@@ -1020,6 +1024,30 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
         department_summary=inputs.finance_summary.get("department_summary", []),
         historical_context=historical_context,
     )
+    cleaned_missing, missing_provenance = filter_contradicted_missing_information(
+        list(analysis.get("missing_information", []) or []),
+        inputs.finance_summary,
+    )
+    if cleaned_missing != list(analysis.get("missing_information", []) or []):
+        analysis = {
+            **analysis,
+            "missing_information": cleaned_missing,
+            "missing_information_provenance": missing_provenance,
+        }
+        analysis_warnings = (
+            *analysis_warnings,
+            "Contradicted missing-information claims were removed using processed department evidence.",
+        )
+    cleaned_department_analysis = remove_contradicted_department_absence_text(
+        _analysis_text(analysis, "department_analysis"),
+        inputs.finance_summary,
+    )
+    if cleaned_department_analysis != _analysis_text(analysis, "department_analysis"):
+        analysis = {**analysis, "department_analysis": cleaned_department_analysis}
+        analysis_warnings = (
+            *analysis_warnings,
+            "Department analysis fell back to deterministic facts because model prose contradicted processed department evidence.",
+        )
     ranked_anomalies = _rank_anomalies_for_report(inputs.anomaly_report)
     deterministic_attention_items = [
         {
@@ -1196,6 +1224,7 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                     for item in _evidence_items(inputs.evidence_package)
                     for unavailable in item.get("unavailable_data", [])
                 ],
+                "missing_information_provenance": analysis.get("missing_information_provenance", []),
             },
             (inputs.source_files[3], inputs.source_files[4]),
             analysis_warnings,

@@ -13,6 +13,10 @@ from finance_agent.analysis.strategic_analysis import (
     validate_evidence_bound_claims,
     validate_user_facing_spanish,
 )
+from finance_agent.common.evidence_availability import (
+    contradicted_department_missing_claims,
+    filter_contradicted_missing_information,
+)
 
 
 @dataclass
@@ -557,6 +561,40 @@ def test_processed_anomaly_cashflow_and_payroll_missing_claims_are_removed() -> 
     assert result.analysis_document["analysis"]["missing_information"] == [
         "Actas de aprobación del comité para compras marcadas"
     ]
+
+
+def test_department_missing_information_uses_english_spanish_aliases() -> None:
+    """Verify false department missing claims are removed across display aliases."""
+
+    finance = {
+        "report_period": "2026-11",
+        "department_summary": [
+            {
+                "department": "Arts & Humanities",
+                "budget_revenue": 305760.0,
+                "actual_revenue": 311875.2,
+                "budget_expenses": 284356.8,
+                "actual_expenses": 287235.21,
+                "net_operating_result": 24639.99,
+                "expense_variance": 2878.41,
+            }
+        ],
+    }
+    missing_items = [
+        "Ingresos del departamento de Artes y Humanidades para completar el análisis financiero.",
+        "Actas de aprobación de proveedores.",
+    ]
+
+    contradictions = contradicted_department_missing_claims(missing_items[0], finance)
+    kept, provenance = filter_contradicted_missing_information(missing_items, finance)
+
+    assert contradictions[0]["department"] == "Arts & Humanities"
+    assert contradictions[0]["field"] == "actual_revenue"
+    assert contradictions[0]["source_table"] == "department_summary"
+    assert kept == ["Actas de aprobación de proveedores."]
+    assert provenance[0]["checked_sources"][0]["source_artifact"].endswith(
+        "department_summary_2026_11.csv"
+    )
 
 
 def test_evidence_bound_validation_rejects_unsupported_claims() -> None:
