@@ -15,7 +15,7 @@ from finance_agent.reporting import (
     validate_report_model,
 )
 from finance_agent.reporting.presentation import build_presentation_view
-from finance_agent.reporting.report_engine import _previous_month_slug
+from finance_agent.reporting.report_engine import _previous_month_slug, load_report_inputs
 
 
 def test_january_monthly_comparison_uses_previous_december() -> None:
@@ -123,6 +123,163 @@ def _bundle() -> ReportInputBundle:
             "strategic_analysis_june_2026.json",
         ),
     )
+
+
+def _trend_points(report_model: dict[str, object], metric_id: str) -> list[tuple[str, float]]:
+    """Return period/value pairs for one report-model historical trend."""
+
+    for section in report_model.get("sections", []):  # type: ignore[union-attr]
+        if isinstance(section, dict) and section.get("section_id") == "historical_trends":
+            for series in section.get("content", {}).get("trend_series", []):  # type: ignore[union-attr]
+                if isinstance(series, dict) and series.get("metric_id") == metric_id:
+                    return [
+                        (str(point.get("period")), float(point.get("value")))
+                        for point in series.get("points", [])
+                        if isinstance(point, dict)
+                    ]
+    return []
+
+
+def _september_bundle_with_explicit_history() -> ReportInputBundle:
+    """Build a September bundle with exact Jun-Sep trend values.
+
+    Inputs: none.
+    Outputs: report input bundle carrying deterministic historical context.
+    Assumptions: this fixture mirrors the recovery_2026 September values and
+    does not depend on Ollama.
+    """
+
+    bundle = _bundle()
+    finance = json.loads(json.dumps(bundle.finance_summary))
+    finance["report_period"] = "2026_09"
+    finance["source_workbook"] = "outputs/calculations/finance_summary_2026_09.json"
+    finance["finance_summary"].update(
+        {
+            "total_revenue": 2_123_856.0,
+            "total_expenses": 2_096_356.0,
+            "net_operating_result": 27_500.0,
+        }
+    )
+    historical_context = {
+        "current_period": "2026_09",
+        "purpose": "report_model",
+        "summary": {"available_retrievals": 2, "unavailable_retrievals": 0},
+        "retrievals": [
+            {
+                "tool_name": "get_metric_history",
+                "success": True,
+                "metric": "total_revenue",
+                "records": [
+                    {"period": "2026_06", "metric": "total_revenue", "value": 1_992_060.0},
+                    {"period": "2026_07", "metric": "total_revenue", "value": 2_021_376.0},
+                    {"period": "2026_08", "metric": "total_revenue", "value": 2_072_448.0},
+                ],
+            },
+            {
+                "tool_name": "get_metric_history",
+                "success": True,
+                "metric": "total_expenses",
+                "records": [
+                    {"period": "2026_06", "metric": "total_expenses", "value": 2_366_060.0},
+                    {"period": "2026_07", "metric": "total_expenses", "value": 2_213_876.0},
+                    {"period": "2026_08", "metric": "total_expenses", "value": 2_138_448.0},
+                ],
+            },
+        ],
+        "derived_context": {
+            "kpi_trends": {
+                "total_revenue": {
+                    "periods": ["2026_06", "2026_07", "2026_08"],
+                    "first_value": 1_992_060.0,
+                    "latest_value": 2_072_448.0,
+                    "direction": "improving",
+                },
+                "total_expenses": {
+                    "periods": ["2026_06", "2026_07", "2026_08"],
+                    "first_value": 2_366_060.0,
+                    "latest_value": 2_138_448.0,
+                    "direction": "improving",
+                },
+            }
+        },
+    }
+    strategy = json.loads(json.dumps(bundle.strategic_analysis))
+    strategy["historical_context"] = historical_context
+    return ReportInputBundle(
+        period_slug="2026_09",
+        finance_summary=finance,
+        kpi_summary=bundle.kpi_summary,
+        anomaly_report=bundle.anomaly_report,
+        evidence_package=bundle.evidence_package,
+        strategic_analysis=strategy,
+        source_files=(
+            "outputs/calculations/finance_summary_2026_09.json",
+            "outputs/calculations/kpi_summary_2026_09.csv",
+            "outputs/anomalies/anomaly_report_2026_09.json",
+            "outputs/evidence/evidence_package_2026_09.json",
+            "outputs/analysis/strategic_analysis_2026_09.json",
+        ),
+    )
+
+
+def test_september_report_model_preserves_explicit_intermediate_trend_points() -> None:
+    """Verify Jun-Jul-Aug-Sep values reach the report model exactly."""
+
+    report_model = build_report_model(_september_bundle_with_explicit_history()).to_dict()
+
+    assert _trend_points(report_model, "total_revenue") == [
+        ("2026_06", 1_992_060.0),
+        ("2026_07", 2_021_376.0),
+        ("2026_08", 2_072_448.0),
+        ("2026_09", 2_123_856.0),
+    ]
+    assert _trend_points(report_model, "total_expenses") == [
+        ("2026_06", 2_366_060.0),
+        ("2026_07", 2_213_876.0),
+        ("2026_08", 2_138_448.0),
+        ("2026_09", 2_096_356.0),
+    ]
+    assert len(_trend_points(report_model, "total_revenue")) == 4
+    assert len(_trend_points(report_model, "total_expenses")) == 4
+
+
+def test_load_report_inputs_supports_generic_period_with_refreshed_history(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Verify generic monthly report inputs can refresh stale historical context."""
+
+    root = tmp_path
+    for folder in ("calculations", "anomalies", "evidence", "analysis"):
+        (root / "outputs" / folder).mkdir(parents=True, exist_ok=True)
+    (root / "outputs" / "calculations" / "finance_summary_2026_09.json").write_text(
+        json.dumps(_september_bundle_with_explicit_history().finance_summary),
+        encoding="utf-8",
+    )
+    (root / "outputs" / "calculations" / "kpi_summary_2026_09.csv").write_text(
+        "metric,value,unit\n"
+        "total_revenue,2123856,USD\n",
+        encoding="utf-8",
+    )
+    (root / "outputs" / "anomalies" / "anomaly_report_2026_09.json").write_text("{}", encoding="utf-8")
+    (root / "outputs" / "evidence" / "evidence_package_2026_09.json").write_text("{}", encoding="utf-8")
+    (root / "outputs" / "analysis" / "strategic_analysis_2026_09.json").write_text(
+        json.dumps({"validation_status": "accepted", "analysis": {}, "historical_context": {"retrievals": []}}),
+        encoding="utf-8",
+    )
+
+    class FakeHistory:
+        """Fake deterministic context builder result."""
+
+        context = {"retrievals": [{"tool_name": "get_metric_history", "metric": "total_revenue", "records": [{"period": "2026_08", "value": 1}]}]}
+        telemetry = {"database_queries": 1}
+
+    import finance_agent.reporting.report_engine as report_engine
+
+    monkeypatch.setattr(report_engine, "build_historical_context", lambda **kwargs: FakeHistory())
+
+    bundle = load_report_inputs(root, "2026_09", memory_database_path=tmp_path / "memory.db")
+
+    assert bundle.period_slug == "2026_09"
+    assert bundle.strategic_analysis["historical_context"] == FakeHistory.context
+    assert bundle.strategic_analysis["historical_context_refresh"]["refreshed_for_report_model"] is True
 
 
 def test_report_model_generation_contains_required_sections() -> None:

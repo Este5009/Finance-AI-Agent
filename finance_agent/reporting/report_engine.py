@@ -13,6 +13,7 @@ from finance_agent.common.evidence_availability import (
     filter_contradicted_missing_information,
     remove_contradicted_department_absence_text,
 )
+from finance_agent.memory.context_builder import build_historical_context
 from finance_agent.reporting.report_models import (
     REQUIRED_SECTION_IDS,
     ReportModel,
@@ -96,12 +97,20 @@ def _read_csv_records(path: Path) -> tuple[dict[str, Any], ...]:
         raise ReportInputError(f"Could not read report input {path}: {exc}") from exc
 
 
-def load_report_inputs(project_root: str | Path, period_slug: str) -> ReportInputBundle:
+def load_report_inputs(
+    project_root: str | Path,
+    period_slug: str,
+    *,
+    memory_database_path: str | Path | None = None,
+) -> ReportInputBundle:
     """Load processed artifacts for one report period.
 
-    Inputs: project root and supported period slug (`june_2026` or `2026`).
+    Inputs: project root, report period slug, and optional memory database path.
     Outputs: ReportInputBundle.
-    Assumptions: Step 10A consumes existing processed outputs only.
+    Assumptions: Step 10A consumes existing processed outputs only. When a
+    memory database is supplied, historical context is rebuilt deterministically
+    from SQLite so stale strategic-analysis artifacts cannot collapse chart
+    series to endpoint summaries.
     """
 
     root = Path(project_root).resolve()
@@ -121,18 +130,78 @@ def load_report_inputs(project_root: str | Path, period_slug: str) -> ReportInpu
             "evidence_package": root / "outputs" / "evidence" / "evidence_package_2026.json",
             "strategic_analysis": root / "outputs" / "analysis" / "strategic_analysis_2026.json",
         }
+    elif re.match(r"^20\d{2}_[0-1]\d$", period_slug):
+        paths = {
+            "finance_summary": root / "outputs" / "calculations" / f"finance_summary_{period_slug}.json",
+            "kpi_summary": root / "outputs" / "calculations" / f"kpi_summary_{period_slug}.csv",
+            "anomaly_report": root / "outputs" / "anomalies" / f"anomaly_report_{period_slug}.json",
+            "evidence_package": root / "outputs" / "evidence" / f"evidence_package_{period_slug}.json",
+            "strategic_analysis": root / "outputs" / "analysis" / f"strategic_analysis_{period_slug}.json",
+        }
     else:
         raise ReportInputError(f"Unsupported report period slug: {period_slug}")
 
+    finance_summary = _read_json(paths["finance_summary"])
+    anomaly_report = _read_json(paths["anomaly_report"])
+    evidence_package = _read_json(paths["evidence_package"])
+    strategic_analysis = _read_json(paths["strategic_analysis"])
+    if memory_database_path is not None:
+        strategic_analysis = _with_refreshed_historical_context(
+            period_slug=period_slug,
+            finance_summary=finance_summary,
+            anomaly_report=anomaly_report,
+            evidence_package=evidence_package,
+            strategic_analysis=strategic_analysis,
+            memory_database_path=memory_database_path,
+        )
+
     return ReportInputBundle(
         period_slug=period_slug,
-        finance_summary=_read_json(paths["finance_summary"]),
+        finance_summary=finance_summary,
         kpi_summary=_read_csv_records(paths["kpi_summary"]),
-        anomaly_report=_read_json(paths["anomaly_report"]),
-        evidence_package=_read_json(paths["evidence_package"]),
-        strategic_analysis=_read_json(paths["strategic_analysis"]),
+        anomaly_report=anomaly_report,
+        evidence_package=evidence_package,
+        strategic_analysis=strategic_analysis,
         source_files=tuple(str(path) for path in paths.values()),
     )
+
+
+def _with_refreshed_historical_context(
+    *,
+    period_slug: str,
+    finance_summary: dict[str, Any],
+    anomaly_report: dict[str, Any],
+    evidence_package: dict[str, Any],
+    strategic_analysis: dict[str, Any],
+    memory_database_path: str | Path,
+) -> dict[str, Any]:
+    """Return strategic analysis with deterministic fresh historical context.
+
+    Inputs: current processed artifacts, existing strategic-analysis document,
+    and SQLite memory database path.
+    Outputs: copied strategic-analysis document with refreshed
+    ``historical_context``.
+    Assumptions: this performs read-only retrieval and does not call Ollama or
+    mutate the original strategic-analysis artifact.
+    """
+
+    refreshed = build_historical_context(
+        current_period=period_slug,
+        finance_summary=finance_summary,
+        anomaly_report=anomaly_report,
+        evidence_package=evidence_package,
+        database_path=memory_database_path,
+        purpose="report_model",
+    )
+    copied = json.loads(json.dumps(strategic_analysis, ensure_ascii=False))
+    copied["historical_context"] = refreshed.context
+    copied.setdefault("historical_context_refresh", {})
+    copied["historical_context_refresh"] = {
+        "source": str(memory_database_path),
+        "telemetry": refreshed.telemetry,
+        "refreshed_for_report_model": True,
+    }
+    return copied
 
 
 def _finance(document: dict[str, Any]) -> dict[str, Any]:

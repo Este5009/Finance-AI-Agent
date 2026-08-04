@@ -823,6 +823,88 @@ def test_september_analysis_tab_preserves_july_and_august_points() -> None:
     assert "ui-trend-chart" in html
 
 
+def test_streamlit_chart_input_preserves_exact_september_revenue_and_expense_points(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verify Streamlit receives exact Jun-Jul-Aug-Sep chart points."""
+
+    report_model = _july_report_model()
+    report_model["period_slug"] = "2026_09"
+    report_model["report_period"] = "2026_09"
+    report_model["sections"] = [
+        section for section in report_model["sections"] if section["section_id"] != "historical_trends"
+    ]
+    for section in report_model["sections"]:
+        if section["section_id"] == "financial_health_overview":
+            section["content"].update({"total_revenue": 2_123_856.0, "total_expenses": 2_096_356.0})
+    report_model["sections"].append(
+        {
+            "section_id": "historical_trends",
+            "title": "Historical Trends",
+            "content": {
+                "trend_series": [
+                    {
+                        "metric_id": "total_revenue",
+                        "metric": "Ingresos",
+                        "unit": "USD",
+                        "points": [
+                            {"period": "2026_06", "value": 1_992_060.0},
+                            {"period": "2026_07", "value": 2_021_376.0},
+                            {"period": "2026_08", "value": 2_072_448.0},
+                        ],
+                    },
+                    {
+                        "metric_id": "total_expenses",
+                        "metric": "Gastos",
+                        "unit": "USD",
+                        "points": [
+                            {"period": "2026_06", "value": 2_366_060.0},
+                            {"period": "2026_07", "value": 2_213_876.0},
+                            {"period": "2026_08", "value": 2_138_448.0},
+                        ],
+                    },
+                ]
+            },
+            "source_references": ["outputs/analysis/strategic_analysis_2026_09.json"],
+            "warnings": [],
+        }
+    )
+    captured: dict[str, list[tuple[str, float]]] = {}
+    original_svg = streamlit_app._trend_svg_html
+
+    def spy_svg(series: dict[str, object]) -> str:
+        """Capture Streamlit chart input before rendering SVG."""
+
+        metric = str(series.get("metric_id") or "")
+        if metric in {"total_revenue", "total_expenses"}:
+            captured[metric] = [
+                (str(point.get("period")), float(point.get("value")))
+                for point in series.get("points", [])  # type: ignore[union-attr]
+                if isinstance(point, dict)
+            ]
+        return original_svg(series)
+
+    monkeypatch.setattr(streamlit_app, "_trend_svg_html", spy_svg)
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_analysis_tab(fake_st, report_model)
+
+    assert captured["total_revenue"] == [
+        ("2026_06", 1_992_060.0),
+        ("2026_07", 2_021_376.0),
+        ("2026_08", 2_072_448.0),
+        ("2026_09", 2_123_856.0),
+    ]
+    assert captured["total_expenses"] == [
+        ("2026_06", 2_366_060.0),
+        ("2026_07", 2_213_876.0),
+        ("2026_08", 2_138_448.0),
+        ("2026_09", 2_096_356.0),
+    ]
+    assert len(captured["total_revenue"]) == 4
+    assert len(captured["total_expenses"]) == 4
+
+
 def test_analysis_tab_uses_one_point_history_fallback_card() -> None:
     """Verify Streamlit avoids empty charts when only one trend point exists."""
 
