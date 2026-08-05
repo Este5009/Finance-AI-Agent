@@ -129,7 +129,7 @@ def _run_config(
         / "data"
         / "synthetic"
         / "monthly_financial_report_june_2026.xlsx",
-        period_override="2026-06",
+        period="2026-06",
         report_language="es",
     )
     config = PipelineConfig.from_project_root(

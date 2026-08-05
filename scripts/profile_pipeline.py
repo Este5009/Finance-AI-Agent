@@ -81,7 +81,7 @@ def main() -> None:
     args = build_argument_parser().parse_args()
     input_model = build_pipeline_input_model(
         workbook_path=args.workbook,
-        period_override=args.period_override,
+        period=args.period_override,
         report_language=args.language,
     )
     config = PipelineConfig.from_project_root(

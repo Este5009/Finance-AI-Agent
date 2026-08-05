@@ -278,8 +278,7 @@ def save_uploaded_file(uploaded_file: UploadedFileLike, destination_dir: Path) -
 
 def build_input_model_from_uploads(
     *,
-    workbook_path: Path | None = None,
-    financial_report_path: Path | None = None,
+    workbook_path: Path,
     settings: StreamlitRunSettings,
 ) -> PipelineInputModel:
     """Build the pipeline input model from one saved integrated workbook.
@@ -289,12 +288,9 @@ def build_input_model_from_uploads(
     Assumptions: period detection and validation remain owned by orchestration.
     """
 
-    selected_path = workbook_path or financial_report_path
-    if selected_path is None:
-        raise ValueError("Se requiere un libro financiero integrado.")
     return build_pipeline_input_model(
-        workbook_path=selected_path,
-        period_override=settings.period_override,
+        workbook_path=workbook_path,
+        period=settings.period_override,
         report_language=settings.report_language,
         source_revision_confirmed=settings.source_revision_confirmed,
     )
@@ -336,8 +332,7 @@ def build_pipeline_config(
 
 def run_analysis_from_files(
     *,
-    workbook_path: Path | None = None,
-    financial_report_path: Path | None = None,
+    workbook_path: Path,
     settings: StreamlitRunSettings,
     runner: PipelineRunner = run_pipeline_for_report,
     progress_callback: PipelineProgressCallback | None = None,
@@ -351,7 +346,6 @@ def run_analysis_from_files(
 
     input_model = build_input_model_from_uploads(
         workbook_path=workbook_path,
-        financial_report_path=financial_report_path,
         settings=settings,
     )
     config = build_pipeline_config(input_model, settings)

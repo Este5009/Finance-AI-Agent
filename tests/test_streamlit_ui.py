@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import csv
+import inspect
 import json
 import shutil
 from typing import Any
@@ -1333,6 +1334,36 @@ def test_build_input_model_from_uploads_uses_generic_contract(tmp_path: Path) ->
     assert input_model.financial_report_path == report
     assert input_model.report_language == "es"
     assert input_model.period_override == "2026-06"
+
+
+def test_integrated_workbook_preflight_uses_exported_workbook_builder(tmp_path: Path) -> None:
+    """Reproduce the UI preflight call path that passes ``workbook_path``.
+
+    Inputs: temporary integrated workbook placeholder.
+    Outputs: assertions on the exported orchestration API and resulting model.
+    Assumptions: preflight must not require separate goals or report paths.
+    """
+
+    report = tmp_path / "university_financial_report_2026_05.xlsx"
+    report.write_bytes(b"placeholder")
+    signature = inspect.signature(streamlit_app.build_pipeline_input_model)
+
+    assert "workbook_path" in signature.parameters
+    assert "goals_document_path" not in signature.parameters
+    assert "financial_report_path" not in signature.parameters
+
+    input_model = build_input_model_from_uploads(
+        workbook_path=report,
+        settings=StreamlitRunSettings(
+            report_language="es",
+            period_override="2026-05",
+            source_revision_confirmed=True,
+        ),
+    )
+
+    assert input_model.workbook_path == report.resolve()
+    assert input_model.period_override == "2026-05"
+    assert input_model.source_revision_confirmed is True
 
 
 def test_run_analysis_from_files_invokes_pipeline_runner(tmp_path: Path) -> None:

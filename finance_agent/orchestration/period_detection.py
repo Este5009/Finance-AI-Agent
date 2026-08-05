@@ -283,29 +283,27 @@ def detect_period(
 
 def build_pipeline_input_model(
     *,
-    workbook_path: str | Path | None = None,
-    financial_report_path: str | Path | None = None,
+    workbook_path: str | Path,
+    period: str | None = None,
     period_override: str | None = None,
     report_language: str = "es",
     source_revision_confirmed: bool = False,
 ) -> PipelineInputModel:
     """Build the integrated Excel workbook pipeline input model.
 
-    Inputs: workbook path, optional period override, and language.
+    Inputs: workbook path, optional period/override, and language.
     Outputs: PipelineInputModel for orchestrator or future UI use.
     Assumptions: language affects user-facing report text, not internal field names.
     """
 
-    selected_path = workbook_path or financial_report_path
-    if selected_path is None:
-        raise ValueError("workbook_path is required")
-    detected = detect_period(selected_path)
-    period_type = detected.period_type if not period_override else _detect_override_type(period_override)
+    effective_period = period if period is not None else period_override
+    detected = detect_period(workbook_path)
+    period_type = detected.period_type if not effective_period else _detect_override_type(effective_period)
     return PipelineInputModel(
-        workbook_path=Path(selected_path).resolve(),
+        workbook_path=Path(workbook_path).resolve(),
         detected_period=detected,
         period_type=period_type,
-        period_override=period_override,
+        period_override=effective_period,
         report_language=report_language or "es",
         source_revision_confirmed=source_revision_confirmed,
     )

@@ -263,7 +263,7 @@ def _run_population_pass(
         try:
             input_model = build_pipeline_input_model(
                 workbook_path=period.report_path,
-                period_override=period.period_slug.replace("_", "-"),
+                period=period.period_slug.replace("_", "-"),
                 report_language=language,
             )
             config = PipelineConfig.from_project_root(

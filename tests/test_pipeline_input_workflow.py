@@ -157,7 +157,7 @@ def test_generic_non_synthetic_input_routes_to_object_pipeline(tmp_path: Path, m
     report = _touch(tmp_path / "uploads" / "school_report_july_2026.xlsx")
     input_model = build_pipeline_input_model(
         workbook_path=report,
-        period_override="July 2026",
+        period="July 2026",
         report_language="es",
     )
     called: dict[str, bool] = {"object_pipeline": False}

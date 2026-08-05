@@ -588,7 +588,7 @@ def _build_result_for_existing_artifacts(
 
     input_model = build_pipeline_input_model(
         workbook_path=workbook_path,
-        period_override=period_slug.replace("_", "-"),
+        period=period_slug.replace("_", "-"),
         report_language=language,
     )
     config = PipelineConfig.from_project_root(
