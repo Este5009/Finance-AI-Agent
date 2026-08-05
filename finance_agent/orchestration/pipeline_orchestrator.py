@@ -1770,6 +1770,7 @@ def run_object_pipeline_for_report(
             strategic_analysis=analysis_result.analysis_document,
             memory_database_path=config.memory_database_path
             or config.project_root / "data" / "memory" / "finance_memory.db",
+            project_root=config.project_root,
         )
         report_inputs = ReportInputBundle(
             period_slug=period_slug,

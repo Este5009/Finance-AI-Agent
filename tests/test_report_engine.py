@@ -15,7 +15,11 @@ from finance_agent.reporting import (
     validate_report_model,
 )
 from finance_agent.reporting.presentation import build_presentation_view
-from finance_agent.reporting.report_engine import _previous_month_slug, load_report_inputs
+from finance_agent.reporting.report_engine import (
+    _previous_month_slug,
+    load_report_inputs,
+    refresh_strategic_historical_context,
+)
 
 
 def test_january_monthly_comparison_uses_previous_december() -> None:
@@ -297,6 +301,106 @@ def test_september_report_model_materializes_six_point_recovery_window() -> None
         ("2026_08", 2_138_448.0),
         ("2026_09", 2_096_356.0),
     ]
+
+
+def test_refresh_context_augments_sparse_memory_with_processed_monthly_artifacts(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Verify sparse memory history is filled from deterministic processed outputs."""
+
+    calculations = tmp_path / "outputs" / "calculations"
+    calculations.mkdir(parents=True)
+    monthly_values = {
+        "2026_04": (2_018_940.0, 2_084_940.0),
+        "2026_05": (2_005_584.0, 2_126_584.0),
+        "2026_06": (1_992_060.0, 2_366_060.0),
+        "2026_07": (2_021_376.0, 2_213_876.0),
+        "2026_08": (2_072_448.0, 2_138_448.0),
+    }
+    for period, (revenue, expenses) in monthly_values.items():
+        (calculations / f"finance_summary_{period}.json").write_text(
+            json.dumps(
+                {
+                    "report_period": period.replace("_", "-"),
+                    "finance_summary": {
+                        "total_revenue": revenue,
+                        "total_expenses": expenses,
+                        "net_operating_result": revenue - expenses,
+                        "payroll_percentage_of_revenue": 0.5,
+                        "student_payments": {"collection_rate": 0.9},
+                        "cash_flow": {"net_cash_flow": -1.0, "ending_cash": 100.0},
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+
+    class FakeHistory:
+        """Sparse context similar to a memory DB with only June stored."""
+
+        context = {
+            "retrievals": [
+                {
+                    "tool_name": "get_metric_history",
+                    "success": True,
+                    "metric": "total_revenue",
+                    "records": [{"period": "2026_06", "metric": "total_revenue", "value": 1_877_724.0}],
+                },
+                {
+                    "tool_name": "get_metric_history",
+                    "success": True,
+                    "metric": "total_expenses",
+                    "records": [{"period": "2026_06", "metric": "total_expenses", "value": 2_206_870.0}],
+                },
+            ],
+            "derived_context": {},
+            "summary": {"available_retrievals": 2},
+        }
+        telemetry = {"database_queries": 2}
+
+    import finance_agent.reporting.report_engine as report_engine
+
+    monkeypatch.setattr(report_engine, "build_historical_context", lambda **kwargs: FakeHistory())
+    bundle = _september_bundle_with_explicit_history()
+    refreshed = refresh_strategic_historical_context(
+        period_slug="2026_09",
+        finance_summary=bundle.finance_summary,
+        anomaly_report=bundle.anomaly_report,
+        evidence_package=bundle.evidence_package,
+        strategic_analysis=bundle.strategic_analysis,
+        memory_database_path=tmp_path / "memory.db",
+        project_root=tmp_path,
+    )
+    report_model = build_report_model(
+        ReportInputBundle(
+            period_slug="2026_09",
+            finance_summary=bundle.finance_summary,
+            kpi_summary=bundle.kpi_summary,
+            anomaly_report=bundle.anomaly_report,
+            evidence_package=bundle.evidence_package,
+            strategic_analysis=refreshed,
+            source_files=bundle.source_files,
+        )
+    ).to_dict()
+
+    assert _trend_points(report_model, "total_revenue") == [
+        ("2026_04", 2_018_940.0),
+        ("2026_05", 2_005_584.0),
+        ("2026_06", 1_992_060.0),
+        ("2026_07", 2_021_376.0),
+        ("2026_08", 2_072_448.0),
+        ("2026_09", 2_123_856.0),
+    ]
+    assert _trend_points(report_model, "total_expenses") == [
+        ("2026_04", 2_084_940.0),
+        ("2026_05", 2_126_584.0),
+        ("2026_06", 2_366_060.0),
+        ("2026_07", 2_213_876.0),
+        ("2026_08", 2_138_448.0),
+        ("2026_09", 2_096_356.0),
+    ]
+    assert refreshed["historical_context_refresh"]["processed_artifact_augmented"] is True
 
 
 def test_load_report_inputs_supports_generic_period_with_refreshed_history(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

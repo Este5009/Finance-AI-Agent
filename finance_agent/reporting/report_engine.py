@@ -153,6 +153,7 @@ def load_report_inputs(
             evidence_package=evidence_package,
             strategic_analysis=strategic_analysis,
             memory_database_path=memory_database_path,
+            project_root=root,
         )
 
     return ReportInputBundle(
@@ -174,6 +175,7 @@ def refresh_strategic_historical_context(
     evidence_package: dict[str, Any],
     strategic_analysis: dict[str, Any],
     memory_database_path: str | Path,
+    project_root: str | Path | None = None,
 ) -> dict[str, Any]:
     """Return strategic analysis with deterministic fresh historical context.
 
@@ -193,15 +195,239 @@ def refresh_strategic_historical_context(
         database_path=memory_database_path,
         purpose="report_model",
     )
+    context = _augment_historical_context_with_processed_summaries(
+        refreshed.context,
+        project_root=project_root,
+        current_period=period_slug,
+    )
     copied = json.loads(json.dumps(strategic_analysis, ensure_ascii=False))
-    copied["historical_context"] = refreshed.context
+    copied["historical_context"] = context
     copied.setdefault("historical_context_refresh", {})
     copied["historical_context_refresh"] = {
         "source": str(memory_database_path),
         "telemetry": refreshed.telemetry,
         "refreshed_for_report_model": True,
+        "processed_artifact_augmented": bool(
+            context.get("historical_context_refresh", {}).get("processed_history_periods")
+        ),
     }
     return copied
+
+
+def _augment_historical_context_with_processed_summaries(
+    context: dict[str, Any],
+    *,
+    project_root: str | Path | None,
+    current_period: str,
+) -> dict[str, Any]:
+    """Add missing monthly KPI history from processed finance-summary artifacts.
+
+    Inputs: compact historical context, project root, and current period slug.
+    Outputs: copied context with ``get_metric_history`` records augmented.
+    Assumptions: SQLite memory is preferred, but processed monthly JSON outputs
+    are deterministic artifacts and may safely fill missing months for report
+    charts without calling Ollama or recalculating financial formulas.
+    """
+
+    copied = json.loads(json.dumps(context, ensure_ascii=False))
+    project = Path(project_root) if project_root is not None else Path.cwd()
+    processed = _processed_monthly_metric_history(project, current_period=current_period)
+    if not processed:
+        return copied
+    retrievals = copied.setdefault("retrievals", [])
+    if not isinstance(retrievals, list):
+        copied["retrievals"] = retrievals = []
+    augmented_periods: set[str] = set()
+    for metric, records in processed.items():
+        retrieval = _metric_history_retrieval(retrievals, metric)
+        if retrieval is None:
+            retrieval = {
+                "tool_name": "get_metric_history",
+                "arguments": {"metric": metric, "periods": 12, "before_period": current_period},
+                "success": True,
+                "summary": "",
+                "record_count": 0,
+                "metric": metric,
+                "records": [],
+                "unavailable_data": [],
+                "warnings": [],
+                "confidence": 0.95,
+            }
+            retrievals.append(retrieval)
+        existing = {
+            str(record.get("period") or ""): record
+            for record in retrieval.get("records", [])
+            if isinstance(record, dict)
+        }
+        before_count = len(existing)
+        for record in records:
+            period = str(record.get("period") or "")
+            if period:
+                existing[period] = {**existing.get(period, {}), **record}
+                augmented_periods.add(period)
+        merged = [
+            existing[period]
+            for period in sorted(existing, key=_monthly_period_sort_key)
+            if _monthly_period_sort_key(period) < _monthly_period_sort_key(current_period)
+        ]
+        retrieval["success"] = bool(merged)
+        retrieval["records"] = merged
+        retrieval["record_count"] = len(merged)
+        retrieval["summary"] = f"Retrieved {len(merged)} {metric} point(s)."
+        if len(merged) > before_count:
+            warnings = retrieval.setdefault("warnings", [])
+            if isinstance(warnings, list):
+                warnings.append("Historical chart points augmented from processed finance-summary artifacts.")
+    _refresh_derived_kpi_trends(copied)
+    copied.setdefault("historical_context_refresh", {})
+    copied["historical_context_refresh"]["processed_history_periods"] = sorted(
+        augmented_periods,
+        key=_monthly_period_sort_key,
+    )
+    copied["historical_context_refresh"]["processed_history_source"] = str(project / "outputs" / "calculations")
+    return copied
+
+
+def _metric_history_retrieval(retrievals: list[Any], metric: str) -> dict[str, Any] | None:
+    """Return a metric-history retrieval block for one canonical metric.
+
+    Inputs: retrieval list and metric ID.
+    Outputs: retrieval dictionary or None.
+    Assumptions: retrieval blocks are compact dictionaries.
+    """
+
+    aliases = {"collection_rate": "student_payment_collection_rate"}
+    expected = {metric, aliases.get(metric, metric)}
+    for retrieval in retrievals:
+        if not isinstance(retrieval, dict) or retrieval.get("tool_name") != "get_metric_history":
+            continue
+        found = str(retrieval.get("metric") or retrieval.get("arguments", {}).get("metric") or "")
+        if found in expected:
+            retrieval["metric"] = metric
+            return retrieval
+    return None
+
+
+def _processed_monthly_metric_history(project_root: Path, *, current_period: str) -> dict[str, list[dict[str, Any]]]:
+    """Read prior monthly KPI values from processed finance-summary artifacts.
+
+    Inputs: project root and current monthly period.
+    Outputs: metric ID to chronologically ordered records.
+    Assumptions: artifacts are already produced by deterministic calculations.
+    """
+
+    current_index = _monthly_period_sort_key(current_period)
+    if current_index < 0:
+        return {}
+    calculations = project_root / "outputs" / "calculations"
+    records: dict[str, list[dict[str, Any]]] = {
+        "total_revenue": [],
+        "total_expenses": [],
+        "net_operating_result": [],
+        "payroll_percentage_of_revenue": [],
+        "collection_rate": [],
+        "net_cash_flow": [],
+        "ending_cash": [],
+    }
+    for path in sorted(calculations.glob("finance_summary_20??_??.json")):
+        match = re.search(r"finance_summary_(20\d{2}_[0-1]\d)\.json$", path.name)
+        if not match:
+            continue
+        period = match.group(1)
+        period_index = _monthly_period_sort_key(period)
+        if period_index < 0 or period_index >= current_index:
+            continue
+        try:
+            document = _read_json(path)
+        except ReportInputError:
+            continue
+        values = _metric_values_from_finance_document(document)
+        for metric, value in values.items():
+            if value is not None and metric in records:
+                records[metric].append(
+                    {
+                        "period": period,
+                        "metric": metric,
+                        "value": value,
+                        "unit": "ratio" if metric in {"payroll_percentage_of_revenue", "collection_rate"} else "USD",
+                        "source": str(path),
+                    }
+                )
+    return {metric: rows for metric, rows in records.items() if rows}
+
+
+def _metric_values_from_finance_document(document: dict[str, Any]) -> dict[str, float | None]:
+    """Extract canonical historical-chart metrics from one finance summary.
+
+    Inputs: processed finance-summary document.
+    Outputs: metric ID to deterministic numeric value or None.
+    Assumptions: values are copied from processed outputs, never recalculated.
+    """
+
+    finance = document.get("finance_summary", {})
+    finance = finance if isinstance(finance, dict) else {}
+    payments = finance.get("student_payments", {})
+    payments = payments if isinstance(payments, dict) else {}
+    cash_flow = finance.get("cash_flow", {})
+    cash_flow = cash_flow if isinstance(cash_flow, dict) else {}
+    return {
+        "total_revenue": number_value(finance.get("total_revenue")),
+        "total_expenses": number_value(finance.get("total_expenses")),
+        "net_operating_result": number_value(finance.get("net_operating_result")),
+        "payroll_percentage_of_revenue": number_value(finance.get("payroll_percentage_of_revenue")),
+        "collection_rate": number_value(payments.get("collection_rate")),
+        "net_cash_flow": number_value(cash_flow.get("net_cash_flow")),
+        "ending_cash": number_value(cash_flow.get("ending_cash")),
+    }
+
+
+def _refresh_derived_kpi_trends(context: dict[str, Any]) -> None:
+    """Refresh derived trend summaries after metric-history augmentation.
+
+    Inputs: mutable historical context.
+    Outputs: none; updates ``derived_context.kpi_trends`` in place.
+    Assumptions: derived summaries remain compact and chart points stay in
+    retrieval records/report sections.
+    """
+
+    derived = context.setdefault("derived_context", {})
+    if not isinstance(derived, dict):
+        context["derived_context"] = derived = {}
+    trends: dict[str, dict[str, Any]] = {}
+    for retrieval in context.get("retrievals", []) if isinstance(context.get("retrievals"), list) else []:
+        if not isinstance(retrieval, dict) or retrieval.get("tool_name") != "get_metric_history" or not retrieval.get("success"):
+            continue
+        metric = str(retrieval.get("metric") or retrieval.get("arguments", {}).get("metric") or "")
+        records = [
+            record
+            for record in retrieval.get("records", [])
+            if isinstance(record, dict) and number_value(record.get("value")) is not None
+        ]
+        if not metric or not records:
+            continue
+        values = [float(number_value(record.get("value")) or 0.0) for record in records]
+        trends[metric] = {
+            "periods": [record.get("period") for record in records],
+            "first_value": values[0],
+            "latest_value": values[-1],
+            "direction": "improving" if values[-1] >= values[0] else "worsening",
+        }
+    if trends:
+        derived["kpi_trends"] = trends
+
+
+def _monthly_period_sort_key(period: str) -> int:
+    """Return a sortable key for monthly slugs.
+
+    Inputs: period text such as ``2026_09`` or ``2026-09``.
+    Outputs: month index or -1 for unsupported labels.
+    Assumptions: only monthly 20xx slugs are used for this augmentation.
+    """
+
+    match = re.match(r"^(20\d{2})[-_](0[1-9]|1[0-2])$", str(period or ""))
+    if not match:
+        return -1
+    return int(match.group(1)) * 12 + int(match.group(2))
 
 
 def _with_refreshed_historical_context(
