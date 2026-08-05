@@ -43,6 +43,17 @@ class ReportInputError(RuntimeError):
     """Raised when required processed report inputs cannot be loaded."""
 
 
+HISTORICAL_CHART_METRICS: tuple[str, ...] = (
+    "total_revenue",
+    "total_expenses",
+    "net_operating_result",
+    "payroll_percentage_of_revenue",
+    "collection_rate",
+    "net_cash_flow",
+    "ending_cash",
+)
+
+
 @dataclass(frozen=True)
 class ReportInputBundle:
     """Processed inputs used to build one report model.
@@ -95,6 +106,64 @@ def _read_csv_records(path: Path) -> tuple[dict[str, Any], ...]:
             return tuple(dict(row) for row in csv.DictReader(handle))
     except OSError as exc:
         raise ReportInputError(f"Could not read report input {path}: {exc}") from exc
+
+
+def rebuild_report_artifacts_from_processed_outputs(
+    project_root: str | Path,
+    period_slug: str,
+    *,
+    memory_database_path: str | Path | None = None,
+) -> tuple[dict[str, Any], dict[str, Path]]:
+    """Rebuild one report model/HTML/PDF from existing processed artifacts.
+
+    Inputs: project root, period slug, and optional memory DB.
+    Outputs: rebuilt report model dictionary and artifact paths.
+    Assumptions: this is deterministic report rendering only; it does not call
+    Ollama, rerun calculations, mutate SQLite, or read raw uploads.
+    """
+
+    from finance_agent.reporting.renderers import render_report_pdf, save_report_html
+
+    root = Path(project_root).resolve()
+    inputs = load_report_inputs(root, period_slug, memory_database_path=memory_database_path)
+    model = build_report_model(inputs)
+    report_dir = root / "outputs" / "report"
+    model_path = save_report_model(model, report_dir / f"report_model_{period_slug}.json")
+    model_dict = model.to_dict()
+    html_path = save_report_html(model_dict, report_dir / f"financial_report_{period_slug}.html")
+    pdf_path = render_report_pdf(model_dict, report_dir / f"financial_report_{period_slug}.pdf")
+    return model_dict, {"report_model": model_path, "html": html_path, "pdf": pdf_path}
+
+
+def report_model_needs_historical_refresh(
+    report_model: dict[str, Any],
+    *,
+    project_root: str | Path,
+    period_slug: str,
+) -> bool:
+    """Return whether a report model has stale/collapsed historical chart data.
+
+    Inputs: report model, project root, and period slug.
+    Outputs: True when processed monthly artifacts contain more comparable
+    points than the model exposes.
+    Assumptions: processed finance summaries are deterministic and take
+    precedence over stale memory/cache/session artifacts for chart display.
+    """
+
+    project = Path(project_root)
+    processed = _processed_monthly_metric_history(project, current_period=period_slug)
+    current_values = _report_model_current_metric_values(report_model)
+    for metric in HISTORICAL_CHART_METRICS:
+        expected_periods = [str(row.get("period") or "") for row in processed.get(metric, [])[-5:]]
+        if metric in current_values:
+            expected_periods.append(period_slug)
+        expected_periods = [period for period in expected_periods if period]
+        if len(expected_periods) < 2:
+            continue
+        model_periods = [str(row.get("period") or "") for row in _report_model_trend_records(report_model, metric)]
+        if model_periods != expected_periods:
+            return True
+    return False
 
 
 def load_report_inputs(
@@ -279,6 +348,23 @@ def _augment_historical_context_with_processed_summaries(
             if isinstance(warnings, list):
                 warnings.append("Historical chart points augmented from processed finance-summary artifacts.")
     _refresh_derived_kpi_trends(copied)
+    summary = copied.setdefault("summary", {})
+    if isinstance(summary, dict):
+        successful_retrievals = [
+            retrieval
+            for retrieval in retrievals
+            if isinstance(retrieval, dict) and retrieval.get("success")
+        ]
+        summary["available_retrievals"] = len(successful_retrievals)
+        summary["unavailable_retrievals"] = len(retrievals) - len(successful_retrievals)
+        topics = {
+            str(topic)
+            for topic in summary.get("topics", [])
+            if str(topic)
+        }
+        if successful_retrievals:
+            topics.add("get_metric_history")
+        summary["topics"] = sorted(topics)
     copied.setdefault("historical_context_refresh", {})
     copied["historical_context_refresh"]["processed_history_periods"] = sorted(
         augmented_periods,
@@ -379,6 +465,48 @@ def _metric_values_from_finance_document(document: dict[str, Any]) -> dict[str, 
         "net_cash_flow": number_value(cash_flow.get("net_cash_flow")),
         "ending_cash": number_value(cash_flow.get("ending_cash")),
     }
+
+
+def _report_model_current_metric_values(report_model: dict[str, Any]) -> dict[str, float]:
+    """Extract current chart metric values from a report model.
+
+    Inputs: report model.
+    Outputs: metric ID to current numeric value.
+    Assumptions: report-model sections were created from processed finance
+    outputs and preserve current-period deterministic values.
+    """
+
+    content: dict[str, Any] = {}
+    for section in report_model.get("sections", []) if isinstance(report_model, dict) else []:
+        if isinstance(section, dict) and section.get("section_id") == "financial_health_overview":
+            raw = section.get("content", {})
+            content = raw if isinstance(raw, dict) else {}
+            break
+    values: dict[str, float] = {}
+    for metric in HISTORICAL_CHART_METRICS:
+        numeric = number_value(content.get(metric))
+        if numeric is not None:
+            values[metric] = numeric
+    return values
+
+
+def _report_model_trend_records(report_model: dict[str, Any], metric: str) -> list[dict[str, Any]]:
+    """Extract one report-model historical trend series.
+
+    Inputs: report model and metric ID.
+    Outputs: trend point dictionaries.
+    Assumptions: missing sections represent unavailable chart data.
+    """
+
+    for section in report_model.get("sections", []) if isinstance(report_model, dict) else []:
+        if not isinstance(section, dict) or section.get("section_id") != "historical_trends":
+            continue
+        content = section.get("content", {})
+        content = content if isinstance(content, dict) else {}
+        for series in content.get("trend_series", []) if isinstance(content.get("trend_series", []), list) else []:
+            if isinstance(series, dict) and series.get("metric_id") == metric:
+                return [point for point in series.get("points", []) if isinstance(point, dict)]
+    return []
 
 
 def _refresh_derived_kpi_trends(context: dict[str, Any]) -> None:

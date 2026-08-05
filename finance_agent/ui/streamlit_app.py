@@ -32,6 +32,10 @@ from finance_agent.reporting.presentation import (
     historical_chart_series,
     validate_historical_chart_rendering,
 )
+from finance_agent.reporting.report_engine import (
+    rebuild_report_artifacts_from_processed_outputs,
+    report_model_needs_historical_refresh,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -2087,13 +2091,17 @@ def _artifact_paths(result: PipelineRunResult) -> dict[str, Path | None]:
     Assumptions: report model naming exposes the period slug in the output name.
     """
 
-    report_model = next(
-        (Path(path) for path in result.output_files if Path(path).name.startswith("report_model_")),
-        None,
-    )
+    period_suffix = _period_slug_from_result(result)
+    # Prefer the exact period-slugged model over any generic legacy artifact
+    # that may still be listed first in cached PipelineRunResult.output_files.
+    report_model = _report_model_from_period(result) if period_suffix else None
     if report_model is None:
-        report_model = _report_model_from_period(result)
-    period_suffix = ""
+        report_model = _find_output(result, f"report_model_{period_suffix}.json") if period_suffix else None
+    if report_model is None:
+        report_model = next(
+            (Path(path) for path in result.output_files if Path(path).name.startswith("report_model_")),
+            None,
+        )
     if report_model is not None:
         period_suffix = report_model.stem.replace("report_model_", "")
     return {
@@ -2118,6 +2126,7 @@ def _period_slug_from_result(result: PipelineRunResult) -> str:
     the pipeline; input-model labels are fallback metadata.
     """
 
+    candidates: list[str] = []
     for output_file in result.output_files:
         path = Path(output_file)
         for prefix, suffix in (
@@ -2127,7 +2136,12 @@ def _period_slug_from_result(result: PipelineRunResult) -> str:
             ("strategic_analysis_", ".json"),
         ):
             if path.name.startswith(prefix) and path.name.endswith(suffix):
-                return path.stem.replace(prefix, "")
+                candidates.append(path.stem.replace(prefix, ""))
+    for candidate in candidates:
+        if re.match(r"^20\d{2}_[0-1]\d$", candidate):
+            return candidate
+    if candidates:
+        return candidates[0]
     input_model = getattr(result.config, "input_model", None)
     label = str(getattr(input_model, "effective_period_label", "") or "")
     match = re.search(r"(20\d{2})[-_](0[1-9]|1[0-2])", label)
@@ -2164,6 +2178,66 @@ def _sibling_artifact(report_model: Path | None, filename: str) -> Path | None:
         return None
     candidate = report_model.parent / filename
     return candidate if candidate.is_file() else None
+
+
+def _load_fresh_report_model_for_results(
+    result: PipelineRunResult,
+    artifacts: dict[str, Path | None],
+) -> tuple[dict[str, Any], dict[str, Path | None], str | None]:
+    """Load the report model and refresh stale historical charts when needed.
+
+    Inputs: pipeline result and downloadable artifact paths.
+    Outputs: report-model dictionary, possibly updated artifact paths, and an
+    optional Spanish refresh note.
+    Assumptions: refresh uses only processed deterministic outputs; it never
+    calls Ollama, re-runs calculations, changes SQLite, or reads raw uploads.
+    """
+
+    report_model_path = artifacts.get("Report model JSON")
+    report_model = _load_json(report_model_path)
+    if not report_model:
+        return report_model, artifacts, None
+
+    period_suffix = ""
+    if report_model_path is not None:
+        period_suffix = Path(report_model_path).stem.replace("report_model_", "")
+    period_suffix = period_suffix or _period_slug_from_result(result)
+    if not period_suffix:
+        return report_model, artifacts, None
+
+    try:
+        needs_refresh = report_model_needs_historical_refresh(
+            report_model,
+            project_root=result.config.project_root,
+            period_slug=period_suffix,
+        )
+    except Exception:
+        # A failed freshness check should not hide an otherwise readable report.
+        return report_model, artifacts, None
+
+    if not needs_refresh:
+        return report_model, artifacts, None
+
+    try:
+        refreshed_model, refreshed_paths = rebuild_report_artifacts_from_processed_outputs(
+            result.config.project_root,
+            period_suffix,
+            memory_database_path=result.config.memory_database_path,
+        )
+    except Exception:
+        # Rendering should remain usable even if deterministic refresh cannot
+        # rebuild presentation artifacts in this environment.
+        return report_model, artifacts, None
+
+    updated = dict(artifacts)
+    updated["Report model JSON"] = refreshed_paths.get("report_model") or updated.get("Report model JSON")
+    updated["HTML"] = refreshed_paths.get("html") or updated.get("HTML")
+    updated["PDF"] = refreshed_paths.get("pdf") or updated.get("PDF")
+    return (
+        refreshed_model,
+        updated,
+        "Se actualizÃ³ la visualizaciÃ³n histÃ³rica con los datos mensuales procesados mÃ¡s recientes.",
+    )
 
 
 def _analysis_artifact_from_period(result: PipelineRunResult, period_suffix: str) -> Path | None:
@@ -3066,8 +3140,10 @@ def _render_results(st: Any, result: PipelineRunResult) -> None:
     """
 
     artifacts = _artifact_paths(result)
-    report_model = _load_json(artifacts["Report model JSON"])
+    report_model, artifacts, refresh_note = _load_fresh_report_model_for_results(result, artifacts)
     _render_results_header(st, report_model=report_model, result=result, artifacts=artifacts)
+    if refresh_note:
+        st.info(refresh_note)
     overview, kpis, anomalies, analysis, recommendations, downloads = st.tabs(
         ["Resumen", "KPIs", "Anomalías", "Análisis", "Recomendaciones", "Descargas"]
     )

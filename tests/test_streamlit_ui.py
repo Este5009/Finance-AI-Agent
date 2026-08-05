@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import csv
 import json
+import shutil
 from typing import Any
 
 import pytest
@@ -999,6 +1000,110 @@ def test_september_artifact_streamlit_specs_keep_all_monthly_points() -> None:
         assert len(rows) == 6
         assert any(row["period_label"] == "Jul 2026" for row in rows)
         assert any(row["period_label"] == "Ago 2026" for row in rows)
+
+
+def test_results_refresh_stale_period_model_before_streamlit_charts(tmp_path: Path) -> None:
+    """Verify the visible results path refreshes stale two-point trend artifacts.
+
+    Inputs: a temporary project with processed September artifacts plus stale
+    generic/exact report models.
+    Outputs: captured Vega-Lite chart specs from ``_render_results``.
+    Assumptions: this exercises the same artifact resolver and results tab path
+    used by Streamlit, without starting the Streamlit server or Ollama.
+    """
+
+    required = [
+        Path("outputs/calculations/finance_summary_2026_04.json"),
+        Path("outputs/calculations/finance_summary_2026_05.json"),
+        Path("outputs/calculations/finance_summary_2026_06.json"),
+        Path("outputs/calculations/finance_summary_2026_07.json"),
+        Path("outputs/calculations/finance_summary_2026_08.json"),
+        Path("outputs/calculations/finance_summary_2026_09.json"),
+        Path("outputs/calculations/kpi_summary_2026_09.csv"),
+        Path("outputs/anomalies/anomaly_report_2026_09.json"),
+        Path("outputs/evidence/evidence_package_2026_09.json"),
+        Path("outputs/analysis/strategic_analysis_2026_09.json"),
+        Path("outputs/report/report_model_2026_09.json"),
+    ]
+    missing = [str(path) for path in required if not path.is_file()]
+    if missing:
+        pytest.skip(f"September processed artifacts are not available: {missing}")
+
+    for source in required[:-1]:
+        target = tmp_path / source
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+    report_dir = tmp_path / "outputs" / "report"
+    report_dir.mkdir(parents=True, exist_ok=True)
+
+    stale_model = streamlit_app._load_json(required[-1])
+    for section in stale_model.get("sections", []):
+        if not isinstance(section, dict) or section.get("section_id") != "historical_trends":
+            continue
+        for series in section.get("content", {}).get("trend_series", []):
+            if isinstance(series, dict) and series.get("metric_id") in {"total_revenue", "total_expenses"}:
+                points = [point for point in series.get("points", []) if isinstance(point, dict)]
+                series["points"] = [points[2], points[-1]] if len(points) >= 6 else points[:2]
+    (report_dir / "report_model_2026.json").write_text(json.dumps(stale_model), encoding="utf-8")
+    (report_dir / "report_model_2026_09.json").write_text(json.dumps(stale_model), encoding="utf-8")
+    (report_dir / "financial_report_2026_09.html").write_text("<html></html>", encoding="utf-8")
+    (report_dir / "financial_report_2026_09.pdf").write_bytes(b"%PDF-1.4\n%stale\n")
+
+    config = PipelineConfig.from_project_root(tmp_path, python_executable="python")
+    result = PipelineRunResult(
+        success=True,
+        stages=(),
+        output_files=(
+            str(report_dir / "report_model_2026.json"),
+            str(report_dir / "report_model_2026_09.json"),
+            str(report_dir / "financial_report_2026_09.html"),
+            str(report_dir / "financial_report_2026_09.pdf"),
+            str(tmp_path / "outputs" / "analysis" / "strategic_analysis_2026_09.json"),
+            str(tmp_path / "outputs" / "evidence" / "evidence_package_2026_09.json"),
+        ),
+        warnings=(),
+        runtime_summary=RuntimeSummary(
+            total_runtime_seconds=1.0,
+            stages_requested=0,
+            stages_run=0,
+            stages_succeeded=0,
+            stages_failed=0,
+            stages_skipped=0,
+        ),
+        config=config,
+    )
+    fake_st = FakeStreamlitRenderer()
+
+    assert streamlit_app._period_slug_from_result(result) == "2026_09"
+    streamlit_app._render_results(fake_st, result)
+
+    specs_by_metric = {
+        chart["spec"]["data"]["values"][0]["metric_id"]: chart["spec"]
+        for chart in fake_st.vega_lite_charts
+        if chart["spec"].get("data", {}).get("values")
+    }
+    revenue_rows = specs_by_metric["total_revenue"]["data"]["values"]
+    expense_rows = specs_by_metric["total_expenses"]["data"]["values"]
+    assert [(row["period_label"], float(row["value"])) for row in revenue_rows] == [
+        ("Abr 2026", 2_018_940.0),
+        ("May 2026", 2_005_584.0),
+        ("Jun 2026", 1_992_060.0),
+        ("Jul 2026", 2_021_376.0),
+        ("Ago 2026", 2_072_448.0),
+        ("Sep 2026", 2_123_856.0),
+    ]
+    assert [(row["period_label"], float(row["value"])) for row in expense_rows] == [
+        ("Abr 2026", 2_084_940.0),
+        ("May 2026", 2_126_584.0),
+        ("Jun 2026", 2_366_060.0),
+        ("Jul 2026", 2_213_876.0),
+        ("Ago 2026", 2_138_448.0),
+        ("Sep 2026", 2_096_356.0),
+    ]
+    assert any("actualiz" in message.lower() for message in fake_st.info_messages)
+    assert len(revenue_rows) == 6
+    assert len(expense_rows) == 6
+    for spec in (specs_by_metric["total_revenue"], specs_by_metric["total_expenses"]):
         assert spec["mark"]["point"]
         assert "transform" not in spec
         assert "aggregate" not in json.dumps(spec)
