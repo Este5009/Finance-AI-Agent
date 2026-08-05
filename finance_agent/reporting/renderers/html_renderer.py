@@ -9,6 +9,7 @@ from typing import Any
 
 from finance_agent.reporting.presentation import (
     SECTION_LABELS_ES,
+    adaptive_axis_domain,
     build_presentation_view,
     deterministic_chart_insight,
     display_or_unavailable,
@@ -314,14 +315,15 @@ def _line_chart(series: dict[str, Any]) -> str:
             "</div>"
         )
     values = [float(point.get("value") or 0.0) for point in points]
+    data_min = min(values)
+    data_max = max(values)
     width = 600
     height = 280
     left_pad = 72
     right_pad = 28
     top_pad = 42
     bottom_pad = 64
-    min_value = min(values)
-    max_value = max(values)
+    min_value, max_value = adaptive_axis_domain(values)
     span = max(max_value - min_value, 1e-9)
     coords = []
     for index, point in enumerate(points):
@@ -329,8 +331,8 @@ def _line_chart(series: dict[str, Any]) -> str:
         y = height - bottom_pad - ((float(point.get("value") or 0.0) - min_value) / span) * (height - top_pad - bottom_pad)
         coords.append((x, y, point))
     polyline = " ".join(f"{x:.1f},{y:.1f}" for x, y, _ in coords)
-    min_index = values.index(min_value)
-    max_index = values.index(max_value)
+    min_index = values.index(data_min)
+    max_index = values.index(data_max)
     dots = "".join(
         f"<circle class='{'current-point' if index == len(coords)-1 else ('max-point' if index == max_index else ('min-point' if index == min_index else ''))}' cx='{x:.1f}' cy='{y:.1f}' r='4.2'><title>{_escape(point.get('period_label') or format_period_label(point.get('period')))}: {_escape(point.get('display'))}</title></circle>"
         for index, (x, y, point) in enumerate(coords)
@@ -351,7 +353,7 @@ def _line_chart(series: dict[str, Any]) -> str:
         )
     grid = "".join(grid_parts)
     return (
-        "<div class='trend-card'>"
+        f"<div class='trend-card' data-y-min='{min_value:.12g}' data-y-max='{max_value:.12g}'>"
         f"<h4>{_escape(series.get('metric'))}</h4>"
         f"<svg viewBox='0 0 {width} {height}' class='line-chart'>"
         f"{grid}<line x1='{left_pad}' y1='{height-bottom_pad}' x2='{width-right_pad}' y2='{height-bottom_pad}' class='axis-line' />"

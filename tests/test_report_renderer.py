@@ -14,7 +14,11 @@ from finance_agent.reporting.renderers import (
     save_report_html,
 )
 from finance_agent.reporting.renderers import pdf_renderer as pdf_renderer_module
-from finance_agent.reporting.presentation import REPORT_SECTION_TEMPLATES, build_presentation_view
+from finance_agent.reporting.presentation import (
+    REPORT_SECTION_TEMPLATES,
+    adaptive_axis_domain,
+    build_presentation_view,
+)
 import finance_agent.reporting.presentation as presentation
 from finance_agent.reporting.report_quality import (
     require_report_quality,
@@ -991,6 +995,63 @@ def test_generated_september_pdf_contains_all_month_labels_and_compact_charts(tm
     chart = pdf_renderer_module.LineChart({"points": [{"period": "2026_04", "value": 1}, {"period": "2026_05", "value": 2}]})
     assert chart.width <= 3.25 * 72
     assert 170 <= chart.height <= 210
+
+
+def test_adaptive_axis_domain_uses_local_range_without_forcing_zero() -> None:
+    """Verify high-value financial charts emphasize local variation truthfully."""
+
+    assert adaptive_axis_domain([2_018_940.0, 2_005_584.0, 1_992_060.0, 2_123_856.0]) == (
+        pytest.approx(1_978_880.4),
+        pytest.approx(2_137_035.6),
+    )
+    ratio_min, ratio_max = adaptive_axis_domain([0.91, 0.92, 0.93, 0.94])
+    assert ratio_min == pytest.approx(0.907)
+    assert ratio_max == pytest.approx(0.943)
+    assert ratio_min > 0
+    assert ratio_max < 1
+
+
+def test_adaptive_axis_domain_keeps_zero_when_series_crosses_zero() -> None:
+    """Verify cross-zero charts keep zero visible without forcing all-positive charts to zero."""
+
+    y_min, y_max = adaptive_axis_domain([-150_000.0, -80_000.0, 20_000.0, 60_000.0])
+
+    assert y_min < 0
+    assert y_max > 0
+    assert y_min == pytest.approx(-171_000.0)
+    assert y_max == pytest.approx(81_000.0)
+
+
+def test_html_pdf_and_streamlit_historical_charts_share_axis_domain() -> None:
+    """Verify every renderer uses the same adaptive y-axis limits."""
+
+    from finance_agent.reporting.renderers import html_renderer as html_renderer_module
+    from finance_agent.ui import streamlit_app
+
+    revenue_series = {
+        "metric_id": "total_revenue",
+        "metric": "Ingresos totales",
+        "unit": "USD",
+        "points": [
+            {"period": "2026_04", "value": 2_018_940.0},
+            {"period": "2026_05", "value": 2_005_584.0},
+            {"period": "2026_06", "value": 1_992_060.0},
+            {"period": "2026_07", "value": 2_021_376.0},
+            {"period": "2026_08", "value": 2_072_448.0},
+            {"period": "2026_09", "value": 2_123_856.0},
+        ],
+    }
+    expected = adaptive_axis_domain([point["value"] for point in revenue_series["points"]])
+
+    streamlit_domain = tuple(streamlit_app._trend_chart_spec(revenue_series)["encoding"]["y"]["scale"]["domain"])
+    pdf_domain = pdf_renderer_module.LineChart(revenue_series).y_axis_domain
+    html = html_renderer_module._line_chart(revenue_series)
+
+    assert streamlit_domain == pytest.approx(expected)
+    assert pdf_domain == pytest.approx(expected)
+    assert "data-y-min='1978880.4'" in html
+    assert "data-y-max='213703" in html
+    assert expected[0] > 0
 
 
 def test_august_report_renders_all_historical_charts(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

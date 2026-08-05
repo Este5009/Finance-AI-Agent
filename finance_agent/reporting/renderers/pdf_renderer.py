@@ -23,6 +23,7 @@ from reportlab.platypus import (
 
 from finance_agent.reporting.presentation import (
     SECTION_LABELS_ES,
+    adaptive_axis_domain,
     build_presentation_view,
     deterministic_chart_insight,
     display_or_unavailable,
@@ -142,6 +143,12 @@ class LineChart(Flowable):
         super().__init__()
         self.series = series
         self.width = width
+        values = [
+            float(point.get("value") or 0.0)
+            for point in series.get("points", [])
+            if isinstance(point, dict)
+        ]
+        self.y_axis_domain = adaptive_axis_domain(values) if values else (0.0, 1.0)
         # Keep historical charts compact enough for a two-column executive
         # layout while preserving readable axes and point markers.
         self.height = 2.6 * inch
@@ -165,8 +172,9 @@ class LineChart(Flowable):
             canvas.drawString(0, self.height - 28, "Sin puntos históricos.")
             return
         values = [float(point.get("value") or 0.0) for point in points]
-        min_value = min(values)
-        max_value = max(values)
+        data_min = min(values)
+        data_max = max(values)
+        min_value, max_value = self.y_axis_domain
         span = max(max_value - min_value, 1e-9)
         left = 0.58 * inch
         bottom = 0.56 * inch
@@ -198,8 +206,8 @@ class LineChart(Flowable):
         for x, y, _ in coords[1:]:
             path.lineTo(x, y)
         canvas.drawPath(path)
-        min_index = values.index(min_value)
-        max_index = values.index(max_value)
+        min_index = values.index(data_min)
+        max_index = values.index(data_max)
         for index, (x, y, _) in enumerate(coords):
             canvas.setFillColor(
                 NAVY if index == len(coords) - 1 else (GREEN if index == max_index else (RED if index == min_index else BLUE))

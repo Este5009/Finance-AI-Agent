@@ -963,6 +963,40 @@ def line_chart_insight(series: dict[str, Any]) -> str:
     )
 
 
+def adaptive_axis_domain(
+    values: list[float] | tuple[float, ...],
+    *,
+    force_zero_baseline: bool = False,
+) -> tuple[float, float]:
+    """Return truthful local y-axis limits for historical trend charts.
+
+    Inputs: numeric chart values and optional zero-baseline flag for metrics
+    that logically require a zero origin.
+    Outputs: ``(y_min, y_max)`` with 10% local padding.
+    Assumptions: this changes only the displayed axis domain; source values are
+    never normalized, interpolated, smoothed, or recalculated.
+    """
+
+    numeric_values = [float(value) for value in values if value is not None]
+    if not numeric_values:
+        return (0.0, 1.0)
+    minimum = min(numeric_values)
+    maximum = max(numeric_values)
+    span = maximum - minimum
+    # Flat series still need a small visual band so the line is readable.
+    epsilon = max(abs(maximum), abs(minimum), 1.0) * 0.01
+    padding = max(span * 0.10, epsilon if span == 0 else 1e-9)
+    y_min = minimum - padding
+    y_max = maximum + padding
+    if force_zero_baseline or minimum <= 0 <= maximum:
+        y_min = min(y_min, 0.0)
+        y_max = max(y_max, 0.0)
+    if y_min == y_max:
+        y_min -= 0.5
+        y_max += 0.5
+    return (y_min, y_max)
+
+
 def sanitize_items(items: Any, *, limit: int = 8) -> list[str]:
     """Return a bounded list of sanitized text items.
 

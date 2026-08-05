@@ -27,6 +27,7 @@ from finance_agent.orchestration import (
     run_pipeline_for_report,
 )
 from finance_agent.reporting.presentation import (
+    adaptive_axis_domain,
     build_presentation_view,
     format_value,
     historical_chart_series,
@@ -860,8 +861,7 @@ def _trend_svg_html(trend: dict[str, Any]) -> str:
     if any(value is None for value in numeric_values):
         return ""
     values = [float(value) for value in numeric_values if value is not None]
-    min_value = min(values)
-    max_value = max(values)
+    min_value, max_value = adaptive_axis_domain(values)
     span = max(max_value - min_value, 1e-9)
     width = 520
     height = 210
@@ -953,6 +953,7 @@ def _trend_chart_spec(trend: dict[str, Any]) -> dict[str, Any]:
     labels = [str(row["period_label"]) for row in rows]
     unit = str(trend.get("unit") or "")
     y_title = "Porcentaje" if unit == "ratio" else ("Monto" if unit == "USD" else "Valor")
+    y_min, y_max = adaptive_axis_domain([float(row["value"]) for row in rows])
     return {
         "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
         "description": f"Tendencia histórica de {_safe_display_text(trend.get('metric'))}",
@@ -980,6 +981,7 @@ def _trend_chart_spec(trend: dict[str, Any]) -> dict[str, Any]:
                 "field": "value",
                 "type": "quantitative",
                 "title": y_title,
+                "scale": {"domain": [y_min, y_max], "zero": False},
                 "axis": {"grid": True},
             },
             "tooltip": [
