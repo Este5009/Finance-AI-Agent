@@ -60,6 +60,7 @@ class FakeStreamlitRenderer:
         self.tables: list[Any] = []
         self.downloads: list[dict[str, str]] = []
         self.tab_labels: list[str] = []
+        self.vega_lite_charts: list[dict[str, Any]] = []
 
     def __enter__(self) -> "FakeStreamlitRenderer":
         """Return this object for ``with`` blocks."""
@@ -115,6 +116,11 @@ class FakeStreamlitRenderer:
         """Capture dataframe payloads."""
 
         self.tables.append(rows)
+
+    def vega_lite_chart(self, spec: dict[str, Any], *, use_container_width: bool = False) -> None:
+        """Capture Streamlit Vega-Lite chart specs."""
+
+        self.vega_lite_charts.append({"spec": spec, "use_container_width": use_container_width})
 
     def columns(self, count: int) -> list["FakeStreamlitRenderer"]:
         """Return context managers for column layouts."""
@@ -752,9 +758,14 @@ def test_analysis_tab_renders_canonical_historical_trend_cards_and_charts() -> N
     streamlit_app._render_analysis_tab(fake_st, report_model)
     html = "\n".join(fake_st.markdown_calls)
 
-    assert "ui-trend-chart" in html
+    assert len(fake_st.vega_lite_charts) == 2
     assert "Último valor" in html
-    assert "Ago 2026" in html
+    chart_labels = {
+        row["period_label"]
+        for chart in fake_st.vega_lite_charts
+        for row in chart["spec"]["data"]["values"]
+    }
+    assert "Ago 2026" in chart_labels
     assert "get_metric_history" not in html
 
 
@@ -770,9 +781,14 @@ def test_august_analysis_tab_renders_all_historical_charts() -> None:
     streamlit_app._render_analysis_tab(fake_st, report_model)
     html = "\n".join(fake_st.markdown_calls)
 
-    assert html.count("ui-trend-chart") == 7
+    assert len(fake_st.vega_lite_charts) == 7
+    chart_labels = {
+        row["period_label"]
+        for chart in fake_st.vega_lite_charts
+        for row in chart["spec"]["data"]["values"]
+    }
     for label in ("Mar 2026", "Abr 2026", "May 2026", "Jun 2026", "Jul 2026", "Ago 2026"):
-        assert label in html
+        assert label in chart_labels
     assert "Historial insuficiente" not in html
 
 
@@ -814,18 +830,20 @@ def test_september_analysis_tab_preserves_july_and_august_points() -> None:
     fake_st = FakeStreamlitRenderer()
 
     streamlit_app._render_analysis_tab(fake_st, report_model)
-    html = "\n".join(fake_st.markdown_calls)
 
-    assert "Jun 2026" in html
-    assert "Jul 2026" in html
-    assert "Ago 2026" in html
-    assert "Sep 2026" in html
-    assert "ui-trend-chart" in html
+    chart_labels = [
+        row["period_label"]
+        for chart in fake_st.vega_lite_charts
+        for row in chart["spec"]["data"]["values"]
+    ]
+    assert "Jun 2026" in chart_labels
+    assert "Jul 2026" in chart_labels
+    assert "Ago 2026" in chart_labels
+    assert "Sep 2026" in chart_labels
+    assert fake_st.vega_lite_charts
 
 
-def test_streamlit_chart_input_preserves_exact_september_revenue_and_expense_points(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def test_streamlit_chart_input_preserves_exact_september_revenue_and_expense_points() -> None:
     """Verify Streamlit receives exact Apr-Sep chart points."""
 
     report_model = _july_report_model()
@@ -873,25 +891,22 @@ def test_streamlit_chart_input_preserves_exact_september_revenue_and_expense_poi
             "warnings": [],
         }
     )
-    captured: dict[str, list[tuple[str, float]]] = {}
-    original_svg = streamlit_app._trend_svg_html
-
-    def spy_svg(series: dict[str, object]) -> str:
-        """Capture Streamlit chart input before rendering SVG."""
-
-        metric = str(series.get("metric_id") or "")
-        if metric in {"total_revenue", "total_expenses"}:
-            captured[metric] = [
-                (str(point.get("period")), float(point.get("value")))
-                for point in series.get("points", [])  # type: ignore[union-attr]
-                if isinstance(point, dict)
-            ]
-        return original_svg(series)
-
-    monkeypatch.setattr(streamlit_app, "_trend_svg_html", spy_svg)
     fake_st = FakeStreamlitRenderer()
 
     streamlit_app._render_analysis_tab(fake_st, report_model)
+
+    specs_by_metric = {
+        chart["spec"]["data"]["values"][0]["metric_id"]: chart["spec"]
+        for chart in fake_st.vega_lite_charts
+        if chart["spec"].get("data", {}).get("values")
+    }
+    captured = {
+        metric: [
+            (str(row.get("period")), float(row.get("value")))
+            for row in specs_by_metric[metric]["data"]["values"]
+        ]
+        for metric in ("total_revenue", "total_expenses")
+    }
 
     assert captured["total_revenue"] == [
         ("2026_04", 2_018_940.0),
@@ -911,6 +926,68 @@ def test_streamlit_chart_input_preserves_exact_september_revenue_and_expense_poi
     ]
     assert len(captured["total_revenue"]) == 6
     assert len(captured["total_expenses"]) == 6
+    for metric in ("total_revenue", "total_expenses"):
+        spec = specs_by_metric[metric]
+        assert spec["mark"]["point"]
+        assert "transform" not in spec
+        assert "aggregate" not in json.dumps(spec)
+        assert spec["encoding"]["x"]["axis"]["values"] == [
+            "Abr 2026",
+            "May 2026",
+            "Jun 2026",
+            "Jul 2026",
+            "Ago 2026",
+            "Sep 2026",
+        ]
+
+
+def test_september_artifact_streamlit_specs_keep_all_monthly_points() -> None:
+    """Verify the real September artifact reaches Streamlit as six-point charts."""
+
+    path = Path("outputs/report/report_model_2026_09.json")
+    if not path.is_file():
+        pytest.skip("September report model artifact is not available.")
+    report_model = streamlit_app._load_json(path)
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_analysis_tab(fake_st, report_model)
+
+    specs_by_metric = {
+        chart["spec"]["data"]["values"][0]["metric_id"]: chart["spec"]
+        for chart in fake_st.vega_lite_charts
+        if chart["spec"].get("data", {}).get("values")
+    }
+    assert len(fake_st.vega_lite_charts) == 7
+    assert [
+        (row["period_label"], float(row["value"]))
+        for row in specs_by_metric["total_revenue"]["data"]["values"]
+    ] == [
+        ("Abr 2026", 2_018_940.0),
+        ("May 2026", 2_005_584.0),
+        ("Jun 2026", 1_992_060.0),
+        ("Jul 2026", 2_021_376.0),
+        ("Ago 2026", 2_072_448.0),
+        ("Sep 2026", 2_123_856.0),
+    ]
+    assert [
+        (row["period_label"], float(row["value"]))
+        for row in specs_by_metric["total_expenses"]["data"]["values"]
+    ] == [
+        ("Abr 2026", 2_084_940.0),
+        ("May 2026", 2_126_584.0),
+        ("Jun 2026", 2_366_060.0),
+        ("Jul 2026", 2_213_876.0),
+        ("Ago 2026", 2_138_448.0),
+        ("Sep 2026", 2_096_356.0),
+    ]
+    for spec in specs_by_metric.values():
+        rows = spec["data"]["values"]
+        assert len(rows) == 6
+        assert any(row["period_label"] == "Jul 2026" for row in rows)
+        assert any(row["period_label"] == "Ago 2026" for row in rows)
+        assert spec["mark"]["point"]
+        assert "transform" not in spec
+        assert "aggregate" not in json.dumps(spec)
 
 
 def test_analysis_tab_uses_one_point_history_fallback_card() -> None:

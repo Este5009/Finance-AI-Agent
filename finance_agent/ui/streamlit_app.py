@@ -899,6 +899,120 @@ def _trend_svg_html(trend: dict[str, Any]) -> str:
     )
 
 
+def _trend_chart_rows(trend: dict[str, Any]) -> list[dict[str, Any]]:
+    """Build the exact Streamlit chart rows for one historical trend.
+
+    Inputs: one canonical historical trend from the report presentation view.
+    Outputs: ordered chart rows with period labels and numeric values.
+    Assumptions: all points are already deterministic report-model values; this
+    helper must preserve every supplied month and must not aggregate, sample, or
+    reduce the series to endpoints.
+    """
+
+    rows: list[dict[str, Any]] = []
+    unit = str(trend.get("unit") or "")
+    for index, point in enumerate(trend.get("points", []) or []):
+        if not isinstance(point, dict):
+            continue
+        value = _number_or_none(point.get("value"))
+        if value is None:
+            continue
+        chart_value = round(float(value), 2) if unit == "USD" else float(value)
+        period_label = _safe_display_text(point.get("period_label") or point.get("period"))
+        rows.append(
+            {
+                "metric_id": str(trend.get("metric_id") or ""),
+                "metric": _safe_display_text(trend.get("metric") or ""),
+                "period": str(point.get("period") or ""),
+                "period_label": period_label,
+                "period_order": index,
+                "value": chart_value,
+                "display_value": _safe_display_text(point.get("display") or format_value(chart_value, unit)),
+            }
+        )
+    return rows
+
+
+def _trend_chart_spec(trend: dict[str, Any]) -> dict[str, Any]:
+    """Build the final Vega-Lite specification used by Streamlit trends.
+
+    Inputs: one canonical historical trend.
+    Outputs: Vega-Lite dictionary with one data row and marker per real month.
+    Assumptions: Streamlit renders this via ``st.vega_lite_chart``; the spec
+    intentionally avoids aggregation/downsampling so tests can verify the final
+    visual contract, not only upstream report-model data.
+    """
+
+    rows = _trend_chart_rows(trend)
+    if len(rows) < 2:
+        return {}
+    labels = [str(row["period_label"]) for row in rows]
+    unit = str(trend.get("unit") or "")
+    y_title = "Porcentaje" if unit == "ratio" else ("Monto" if unit == "USD" else "Valor")
+    return {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "description": f"Tendencia histórica de {_safe_display_text(trend.get('metric'))}",
+        "data": {"values": rows},
+        "mark": {
+            "type": "line",
+            "point": {"filled": True, "size": 72},
+            "strokeWidth": 2.6,
+            "interpolate": "linear",
+        },
+        "encoding": {
+            "x": {
+                "field": "period_label",
+                "type": "ordinal",
+                "sort": labels,
+                "title": "Periodo",
+                "axis": {
+                    "values": labels if len(labels) <= 6 else None,
+                    "labelAngle": -25 if len(labels) <= 6 else -45,
+                    "labelOverlap": False,
+                    "labelLimit": 90,
+                },
+            },
+            "y": {
+                "field": "value",
+                "type": "quantitative",
+                "title": y_title,
+                "axis": {"grid": True},
+            },
+            "tooltip": [
+                {"field": "period_label", "type": "ordinal", "title": "Periodo"},
+                {"field": "display_value", "type": "nominal", "title": "Valor"},
+            ],
+        },
+        "width": 360,
+        "height": 220,
+        "config": {
+            "view": {"stroke": "transparent"},
+            "axis": {"labelFontSize": 11, "titleFontSize": 12, "gridColor": "#d7dde8"},
+        },
+    }
+
+
+def _render_streamlit_trend_chart(st: Any, trend: dict[str, Any]) -> bool:
+    """Render one historical trend chart using explicit Streamlit chart data.
+
+    Inputs: Streamlit-like renderer and one trend series.
+    Outputs: True when a chart was emitted.
+    Assumptions: real Streamlit exposes ``vega_lite_chart``; tests capture the
+    spec directly. The SVG fallback is only for unusual test doubles.
+    """
+
+    spec = _trend_chart_spec(trend)
+    if not spec:
+        return False
+    title = escape(_safe_display_text(trend.get("metric") or "Tendencia histórica"))
+    st.markdown(f"<div class='ui-chart-heading'>{title}</div>", unsafe_allow_html=True)
+    if hasattr(st, "vega_lite_chart"):
+        st.vega_lite_chart(spec, use_container_width=True)
+    else:
+        st.markdown(_trend_svg_html(trend), unsafe_allow_html=True)
+    return True
+
+
 def _analysis_mode_label(report_model: dict[str, Any]) -> tuple[str, str]:
     """Return the user-facing mode label for one report model.
 
@@ -1430,6 +1544,13 @@ def _apply_page_styles(st: Any) -> None:
             margin: 0 0 0.35rem;
             color: var(--fa-text-strong);
             font-size: 0.98rem;
+            line-height: 1.25;
+        }
+        .ui-chart-heading {
+            margin: 1.1rem 0 0.15rem;
+            color: var(--fa-text-strong);
+            font-size: 0.98rem;
+            font-weight: 750;
             line-height: 1.25;
         }
         .ui-trend-chart svg {
@@ -2543,29 +2664,25 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
     if historical.get("available"):
         narrative = historical.get("narrative", []) or []
         trend_cards = []
-        trend_charts = []
+        chartable_trends = []
         chartable_ids = {id(series) for series in historical_chart_series(historical)}
         for trend in historical.get("trends", []) or []:
             if not isinstance(trend, dict):
                 continue
-            points = trend.get("points", []) or []
             trend_cards.append(_trend_card_payload(trend))
             if id(trend) in chartable_ids:
-                trend_charts.append(_trend_svg_html(trend))
-        validate_historical_chart_rendering(
-            historical,
-            len([chart for chart in trend_charts if chart]),
-            renderer_name="Streamlit renderer",
-        )
+                chartable_trends.append(trend)
         if trend_cards:
             _render_responsive_card_grid(st, trend_cards, min_width_px=260)
-            if trend_charts:
-                st.markdown(
-                    "<div class='ui-responsive-grid' style='--fa-grid-min: 320px'>"
-                    + "".join(trend_charts)
-                    + "</div>",
-                    unsafe_allow_html=True,
-                )
+            rendered_charts = 0
+            for trend in chartable_trends:
+                if _render_streamlit_trend_chart(st, trend):
+                    rendered_charts += 1
+            validate_historical_chart_rendering(
+                historical,
+                rendered_charts,
+                renderer_name="Streamlit renderer",
+            )
         else:
             _render_section_card(
                 st,
