@@ -4,6 +4,7 @@ from finance_agent.reporting.report_engine import (
     ReportInputBundle,
     build_report_model,
     load_report_inputs,
+    refresh_strategic_historical_context,
     save_report_model,
     validate_report_model,
 )
@@ -38,6 +39,7 @@ __all__ = [
     "load_report_inputs",
     "render_report_html",
     "render_report_pdf",
+    "refresh_strategic_historical_context",
     "report_strategy_warnings",
     "save_report_model",
     "save_report_html",

@@ -146,7 +146,7 @@ def load_report_inputs(
     evidence_package = _read_json(paths["evidence_package"])
     strategic_analysis = _read_json(paths["strategic_analysis"])
     if memory_database_path is not None:
-        strategic_analysis = _with_refreshed_historical_context(
+        strategic_analysis = refresh_strategic_historical_context(
             period_slug=period_slug,
             finance_summary=finance_summary,
             anomaly_report=anomaly_report,
@@ -166,7 +166,7 @@ def load_report_inputs(
     )
 
 
-def _with_refreshed_historical_context(
+def refresh_strategic_historical_context(
     *,
     period_slug: str,
     finance_summary: dict[str, Any],
@@ -202,6 +202,32 @@ def _with_refreshed_historical_context(
         "refreshed_for_report_model": True,
     }
     return copied
+
+
+def _with_refreshed_historical_context(
+    *,
+    period_slug: str,
+    finance_summary: dict[str, Any],
+    anomaly_report: dict[str, Any],
+    evidence_package: dict[str, Any],
+    strategic_analysis: dict[str, Any],
+    memory_database_path: str | Path,
+) -> dict[str, Any]:
+    """Backward-compatible alias for refreshed historical report context.
+
+    Inputs: same as :func:`refresh_strategic_historical_context`.
+    Outputs: copied strategic-analysis document with fresh historical context.
+    Assumptions: older imports may still reference this private helper.
+    """
+
+    return refresh_strategic_historical_context(
+        period_slug=period_slug,
+        finance_summary=finance_summary,
+        anomaly_report=anomaly_report,
+        evidence_package=evidence_package,
+        strategic_analysis=strategic_analysis,
+        memory_database_path=memory_database_path,
+    )
 
 
 def _finance(document: dict[str, Any]) -> dict[str, Any]:

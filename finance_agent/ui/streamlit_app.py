@@ -1095,7 +1095,7 @@ def _render_results_header(
             },
             {"title": "Estado del reporte", "body": status_label, "variant": status_variant, "badge": status_label},
         ],
-        min_width_px=210,
+        min_width_px=260,
     )
 
 
@@ -1486,6 +1486,7 @@ def _apply_page_styles(st: Any) -> None:
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
+            flex-wrap: wrap;
             gap: 0.8rem;
             margin-bottom: 0.45rem;
         }
@@ -1500,6 +1501,8 @@ def _apply_page_styles(st: Any) -> None:
             font-size: 1rem;
             line-height: 1.25;
             margin: 0;
+            flex: 1 1 11rem;
+            min-width: 0;
             overflow-wrap: normal;
             word-break: normal;
             hyphens: none;
@@ -1519,7 +1522,9 @@ def _apply_page_styles(st: Any) -> None:
         }
         .ui-card-row {
             display: flex;
+            align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
             gap: 0.85rem;
             border-top: 1px solid #e6edf3;
             padding-top: 0.48rem;
@@ -1530,6 +1535,8 @@ def _apply_page_styles(st: Any) -> None:
         .ui-card-row strong {
             color: var(--fa-text-strong);
             text-align: right;
+            min-width: 0;
+            overflow-wrap: anywhere;
         }
         .ui-trend-chart {
             background: var(--fa-surface);
@@ -1608,8 +1615,16 @@ def _apply_page_styles(st: Any) -> None:
             margin-top: 0.7rem;
             font-size: 0.82rem;
             font-weight: 650;
+            line-height: 1.22;
+            max-width: 100%;
+            text-align: center;
+            overflow-wrap: anywhere;
         }
-        .ui-status-badge { margin-top: 0; white-space: nowrap; }
+        .ui-status-badge {
+            margin-top: 0;
+            white-space: normal;
+            flex: 0 1 auto;
+        }
         .ui-status-good,
         .ui-status-positive,
         .ui-status-achieved {

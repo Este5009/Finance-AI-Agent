@@ -53,7 +53,12 @@ from finance_agent.orchestration.pipeline_models import (
     PipelineStageResult,
     RuntimeSummary,
 )
-from finance_agent.reporting.report_engine import ReportInputBundle, build_report_model, save_report_model
+from finance_agent.reporting.report_engine import (
+    ReportInputBundle,
+    build_report_model,
+    refresh_strategic_historical_context,
+    save_report_model,
+)
 from finance_agent.reporting.report_quality import validate_report_artifacts
 from finance_agent.reporting.renderers import render_report_pdf, save_report_html
 from finance_agent.reasoning.reasoning_pipeline import create_modular_strategic_analysis
@@ -1757,13 +1762,22 @@ def run_object_pipeline_for_report(
         started = time.perf_counter()
         current_stage_started = started
         report_dir = outputs / "report"
+        report_analysis_document = refresh_strategic_historical_context(
+            period_slug=period_slug,
+            finance_summary=finance_document,
+            anomaly_report=anomaly_document,
+            evidence_package=evidence_package,
+            strategic_analysis=analysis_result.analysis_document,
+            memory_database_path=config.memory_database_path
+            or config.project_root / "data" / "memory" / "finance_memory.db",
+        )
         report_inputs = ReportInputBundle(
             period_slug=period_slug,
             finance_summary=finance_document,
             kpi_summary=tuple(json.loads(calculation.kpi_summary.to_json(orient="records"))),
             anomaly_report=anomaly_document,
             evidence_package=evidence_package,
-            strategic_analysis=analysis_result.analysis_document,
+            strategic_analysis=report_analysis_document,
             source_files=(
                 str(calculation_paths["finance_summary"]),
                 str(calculation_paths["kpi_summary"]),

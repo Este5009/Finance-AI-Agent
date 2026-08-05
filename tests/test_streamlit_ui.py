@@ -941,6 +941,20 @@ def test_streamlit_chart_input_preserves_exact_september_revenue_and_expense_poi
         ]
 
 
+def test_dashboard_card_css_prevents_badge_overflow() -> None:
+    """Verify result cards can wrap long badges inside their frame."""
+
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._apply_page_styles(fake_st)
+    css = "\n".join(fake_st.markdown_calls)
+
+    assert ".ui-card-header" in css
+    assert "flex-wrap: wrap" in css
+    assert "overflow-wrap: anywhere" in css
+    assert "white-space: normal" in css
+
+
 def test_september_artifact_streamlit_specs_keep_all_monthly_points() -> None:
     """Verify the real September artifact reaches Streamlit as six-point charts."""
 

@@ -243,6 +243,62 @@ def test_september_report_model_preserves_explicit_intermediate_trend_points() -
     assert len(_trend_points(report_model, "total_expenses")) == 4
 
 
+def test_september_report_model_materializes_six_point_recovery_window() -> None:
+    """Verify refreshed memory context becomes a full Apr-Sep report-model series."""
+
+    bundle = _september_bundle_with_explicit_history()
+    strategy = json.loads(json.dumps(bundle.strategic_analysis))
+    retrievals = strategy["historical_context"]["retrievals"]
+    retrievals[0]["records"] = [
+        {"period": "2026_01", "metric": "total_revenue", "value": 2_100_000.0},
+        {"period": "2026_02", "metric": "total_revenue", "value": 2_045_148.0},
+        {"period": "2026_03", "metric": "total_revenue", "value": 2_032_128.0},
+        {"period": "2026_04", "metric": "total_revenue", "value": 2_018_940.0},
+        {"period": "2026_05", "metric": "total_revenue", "value": 2_005_584.0},
+        {"period": "2026_06", "metric": "total_revenue", "value": 1_992_060.0},
+        {"period": "2026_07", "metric": "total_revenue", "value": 2_021_376.0},
+        {"period": "2026_08", "metric": "total_revenue", "value": 2_072_448.0},
+    ]
+    retrievals[1]["records"] = [
+        {"period": "2026_01", "metric": "total_expenses", "value": 2_017_500.0},
+        {"period": "2026_02", "metric": "total_expenses", "value": 2_001_148.0},
+        {"period": "2026_03", "metric": "total_expenses", "value": 2_021_128.0},
+        {"period": "2026_04", "metric": "total_expenses", "value": 2_084_940.0},
+        {"period": "2026_05", "metric": "total_expenses", "value": 2_126_584.0},
+        {"period": "2026_06", "metric": "total_expenses", "value": 2_366_060.0},
+        {"period": "2026_07", "metric": "total_expenses", "value": 2_213_876.0},
+        {"period": "2026_08", "metric": "total_expenses", "value": 2_138_448.0},
+    ]
+    report_model = build_report_model(
+        ReportInputBundle(
+            period_slug=bundle.period_slug,
+            finance_summary=bundle.finance_summary,
+            kpi_summary=bundle.kpi_summary,
+            anomaly_report=bundle.anomaly_report,
+            evidence_package=bundle.evidence_package,
+            strategic_analysis=strategy,
+            source_files=bundle.source_files,
+        )
+    ).to_dict()
+
+    assert _trend_points(report_model, "total_revenue") == [
+        ("2026_04", 2_018_940.0),
+        ("2026_05", 2_005_584.0),
+        ("2026_06", 1_992_060.0),
+        ("2026_07", 2_021_376.0),
+        ("2026_08", 2_072_448.0),
+        ("2026_09", 2_123_856.0),
+    ]
+    assert _trend_points(report_model, "total_expenses") == [
+        ("2026_04", 2_084_940.0),
+        ("2026_05", 2_126_584.0),
+        ("2026_06", 2_366_060.0),
+        ("2026_07", 2_213_876.0),
+        ("2026_08", 2_138_448.0),
+        ("2026_09", 2_096_356.0),
+    ]
+
+
 def test_load_report_inputs_supports_generic_period_with_refreshed_history(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Verify generic monthly report inputs can refresh stale historical context."""
 
