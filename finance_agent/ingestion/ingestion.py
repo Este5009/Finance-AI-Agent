@@ -13,17 +13,12 @@ from typing import Any
 
 import pandas as pd
 from openpyxl import load_workbook
-from pypdf import PdfReader
 
 from finance_agent.understanding.models import RawSheetData, RawWorkbookData
 
 
 class WorkbookIngestionError(RuntimeError):
     """Raised when an Excel workbook or one of its sheets cannot be read."""
-
-
-class PdfIngestionError(RuntimeError):
-    """Raised when a goals PDF cannot be opened or its text cannot be extracted."""
 
 
 @dataclass(frozen=True)
@@ -51,25 +46,6 @@ class WorkbookIngestionResult:
             "column_names": self.column_names,
             "dataframes": self.dataframes,
         }
-
-
-@dataclass(frozen=True)
-class GoalsPdfResult:
-    """Raw PDF text and basic file/document metadata."""
-
-    pdf_path: str
-    raw_text: str
-    metadata: dict[str, Any]
-
-    def as_dict(self) -> dict[str, Any]:
-        """Return all PDF fields as a JSON-compatible dictionary.
-
-        Inputs: this immutable result object.
-        Outputs: PDF path, raw text, and metadata.
-        Assumptions: metadata values were converted to JSON-safe types.
-        """
-
-        return {"pdf_path": self.pdf_path, "raw_text": self.raw_text, "metadata": self.metadata}
 
 
 def _validate_input_file(file_path: str | Path, expected_suffix: str) -> Path:
@@ -269,45 +245,3 @@ def inspect_workbook(
     }
 
 
-def extract_goals_pdf(pdf_path: str | Path) -> GoalsPdfResult:
-    """Extract raw text and basic metadata from a goals PDF.
-
-    Inputs: path to one PDF document.
-    Outputs: concatenated page text and file/document metadata.
-    Assumptions: advanced goal parsing and interpretation are deferred.
-    """
-
-    path = _validate_input_file(pdf_path, ".pdf")
-    try:
-        reader = PdfReader(path)
-        page_text: list[str] = []
-        for page_number, page in enumerate(reader.pages, start=1):
-            try:
-                # Separators retain page boundaries without imposing a goal schema.
-                page_text.append((page.extract_text() or "").strip())
-            except Exception as error:
-                raise PdfIngestionError(
-                    f"Unable to extract text from page {page_number} of '{path}': {error}"
-                ) from error
-    except PdfIngestionError:
-        raise
-    except Exception as error:
-        raise PdfIngestionError(f"Unable to open PDF '{path}': {error}") from error
-
-    document_metadata = reader.metadata or {}
-    metadata = {
-        "file_name": path.name,
-        "file_size_bytes": path.stat().st_size,
-        "page_count": len(reader.pages),
-        "title": str(document_metadata.get("/Title") or ""),
-        "author": str(document_metadata.get("/Author") or ""),
-        "subject": str(document_metadata.get("/Subject") or ""),
-        "creator": str(document_metadata.get("/Creator") or ""),
-        "producer": str(document_metadata.get("/Producer") or ""),
-        "creation_date": str(document_metadata.get("/CreationDate") or ""),
-    }
-    return GoalsPdfResult(
-        pdf_path=str(path),
-        raw_text="\n\n".join(text for text in page_text if text),
-        metadata=metadata,
-    )

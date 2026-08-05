@@ -57,8 +57,7 @@ def main() -> int:
     generated = generate_synthetic_history(config)
     validation = validate_generated_history(generated.root_directory)
     print(f"Generated scenario: {generated.root_directory}")
-    print(f"Reports: {len(generated.report_paths)}")
-    print(f"Goals PDFs: {len(generated.goals_paths)}")
+    print(f"Integrated workbooks: {len(generated.report_paths)}")
     print(f"Manifest: {generated.manifest_path}")
     print(f"Validation: {'passed' if validation.is_valid else 'failed'}")
     if validation.errors:

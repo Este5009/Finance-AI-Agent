@@ -34,45 +34,38 @@ PipelineRunner = Callable[[PipelineInputModel, PipelineConfig], PipelineRunResul
 
 @dataclass(frozen=True)
 class SyntheticPeriodInput:
-    """Paired synthetic report and goals document for one period.
+    """Synthetic integrated workbook for one period.
 
     Inputs:
         period_slug: Canonical period slug such as ``2026_06``.
-        report_path: Monthly financial report workbook.
-        goals_path: Matching monthly goals PDF.
+        report_path: Monthly integrated financial workbook.
     Outputs:
-        A stable period pair for chronological population.
+        A stable period input for chronological population.
     Assumptions:
         Generated Phase 12A filenames end in ``YYYY_MM``.
     """
 
     period_slug: str
     report_path: Path
-    goals_path: Path
 
 
 def discover_synthetic_period_inputs(history_root: str | Path) -> list[SyntheticPeriodInput]:
-    """Discover and pair generated monthly reports with goals documents.
+    """Discover generated monthly integrated workbooks.
 
     Inputs:
         history_root: Root directory such as ``data/synthetic_history/recovery_2026``.
     Outputs:
         Chronologically ordered period inputs.
     Assumptions:
-        Report files are named ``university_financial_report_YYYY_MM.xlsx`` and
-        goals files are named ``financial_goals_YYYY_MM.pdf``.
+        Report files are named ``university_financial_report_YYYY_MM.xlsx``.
     """
 
     root = Path(history_root)
     reports_dir = root / "reports"
-    goals_dir = root / "goals"
     pairs: list[SyntheticPeriodInput] = []
     for report in sorted(reports_dir.glob("university_financial_report_*.xlsx")):
         period_slug = _period_slug_from_report(report)
-        goals = goals_dir / f"financial_goals_{period_slug}.pdf"
-        if not goals.is_file():
-            raise FileNotFoundError(f"Missing goals document for {period_slug}: {goals}")
-        pairs.append(SyntheticPeriodInput(period_slug, report, goals))
+        pairs.append(SyntheticPeriodInput(period_slug, report))
     return sorted(pairs, key=lambda item: item.period_slug)
 
 
@@ -269,8 +262,7 @@ def _run_population_pass(
         period_started = time.perf_counter()
         try:
             input_model = build_pipeline_input_model(
-                financial_report_path=period.report_path,
-                goals_document_path=period.goals_path,
+                workbook_path=period.report_path,
                 period_override=period.period_slug.replace("_", "-"),
                 report_language=language,
             )

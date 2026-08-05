@@ -41,7 +41,6 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 OUTPUT_DIR = PROJECT_ROOT / "data" / "synthetic"
 MONTHLY_XLSX = OUTPUT_DIR / "monthly_financial_report_june_2026.xlsx"
 ANNUAL_XLSX = OUTPUT_DIR / "annual_financial_report_2026.xlsx"
-GOALS_PDF = OUTPUT_DIR / "financial_goals_2026.pdf"
 
 DEPARTMENTS = ["Engineering", "Business", "Health Sciences", "Administration"]
 MONTHS = pd.date_range("2026-01-01", "2026-12-01", freq="MS")
@@ -841,7 +840,7 @@ def build_goal_table(data: list[list[str]], widths: list[float]) -> PdfTable:
     return table
 
 
-def create_goals_pdf(output_path: Path) -> None:
+def _legacy_separate_goals_document_removed(output_path: Path) -> None:
     """Purpose: create the professional FY2026 financial goals document. Inputs: output path. Outputs: saved PDF."""
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1030,7 +1029,7 @@ def validate_outputs(data: FinanceData) -> None:
     expense_non_payroll = data.expenses[data.expenses["Expense_Category"] != "Payroll"].groupby(["Month", "Department", "Expense_Category"])["Actual_Expense"].sum().sort_index()
     pd.testing.assert_series_equal(vendor_totals, expense_non_payroll, check_names=False)
 
-    for path in [MONTHLY_XLSX, ANNUAL_XLSX, GOALS_PDF]:
+    for path in [MONTHLY_XLSX, ANNUAL_XLSX]:
         assert path.exists() and path.stat().st_size > 0, f"Missing or empty output: {path}"
 
     for workbook_path in [MONTHLY_XLSX, ANNUAL_XLSX]:
@@ -1051,11 +1050,10 @@ def main() -> None:
     finance_data = generate_finance_data()
     create_workbook(finance_data, MONTHLY_XLSX, monthly=True)
     create_workbook(finance_data, ANNUAL_XLSX, monthly=False)
-    create_goals_pdf(GOALS_PDF)
     validate_outputs(finance_data)
 
     print("Synthetic finance inputs generated and verified:")
-    for path in [MONTHLY_XLSX, ANNUAL_XLSX, GOALS_PDF]:
+    for path in [MONTHLY_XLSX, ANNUAL_XLSX]:
         print(f" - {path.resolve()}")
 
 

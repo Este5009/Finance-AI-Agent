@@ -55,17 +55,14 @@ def _input_model(tmp_path: Path) -> PipelineInputModel:
     """Build an execution-ready generic input fixture.
 
     Inputs: temporary directory.
-    Outputs: PipelineInputModel with existing report and goals paths.
+    Outputs: PipelineInputModel with an existing integrated workbook path.
     Assumptions: file contents are enough for cache-key tests.
     """
 
     report = tmp_path / "monthly_financial_report_june_2026.xlsx"
-    goals = tmp_path / "financial_goals_2026.pdf"
     report.write_bytes(b"report")
-    goals.write_bytes(b"goals")
     return PipelineInputModel(
-        financial_report_path=report,
-        goals_document_path=goals,
+        workbook_path=report,
         detected_period=DetectedPeriod(
             period_type="monthly",
             label="2026-06",
@@ -460,8 +457,7 @@ def test_progress_events_mark_validation_failure(tmp_path: Path) -> None:
 
     config = _config(tmp_path)
     input_model = PipelineInputModel(
-        financial_report_path=tmp_path / "missing.xlsx",
-        goals_document_path=tmp_path / "missing.pdf",
+        workbook_path=tmp_path / "missing.xlsx",
         detected_period=DetectedPeriod(
             period_type="monthly",
             label="2026-06",

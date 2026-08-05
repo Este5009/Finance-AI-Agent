@@ -34,7 +34,7 @@ from finance_agent.calculations.finance_engine import (
     save_finance_calculation_outputs,
 )
 from finance_agent.calculations.periods import PeriodScope
-from finance_agent.ingestion.ingestion import extract_goals_pdf, inspect_workbook, load_excel_workbook
+from finance_agent.ingestion.ingestion import inspect_workbook, load_excel_workbook
 from finance_agent.ingestion.schema import clean_column_name
 from finance_agent.llm.ollama_client import OllamaClient
 from finance_agent.memory.context_builder import (
@@ -234,7 +234,6 @@ def build_default_stages() -> tuple[PipelineStage, ...]:
             (
                 _outputs("inspection", "monthly_workbook_inspection.json"),
                 _outputs("inspection", "annual_workbook_inspection.json"),
-                _outputs("inspection", "goals_text_2026.txt"),
             ),
         ),
         PipelineStage(
@@ -604,8 +603,7 @@ def _pipeline_cache_key(input_model: PipelineInputModel, config: PipelineConfig)
     """
 
     payload = {
-        "financial_report_sha256": _hash_file(input_model.financial_report_path),
-        "goals_document_sha256": _hash_file(input_model.goals_document_path),
+        "integrated_workbook_sha256": _hash_file(input_model.workbook_path),
         "pipeline_schema_version": PIPELINE_SCHEMA_VERSION,
         "period_override": input_model.period_override,
         "effective_period_label": input_model.effective_period_label,
@@ -678,6 +676,110 @@ def _structure_fallback_needed(
             column_threshold=config.structure_fallback_column_threshold,
         )
     )
+
+
+def _integrated_workbook_preflight(
+    workbook_path: Path,
+    inspection: dict[str, Any],
+    period_slug: str,
+) -> dict[str, Any]:
+    """Build a Spanish preflight diagnostic for one integrated Excel workbook.
+
+    Inputs: workbook path, workbook inspection summary, and effective period slug.
+    Outputs: JSON-compatible diagnostic with table/column coverage and safety flags.
+    Assumptions: this is a lightweight deterministic diagnostic; downstream
+    normalization/calculation remains the authoritative canonical model.
+    """
+
+    actual_aliases = {
+        "actual",
+        "real",
+        "ejecutado",
+        "realizado",
+        "devengado",
+        "resultado real",
+    }
+    budget_aliases = {
+        "presupuesto",
+        "presupuestado",
+        "meta",
+        "objetivo",
+        "plan",
+        "proyectado",
+        "esperado",
+        "budget",
+        "target",
+        "goal",
+        "forecast",
+    }
+    variance_aliases = {"variación", "variacion", "desviación", "desviacion", "diferencia", "variance", "deviation"}
+    sheets = inspection.get("sheets", []) if isinstance(inspection, dict) else []
+    detected_tables: list[dict[str, Any]] = []
+    actual_columns: list[str] = []
+    budget_columns: list[str] = []
+    variance_columns: list[str] = []
+    unknown_columns: list[str] = []
+    for index, sheet in enumerate(sheets if isinstance(sheets, list) else [], start=1):
+        if not isinstance(sheet, dict):
+            continue
+        columns = [str(column) for column in sheet.get("columns", []) if str(column)]
+        roles: dict[str, str] = {}
+        for column in columns:
+            normalized = clean_column_name(column).replace("_", " ")
+            if any(alias in normalized for alias in actual_aliases):
+                roles[column] = "actual"
+                actual_columns.append(column)
+            elif any(alias in normalized for alias in budget_aliases):
+                roles[column] = "budget_or_target"
+                budget_columns.append(column)
+            elif any(alias in normalized for alias in variance_aliases):
+                roles[column] = "variance"
+                variance_columns.append(column)
+            else:
+                unknown_columns.append(column)
+        detected_tables.append(
+            {
+                "sheet": sheet.get("sheet_name") or f"Hoja {index}",
+                "row_count": sheet.get("row_count"),
+                "table_boundary": {
+                    "first_data_row": 1,
+                    "last_data_row": sheet.get("row_count"),
+                },
+                "assigned_role": "integrated_financial_table" if roles else "unknown_supporting_table",
+                "column_roles": roles,
+                "confidence": 0.86 if roles else 0.45,
+            }
+        )
+    critical_errors: list[str] = []
+    warnings: list[str] = []
+    if not actual_columns:
+        critical_errors.append("No se detectaron columnas de valores reales/ejecutados.")
+    if not budget_columns:
+        warnings.append("No se detectaron columnas de presupuesto/meta; el análisis puede continuar sin comparaciones presupuestarias completas.")
+    safe_to_analyze = not critical_errors
+    return {
+        "diagnostic_language": "es",
+        "workbook_name": workbook_path.name,
+        "workbook_sha256": _hash_file(workbook_path),
+        "detected_period": period_slug,
+        "sheets_inspected": [sheet.get("sheet_name") for sheet in sheets if isinstance(sheet, dict)],
+        "logical_tables_detected": detected_tables,
+        "actual_metrics_found": sorted(set(actual_columns)),
+        "budgets_targets_found": sorted(set(budget_columns)),
+        "variance_columns_found": sorted(set(variance_columns)),
+        "unmapped_columns": sorted(set(unknown_columns))[:100],
+        "unknown_tables": [table for table in detected_tables if table.get("assigned_role") == "unknown_supporting_table"],
+        "duplicate_or_subtotal_risks": [],
+        "conflicts": [],
+        "missing_required_data": critical_errors,
+        "reconciliation_results": {
+            "variance_recomputed": bool(variance_columns),
+            "status": "pendiente_de_modelo_canonico" if variance_columns else "sin_variancias_suministradas",
+        },
+        "confidence": 0.82 if safe_to_analyze else 0.35,
+        "safe_to_analyze": safe_to_analyze,
+        "warnings": warnings,
+    }
 
 
 def _ollama_client_for_stage(config: PipelineConfig, stage_name: str) -> OllamaClient:
@@ -1106,11 +1208,9 @@ def _is_legacy_synthetic_input(input_model: PipelineInputModel, config: Pipeline
     Assumptions: current scripts still process the stable synthetic monthly/annual pair.
     """
 
-    report = input_model.financial_report_path.resolve()
-    goals = input_model.goals_document_path.resolve()
+    report = input_model.workbook_path.resolve()
     return (
         report in {config.monthly_workbook.resolve(), config.annual_workbook.resolve()}
-        and goals == config.goals_pdf.resolve()
     )
 
 
@@ -1161,7 +1261,6 @@ def run_pipeline_for_report(
         output_directory=config.output_directory,
         monthly_workbook=config.monthly_workbook,
         annual_workbook=config.annual_workbook,
-        goals_pdf=config.goals_pdf,
         ollama_endpoint=config.ollama_endpoint,
         ollama_model=config.ollama_model,
         structure_ollama_model=config.structure_ollama_model,
@@ -1279,8 +1378,8 @@ def run_object_pipeline_for_report(
             )
             return cached_result
     report_label = input_model.effective_period_label
-    report_prefix = clean_column_name(input_model.financial_report_path.stem)
-    source_workbook = str(input_model.financial_report_path.resolve())
+    report_prefix = clean_column_name(input_model.workbook_path.stem)
+    source_workbook = str(input_model.workbook_path.resolve())
     current_stage_name = "validate_documents"
     current_stage_display = "Input validation"
     current_stage_started = pipeline_started
@@ -1296,21 +1395,21 @@ def run_object_pipeline_for_report(
         current_stage_display = "Document ingestion"
         started = time.perf_counter()
         current_stage_started = started
-        workbook = load_excel_workbook(input_model.financial_report_path, header_row=4)
+        workbook = load_excel_workbook(input_model.workbook_path, header_row=4)
         inspection = inspect_workbook(workbook)
-        goals = extract_goals_pdf(input_model.goals_document_path)
         inspection_dir = outputs / "inspection"
         inspection_path = _json_write(inspection, inspection_dir / f"workbook_inspection_{period_slug}.json")
-        goals_path = inspection_dir / f"goals_text_{period_slug}.txt"
-        goals_path.parent.mkdir(parents=True, exist_ok=True)
-        goals_path.write_text(goals.raw_text, encoding="utf-8")
+        preflight_path = _json_write(
+            _integrated_workbook_preflight(input_model.workbook_path, inspection, period_slug),
+            inspection_dir / f"integrated_workbook_preflight_{period_slug}.json",
+        )
         stages.append(
             _stage_result(
                 name="ingestion",
                 display="Document ingestion",
                 critical=True,
                 started=started,
-                outputs=(inspection_path, goals_path),
+                outputs=(inspection_path, preflight_path),
             )
         )
 
@@ -1319,7 +1418,7 @@ def run_object_pipeline_for_report(
         started = time.perf_counter()
         current_stage_started = started
         intermediate_dir = outputs / "intermediate" / period_slug
-        model = build_financial_document_model([input_model.financial_report_path])
+        model = build_financial_document_model([input_model.workbook_path])
         intermediate_paths = save_intermediate_outputs(model, intermediate_dir)
         model_path = intermediate_paths["financial_document_model"]
         loaded_model = load_intermediate_model(model_path)

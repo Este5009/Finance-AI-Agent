@@ -7,7 +7,6 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from finance_agent.ingestion.ingestion import extract_goals_pdf
 from finance_agent.orchestration.pipeline_models import DetectedPeriod, PipelineInputModel
 
 
@@ -215,25 +214,6 @@ def _sample_workbook_text(path: Path, *, max_cells: int = 500) -> str:
     return " ".join(values)
 
 
-def _sample_goals_text(path: Path, *, max_chars: int = 4000) -> str:
-    """Extract bounded goals text for period detection.
-
-    Inputs: goals document path.
-    Outputs: text snippet.
-    Assumptions: PDF and plain text are supported now; DOCX can be added later.
-    """
-
-    suffix = path.suffix.casefold()
-    try:
-        if suffix == ".pdf":
-            return extract_goals_pdf(path).raw_text[:max_chars]
-        if suffix in {".txt", ".md"}:
-            return path.read_text(encoding="utf-8", errors="ignore")[:max_chars]
-    except Exception:
-        return ""
-    return ""
-
-
 def _choose_detection(candidates: list[DetectedPeriod]) -> DetectedPeriod:
     """Choose the strongest non-conflicting period candidate.
 
@@ -281,17 +261,16 @@ def _choose_detection(candidates: list[DetectedPeriod]) -> DetectedPeriod:
 
 
 def detect_period(
-    financial_report_path: str | Path,
-    goals_document_path: str | Path | None = None,
+    workbook_path: str | Path,
 ) -> DetectedPeriod:
-    """Infer the reporting period for one financial report.
+    """Infer the reporting period for one integrated Excel workbook.
 
-    Inputs: financial report path and optional goals document path.
+    Inputs: workbook path.
     Outputs: DetectedPeriod with confidence and evidence.
     Assumptions: low-confidence output requires a user override before execution.
     """
 
-    report = Path(financial_report_path)
+    report = Path(workbook_path)
     candidates: list[DetectedPeriod] = []
     for source_label, text, confidence in (
         ("filename", report.stem, 0.78),
@@ -299,34 +278,31 @@ def detect_period(
     ):
         if text and (detected := _detect_from_text(text, source_label=source_label, base_confidence=confidence)):
             candidates.append(detected)
-    if goals_document_path:
-        goals = Path(goals_document_path)
-        goals_text = f"{goals.stem} {_sample_goals_text(goals)}"
-        if detected := _detect_from_text(goals_text, source_label="goals", base_confidence=0.54):
-            candidates.append(detected)
     return _choose_detection(candidates)
 
 
 def build_pipeline_input_model(
     *,
-    financial_report_path: str | Path,
-    goals_document_path: str | Path,
+    workbook_path: str | Path | None = None,
+    financial_report_path: str | Path | None = None,
     period_override: str | None = None,
     report_language: str = "es",
     source_revision_confirmed: bool = False,
 ) -> PipelineInputModel:
-    """Build the generic one-report pipeline input model.
+    """Build the integrated Excel workbook pipeline input model.
 
-    Inputs: report path, goals path, optional period override, and language.
+    Inputs: workbook path, optional period override, and language.
     Outputs: PipelineInputModel for orchestrator or future UI use.
     Assumptions: language affects user-facing report text, not internal field names.
     """
 
-    detected = detect_period(financial_report_path, goals_document_path)
+    selected_path = workbook_path or financial_report_path
+    if selected_path is None:
+        raise ValueError("workbook_path is required")
+    detected = detect_period(selected_path)
     period_type = detected.period_type if not period_override else _detect_override_type(period_override)
     return PipelineInputModel(
-        financial_report_path=Path(financial_report_path).resolve(),
-        goals_document_path=Path(goals_document_path).resolve(),
+        workbook_path=Path(selected_path).resolve(),
         detected_period=detected,
         period_type=period_type,
         period_override=period_override,

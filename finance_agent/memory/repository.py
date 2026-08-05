@@ -309,7 +309,7 @@ class MemoryRepository:
         Assumptions: callers use the same role names in UI and storage.
         """
 
-        if document_type not in {"financial_report", "goals_document"}:
+        if document_type not in {"integrated_workbook", "financial_report", "goals_document"}:
             raise ValueError(f"Unsupported document_type: {document_type}")
 
     def existing_run_id(self, idempotency_key: str) -> str | None:

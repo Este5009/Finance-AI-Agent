@@ -5,11 +5,10 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from finance_agent.ingestion.ingestion import extract_goals_pdf, inspect_sheet, load_excel_workbook
+from finance_agent.ingestion.ingestion import inspect_sheet, load_excel_workbook
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-SYNTHETIC_GOALS_PDF = PROJECT_ROOT / "data" / "synthetic" / "financial_goals_2026.pdf"
 
 
 def test_load_excel_workbook_reads_all_sheets(tmp_path: Path) -> None:
@@ -56,13 +55,9 @@ def test_inspect_sheet_returns_required_summary() -> None:
     assert summary["missing_value_counts"] == {"Department": 0, "Amount": 1}
 
 
-@pytest.mark.skipif(not SYNTHETIC_GOALS_PDF.exists(), reason="Synthetic goals PDF is unavailable")
-def test_extract_goals_pdf_returns_text_and_metadata() -> None:
-    """Verify goals PDF extraction returns useful text and page metadata."""
+def test_pdf_goal_extractor_is_not_exposed() -> None:
+    """Verify PDF input extraction is not part of the Excel-only ingestion contract."""
 
-    result = extract_goals_pdf(SYNTHETIC_GOALS_PDF)
+    import finance_agent.ingestion.ingestion as ingestion
 
-    assert result.metadata["page_count"] >= 1
-    assert result.metadata["file_size_bytes"] > 0
-    assert "Financial Goals 2026" in result.raw_text
-    assert "Payroll" in result.raw_text
+    assert not hasattr(ingestion, "extract_goals_pdf")

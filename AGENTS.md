@@ -24,7 +24,7 @@ This is not a chatbot. The system should ingest financial reports, normalize mes
 
 ## Target Pipeline
 
-Excel reports + goals PDF/DOCX
+Integrated Excel workbook (`.xlsx` / `.xls`) containing financial actuals, budgets, goals/targets, variances, departments, payroll, collections, and cash-flow data
 
 ↓
 
@@ -52,7 +52,7 @@ LLM analysis with Ollama
 
 ↓
 
-PDF / Excel / JSON report outputs
+PDF / HTML / Excel / JSON report outputs
 
 ↓
 

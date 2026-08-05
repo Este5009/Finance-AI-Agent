@@ -1311,40 +1311,26 @@ def test_uploaded_files_are_saved_safely(tmp_path: Path) -> None:
     assert saved.read_bytes() == b"demo"
 
 
-def test_pdf_goals_upload_keeps_pdf_suffix(tmp_path: Path) -> None:
-    """Verify uploaded PDF goals are saved with a .pdf suffix."""
+def test_integrated_workbook_uploader_accepts_only_excel() -> None:
+    """Verify the Streamlit input contract is one integrated Excel workbook."""
 
-    upload = FakeUpload("financial goals 2026.pdf", b"%PDF-1.4")
-
-    saved = save_uploaded_file(upload, tmp_path)
-
-    assert saved.suffix == ".pdf"
-    assert saved.name == "financial_goals_2026.pdf"
-    assert saved.read_bytes().startswith(b"%PDF")
-
-
-def test_goals_uploader_accepts_pdf_docx_xlsx_and_xls() -> None:
-    """Verify the Streamlit goals upload contract includes all supported types."""
-
-    assert streamlit_app.GOALS_UPLOAD_TYPES == ("pdf", "docx", "xlsx", "xls")
+    assert streamlit_app.INTEGRATED_WORKBOOK_UPLOAD_TYPES == ("xlsx", "xls")
+    assert not hasattr(streamlit_app, "GOALS_UPLOAD_TYPES")
 
 
 def test_build_input_model_from_uploads_uses_generic_contract(tmp_path: Path) -> None:
     """Verify the UI delegates period detection to the shared input builder."""
 
     report = tmp_path / "monthly_financial_report_june_2026.xlsx"
-    goals = tmp_path / "financial_goals_2026.pdf"
     report.write_bytes(b"placeholder")
-    goals.write_bytes(b"placeholder")
 
     input_model = build_input_model_from_uploads(
-        financial_report_path=report,
-        goals_document_path=goals,
+        workbook_path=report,
         settings=StreamlitRunSettings(report_language="es", period_override="2026-06"),
     )
 
+    assert input_model.workbook_path == report
     assert input_model.financial_report_path == report
-    assert input_model.goals_document_path == goals
     assert input_model.report_language == "es"
     assert input_model.period_override == "2026-06"
 
@@ -1353,9 +1339,7 @@ def test_run_analysis_from_files_invokes_pipeline_runner(tmp_path: Path) -> None
     """Verify the UI helper calls run_pipeline_for_report-compatible runners."""
 
     report = tmp_path / "monthly_financial_report_june_2026.xlsx"
-    goals = tmp_path / "financial_goals_2026.pdf"
     report.write_bytes(b"placeholder")
-    goals.write_bytes(b"placeholder")
     captured: dict[str, Any] = {}
 
     def fake_runner(
@@ -1369,8 +1353,7 @@ def test_run_analysis_from_files_invokes_pipeline_runner(tmp_path: Path) -> None
         return _pipeline_result(config)
 
     result = run_analysis_from_files(
-        financial_report_path=report,
-        goals_document_path=goals,
+        workbook_path=report,
         settings=StreamlitRunSettings(
             report_language="es",
             period_override="2026-06",
@@ -1409,9 +1392,7 @@ def test_run_analysis_from_files_passes_progress_callback_when_supported(tmp_pat
     """Verify the UI helper forwards progress callbacks to compatible runners."""
 
     report = tmp_path / "monthly_financial_report_june_2026.xlsx"
-    goals = tmp_path / "financial_goals_2026.pdf"
     report.write_bytes(b"placeholder")
-    goals.write_bytes(b"placeholder")
     received_events: list[PipelineProgressEvent] = []
 
     def fake_runner(
@@ -1437,8 +1418,7 @@ def test_run_analysis_from_files_passes_progress_callback_when_supported(tmp_pat
         return _pipeline_result(config)
 
     result = run_analysis_from_files(
-        financial_report_path=report,
-        goals_document_path=goals,
+        workbook_path=report,
         settings=StreamlitRunSettings(report_language="es", period_override="2026-06"),
         runner=fake_runner,
         progress_callback=received_events.append,
@@ -1497,9 +1477,7 @@ def test_run_analysis_from_files_passes_revision_confirmation_on_input_model(tmp
     """Verify revision confirmation is per-submission input, not PipelineConfig."""
 
     report = tmp_path / "monthly_financial_report_may_2026.xlsx"
-    goals = tmp_path / "financial_goals_2026_05.pdf"
     report.write_bytes(b"may financial report")
-    goals.write_bytes(b"%PDF may goals")
     captured: dict[str, Any] = {}
 
     def fake_runner(input_model: PipelineInputModel, config: PipelineConfig) -> PipelineRunResult:
@@ -1510,8 +1488,7 @@ def test_run_analysis_from_files_passes_revision_confirmation_on_input_model(tmp
         return _pipeline_result(config)
 
     run_analysis_from_files(
-        financial_report_path=report,
-        goals_document_path=goals,
+        workbook_path=report,
         settings=StreamlitRunSettings(
             report_language="es",
             period_override="2026-05",
@@ -1529,7 +1506,7 @@ def test_streamlit_preflight_classification_does_not_raise_attribute_error(tmp_p
 
     classification = streamlit_app._classify_upload_for_period(
         uploaded_file=FakeUpload("may_report.xlsx", b"may report bytes"),
-        document_type="financial_report",
+        document_type="integrated_workbook",
         effective_period="2026-05",
         database_path=tmp_path / "memory.db",
     )
@@ -1543,12 +1520,9 @@ def test_ui_single_model_setting_routes_all_stages(tmp_path: Path) -> None:
     """Verify UI single-model override preserves one-model compatibility."""
 
     report = tmp_path / "monthly_financial_report_june_2026.xlsx"
-    goals = tmp_path / "financial_goals_2026.pdf"
     report.write_bytes(b"placeholder")
-    goals.write_bytes(b"placeholder")
     input_model = build_input_model_from_uploads(
-        financial_report_path=report,
-        goals_document_path=goals,
+        workbook_path=report,
         settings=StreamlitRunSettings(report_language="es", period_override="2026-06"),
     )
 
@@ -1575,12 +1549,9 @@ def test_ui_experimental_stage_models_remain_available(tmp_path: Path) -> None:
     """Verify explicit experimental stage-specific model settings still route."""
 
     report = tmp_path / "monthly_financial_report_june_2026.xlsx"
-    goals = tmp_path / "financial_goals_2026.pdf"
     report.write_bytes(b"placeholder")
-    goals.write_bytes(b"placeholder")
     input_model = build_input_model_from_uploads(
-        financial_report_path=report,
-        goals_document_path=goals,
+        workbook_path=report,
         settings=StreamlitRunSettings(report_language="es", period_override="2026-06"),
     )
 
@@ -1623,8 +1594,7 @@ def test_monthly_readiness_accepts_automatic_monthly_detection(tmp_path: Path) -
     """Verify confident monthly detection enables the Streamlit monthly workflow."""
 
     input_model = PipelineInputModel(
-        financial_report_path=tmp_path / "university_financial_report_2026_12.xlsx",
-        goals_document_path=tmp_path / "financial_goals_2026_12.pdf",
+        workbook_path=tmp_path / "university_financial_report_2026_12.xlsx",
         detected_period=DetectedPeriod(
             period_type="monthly",
             label="2026-12",
@@ -1670,7 +1640,7 @@ def test_monthly_readiness_blocks_ambiguous_detection() -> None:
     )
 
     assert ready is False
-    assert "Seleccione el reporte financiero" in message
+    assert "Seleccione el libro financiero integrado" in message
 
 
 def test_monthly_readiness_blocks_invalid_manual_month() -> None:

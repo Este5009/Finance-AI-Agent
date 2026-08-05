@@ -44,7 +44,6 @@ def _config(project_root: Path) -> PipelineConfig:
     data = project_root / "data" / "synthetic"
     _touch(data / "monthly_financial_report_june_2026.xlsx")
     _touch(data / "annual_financial_report_2026.xlsx")
-    _touch(data / "financial_goals_2026.pdf")
     return PipelineConfig.from_project_root(
         project_root,
         python_executable=sys.executable,
@@ -79,10 +78,8 @@ def test_generic_input_model_validation_requires_override_for_unknown(tmp_path: 
     """Verify unknown periods are constructible but not execution-ready."""
 
     report = _touch(tmp_path / "finance_report.xlsx")
-    goals = _touch(tmp_path / "goals.txt")
     input_model = PipelineInputModel(
-        financial_report_path=report,
-        goals_document_path=goals,
+        workbook_path=report,
         detected_period=DetectedPeriod("unknown", "Unknown period", 0.1),
         period_type="unknown",
         report_language="es",
@@ -119,8 +116,7 @@ def test_unknown_low_confidence_period_requires_override(tmp_path: Path) -> None
 
     detected = detect_period(tmp_path / "finance_upload.xlsx")
     model = build_pipeline_input_model(
-        financial_report_path=tmp_path / "finance_upload.xlsx",
-        goals_document_path=tmp_path / "goals.txt",
+        workbook_path=tmp_path / "finance_upload.xlsx",
         report_language="es",
     )
 
@@ -133,8 +129,7 @@ def test_orchestrator_accepts_generic_synthetic_input(tmp_path: Path) -> None:
 
     config = _config(tmp_path)
     input_model = build_pipeline_input_model(
-        financial_report_path=config.monthly_workbook,
-        goals_document_path=config.goals_pdf,
+        workbook_path=config.monthly_workbook,
         report_language="es",
     )
 
@@ -160,10 +155,8 @@ def test_generic_non_synthetic_input_routes_to_object_pipeline(tmp_path: Path, m
 
     config = _config(tmp_path)
     report = _touch(tmp_path / "uploads" / "school_report_july_2026.xlsx")
-    goals = _touch(tmp_path / "uploads" / "goals_july_2026.txt")
     input_model = build_pipeline_input_model(
-        financial_report_path=report,
-        goals_document_path=goals,
+        workbook_path=report,
         period_override="July 2026",
         report_language="es",
     )
@@ -227,4 +220,4 @@ def test_backward_compatible_old_workflow_still_works(tmp_path: Path) -> None:
 
     assert config.monthly_workbook.name == "monthly_financial_report_june_2026.xlsx"
     assert config.annual_workbook.name == "annual_financial_report_2026.xlsx"
-    assert config.goals_pdf.name == "financial_goals_2026.pdf"
+    assert config.monthly_workbook.name == "monthly_financial_report_june_2026.xlsx"

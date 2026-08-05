@@ -40,12 +40,9 @@ def _input_model(tmp_path: Path) -> PipelineInputModel:
     """Build a generic pipeline input fixture with existing files."""
 
     report = tmp_path / "monthly_financial_report_june_2026.xlsx"
-    goals = tmp_path / "financial_goals_2026.pdf"
-    report.write_bytes(b"financial report")
-    goals.write_bytes(b"%PDF goals")
+    report.write_bytes(b"integrated financial workbook")
     return PipelineInputModel(
-        financial_report_path=report,
-        goals_document_path=goals,
+        workbook_path=report,
         detected_period=DetectedPeriod(
             period_type="monthly",
             label="2026-06",
@@ -273,7 +270,7 @@ def _source_document(
     *,
     content: str,
     filename: str,
-    document_type: str = "financial_report",
+    document_type: str = "integrated_workbook",
     period: str = "2026-06",
 ) -> SourceDocumentRecord:
     """Build a source document fixture."""
@@ -337,7 +334,7 @@ def test_same_period_different_content_requires_revision_confirmation(tmp_path: 
     repository = MemoryRepository(tmp_path / "memory.db")
     repository.register_source_document(_source_document(content="hash-c1", filename="report.xlsx"))
     classification = repository.classify_source_document(
-        document_type="financial_report",
+        document_type="integrated_workbook",
         content_sha256="hash-c2",
         effective_period="2026-06",
     )
@@ -361,7 +358,7 @@ def test_revision_registration_marks_current_version(tmp_path: Path) -> None:
         _source_document(content="hash-d2", filename="report_v2.xlsx"),
         revision_confirmed=True,
     )
-    current = repository.fetch_current_document(document_type="financial_report", effective_period="2026-06")
+    current = repository.fetch_current_document(document_type="integrated_workbook", effective_period="2026-06")
 
     assert second.registered_revision is True
     assert second.version_number == 2
@@ -382,10 +379,9 @@ def test_confirmed_revision_reaches_storage_transaction(tmp_path: Path) -> None:
         period_slug="2026_06",
         database_path=config.memory_database_path,
     )
-    input_model.financial_report_path.write_bytes(b"financial report revised")
+    input_model.workbook_path.write_bytes(b"integrated financial workbook revised")
     revised_input = PipelineInputModel(
-        financial_report_path=input_model.financial_report_path,
-        goals_document_path=input_model.goals_document_path,
+        workbook_path=input_model.workbook_path,
         detected_period=input_model.detected_period,
         period_type=input_model.period_type,
         period_override=input_model.period_override,
@@ -399,35 +395,34 @@ def test_confirmed_revision_reaches_storage_transaction(tmp_path: Path) -> None:
         database_path=revised_config.memory_database_path,
     )
     repository = MemoryRepository(config.memory_database_path)
-    current = repository.fetch_current_document(document_type="financial_report", effective_period="2026-06")
+    current = repository.fetch_current_document(document_type="integrated_workbook", effective_period="2026-06")
 
     assert first.stored is True
     assert second.stored is True
     assert current is not None
     assert int(current["version_number"]) == 2
-    assert repository.table_counts()["source_documents"] == 3
+    assert repository.table_counts()["source_documents"] == 2
 
 
-def test_same_report_different_goals_tracks_independent_goal_revision(tmp_path: Path) -> None:
-    """Verify goals documents version independently from financial reports."""
+def test_same_period_different_workbook_tracks_integrated_revision(tmp_path: Path) -> None:
+    """Verify same-period changed workbook content is classified as a revision."""
 
     repository = MemoryRepository(tmp_path / "memory.db")
-    repository.register_source_document(_source_document(content="report-hash", filename="report.xlsx"))
     repository.register_source_document(
         _source_document(
-            content="goals-1",
-            filename="goals.pdf",
-            document_type="goals_document",
+            content="workbook-1",
+            filename="report.xlsx",
+            document_type="integrated_workbook",
         )
     )
     classification = repository.classify_source_document(
-        document_type="goals_document",
-        content_sha256="goals-2",
+        document_type="integrated_workbook",
+        content_sha256="workbook-2",
         effective_period="2026-06",
     )
 
     assert classification.status == "revision"
-    assert repository.table_counts()["source_documents"] == 2
+    assert repository.table_counts()["source_documents"] == 1
 
 
 def test_concurrent_duplicate_insertion_reuses_one_document(tmp_path: Path) -> None:
@@ -520,9 +515,9 @@ def test_rollback_on_failure(tmp_path: Path) -> None:
         started_at_utc=None,
         completed_at_utc="2026-07-17T00:00:00+00:00",
         report_hash="report",
-        goals_hash="goals",
+        goals_hash="",
         report_path="report.xlsx",
-        goals_path="goals.pdf",
+        goals_path="",
         language="es",
         model="qwen3:30b-a3b",
         confidence=0.8,

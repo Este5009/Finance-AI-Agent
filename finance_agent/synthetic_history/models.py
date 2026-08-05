@@ -116,7 +116,6 @@ class GeneratedHistory:
     Inputs:
         root_directory: Scenario root directory.
         report_paths: Monthly financial report workbook paths.
-        goals_paths: Monthly goals PDF paths.
         manifest_path: JSON manifest path.
         manifest: Manifest dictionary written to disk.
     Outputs:
@@ -127,7 +126,6 @@ class GeneratedHistory:
 
     root_directory: Path
     report_paths: list[Path]
-    goals_paths: list[Path]
     manifest_path: Path
     manifest: dict[str, Any]
 

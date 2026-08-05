@@ -360,14 +360,14 @@ def test_isolated_test_database_and_no_production_modification(tmp_path: Path) -
 
 
 def test_discovery_pairs_periods_chronologically(tmp_path: Path) -> None:
-    """Verify report/goals discovery returns chronological paired inputs."""
+    """Verify integrated workbook discovery returns chronological inputs."""
 
     history = _copy_history(tmp_path)
 
     periods = discover_synthetic_period_inputs(history)
 
     assert [period.period_slug for period in periods] == [f"2026_{month:02d}" for month in range(1, 13)]
-    assert all(period.report_path.is_file() and period.goals_path.is_file() for period in periods)
+    assert all(period.report_path.is_file() for period in periods)
 
 
 def test_validation_fails_when_database_is_missing_periods(tmp_path: Path) -> None:

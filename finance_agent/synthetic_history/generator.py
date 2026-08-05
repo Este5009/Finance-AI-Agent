@@ -12,10 +12,6 @@ from typing import Any
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from finance_agent.synthetic_history.models import GeneratedHistory, MonthlyFinancialData, SyntheticHistoryConfig
 from finance_agent.synthetic_history.scenarios import MONTH_NAMES, MONTH_NAMES_ES, get_scenario_points
@@ -33,6 +29,7 @@ SHEET_ORDER = [
     "Scholarships",
     "Vendor_Payments",
     "Anomalies_Embedded",
+    "Goals_Targets",
 ]
 
 
@@ -51,17 +48,14 @@ def generate_synthetic_history(config: SyntheticHistoryConfig | None = None) -> 
     active_config = config or SyntheticHistoryConfig()
     scenario_root = active_config.output_directory / active_config.scenario_slug
     reports_dir = scenario_root / "reports"
-    goals_dir = scenario_root / "goals"
 
     _prepare_output_directory(scenario_root, active_config.overwrite)
     reports_dir.mkdir(parents=True, exist_ok=True)
-    goals_dir.mkdir(parents=True, exist_ok=True)
 
     rng = random.Random(active_config.seed)
     scenario_points = get_scenario_points(active_config.scenario)
     generated_months: list[MonthlyFinancialData] = []
     report_paths: list[Path] = []
-    goals_paths: list[Path] = []
 
     beginning_cash = 2_500_000.0
     for point in scenario_points:
@@ -70,20 +64,16 @@ def generate_synthetic_history(config: SyntheticHistoryConfig | None = None) -> 
         beginning_cash = monthly_data.totals["ending_cash"]
 
         report_path = reports_dir / f"university_financial_report_{active_config.year}_{point.month:02d}.xlsx"
-        goals_path = goals_dir / f"financial_goals_{active_config.year}_{point.month:02d}.pdf"
         _write_workbook(report_path, active_config.year, point.month, monthly_data)
-        _write_goals_pdf(goals_path, active_config.year, point.month, point, monthly_data)
         report_paths.append(report_path)
-        goals_paths.append(goals_path)
 
-    manifest = _build_manifest(active_config, generated_months, report_paths, goals_paths)
+    manifest = _build_manifest(active_config, generated_months, report_paths)
     manifest_path = scenario_root / "scenario_manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
 
     return GeneratedHistory(
         root_directory=scenario_root,
         report_paths=report_paths,
-        goals_paths=goals_paths,
         manifest_path=manifest_path,
         manifest=manifest,
     )
@@ -193,6 +183,7 @@ def _build_monthly_financial_data(
         point.net_cash_flow,
         anomalies_rows,
     )
+    goals_rows = _build_goals_target_rows(period_slug, point, actual_revenue_total, expense_total, payroll_total)
 
     totals = {
         "actual_revenue": round(actual_revenue_total, 2),
@@ -217,6 +208,7 @@ def _build_monthly_financial_data(
         "Scholarships": scholarships_rows,
         "Vendor_Payments": vendor_rows,
         "Anomalies_Embedded": anomalies_rows,
+        "Goals_Targets": goals_rows,
     }
     return MonthlyFinancialData(period_slug, month_name, rows_by_sheet, totals, [row["Anomaly_ID"] for row in anomalies_rows])
 
@@ -809,6 +801,73 @@ def _summary_row(metric: str, actual: float, goal: float, fmt: str, status: str)
     }
 
 
+def _build_goals_target_rows(
+    period_slug: str,
+    point: Any,
+    actual_revenue: float,
+    actual_expense: float,
+    payroll_total: float,
+) -> list[dict[str, Any]]:
+    """Build Spanish goal/target rows embedded in the integrated workbook.
+
+    Inputs:
+        period_slug: Canonical monthly period.
+        point: Scenario point with collection and cash-flow assumptions.
+        actual_revenue: Deterministic monthly revenue.
+        actual_expense: Deterministic monthly expense.
+        payroll_total: Deterministic monthly payroll.
+    Outputs:
+        Rows for the ``Goals_Targets`` worksheet.
+    Assumptions:
+        Goals are source context for processing; values are not LLM-generated.
+    """
+
+    operating_result = actual_revenue - actual_expense
+    payroll_ratio = payroll_total / actual_revenue if actual_revenue else 0.0
+    return [
+        {
+            "Period": period_slug,
+            "Goal_ID": "GOAL-OPERATING-MARGIN",
+            "Meta": "Mantener resultado operativo positivo",
+            "Metric": "net_operating_result",
+            "Target_Value": 0.0,
+            "Actual_Value": round(operating_result, 2),
+            "Unit": "USD",
+            "Status": "cumple" if operating_result >= 0 else "requiere atención",
+        },
+        {
+            "Period": period_slug,
+            "Goal_ID": "GOAL-PAYROLL-RATIO",
+            "Meta": "Mantener la relación nómina/ingresos en 42% o menos",
+            "Metric": "payroll_percentage_of_revenue",
+            "Target_Value": 0.42,
+            "Actual_Value": round(payroll_ratio, 4),
+            "Unit": "ratio",
+            "Status": "cumple" if payroll_ratio <= 0.42 else "requiere atención",
+        },
+        {
+            "Period": period_slug,
+            "Goal_ID": "GOAL-COLLECTION-RATE",
+            "Meta": "Alcanzar una tasa de cobranza de al menos 94%",
+            "Metric": "collection_rate",
+            "Target_Value": 0.94,
+            "Actual_Value": round(point.collection_rate, 4),
+            "Unit": "ratio",
+            "Status": "cumple" if point.collection_rate >= 0.94 else "requiere atención",
+        },
+        {
+            "Period": period_slug,
+            "Goal_ID": "GOAL-CASH-FLOW",
+            "Meta": "Evitar flujo neto de caja negativo",
+            "Metric": "net_cash_flow",
+            "Target_Value": 0.0,
+            "Actual_Value": round(point.net_cash_flow, 2),
+            "Unit": "USD",
+            "Status": "cumple" if point.net_cash_flow >= 0 else "requiere atención",
+        },
+    ]
+
+
 def _adjust_rows_to_total(rows: list[dict[str, Any]], key: str, expected_total: float) -> None:
     """Adjust the final row to remove rounding drift.
 
@@ -900,7 +959,7 @@ def _write_sheet(ws: Any, title: str, rows: list[dict[str, Any]]) -> None:
         ws.column_dimensions[get_column_letter(col_idx)].width = width
 
 
-def _write_goals_pdf(path: Path, year: int, month: int, point: Any, monthly_data: MonthlyFinancialData) -> None:
+def _legacy_separate_goals_document_removed(path: Path, year: int, month: int, point: Any, monthly_data: MonthlyFinancialData) -> None:
     """Write a Spanish monthly goals PDF.
 
     Inputs:
@@ -969,15 +1028,13 @@ def _build_manifest(
     config: SyntheticHistoryConfig,
     months: list[MonthlyFinancialData],
     report_paths: list[Path],
-    goals_paths: list[Path],
 ) -> dict[str, Any]:
     """Build the scenario manifest for later assertions.
 
     Inputs:
         config: Active generator configuration.
         months: Generated monthly data.
-        report_paths: Workbook artifact paths.
-        goals_paths: Goals PDF artifact paths.
+        report_paths: Integrated workbook artifact paths.
     Outputs:
         JSON-serializable manifest dictionary.
     Assumptions:
@@ -1007,8 +1064,8 @@ def _build_manifest(
         "seed": config.seed,
         "period_type": "monthly",
         "departments": list(config.departments),
+        "integrated_workbooks": [str(path.as_posix()) for path in report_paths],
         "reports": [str(path.as_posix()) for path in report_paths],
-        "goals": [str(path.as_posix()) for path in goals_paths],
         "monthly_payroll_ratio_trend": {month.period_slug: month.totals["payroll_ratio"] for month in months},
         "collection_rate_trend": {month.period_slug: month.totals["collection_rate"] for month in months},
         "health_sciences_overspending_periods": hs_overspend_periods,

@@ -170,7 +170,7 @@ def load_retrieval_context(project_root: str | Path) -> RetrievalContext:
 
     Inputs: project root containing outputs/calculations and outputs/intermediate.
     Outputs: RetrievalContext for registry functions.
-    Assumptions: this loader never opens raw Excel, PDF, or DOCX files.
+    Assumptions: this loader reads processed pipeline artifacts, not uploaded source files.
     """
 
     root = Path(project_root).resolve()

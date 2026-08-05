@@ -125,11 +125,10 @@ def _run_config(
     """
 
     input_model = build_pipeline_input_model(
-        financial_report_path=PROJECT_ROOT
+        workbook_path=PROJECT_ROOT
         / "data"
         / "synthetic"
         / "monthly_financial_report_june_2026.xlsx",
-        goals_document_path=PROJECT_ROOT / "data" / "synthetic" / "financial_goals_2026.pdf",
         period_override="2026-06",
         report_language="es",
     )

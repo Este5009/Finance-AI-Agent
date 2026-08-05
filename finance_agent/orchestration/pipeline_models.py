@@ -112,15 +112,14 @@ class DetectedPeriod:
 
 @dataclass(frozen=True)
 class PipelineInputModel:
-    """Generic user-facing input contract for one report pipeline run.
+    """Excel-only user-facing input contract for one pipeline run.
 
-    Inputs: financial report path, goals path, detected/override period, and language.
+    Inputs: integrated workbook path, detected/override period, and language.
     Outputs: serializable model for orchestrator, CLI, and future UI use.
-    Assumptions: one financial report and one goals document describe the same period.
+    Assumptions: actuals, budgets, targets, and goals live in one Excel workbook.
     """
 
-    financial_report_path: Path
-    goals_document_path: Path
+    workbook_path: Path
     detected_period: DetectedPeriod
     period_type: str
     period_override: str | None = None
@@ -163,10 +162,21 @@ class PipelineInputModel:
 
         if self.requires_period_override:
             raise ValueError("period_override is required for unknown or low-confidence periods")
-        if not self.financial_report_path.is_file():
-            raise ValueError(f"Financial report does not exist: {self.financial_report_path}")
-        if not self.goals_document_path.is_file():
-            raise ValueError(f"Goals document does not exist: {self.goals_document_path}")
+        if not self.workbook_path.is_file():
+            raise ValueError(f"Integrated workbook does not exist: {self.workbook_path}")
+        if self.workbook_path.suffix.lower() not in {".xlsx", ".xls"}:
+            raise ValueError("Only integrated Excel workbooks (.xlsx, .xls) are supported")
+
+    @property
+    def financial_report_path(self) -> Path:
+        """Return the integrated workbook path for legacy internal callers.
+
+        Inputs: this model.
+        Outputs: workbook path.
+        Assumptions: no separate goals/report distinction exists in active product paths.
+        """
+
+        return self.workbook_path
 
     @property
     def effective_period_label(self) -> str:
@@ -188,8 +198,7 @@ class PipelineInputModel:
         """
 
         return {
-            "financial_report_path": str(self.financial_report_path),
-            "goals_document_path": str(self.goals_document_path),
+            "workbook_path": str(self.workbook_path),
             "detected_period": self.detected_period.to_dict(),
             "period_type": self.period_type,
             "period_override": self.period_override,
@@ -215,7 +224,6 @@ class PipelineConfig:
     output_directory: Path
     monthly_workbook: Path
     annual_workbook: Path
-    goals_pdf: Path
     ollama_endpoint: str = "http://localhost:11434"
     ollama_model: str = DEFAULT_OLLAMA_MODEL
     structure_ollama_model: str | None = None
@@ -280,7 +288,6 @@ class PipelineConfig:
             output_directory=root / "outputs",
             monthly_workbook=data_directory / "monthly_financial_report_june_2026.xlsx",
             annual_workbook=data_directory / "annual_financial_report_2026.xlsx",
-            goals_pdf=data_directory / "financial_goals_2026.pdf",
             ollama_endpoint=ollama_endpoint,
             ollama_model=ollama_model,
             structure_ollama_model=structure_ollama_model,

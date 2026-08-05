@@ -41,8 +41,8 @@ from finance_agent.reporting.report_engine import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 UPLOAD_ROOT = PROJECT_ROOT / "outputs" / "ui_uploads"
-FINANCIAL_REPORT_UPLOAD_TYPES = ("xlsx", "xls", "csv")
-GOALS_UPLOAD_TYPES = ("pdf", "docx", "xlsx", "xls")
+INTEGRATED_WORKBOOK_UPLOAD_TYPES = ("xlsx", "xls")
+FINANCIAL_REPORT_UPLOAD_TYPES = INTEGRATED_WORKBOOK_UPLOAD_TYPES
 SUPPORTED_UI_PERIOD_OPTIONS = ("Detectar automáticamente", "Mensual")
 SPANISH_MONTHS = {
     1: "Ene",
@@ -278,20 +278,22 @@ def save_uploaded_file(uploaded_file: UploadedFileLike, destination_dir: Path) -
 
 def build_input_model_from_uploads(
     *,
-    financial_report_path: Path,
-    goals_document_path: Path,
+    workbook_path: Path | None = None,
+    financial_report_path: Path | None = None,
     settings: StreamlitRunSettings,
 ) -> PipelineInputModel:
-    """Build the generic pipeline input model from saved upload paths.
+    """Build the pipeline input model from one saved integrated workbook.
 
-    Inputs: saved report/goals paths and UI settings.
+    Inputs: saved workbook path and UI settings.
     Outputs: PipelineInputModel produced by the shared period-detection layer.
     Assumptions: period detection and validation remain owned by orchestration.
     """
 
+    selected_path = workbook_path or financial_report_path
+    if selected_path is None:
+        raise ValueError("Se requiere un libro financiero integrado.")
     return build_pipeline_input_model(
-        financial_report_path=financial_report_path,
-        goals_document_path=goals_document_path,
+        workbook_path=selected_path,
         period_override=settings.period_override,
         report_language=settings.report_language,
         source_revision_confirmed=settings.source_revision_confirmed,
@@ -334,22 +336,22 @@ def build_pipeline_config(
 
 def run_analysis_from_files(
     *,
-    financial_report_path: Path,
-    goals_document_path: Path,
+    workbook_path: Path | None = None,
+    financial_report_path: Path | None = None,
     settings: StreamlitRunSettings,
     runner: PipelineRunner = run_pipeline_for_report,
     progress_callback: PipelineProgressCallback | None = None,
 ) -> PipelineRunResult:
-    """Run the existing pipeline for saved upload files.
+    """Run the existing pipeline for one saved integrated workbook.
 
-    Inputs: saved report/goals paths, UI settings, injectable runner, and optional progress callback.
+    Inputs: saved workbook path, UI settings, injectable runner, and optional progress callback.
     Outputs: structured PipelineRunResult.
     Assumptions: this function is the only place the UI triggers pipeline work.
     """
 
     input_model = build_input_model_from_uploads(
+        workbook_path=workbook_path,
         financial_report_path=financial_report_path,
-        goals_document_path=goals_document_path,
         settings=settings,
     )
     config = build_pipeline_config(input_model, settings)
@@ -431,7 +433,7 @@ def _monthly_readiness_message(
             return False, "Indique el mes y año en formato 2026-12 para ejecutar un reporte mensual."
         return True, f"Período seleccionado: Mensual — {override_value.replace('_', '-')}"
     if input_model is None:
-        return False, "Seleccione el reporte financiero y el documento de metas para continuar."
+        return False, "Seleccione el libro financiero integrado para continuar."
     detected = input_model.detected_period
     if detected.period_type == "monthly" and not detected.requires_override:
         label = _spanish_month_label(detected.year, detected.month) or detected.label
@@ -1873,7 +1875,7 @@ def _render_workflow_intro(st: Any) -> None:
         """
         <div class='step-card'>
           <div><span class='step-icon'>📄</span><span class='step-title'>Cargue archivos</span></div>
-          <div class='step-description'>Suba el reporte financiero y el documento de metas del mismo periodo.</div>
+          <div class='step-description'>Suba un solo libro Excel integrado para el periodo a analizar.</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -3179,7 +3181,7 @@ def _render_streamlit_app(st: Any) -> None:
     _apply_page_styles(st)
     st.title("Analista financiero universitario")
     st.caption(
-        "Cargue un reporte financiero y un documento de metas. La aplicación calcula indicadores, "
+        "Cargue un libro financiero integrado. La aplicación calcula indicadores, "
         "consulta historial disponible y genera un reporte ejecutivo descargable."
     )
     _render_workflow_intro(st)
@@ -3264,43 +3266,30 @@ def _render_streamlit_app(st: Any) -> None:
             st.session_state["finance_ai_progress_completed_at"] = None
             st.rerun()
 
-    st.markdown("### 1. Cargue los documentos")
+    st.markdown("### 1. Cargue el libro financiero integrado")
     st.markdown(
         """
         <div class='compat-card'>
           <b>Archivos compatibles:</b>
-          reporte financiero en Excel o CSV (.xlsx, .xls, .csv) y documento de metas en PDF,
-          Word o Excel (.pdf, .docx, .xlsx, .xls). El periodo se detecta automáticamente
+          Libro Excel (.xlsx, .xls) con datos reales, presupuesto y metas. El periodo se detecta automáticamente
           a partir del nombre del archivo, fechas y contenido disponible.
         </div>
         """,
         unsafe_allow_html=True,
     )
-    upload_col_a, upload_col_b = st.columns(2)
-    with upload_col_a:
-        financial_report = st.file_uploader(
-            "Reporte financiero",
-            type=FINANCIAL_REPORT_UPLOAD_TYPES,
-            help="Formatos admitidos: .xlsx, .xls, .csv.",
-        )
-        _render_file_validation(st, "Reporte financiero", financial_report, FINANCIAL_REPORT_UPLOAD_TYPES)
-    with upload_col_b:
-        goals_document = st.file_uploader(
-            "Documento de metas",
-            type=GOALS_UPLOAD_TYPES,
-            help="Formatos admitidos: .pdf, .docx, .xlsx, .xls.",
-        )
-        _render_file_validation(st, "Documento de metas", goals_document, GOALS_UPLOAD_TYPES)
+    financial_report = st.file_uploader(
+        "Cargar libro financiero integrado",
+        type=INTEGRATED_WORKBOOK_UPLOAD_TYPES,
+        help="Formatos admitidos: .xlsx, .xls.",
+    )
+    _render_file_validation(st, "Libro financiero integrado", financial_report, INTEGRATED_WORKBOOK_UPLOAD_TYPES)
 
     files_ready = (
         financial_report is not None
-        and goals_document is not None
-        and _is_allowed_extension(financial_report, FINANCIAL_REPORT_UPLOAD_TYPES)
-        and _is_allowed_extension(goals_document, GOALS_UPLOAD_TYPES)
+        and _is_allowed_extension(financial_report, INTEGRATED_WORKBOOK_UPLOAD_TYPES)
     )
     preflight_input: PipelineInputModel | None = None
     report_classification: dict[str, Any] | None = None
-    goals_classification: dict[str, Any] | None = None
     preflight_error = ""
     memory_database_path = Path(memory_database).expanduser() if memory_database.strip() else None
     if files_ready:
@@ -3308,7 +3297,6 @@ def _render_streamlit_app(st: Any) -> None:
         # period-detection layer can classify uploads before pipeline execution.
         preflight_dir = UPLOAD_ROOT / "_preflight"
         preflight_report_path = save_uploaded_file(financial_report, preflight_dir)
-        preflight_goals_path = save_uploaded_file(goals_document, preflight_dir)
         period_mode_map = {
             "Detectar automáticamente": "Auto",
             "Mensual": "Monthly",
@@ -3323,28 +3311,20 @@ def _render_streamlit_app(st: Any) -> None:
         )
         try:
             preflight_input = build_input_model_from_uploads(
-                financial_report_path=preflight_report_path,
-                goals_document_path=preflight_goals_path,
+                workbook_path=preflight_report_path,
                 settings=preflight_settings,
             )
             effective_period = preflight_input.effective_period_label
             report_classification = _classify_upload_for_period(
                 uploaded_file=financial_report,
-                document_type="financial_report",
-                effective_period=effective_period,
-                database_path=memory_database_path,
-            )
-            goals_classification = _classify_upload_for_period(
-                uploaded_file=goals_document,
-                document_type="goals_document",
+                document_type="integrated_workbook",
                 effective_period=effective_period,
                 database_path=memory_database_path,
             )
         except Exception as exc:  # noqa: BLE001 - preflight should inform, not crash.
             preflight_error = f"No se pudo validar el registro del archivo antes del análisis: {exc}"
             st.error(preflight_error)
-    _render_upload_registry_status(st, "Reporte financiero", report_classification)
-    _render_upload_registry_status(st, "Documento de metas", goals_classification)
+    _render_upload_registry_status(st, "Libro financiero integrado", report_classification)
     monthly_ready, monthly_message = _monthly_readiness_message(
         input_model=preflight_input,
         override_mode=override_mode,
@@ -3354,10 +3334,7 @@ def _render_streamlit_app(st: Any) -> None:
         st.success(monthly_message)
     elif files_ready and not preflight_error:
         st.warning(monthly_message)
-    revision_required = any(
-        item and item.get("requires_revision_confirmation")
-        for item in (report_classification, goals_classification)
-    )
+    revision_required = bool(report_classification and report_classification.get("requires_revision_confirmation"))
     revision_confirmed = False
     if revision_required:
         revision_confirmed = st.checkbox(
@@ -3382,7 +3359,7 @@ def _render_streamlit_app(st: Any) -> None:
     elif files_ready and not monthly_ready:
         st.info("El análisis se habilitará cuando el período mensual esté confirmado.")
     else:
-        st.info("Seleccione el reporte financiero y el documento de metas para continuar.")
+        st.info("Seleccione el libro financiero integrado para continuar.")
     run_button = st.button(
         "Generar análisis financiero",
         type="primary",
@@ -3409,7 +3386,6 @@ def _render_streamlit_app(st: Any) -> None:
 
     run_dir = UPLOAD_ROOT / time.strftime("%Y%m%d_%H%M%S")
     report_path = save_uploaded_file(financial_report, run_dir)
-    goals_path = save_uploaded_file(goals_document, run_dir)
     period_mode_map = {
         "Detectar automáticamente": "Auto",
         "Mensual": "Monthly",
@@ -3462,8 +3438,7 @@ def _render_streamlit_app(st: Any) -> None:
             _render_progress_panel(st, progress_placeholder)
 
         result = run_analysis_from_files(
-            financial_report_path=report_path,
-            goals_document_path=goals_path,
+            workbook_path=report_path,
             settings=settings,
             progress_callback=handle_progress,
         )
@@ -3492,7 +3467,7 @@ def _render_streamlit_app(st: Any) -> None:
 
     if result.success:
         st.success(
-            f"{_success_registration_message(result, (report_classification, goals_classification))} "
+            f"{_success_registration_message(result, (report_classification,))} "
             "Revise el resumen y descargue los reportes."
         )
     else:

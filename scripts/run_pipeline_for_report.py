@@ -1,4 +1,4 @@
-"""Run the pipeline from the generic one-report input workflow."""
+"""Run the pipeline from one integrated Excel workbook."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ from finance_agent.orchestration import (  # noqa: E402
 
 
 def build_argument_parser() -> argparse.ArgumentParser:
-    """Create CLI arguments for one-report pipeline input.
+    """Create CLI arguments for integrated workbook pipeline input.
 
     Inputs: none.
     Outputs: configured argument parser.
@@ -33,10 +33,9 @@ def build_argument_parser() -> argparse.ArgumentParser:
     """
 
     parser = argparse.ArgumentParser(
-        description="Run Finance AI Agent from one report and one goals document."
+        description="Run Finance AI Agent from one integrated Excel workbook."
     )
-    parser.add_argument("--report", required=True, type=Path)
-    parser.add_argument("--goals", required=True, type=Path)
+    parser.add_argument("--workbook", "--report", required=True, type=Path)
     parser.add_argument("--period-override", default=None)
     parser.add_argument("--language", default="es")
     parser.add_argument("--endpoint", default=DEFAULT_OLLAMA_ENDPOINT)
@@ -113,17 +112,16 @@ def _save_summary(data: dict[str, object], output_path: Path) -> Path:
 
 
 def main() -> None:
-    """Run the compatibility pipeline from generic one-report input.
+    """Run the compatibility pipeline from one integrated Excel workbook.
 
-    Inputs: CLI report/goals paths, optional period override, and language.
+    Inputs: CLI workbook path, optional period override, and language.
     Outputs: existing pipeline artifacts plus generic input summary metadata.
     Assumptions: current full execution supports the existing synthetic demo files.
     """
 
     args = build_argument_parser().parse_args()
     input_model = build_pipeline_input_model(
-        financial_report_path=args.report,
-        goals_document_path=args.goals,
+        workbook_path=args.workbook,
         period_override=args.period_override,
         report_language=args.language,
     )
@@ -148,9 +146,8 @@ def main() -> None:
         memory_database_path=args.memory_database,
     )
 
-    print("Finance AI Agent - Generic Report Pipeline")
-    print(f"Financial report: {input_model.financial_report_path}")
-    print(f"Goals document: {input_model.goals_document_path}")
+    print("Finance AI Agent - Integrated Excel Pipeline")
+    print(f"Integrated workbook: {input_model.workbook_path}")
     print(f"Detected period: {input_model.detected_period.label}")
     print(f"Detected period type: {input_model.detected_period.period_type}")
     print(f"Detection confidence: {input_model.detected_period.confidence:.2f}")

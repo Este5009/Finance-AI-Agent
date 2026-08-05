@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any
 
 from openpyxl import load_workbook
-from pypdf import PdfReader
 
 from finance_agent.synthetic_history.models import SyntheticHistoryValidationResult
 
@@ -16,7 +15,7 @@ def validate_generated_history(root_directory: str | Path) -> SyntheticHistoryVa
     """Validate generated synthetic history artifacts and reconciliations.
 
     Inputs:
-        root_directory: Scenario root containing reports, goals, and manifest.
+        root_directory: Scenario root containing integrated workbooks and manifest.
     Outputs:
         Structured validation result with errors, warnings, and reconciliations.
     Assumptions:
@@ -33,12 +32,12 @@ def validate_generated_history(root_directory: str | Path) -> SyntheticHistoryVa
         return SyntheticHistoryValidationResult(False, [f"Missing manifest: {manifest_path}"], warnings, reconciliations)
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    report_paths = [Path(path) for path in manifest.get("reports", [])]
-    goals_paths = [Path(path) for path in manifest.get("goals", [])]
+    report_paths = [
+        Path(path)
+        for path in manifest.get("integrated_workbooks", manifest.get("reports", []))
+    ]
     if len(report_paths) != 12:
-        errors.append(f"Expected 12 reports, found {len(report_paths)}")
-    if len(goals_paths) != 12:
-        errors.append(f"Expected 12 goals documents, found {len(goals_paths)}")
+        errors.append(f"Expected 12 integrated workbooks, found {len(report_paths)}")
 
     annual_revenue = 0.0
     annual_expense = 0.0
@@ -59,15 +58,6 @@ def validate_generated_history(root_directory: str | Path) -> SyntheticHistoryVa
             annual_expense += workbook_result["totals"]["actual_expense"]
             annual_payroll += workbook_result["totals"]["payroll_total"]
             annual_cash_flow += workbook_result["totals"]["net_cash_flow"]
-
-    for goals_path in goals_paths:
-        if not goals_path.exists():
-            errors.append(f"Missing goals PDF: {goals_path}")
-            continue
-        try:
-            PdfReader(str(goals_path))
-        except Exception as exc:  # pragma: no cover - defensive PDF parser boundary
-            errors.append(f"Invalid goals PDF {goals_path}: {exc}")
 
     manifest_totals = manifest.get("annual_totals", {})
     computed_totals = {

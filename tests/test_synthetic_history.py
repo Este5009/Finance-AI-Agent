@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 from openpyxl import load_workbook
-from pypdf import PdfReader
 
 from finance_agent.synthetic_history import SyntheticHistoryConfig, generate_synthetic_history, validate_generated_history
 
@@ -53,20 +52,18 @@ def _sheet_rows(path: Path, sheet: str) -> list[dict[str, object]]:
 
 
 def test_generates_12_periods_with_valid_artifacts(tmp_path: Path) -> None:
-    """Verify default generation creates 12 workbooks, 12 PDFs, and a manifest."""
+    """Verify default generation creates 12 integrated workbooks and a manifest."""
 
     generated = _generate(tmp_path)
 
     assert len(generated.report_paths) == 12
-    assert len(generated.goals_paths) == 12
     assert generated.manifest_path.exists()
     for report in generated.report_paths:
         wb = load_workbook(report, read_only=True, data_only=True)
         assert "Payroll" in wb.sheetnames
         assert "Vendor_Payments" in wb.sheetnames
         assert "Anomalies_Embedded" in wb.sheetnames
-    for goals in generated.goals_paths:
-        assert len(PdfReader(str(goals)).pages) >= 1
+        assert "Goals_Targets" in wb.sheetnames
 
 
 def test_deterministic_seed_reproducibility(tmp_path: Path) -> None:
@@ -78,9 +75,9 @@ def test_deterministic_seed_reproducibility(tmp_path: Path) -> None:
     first_manifest = json.loads(first.manifest_path.read_text(encoding="utf-8"))
     second_manifest = json.loads(second.manifest_path.read_text(encoding="utf-8"))
     first_manifest["reports"] = []
-    first_manifest["goals"] = []
+    first_manifest["integrated_workbooks"] = []
     second_manifest["reports"] = []
-    second_manifest["goals"] = []
+    second_manifest["integrated_workbooks"] = []
     assert first_manifest == second_manifest
     assert _sheet_rows(first.report_paths[6], "Vendor_Payments") == _sheet_rows(second.report_paths[6], "Vendor_Payments")
     assert _sheet_rows(first.report_paths[6], "Payroll") == _sheet_rows(second.report_paths[6], "Payroll")

@@ -1,11 +1,8 @@
 ﻿"""Deterministic foundations for the Finance AI Agent."""
 
 from finance_agent.ingestion.ingestion import (
-    GoalsPdfResult,
-    PdfIngestionError,
     WorkbookIngestionError,
     WorkbookIngestionResult,
-    extract_goals_pdf,
     inspect_sheet,
     inspect_workbook,
     load_excel_workbook,
@@ -147,7 +144,6 @@ __all__ = [
     "CalculationOutputLoadError",
     "DetectedPeriod",
     "FinanceCalculationResult",
-    "GoalsPdfResult",
     "IntermediateModelLoadError",
     "InvestigationPlan",
     "InvestigationTask",
@@ -161,7 +157,6 @@ __all__ = [
     "PlannerInputError",
     "PlanValidationResult",
     "PriorityLevel",
-    "PdfIngestionError",
     "EvidencePackage",
     "PipelineConfig",
     "PipelineInputModel",
@@ -192,7 +187,6 @@ __all__ = [
     "create_default_registry",
     "create_modular_strategic_analysis",
     "create_strategic_analysis",
-    "extract_goals_pdf",
     "execute_retrieval_queue",
     "inspect_sheet",
     "inspect_workbook",

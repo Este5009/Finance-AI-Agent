@@ -33,14 +33,10 @@ def build_argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Profile one uncached pipeline run.")
     synthetic = PROJECT_ROOT / "data" / "synthetic"
     parser.add_argument(
+        "--workbook",
         "--report",
         type=Path,
         default=synthetic / "monthly_financial_report_june_2026.xlsx",
-    )
-    parser.add_argument(
-        "--goals",
-        type=Path,
-        default=synthetic / "financial_goals_2026.pdf",
     )
     parser.add_argument("--period-override", default="2026-06")
     parser.add_argument("--language", default="es")
@@ -84,8 +80,7 @@ def main() -> None:
 
     args = build_argument_parser().parse_args()
     input_model = build_pipeline_input_model(
-        financial_report_path=args.report,
-        goals_document_path=args.goals,
+        workbook_path=args.workbook,
         period_override=args.period_override,
         report_language=args.language,
     )

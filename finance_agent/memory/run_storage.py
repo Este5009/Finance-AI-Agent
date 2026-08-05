@@ -126,7 +126,6 @@ def _expected_artifact_paths(result: PipelineRunResult, period_slug: str) -> dic
         / "intermediate"
         / period_slug
         / "financial_document_model_enriched.json",
-        "goals_text": outputs / "inspection" / f"goals_text_{period_slug}.txt",
         "workbook_inspection": outputs / "inspection" / f"workbook_inspection_{period_slug}.json",
     }
 
@@ -319,15 +318,12 @@ def _nested_metric(finance_summary: dict[str, Any], *path: str) -> Any:
     return value
 
 
-def _extract_goals(
-    finance_summary: dict[str, Any],
-    goals_text_path: Path | None = None,
-) -> tuple[GoalRecord, ...]:
+def _extract_goals(finance_summary: dict[str, Any]) -> tuple[GoalRecord, ...]:
     """Extract goal progress rows when processed outputs expose targets.
 
     Inputs: finance summary.
     Outputs: goal records.
-    Assumptions: current synthetic outputs may not expose goal targets yet.
+    Assumptions: goals/targets come from processed integrated workbook outputs.
     """
 
     rows: list[GoalRecord] = []
@@ -344,64 +340,6 @@ def _extract_goals(
                 actual=_to_float(item.get("actual")),
                 unit=str(item.get("unit") or "") or None,
                 progress_status=str(item.get("status") or item.get("progress_status") or "") or None,
-            )
-        )
-    text = (
-        goals_text_path.read_text(encoding="utf-8")
-        if goals_text_path is not None and goals_text_path.is_file()
-        else ""
-    )
-    lowered = text.casefold()
-    # These deterministic rows mirror measurable goals already present in the
-    # processed goals text. Actual values come only from Python-calculated output.
-    if "annual revenue" in lowered and "$26.0 million" in lowered:
-        rows.append(
-            GoalRecord(
-                goal_id="GOAL-ANNUAL-REVENUE",
-                metric="total_revenue",
-                target=26_000_000.0,
-                actual=_to_float(_nested_metric(finance_summary, "total_revenue")),
-                unit="USD",
-                progress_status=None,
-            )
-        )
-    if "payroll cost" in lowered and "42%" in lowered:
-        rows.append(
-            GoalRecord(
-                goal_id="GOAL-PAYROLL-RATIO",
-                metric="payroll_percentage_of_revenue",
-                target=0.42,
-                actual=_to_float(
-                    _nested_metric(finance_summary, "payroll_percentage_of_revenue")
-                ),
-                unit="ratio",
-                progress_status=None,
-            )
-        )
-    if "tuition collection" in lowered and "94%" in lowered:
-        rows.append(
-            GoalRecord(
-                goal_id="GOAL-COLLECTION-RATE",
-                metric="collection_rate",
-                target=0.94,
-                actual=_to_float(
-                    _nested_metric(finance_summary, "student_payments", "collection_rate")
-                ),
-                unit="ratio",
-                progress_status=None,
-            )
-        )
-    if "expense control" in lowered:
-        rows.append(
-            GoalRecord(
-                goal_id="GOAL-EXPENSE-VARIANCE",
-                metric="expense_variance",
-                target=0.0,
-                actual=_to_float(
-                    _nested_metric(finance_summary, "budget_vs_actual", "expense_variance")
-                ),
-                unit="USD",
-                progress_status=None,
             )
         )
     deduplicated = {goal.goal_id: goal for goal in rows}
@@ -521,8 +459,8 @@ def build_stored_pipeline_run(
     anomaly_report = _load_json(paths["anomaly_report"])
     evidence_package = _load_json(paths["evidence_package"])
     analysis_document = _load_json(paths["strategic_analysis"])
-    report_hash = _file_checksum(input_model.financial_report_path) or ""
-    goals_hash = _file_checksum(input_model.goals_document_path) or ""
+    report_hash = _file_checksum(input_model.workbook_path) or ""
+    goals_hash = ""
     detected_period = input_model.detected_period.label
     effective_period = input_model.effective_period_label
     configuration_json = json.dumps(
@@ -533,8 +471,7 @@ def build_stored_pipeline_run(
     )
     idempotency_payload = json.dumps(
         {
-            "report_hash": report_hash,
-            "goals_hash": goals_hash,
+            "integrated_workbook_hash": report_hash,
             "period": period_slug,
             "configuration": configuration_json,
         },
@@ -557,8 +494,8 @@ def build_stored_pipeline_run(
         completed_at_utc=datetime.now(timezone.utc).isoformat(),
         report_hash=report_hash,
         goals_hash=goals_hash,
-        report_path=str(input_model.financial_report_path.resolve()),
-        goals_path=str(input_model.goals_document_path.resolve()),
+        report_path=str(input_model.workbook_path.resolve()),
+        goals_path="",
         language=input_model.report_language,
         model=result.config.ollama_model,
         confidence=_to_float(analysis.get("confidence")),
@@ -571,41 +508,22 @@ def build_stored_pipeline_run(
         kpis=kpis,
         anomalies=anomalies,
         recommendations=_extract_recommendations(analysis_document),
-        goals=_extract_goals(finance_summary, paths.get("goals_text")),
+        goals=_extract_goals(finance_summary),
         memory_facts=_extract_memory_facts(analysis_document, evidence_package, anomalies),
         source_documents=(
             SourceDocumentRecord(
-                document_id=_source_document_id("financial_report", report_hash),
+                document_id=_source_document_id("integrated_workbook", report_hash),
                 content_sha256=report_hash,
-                original_filename=input_model.financial_report_path.name,
-                document_type="financial_report",
-                size_bytes=input_model.financial_report_path.stat().st_size,
+                original_filename=input_model.workbook_path.name,
+                document_type="integrated_workbook",
+                size_bytes=input_model.workbook_path.stat().st_size,
                 detected_period=detected_period,
                 effective_period=effective_period,
                 upload_time_utc=datetime.now(timezone.utc).isoformat(),
                 processing_status="accepted",
                 source_metadata_json=json.dumps(
                     {
-                        "path": str(input_model.financial_report_path.resolve()),
-                        "period_type": input_model.period_type,
-                    },
-                    sort_keys=True,
-                    ensure_ascii=False,
-                ),
-            ),
-            SourceDocumentRecord(
-                document_id=_source_document_id("goals_document", goals_hash),
-                content_sha256=goals_hash,
-                original_filename=input_model.goals_document_path.name,
-                document_type="goals_document",
-                size_bytes=input_model.goals_document_path.stat().st_size,
-                detected_period=detected_period,
-                effective_period=effective_period,
-                upload_time_utc=datetime.now(timezone.utc).isoformat(),
-                processing_status="accepted",
-                source_metadata_json=json.dumps(
-                    {
-                        "path": str(input_model.goals_document_path.resolve()),
+                        "path": str(input_model.workbook_path.resolve()),
                         "period_type": input_model.period_type,
                     },
                     sort_keys=True,
@@ -649,15 +567,14 @@ def persist_pipeline_run(
 def _build_result_for_existing_artifacts(
     *,
     project_root: Path,
-    report_path: Path,
-    goals_path: Path,
+    workbook_path: Path,
     period_slug: str,
     language: str,
     database_path: Path,
 ) -> PipelineRunResult:
     """Build a minimal PipelineRunResult for already-generated artifacts.
 
-    Inputs: project root, source files, period slug, language, and DB path.
+    Inputs: project root, source workbook, period slug, language, and DB path.
     Outputs: PipelineRunResult compatible with persist_pipeline_run.
     Assumptions: this helper is for storage backfill, not pipeline execution.
     """
@@ -670,8 +587,7 @@ def _build_result_for_existing_artifacts(
     )
 
     input_model = build_pipeline_input_model(
-        financial_report_path=report_path,
-        goals_document_path=goals_path,
+        workbook_path=workbook_path,
         period_override=period_slug.replace("_", "-"),
         report_language=language,
     )
@@ -724,7 +640,7 @@ def _build_result_for_existing_artifacts(
 def main() -> None:
     """Backfill memory storage from existing accepted artifacts.
 
-    Inputs: CLI arguments for report, goals, period slug, and database.
+    Inputs: CLI arguments for workbook, period slug, and database.
     Outputs: storage result summary.
     Assumptions: artifacts already exist under outputs/ for the period slug.
     """
@@ -736,14 +652,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Store existing pipeline artifacts in memory DB.")
     parser.add_argument("--period-slug", default="2026_06")
     parser.add_argument(
+        "--workbook",
         "--report",
         type=Path,
         default=synthetic / "monthly_financial_report_june_2026.xlsx",
-    )
-    parser.add_argument(
-        "--goals",
-        type=Path,
-        default=synthetic / "financial_goals_2026.pdf",
     )
     parser.add_argument("--language", default="es")
     parser.add_argument(
@@ -754,8 +666,7 @@ def main() -> None:
     args = parser.parse_args()
     result = _build_result_for_existing_artifacts(
         project_root=project_root,
-        report_path=args.report,
-        goals_path=args.goals,
+        workbook_path=args.workbook,
         period_slug=args.period_slug,
         language=args.language,
         database_path=args.database,

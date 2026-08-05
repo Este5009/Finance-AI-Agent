@@ -2,6 +2,12 @@
 
 ## Architecture Decisions
 
+- The supported user input workflow is one integrated Excel workbook (`.xlsx`
+  or `.xls`) per reporting period. The workbook must contain actuals, budgets,
+  goals/targets, variances, departments, payroll, collections, cash-flow, and
+  other finance tables needed by the pipeline. Separate goals PDFs/DOCX files,
+  OCR, and two-uploader report+goals flows are retired from the active product
+  path; PDF remains supported only as a generated executive report output.
 - Persistent local services are user-owned during development. Codex must not
   start Streamlit, Ollama, dev servers, browser automation, watchers, or
   background workers as normal task completion; it validates with imports,
@@ -97,6 +103,11 @@
   appends the current period's deterministic processed KPI value for display.
   Renderers and Streamlit must consume this shared series rather than querying
   memory or recalculating trends independently.
+- Historical trend chart display uses a rolling monthly window: current period
+  plus up to the previous five comparable monthly periods, maximum six points.
+  Every real accepted month inside the window must be preserved; renderers must
+  never reduce the series to first/latest endpoints, interpolate missing
+  months, or leak future periods.
 - Missing-information claims must be verified against processed deterministic
   evidence before they reach report models or UI/PDF/HTML output. Department
   lookups use alias-aware data-value matching, such as `Arts & Humanities` and
@@ -211,7 +222,7 @@
 - Excel ingestion preserves original sheet names and returns DataFrames plus workbook metadata; JSON inspection is a separate serialization step.
 - PDF ingestion returns raw text and basic metadata only. Advanced goal extraction is deferred.
 
-- Target architecture: Excel reports + goals PDF/DOCX â†’ ingestion â†’ schema normalization â†’ deterministic calculations/anomaly detection â†’ agent orchestration â†’ history/memory retrieval â†’ Ollama analysis â†’ PDF/Excel outputs â†’ Streamlit interface.
+- Target architecture: integrated Excel workbook â†’ ingestion â†’ schema normalization â†’ deterministic calculations/anomaly detection â†’ agent orchestration â†’ history/memory retrieval â†’ Ollama analysis â†’ PDF/Excel outputs â†’ Streamlit interface.
 - Python is the source of truth for calculations.
 - LLM must not perform financial math.
 - Ollama is the default local LLM.

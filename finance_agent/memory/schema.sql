@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS source_documents (
     document_id TEXT PRIMARY KEY,
     content_sha256 TEXT NOT NULL,
     original_filename TEXT NOT NULL,
-    document_type TEXT NOT NULL CHECK(document_type IN ('financial_report', 'goals_document')),
+    document_type TEXT NOT NULL CHECK(document_type IN ('integrated_workbook', 'financial_report', 'goals_document')),
     size_bytes INTEGER NOT NULL,
     detected_period TEXT,
     effective_period TEXT NOT NULL,
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS source_documents (
 CREATE TABLE IF NOT EXISTS pipeline_run_documents (
     run_id TEXT NOT NULL,
     document_id TEXT NOT NULL,
-    document_role TEXT NOT NULL CHECK(document_role IN ('financial_report', 'goals_document')),
+    document_role TEXT NOT NULL CHECK(document_role IN ('integrated_workbook', 'financial_report', 'goals_document')),
     PRIMARY KEY(run_id, document_role),
     FOREIGN KEY(run_id) REFERENCES pipeline_runs(run_id) ON DELETE CASCADE,
     FOREIGN KEY(document_id) REFERENCES source_documents(document_id)
