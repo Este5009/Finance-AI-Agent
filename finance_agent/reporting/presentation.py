@@ -90,6 +90,7 @@ EXECUTIVE_SECTION_ORDER: tuple[str, ...] = (
     "executive_summary",
     "financial_health_overview",
     "kpi_overview",
+    "goal_budget_performance",
     "historical_trends",
     "revenue_expense_analysis",
     "department_analysis",
@@ -105,6 +106,7 @@ SECTION_LABELS_ES: dict[str, str] = {
     "executive_summary": "Resumen ejecutivo",
     "financial_health_overview": "Salud financiera ejecutiva",
     "kpi_overview": "KPIs y cumplimiento de metas",
+    "goal_budget_performance": "Cumplimiento de metas y presupuesto",
     "historical_trends": "Tendencias históricas",
     "revenue_expense_analysis": "Análisis de ingresos y gastos",
     "department_analysis": "Análisis por departamento",
@@ -279,6 +281,18 @@ REPORT_SECTION_TEMPLATES: dict[str, ReportSectionTemplate] = {
         ("kpi_analysis",),
         ("spanish", "evidence_bound"),
         "show_when_kpis_available",
+    ),
+    "goal_budget_performance": ReportSectionTemplate(
+        "goal_budget_performance",
+        SECTION_LABELS_ES["goal_budget_performance"],
+        "Comparar resultados reales contra metas, objetivos y presupuesto.",
+        ("finance_summary", "budget_vs_actual", "goal_performance"),
+        ("historical_goal_direction",),
+        ("actual_target_bar_chart", "goal_status_distribution"),
+        ("goal_performance_table",),
+        (),
+        ("deterministic", "direction_aware", "provenance_required"),
+        "show_when_goal_performance_available",
     ),
     "historical_summary": ReportSectionTemplate(
         "historical_summary",
@@ -1531,6 +1545,7 @@ def build_presentation_view(report_model: dict[str, Any], *, mode: str = "execut
             "sources": source_labels(get_section(report_model, "financial_health_overview")),
         },
         "kpis": build_kpi_rows(report_model),
+        "goal_budget": build_goal_budget_view(report_model),
         "revenue_expense": build_revenue_expense_summary(report_model),
         "departments": build_department_rows(report_model),
         "anomalies": build_anomaly_summary(report_model),
@@ -1581,6 +1596,151 @@ def build_presentation_view(report_model: dict[str, Any], *, mode: str = "execut
         view["technical_sources"] = report_model.get("source_references", [])
     validate_presentation_view(view, mode=mode)
     return view
+
+
+def build_goal_budget_view(report_model: dict[str, Any]) -> dict[str, Any]:
+    """Build display-ready goal and budget performance rows.
+
+    Inputs: renderer-agnostic report model.
+    Outputs: formatted goal-performance payload for HTML, PDF, and Streamlit.
+    Assumptions: all numeric fields were calculated deterministically upstream.
+    """
+
+    section = get_section(report_model, "goal_budget_performance")
+    content = section.get("content", {}) if isinstance(section, dict) else {}
+    content = content if isinstance(content, dict) else {}
+    items: list[dict[str, Any]] = []
+    for item in content.get("items", []) or []:
+        if not isinstance(item, dict):
+            continue
+        unit = str(item.get("unit") or "")
+        gap = item.get("percentage_point_gap") if unit == "ratio" else item.get("absolute_gap")
+        items.append(
+            {
+                "goal_id": item.get("goal_id"),
+                "metric_id": item.get("metric_id"),
+                "label": sanitize_text(item.get("display_label") or display_metric_name(item.get("metric_id"))),
+                "actual": format_value(item.get("actual_value"), unit),
+                "target": format_value(item.get("target_value"), unit),
+                "gap": format_value(gap, "ratio" if unit == "ratio" else unit),
+                "score": (
+                    f"{number_value(item.get('achievement_score')):.1f}/100"
+                    if number_value(item.get("achievement_score")) is not None
+                    else "No disponible"
+                ),
+                "score_value": number_value(item.get("achievement_score")),
+                "status": sanitize_text(item.get("status") or "Sin datos"),
+                "status_class": _goal_status_class(item.get("status")),
+                "direction": _localize_goal_direction(item.get("direction")),
+                "historical_direction": _localize_direction(item.get("historical_direction") or "stable"),
+                "unit": unit,
+                "actual_value": number_value(item.get("actual_value")),
+                "target_value": number_value(item.get("target_value")),
+                "budget_classification": sanitize_text(item.get("budget_classification") or ""),
+                "source": compact_source_label(
+                    (item.get("source_provenance_actual") or {}).get("artifact") or ""
+                ),
+                "calculation_method": sanitize_text(item.get("calculation_method") or ""),
+            }
+        )
+    return {
+        "available": bool(items),
+        "overall_score": (
+            f"{number_value(content.get('overall_score')):.1f}/100"
+            if number_value(content.get("overall_score")) is not None
+            else "No disponible"
+        ),
+        "overall_score_value": number_value(content.get("overall_score")),
+        "valid_goal_count": int(content.get("valid_goal_count") or 0),
+        "met_goal_count": int(content.get("met_goal_count") or 0),
+        "near_goal_count": int(content.get("near_goal_count") or 0),
+        "risk_goal_count": int(content.get("risk_goal_count") or 0),
+        "critical_goal_count": int(content.get("critical_goal_count") or 0),
+        "excluded_goal_count": int(content.get("excluded_goal_count") or 0),
+        "weighting_method": "Pesos iguales para metas válidas"
+        if content.get("weighting_method") == "equal_weight_valid_goals"
+        else sanitize_text(content.get("weighting_method") or ""),
+        "items": items,
+        "budget_items": [item for item in items if item.get("budget_classification")],
+        "status_distribution": [
+            {"label": "Cumplida", "value": int(content.get("met_goal_count") or 0), "unit": "count"},
+            {"label": "Cerca de cumplir", "value": int(content.get("near_goal_count") or 0), "unit": "count"},
+            {"label": "En riesgo", "value": int(content.get("risk_goal_count") or 0), "unit": "count"},
+            {"label": "Crítica", "value": int(content.get("critical_goal_count") or 0), "unit": "count"},
+        ],
+        "chart_groups": _goal_chart_groups(items),
+        "conclusion": sanitize_text(content.get("deterministic_conclusion") or ""),
+        "technical_details": content.get("technical_details", {}),
+        "sources": source_labels(section),
+    }
+
+
+def _goal_status_class(status: Any) -> str:
+    """Return restrained badge class for a goal status.
+
+    Inputs: status text.
+    Outputs: CSS class token.
+    Assumptions: unknown statuses should be neutral.
+    """
+
+    mapping = {
+        "Cumplida": "positive",
+        "Cerca de cumplir": "warning",
+        "En riesgo": "warning",
+        "Crítica": "negative",
+        "Sin datos": "neutral",
+    }
+    return mapping.get(str(status or ""), "neutral")
+
+
+def _localize_goal_direction(value: Any) -> str:
+    """Translate canonical goal direction into Spanish.
+
+    Inputs: direction identifier.
+    Outputs: Spanish display label.
+    Assumptions: internal IDs remain in source JSON, not visible labels.
+    """
+
+    mapping = {
+        "higher_is_better": "Más alto es favorable",
+        "lower_is_better": "Más bajo es favorable",
+        "target_range": "Rango objetivo",
+        "minimum_threshold": "Umbral mínimo",
+        "maximum_threshold": "Umbral máximo",
+        "exact_target": "Meta exacta",
+    }
+    return mapping.get(str(value or ""), "Dirección no disponible")
+
+
+def _goal_chart_groups(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Group actual-vs-target chart rows by compatible unit.
+
+    Inputs: presentation goal rows.
+    Outputs: groups that can be charted on compatible axes.
+    Assumptions: currencies, ratios, and counts must not be mixed.
+    """
+
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for item in items:
+        if item.get("actual_value") is None or item.get("target_value") is None:
+            continue
+        groups.setdefault(str(item.get("unit") or "value"), []).append(
+            {
+                "label": item["label"],
+                "actual": item["actual_value"],
+                "target": item["target_value"],
+                "unit": item.get("unit") or "",
+            }
+        )
+    return [
+        {
+            "unit": unit,
+            "title": "Comparación real vs meta"
+            + (" (%)" if unit == "ratio" else " (USD)" if unit == "USD" else ""),
+            "items": rows,
+        }
+        for unit, rows in groups.items()
+    ]
 
 
 def historical_chart_series(historical: dict[str, Any]) -> list[dict[str, Any]]:
@@ -1662,7 +1822,27 @@ def _visible_strings(value: Any) -> list[str]:
     strings: list[str] = []
     if isinstance(value, dict):
         for key, child in value.items():
-            if key in {"id", "metric_id", "unit", "mode", "period_slug", "report_id", "labels", "sections"}:
+            if key in {
+                "id",
+                "goal_id",
+                "metric_id",
+                "unit",
+                "mode",
+                "period_slug",
+                "report_id",
+                "labels",
+                "sections",
+                # Deterministic diagnostics remain available to advanced
+                # callers, but they are not executive narrative prose.
+                "actual_value",
+                "target_value",
+                "gap_value",
+                "score_value",
+                "status_class",
+                "direction",
+                "calculation_method",
+                "technical_details",
+            }:
                 continue
             strings.extend(_visible_strings(child))
     elif isinstance(value, list):

@@ -499,6 +499,67 @@ def _render_kpis(view: dict[str, Any]) -> str:
     )
 
 
+def _render_goal_budget(view: dict[str, Any]) -> str:
+    """Render deterministic goal and budget performance.
+
+    Inputs: presentation view.
+    Outputs: HTML section.
+    Assumptions: all goal calculations were completed upstream by Python.
+    """
+
+    goals = view.get("goal_budget", {})
+    if not goals.get("available"):
+        return ""
+    summary_cards = (
+        "<div class='mini-grid'>"
+        f"<article class='mini-card'><span>Cumplimiento general</span><strong>{_escape(goals['overall_score'])}</strong><small>Promedio con pesos iguales</small></article>"
+        f"<article class='mini-card'><span>Metas cumplidas</span><strong>{int(goals['met_goal_count'])}/{int(goals['valid_goal_count'])}</strong><small>{_escape(goals['weighting_method'])}</small></article>"
+        f"<article class='mini-card'><span>En riesgo o críticas</span><strong>{int(goals['risk_goal_count']) + int(goals['critical_goal_count'])}</strong><small>Requieren atención ejecutiva</small></article>"
+        "</div>"
+    )
+    status_chart = _bar_chart(
+        [
+            {"label": item["label"], "value": item["value"], "unit": "count"}
+            for item in goals.get("status_distribution", [])
+        ],
+        title="Distribución por estado",
+    )
+    chart_markup = ""
+    for group in goals.get("chart_groups", []):
+        rows = []
+        for item in group.get("items", []):
+            rows.append({"label": f"{item['label']} · Real", "value": item["actual"], "unit": group["unit"]})
+            rows.append({"label": f"{item['label']} · Meta", "value": item["target"], "unit": group["unit"]})
+        chart_markup += _bar_chart(rows, title=group.get("title") or "Real vs meta")
+    rows = [
+        [
+            item["label"],
+            item["actual"],
+            item["target"],
+            item["gap"],
+            item["score"],
+            item["status"],
+            item["historical_direction"],
+            item["source"],
+        ]
+        for item in goals.get("items", [])
+    ]
+    return (
+        "<section id='goal_budget_performance'>"
+        f"<h2>{SECTION_LABELS_ES['goal_budget_performance']}</h2>"
+        f"<div class='executive-insight'><strong>Conclusión ejecutiva:</strong> {_escape(goals.get('conclusion'))}</div>"
+        + summary_cards
+        + status_chart
+        + chart_markup
+        + _table(
+            ["Meta", "Real", "Objetivo", "Brecha", "Puntaje", "Estado", "Dirección histórica", "Fuente"],
+            rows,
+            force=True,
+        )
+        + "</section>"
+    )
+
+
 def _render_historical(view: dict[str, Any]) -> str:
     """Render historical trends and longitudinal sections.
 
@@ -964,6 +1025,7 @@ def render_report_html(report_model: dict[str, Any], *, mode: str = "executive")
         _render_summary(view),
         _render_health(view),
         _render_kpis(view),
+        _render_goal_budget(view),
         _render_historical(view),
         _render_revenue_expense(view),
         _render_departments(view),

@@ -11,6 +11,7 @@ REQUIRED_SECTION_IDS: tuple[str, ...] = (
     "executive_summary",
     "financial_health_overview",
     "kpi_overview",
+    "goal_budget_performance",
     "revenue_analysis",
     "expense_analysis",
     "department_analysis",

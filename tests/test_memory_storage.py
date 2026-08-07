@@ -260,7 +260,7 @@ def test_schema_creation_and_migration(tmp_path: Path) -> None:
             )
         }
 
-    assert version == 2
+    assert version == 3
     assert "pipeline_runs" in tables
     assert "memory_facts" in tables
     assert "source_documents" in tables

@@ -605,6 +605,75 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
     else:
         story.append(_info_card("Los KPIs principales ya están resumidos en las tarjetas de salud financiera.", styles, title="Lectura ejecutiva"))
 
+    goal_budget = view.get("goal_budget", {})
+    if goal_budget.get("available"):
+        _section_title(story, "goal_budget_performance", styles)
+        story.append(
+            _info_card(
+                goal_budget.get("conclusion") or "Cumplimiento calculado con datos procesados.",
+                styles,
+                title="Conclusión ejecutiva",
+            )
+        )
+        story.append(Spacer(1, 0.08 * inch))
+        story.append(
+            _table(
+                ["Indicador", "Valor"],
+                [
+                    ["Cumplimiento general", goal_budget.get("overall_score", "")],
+                    [
+                        "Metas cumplidas",
+                        f"{goal_budget.get('met_goal_count', 0)}/{goal_budget.get('valid_goal_count', 0)}",
+                    ],
+                    ["Metas en riesgo o críticas", str(goal_budget.get("risk_goal_count", 0) + goal_budget.get("critical_goal_count", 0))],
+                    ["Método de ponderación", goal_budget.get("weighting_method", "")],
+                ],
+                styles,
+                widths=[2.4 * inch, 3.8 * inch],
+                force=True,
+            )
+        )
+        for group in goal_budget.get("chart_groups", [])[:2]:
+            chart_rows: list[dict[str, Any]] = []
+            for item in group.get("items", [])[:4]:
+                chart_rows.append(
+                    {
+                        "label": f"{item.get('label')} · Real",
+                        "value": item.get("actual"),
+                        "unit": group.get("unit") or "",
+                    }
+                )
+                chart_rows.append(
+                    {
+                        "label": f"{item.get('label')} · Objetivo",
+                        "value": item.get("target"),
+                        "unit": group.get("unit") or "",
+                    }
+                )
+            if chart_rows:
+                story.append(Spacer(1, 0.08 * inch))
+                story.append(HorizontalBarChart(chart_rows, str(group.get("title") or "Real vs objetivo")))
+        rows = [
+            [
+                item["label"],
+                item["actual"],
+                item["target"],
+                item["gap"],
+                item["score"],
+                item["status"],
+            ]
+            for item in goal_budget.get("items", [])[:8]
+        ]
+        story.append(
+            _table(
+                ["Meta", "Real", "Objetivo", "Brecha", "Puntaje", "Estado"],
+                rows,
+                styles,
+                widths=[1.55 * inch, 1.0 * inch, 1.0 * inch, 1.0 * inch, 0.85 * inch, 1.1 * inch],
+                force=True,
+            )
+        )
+
     historical = view["historical"]
     if historical.get("available"):
         _section_title(story, "historical_trends", styles)

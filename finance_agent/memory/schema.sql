@@ -113,6 +113,10 @@ CREATE TABLE IF NOT EXISTS goals (
     actual REAL,
     unit TEXT,
     progress_status TEXT,
+    gap REAL,
+    score REAL,
+    direction TEXT,
+    source_provenance_json TEXT,
     PRIMARY KEY(run_id, goal_id),
     FOREIGN KEY(run_id) REFERENCES pipeline_runs(run_id) ON DELETE CASCADE
 );

@@ -646,7 +646,15 @@ def test_download_tab_presentation_error_does_not_break_other_result_tabs(monkey
     streamlit_app._render_results(fake_st, result)
 
     visible_text = "\n".join(fake_st.markdown_calls)
-    assert fake_st.tab_labels == ["Resumen", "KPIs", "Anomalías", "Análisis", "Recomendaciones", "Descargas"]
+    assert fake_st.tab_labels == [
+        "Resumen",
+        "KPIs",
+        "Metas y presupuesto",
+        "Anomalías",
+        "Análisis",
+        "Recomendaciones",
+        "Descargas",
+    ]
     assert "Resumen ejecutivo" in visible_text
     assert "Indicadores principales" in visible_text
     assert "Anomalías del periodo" in visible_text
@@ -1276,7 +1284,10 @@ def test_results_tabs_include_analysis_and_downloads() -> None:
 
     source = Path(streamlit_app.__file__).read_text(encoding="utf-8")
 
-    assert '["Resumen", "KPIs", "Anomalías", "Análisis", "Recomendaciones", "Descargas"]' in source
+    assert (
+        '["Resumen", "KPIs", "Metas y presupuesto", "Anomalías", '
+        '"Análisis", "Recomendaciones", "Descargas"]'
+    ) in source
     assert "_render_analysis_tab" in source
     assert "Evidence package JSON" in source
 

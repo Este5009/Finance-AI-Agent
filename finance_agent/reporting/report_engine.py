@@ -14,6 +14,7 @@ from finance_agent.common.evidence_availability import (
     remove_contradicted_department_absence_text,
 )
 from finance_agent.memory.context_builder import build_historical_context
+from finance_agent.reporting.goal_performance import build_goal_performance
 from finance_agent.reporting.report_models import (
     REQUIRED_SECTION_IDS,
     ReportModel,
@@ -1403,6 +1404,10 @@ def _add_presentation_payload(model: ReportModel) -> None:
         "metric_cards": build_metric_cards(report_data),
     }
     section_by_id["kpi_overview"].content["presentation"] = {"rows": build_kpi_rows(report_data)}
+    if "goal_budget_performance" in section_by_id:
+        section_by_id["goal_budget_performance"].content["presentation"] = dict(
+            section_by_id["goal_budget_performance"].content
+        )
     section_by_id["revenue_analysis"].content["presentation"] = build_revenue_expense_summary(report_data)
     section_by_id["expense_analysis"].content["presentation"] = build_revenue_expense_summary(report_data)
     section_by_id["department_analysis"].content["presentation"] = {"rows": build_department_rows(report_data)}
@@ -1461,6 +1466,11 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
         payments,
         cash_flow,
         historical_context,
+    )
+    goal_performance = build_goal_performance(
+        finance,
+        period=inputs.period_slug,
+        current_source=inputs.source_files[0],
     )
 
     finance_source = (inputs.source_files[0],)
@@ -1585,6 +1595,12 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 or deterministic_summaries.get("kpi_analysis", ""),
             },
             kpi_source,
+        ),
+        _section(
+            "goal_budget_performance",
+            "Cumplimiento de metas y presupuesto",
+            goal_performance,
+            finance_source,
         ),
         _section(
             "revenue_analysis",

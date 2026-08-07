@@ -48,6 +48,7 @@ def initialize_database(database_path: str | Path = DEFAULT_MEMORY_DB_PATH) -> P
     with connect_database(path) as connection:
         with connection:
             connection.executescript(schema_path().read_text(encoding="utf-8"))
+            _ensure_goal_comparison_columns(connection)
             version = connection.execute(
                 "SELECT MAX(version) AS version FROM schema_version"
             ).fetchone()["version"]
@@ -69,3 +70,25 @@ def initialize_database(database_path: str | Path = DEFAULT_MEMORY_DB_PATH) -> P
                     f"Database schema version {version} is newer than supported {SCHEMA_VERSION}."
                 )
     return path
+
+
+def _ensure_goal_comparison_columns(connection: sqlite3.Connection) -> None:
+    """Add nullable goal-comparison columns to existing databases.
+
+    Inputs: open SQLite connection.
+    Outputs: schema migrated in place when needed.
+    Assumptions: columns are additive and therefore safe for accepted history.
+    """
+
+    existing = {
+        str(row["name"])
+        for row in connection.execute("PRAGMA table_info(goals)").fetchall()
+    }
+    for column_name, column_type in {
+        "gap": "REAL",
+        "score": "REAL",
+        "direction": "TEXT",
+        "source_provenance_json": "TEXT",
+    }.items():
+        if column_name not in existing:
+            connection.execute(f"ALTER TABLE goals ADD COLUMN {column_name} {column_type}")

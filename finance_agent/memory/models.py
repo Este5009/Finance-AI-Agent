@@ -8,7 +8,7 @@ from typing import Any
 
 
 DEFAULT_MEMORY_DB_PATH = Path("data") / "memory" / "finance_memory.db"
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 @dataclass(frozen=True)
@@ -94,6 +94,10 @@ class GoalRecord:
     actual: float | None
     unit: str | None
     progress_status: str | None
+    gap: float | None = None
+    score: float | None = None
+    direction: str | None = None
+    source_provenance_json: str | None = None
 
 
 @dataclass(frozen=True)

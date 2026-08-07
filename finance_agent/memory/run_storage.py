@@ -346,6 +346,48 @@ def _extract_goals(finance_summary: dict[str, Any]) -> tuple[GoalRecord, ...]:
     return tuple(deduplicated.values())
 
 
+def _extract_goal_comparisons(report_model: dict[str, Any]) -> tuple[GoalRecord, ...]:
+    """Extract deterministic goal-comparison rows from a report model.
+
+    Inputs: report model JSON.
+    Outputs: GoalRecord rows including gap, score, direction, and provenance.
+    Assumptions: report generation already calculated these values in Python.
+    """
+
+    for section in report_model.get("sections", []) if isinstance(report_model, dict) else []:
+        if not isinstance(section, dict) or section.get("section_id") != "goal_budget_performance":
+            continue
+        content = section.get("content", {})
+        content = content if isinstance(content, dict) else {}
+        records: list[GoalRecord] = []
+        for item in content.get("items", []) or []:
+            if not isinstance(item, dict) or not item.get("goal_id"):
+                continue
+            gap = item.get("percentage_point_gap") if item.get("unit") == "ratio" else item.get("absolute_gap")
+            provenance = {
+                "actual": item.get("source_provenance_actual"),
+                "target": item.get("source_provenance_target"),
+                "calculation_method": item.get("calculation_method"),
+                "reconciliation_state": item.get("reconciliation_state"),
+            }
+            records.append(
+                GoalRecord(
+                    goal_id=str(item["goal_id"]),
+                    metric=str(item.get("metric_id") or ""),
+                    target=_to_float(item.get("target_value")),
+                    actual=_to_float(item.get("actual_value")),
+                    unit=str(item.get("unit") or "") or None,
+                    progress_status=str(item.get("status") or "") or None,
+                    gap=_to_float(gap),
+                    score=_to_float(item.get("achievement_score")),
+                    direction=str(item.get("direction") or item.get("comparison_operator") or "") or None,
+                    source_provenance_json=json.dumps(provenance, sort_keys=True, ensure_ascii=False),
+                )
+            )
+        return tuple(records)
+    return ()
+
+
 def _extract_memory_facts(
     analysis_document: dict[str, Any],
     evidence_package: dict[str, Any],
@@ -459,6 +501,7 @@ def build_stored_pipeline_run(
     anomaly_report = _load_json(paths["anomaly_report"])
     evidence_package = _load_json(paths["evidence_package"])
     analysis_document = _load_json(paths["strategic_analysis"])
+    report_model = _load_json(paths["report_model"])
     report_hash = _file_checksum(input_model.workbook_path) or ""
     goals_hash = ""
     detected_period = input_model.detected_period.label
@@ -508,7 +551,7 @@ def build_stored_pipeline_run(
         kpis=kpis,
         anomalies=anomalies,
         recommendations=_extract_recommendations(analysis_document),
-        goals=_extract_goals(finance_summary),
+        goals=_extract_goal_comparisons(report_model) or _extract_goals(finance_summary),
         memory_facts=_extract_memory_facts(analysis_document, evidence_package, anomalies),
         source_documents=(
             SourceDocumentRecord(

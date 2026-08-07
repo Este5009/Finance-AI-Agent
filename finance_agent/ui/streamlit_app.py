@@ -220,6 +220,7 @@ UI_SECTION_TAB_BY_ID: dict[str, str] = {
     "executive_summary": "Resumen",
     "financial_health_overview": "Resumen",
     "kpi_overview": "KPIs",
+    "goal_budget_performance": "Metas y presupuesto",
     "revenue_analysis": "Análisis",
     "expense_analysis": "Análisis",
     "department_analysis": "Análisis",
@@ -2492,6 +2493,93 @@ def _render_kpi_tab(st: Any, report_model: dict[str, Any]) -> None:
         st.info("No hay KPIs disponibles para este periodo.")
 
 
+def _render_goal_budget_tab(st: Any, report_model: dict[str, Any]) -> None:
+    """Render deterministic goals and budget performance.
+
+    Inputs: Streamlit module and report model.
+    Outputs: Spanish goal score, actual-target comparisons, and provenance.
+    Assumptions: values come from ``goal_budget_performance`` in the report model.
+    """
+
+    view = build_presentation_view(report_model) if report_model else {}
+    goals = view.get("goal_budget", {}) if isinstance(view, dict) else {}
+    st.markdown("### Metas y presupuesto")
+    if not goals.get("available"):
+        st.info("No hay metas o presupuestos suficientes para mostrar esta sección.")
+        return
+    _render_responsive_card_grid(
+        st,
+        [
+            {
+                "title": "Cumplimiento general",
+                "body": goals.get("overall_score", "No disponible"),
+                "variant": "positive" if (goals.get("overall_score_value") or 0) >= 90 else "warning",
+                "badge": "Verificado",
+            },
+            {
+                "title": "Metas cumplidas",
+                "body": f"{goals.get('met_goal_count', 0)} / {goals.get('valid_goal_count', 0)}",
+                "variant": "info",
+                "badge": "Determinístico",
+            },
+            {
+                "title": "Metas en riesgo o críticas",
+                "body": str(int(goals.get("risk_goal_count", 0)) + int(goals.get("critical_goal_count", 0))),
+                "variant": "warning" if int(goals.get("risk_goal_count", 0)) or int(goals.get("critical_goal_count", 0)) else "positive",
+                "badge": "Seguimiento",
+            },
+        ],
+        min_width_px=230,
+    )
+    _render_section_card(
+        st,
+        title="Conclusión ejecutiva",
+        body=str(goals.get("conclusion") or ""),
+        variant="info",
+        badge="Cifras verificadas",
+    )
+    rows = [
+        {
+            "Meta": item.get("label"),
+            "Real": item.get("actual"),
+            "Objetivo": item.get("target"),
+            "Brecha": item.get("gap"),
+            "Puntaje": item.get("score"),
+            "Estado": item.get("status"),
+            "Dirección histórica": item.get("historical_direction"),
+            "Fuente": item.get("source"),
+        }
+        for item in goals.get("items", [])
+        if isinstance(item, dict)
+    ]
+    if rows:
+        st.dataframe(rows, use_container_width=True, hide_index=True)
+    for group in goals.get("chart_groups", []):
+        chart_rows: list[dict[str, Any]] = []
+        for item in group.get("items", []):
+            chart_rows.append({"Meta": item.get("label"), "Tipo": "Real", "Valor": item.get("actual")})
+            chart_rows.append({"Meta": item.get("label"), "Tipo": "Objetivo", "Valor": item.get("target")})
+        if chart_rows and hasattr(st, "bar_chart"):
+            st.markdown(f"#### {group.get('title')}")
+            st.bar_chart(chart_rows, x="Meta", y="Valor", color="Tipo", use_container_width=True)
+    with st.expander("Detalles técnicos de cálculo y proveniencia", expanded=False):
+        st.write(goals.get("technical_details", {}))
+        st.dataframe(
+            [
+                {
+                    "Meta": item.get("label"),
+                    "Método": item.get("calculation_method"),
+                    "Fuente": item.get("source"),
+                    "Dirección": item.get("direction"),
+                }
+                for item in goals.get("items", [])
+                if isinstance(item, dict)
+            ],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+
 def _render_anomaly_tab(st: Any, report_model: dict[str, Any]) -> None:
     """Render current-period anomalies from the canonical report model.
 
@@ -3142,13 +3230,15 @@ def _render_results(st: Any, result: PipelineRunResult) -> None:
     _render_results_header(st, report_model=report_model, result=result, artifacts=artifacts)
     if refresh_note:
         st.info(refresh_note)
-    overview, kpis, anomalies, analysis, recommendations, downloads = st.tabs(
-        ["Resumen", "KPIs", "Anomalías", "Análisis", "Recomendaciones", "Descargas"]
+    overview, kpis, goals, anomalies, analysis, recommendations, downloads = st.tabs(
+        ["Resumen", "KPIs", "Metas y presupuesto", "Anomalías", "Análisis", "Recomendaciones", "Descargas"]
     )
     with overview:
         _render_tab_safely(st, "Resumen", lambda: _render_overview_tab(st, report_model, result))
     with kpis:
         _render_tab_safely(st, "KPIs", lambda: _render_kpi_tab(st, report_model))
+    with goals:
+        _render_tab_safely(st, "Metas y presupuesto", lambda: _render_goal_budget_tab(st, report_model))
     with anomalies:
         _render_tab_safely(st, "Anomalías", lambda: _render_anomaly_tab(st, report_model))
     with analysis:

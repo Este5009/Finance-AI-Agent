@@ -741,8 +741,11 @@ class MemoryRepository:
         )
         connection.executemany(
             """
-            INSERT INTO goals(run_id, goal_id, metric, target, actual, unit, progress_status)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO goals(
+                run_id, goal_id, metric, target, actual, unit, progress_status,
+                gap, score, direction, source_provenance_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
                 (
@@ -753,6 +756,10 @@ class MemoryRepository:
                     item.actual,
                     item.unit,
                     item.progress_status,
+                    item.gap,
+                    item.score,
+                    item.direction,
+                    item.source_provenance_json,
                 )
                 for item in payload.goals
             ],

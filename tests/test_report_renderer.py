@@ -114,6 +114,82 @@ def _sample_report_model() -> dict[str, object]:
             "warnings": [],
         },
         {
+            "section_id": "goal_budget_performance",
+            "title": "Goal and budget performance",
+            "content": {
+                "overall_score": 84.2,
+                "valid_goal_count": 3,
+                "met_goal_count": 1,
+                "risk_goal_count": 1,
+                "critical_goal_count": 1,
+                "weighting_method": "Equal weighting across comparable deterministic goals.",
+                "deterministic_conclusion": (
+                    "1 de 3 metas determinísticas se cumplieron; 2 requieren seguimiento ejecutivo."
+                ),
+                "status_distribution": {
+                    "Cumplida": 1,
+                    "Cerca de cumplir": 0,
+                    "En riesgo": 1,
+                    "Crítica": 1,
+                    "Sin datos": 0,
+                },
+                "items": [
+                    {
+                        "goal_id": "GOAL-001",
+                        "metric_id": "total_revenue",
+                        "display_label": "Ingresos totales",
+                        "actual_value": 1000,
+                        "target_value": 1100,
+                        "absolute_gap": -100,
+                        "relative_gap": -0.0909090909,
+                        "percentage_point_gap": None,
+                        "unit": "USD",
+                        "achievement_score": 90.9,
+                        "status": "Cerca de cumplir",
+                        "direction": "higher_is_better",
+                        "budget_classification": "Desfavorable",
+                        "source_provenance_actual": {
+                            "artifact": "outputs/calculations/finance_summary_june_2026.json",
+                            "path": "total_revenue",
+                            "source_metric_id": "total_revenue",
+                        },
+                        "source_provenance_target": {
+                            "artifact": "outputs/calculations/finance_summary_june_2026.json",
+                            "path": "budget_vs_actual.revenue_budget",
+                            "source_metric_id": "total_revenue",
+                        },
+                    },
+                    {
+                        "goal_id": "GOAL-002",
+                        "metric_id": "payroll_percentage_of_revenue",
+                        "display_label": "Nómina / ingresos",
+                        "actual_value": 0.46,
+                        "target_value": 0.42,
+                        "absolute_gap": 0.04,
+                        "relative_gap": 0.095238095,
+                        "percentage_point_gap": 0.04,
+                        "unit": "ratio",
+                        "achievement_score": 91.3,
+                        "status": "Cerca de cumplir",
+                        "direction": "lower_is_better",
+                        "budget_classification": "Desfavorable",
+                        "source_provenance_actual": {
+                            "artifact": "outputs/calculations/finance_summary_june_2026.json",
+                            "path": "payroll_percentage_of_revenue",
+                            "source_metric_id": "payroll_percentage_of_revenue",
+                        },
+                        "source_provenance_target": {
+                            "artifact": "policy_threshold",
+                            "path": "goal_thresholds.payroll_percentage_of_revenue",
+                            "source_metric_id": "payroll_percentage_of_revenue",
+                        },
+                    },
+                ],
+            },
+            "source_references": ["outputs/calculations/finance_summary_june_2026.json"],
+            "warnings": [],
+        },
+        {
             "section_id": "revenue_analysis",
             "title": "Revenue",
             "content": {"total_revenue": 1000, "revenue_budget": 1100, "revenue_variance": -100},
@@ -257,6 +333,7 @@ def test_section_templates_define_evidence_contracts() -> None:
         "executive_summary",
         "financial_health_overview",
         "kpi_overview",
+        "goal_budget_performance",
         "historical_summary",
         "historical_trends",
         "revenue_expense_analysis",
@@ -273,7 +350,7 @@ def test_section_templates_define_evidence_contracts() -> None:
     for template in REPORT_SECTION_TEMPLATES.values():
         assert template.objective
         assert template.visibility_rule
-        assert template.narrative_fields or template.section_id == "appendix"
+        assert template.narrative_fields or template.section_id in {"appendix", "goal_budget_performance"}
 
 
 def test_presentation_layer_has_no_analytical_sentence_generator() -> None:
