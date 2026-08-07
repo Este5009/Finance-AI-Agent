@@ -1536,6 +1536,11 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
             "metric": item.get("metric"),
             "department": item.get("department") or item.get("entity"),
             "period": item.get("period"),
+            "finding_type": item.get("finding_type"),
+            "reference_origin": item.get("reference_origin"),
+            "reference_source": item.get("reference_source"),
+            "is_institutional_reference": item.get("is_institutional_reference"),
+            "reason_for_flagging": item.get("reason_for_flagging"),
             "evidence": item.get("evidence") or item.get("description"),
             "source": item.get("source_file"),
         }

@@ -125,6 +125,24 @@ def test_payroll_threshold_detection() -> None:
     assert "PAYROLL_RATIO_MAX" in _rule_ids(bundle)
 
 
+def test_system_threshold_provenance_is_not_institutional_policy() -> None:
+    """Verify default detector thresholds are labeled as system references."""
+
+    anomalies = detect_rule_based_anomalies(
+        _bundle(finance_overrides={"payroll_percentage_of_revenue": 0.50}),
+        AnomalyThresholds(),
+        AnomalyIdGenerator("TEST"),
+    )
+    anomaly = next(item for item in anomalies if item.rule_id == "PAYROLL_RATIO_MAX")
+    payload = anomaly.to_dict()
+
+    assert payload["finding_type"] == "system_review_rule"
+    assert payload["reference_origin"] == "system-derived/default"
+    assert payload["is_institutional_reference"] is False
+    assert "No corresponde a una meta, límite o política institucional" in payload["reference_notice_es"]
+    assert "system analytical reference" in payload["description"]
+
+
 def test_collection_rate_detection() -> None:
     """Verify student collection below 94% is flagged."""
 
@@ -224,6 +242,77 @@ def test_z_score_anomaly_detection() -> None:
 
     assert len(anomalies) == 1
     assert anomalies[0].period == "2026-05"
+    payload = anomalies[0].to_dict()
+    assert payload["finding_type"] == "statistical_anomaly"
+    assert payload["reference_origin"] == "historical/statistical"
+    assert payload["is_institutional_reference"] is False
+    assert "Referencia histórica/estadística" in payload["reference_notice_es"]
+
+
+def test_potential_duplicate_uses_transaction_evidence_not_threshold() -> None:
+    """Verify duplicate findings rely on transaction matches, not value thresholds."""
+
+    vendor = {
+        "maximum_payment_amount": 1000.0,
+        "duplicate_candidates": [
+            {
+                "vendor": "MedSupply",
+                "invoice": "INV-101",
+                "amount": 1000.0,
+                "date": "2026-07-15",
+            }
+        ],
+    }
+    anomalies = detect_rule_based_anomalies(
+        _bundle(finance_overrides={"vendor_payments": vendor}),
+        AnomalyThresholds(vendor_payment_review_threshold=50_000.0),
+        AnomalyIdGenerator("TEST"),
+    )
+    duplicate = next(item for item in anomalies if item.rule_id == "VENDOR_POTENTIAL_DUPLICATE")
+    payload = duplicate.to_dict()
+
+    assert payload["finding_type"] == "potential_duplicate"
+    assert payload["threshold_value"] is None
+    assert payload["reference_type"] == "transaction_match"
+    assert payload["reference_origin"] == "none"
+    assert "MedSupply" in payload["supporting_evidence"]
+    assert "fraud" not in payload["description"].lower()
+
+
+def test_large_vendor_payment_is_review_rule_not_duplicate() -> None:
+    """Verify high-value vendor review threshold is not labeled duplicate evidence."""
+
+    anomalies = detect_rule_based_anomalies(
+        _bundle(finance_overrides={"vendor_payments": {"maximum_payment_amount": 75_000.0}}),
+        AnomalyThresholds(vendor_payment_review_threshold=50_000.0),
+        AnomalyIdGenerator("TEST"),
+    )
+    vendor = next(item for item in anomalies if item.rule_id == "VENDOR_PAYMENT_REVIEW")
+    payload = vendor.to_dict()
+
+    assert payload["finding_type"] == "system_review_rule"
+    assert payload["reference_origin"] == "system-derived/default"
+    assert payload["threshold_value"] == 50_000.0
+    assert payload["rule_id"] != "VENDOR_POTENTIAL_DUPLICATE"
+
+
+def test_data_quality_finding_has_no_system_threshold_notice() -> None:
+    """Verify unavailable KPIs are data-quality findings without threshold language."""
+
+    bundle = _bundle()
+    bundle = CalculationOutputBundle(
+        **{
+            **bundle.__dict__,
+            "kpi_summary": pd.DataFrame({"metric": ["collection_rate"], "availability": ["unavailable"]}),
+        }
+    )
+    anomalies = detect_rule_based_anomalies(bundle, AnomalyThresholds(), AnomalyIdGenerator("TEST"))
+    finding = next(item for item in anomalies if item.rule_id == "METRIC_UNAVAILABLE")
+    payload = finding.to_dict()
+
+    assert payload["finding_type"] == "data_quality_finding"
+    assert payload["reference_origin"] == "none"
+    assert payload["reference_notice_es"] == ""
 
 
 def test_zero_standard_deviation_handling() -> None:

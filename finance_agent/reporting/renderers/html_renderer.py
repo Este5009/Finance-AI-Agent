@@ -712,11 +712,13 @@ def _render_anomalies(view: dict[str, Any]) -> str:
     top_rows = [
         [
             row["title"],
+            row.get("classification"),
             row["severity"],
             row.get("metric"),
             row.get("observed_value"),
             row.get("reference_value"),
-            row["evidence"],
+            row.get("reference_origin"),
+            row.get("reason_for_flagging") or row["evidence"],
         ]
         for row in anomalies["top_rows"]
     ]
@@ -732,17 +734,26 @@ def _render_anomalies(view: dict[str, Any]) -> str:
                 ("Entidad/departamento", row.get("entity")),
                 ("Valor observado", row.get("observed_value")),
                 ("Referencia", row.get("reference_value")),
+                ("Origen de referencia", row.get("reference_origin")),
+                ("Motivo", row.get("reason_for_flagging")),
                 ("Periodo", row.get("period")),
                 ("Próxima verificación", row.get("recommended_next_check")),
             )
             if value
         )
+        notice = (
+            f"<p class='small muted'>{_escape(row.get('reference_notice'))}</p>"
+            if row.get("reference_notice")
+            else ""
+        )
         risk_card_items.append(
             "<article class='risk-card'>"
             f"<div><em class='badge {klass}'>{_escape(row['severity'])}</em> "
+            f"<em class='badge neutral'>{_escape(row.get('classification'))}</em> "
             f"<em class='badge neutral'>{_escape(row.get('recurrence'))}</em></div>"
             f"<h3>{_escape(row['title'])}</h3>"
-            f"<p>{_escape(row['evidence'])}</p>"
+            f"<p>{_escape(row.get('supporting_evidence') or row['evidence'])}</p>"
+            f"{notice}"
             f"{meta}"
             f"<div class='chips'>{chips}</div>"
             "</article>"
@@ -765,7 +776,16 @@ def _render_anomalies(view: dict[str, Any]) -> str:
     detail_markup = ""
     if len(top_rows) > 3:
         detail_markup = _table(
-            ["Anomalía", "Severidad", "Indicador", "Valor observado", "Referencia", "Evidencia"],
+            [
+                "Hallazgo",
+                "Clasificación",
+                "Severidad",
+                "Indicador",
+                "Valor observado",
+                "Referencia",
+                "Origen",
+                "Motivo",
+            ],
             top_rows,
             force=True,
         )
@@ -773,7 +793,7 @@ def _render_anomalies(view: dict[str, Any]) -> str:
         "<section id='anomaly_summary'>"
         f"<h2>{SECTION_LABELS_ES['anomaly_summary']}</h2>"
         + _narrative(view, "anomaly_summary")
-        + _bar_chart(severity_chart, title="Anomalías por severidad")
+        + _bar_chart(severity_chart, title="Hallazgos por severidad")
         + _insight_box(anomalies.get("chart_insight"))
         + f"<div class='recommendation-grid'>{risk_cards}</div>"
         + (_table(["Severidad", "Cantidad"], severity_rows, force=True) if len(severity_rows) > 4 else "")

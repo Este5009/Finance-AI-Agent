@@ -88,6 +88,50 @@ def _baseline_plan() -> InvestigationPlan:
     )
 
 
+def test_planner_prompt_serializes_finding_provenance() -> None:
+    """Verify Ollama planner receives finding type and reference origin."""
+
+    anomaly_report = {
+        "report_period": "Sep 2026",
+        "total_anomalies": 1,
+        "anomalies_by_severity": {"high": 1},
+        "anomalies": [
+            {
+                "anomaly_id": "ANOM-001",
+                "title": "Payroll threshold review",
+                "metric": "payroll_percentage_of_revenue",
+                "observed_value": 46.0,
+                "threshold_value": 42.0,
+                "severity": "high",
+                "period": "2026_09",
+                "evidence": "Payroll/revenue exceeded the system reference.",
+                "rule_id": "PAYROLL_RATIO_MAX",
+                "finding_type": "system_review_rule",
+                "reference_origin": "system-derived/default",
+                "reference_source": "AnomalyThresholds configuration",
+                "is_institutional_reference": False,
+                "reference_notice_es": (
+                    "Referencia analítica del sistema. No corresponde a una meta, límite o política institucional."
+                ),
+            }
+        ],
+    }
+
+    prompt = build_ollama_planner_prompt(
+        finance_document={"finance_summary": {"total_revenue": 1}},
+        anomaly_report=anomaly_report,
+        risk_summary={},
+        enriched_model={},
+        baseline_plan=_baseline_plan(),
+        period_slug="2026_09",
+    )
+
+    assert '"finding_type":"system_review_rule"' in prompt
+    assert '"reference_origin":"system-derived/default"' in prompt
+    assert "do not describe system_review_rule or statistical_anomaly references as" in prompt
+    assert "No corresponde a una meta, límite o política institucional" in prompt
+
+
 def _valid_response() -> str:
     """Return one strict, valid mocked Ollama plan.
 

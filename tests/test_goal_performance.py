@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 
 from finance_agent.reporting.goal_performance import build_goal_performance
+from finance_agent.anomalies.anomaly_config import AnomalyThresholds
 
 
 def _finance_summary() -> dict[str, object]:
@@ -162,3 +163,25 @@ def test_source_provenance_is_retained_for_audit() -> None:
         assert actual["artifact"] == "outputs/calculations/finance_summary_2026_09.json"
         assert actual["path"]
         assert target["artifact"]
+
+
+def test_anomaly_thresholds_do_not_change_goal_scores() -> None:
+    """Verify system anomaly references do not affect institutional goal scoring."""
+
+    finance = _finance_summary()
+    baseline = build_goal_performance(
+        finance,
+        period="2026_09",
+        current_source="outputs/calculations/finance_summary_2026_09.json",
+    )
+    _ = AnomalyThresholds(payroll_percent_max=99.0, tuition_collection_min_percent=1.0)
+    repeated = build_goal_performance(
+        finance,
+        period="2026_09",
+        current_source="outputs/calculations/finance_summary_2026_09.json",
+    )
+
+    assert repeated["overall_score"] == baseline["overall_score"]
+    assert _items_by_metric(repeated)["payroll_percentage_of_revenue"]["achievement_score"] == (
+        _items_by_metric(baseline)["payroll_percentage_of_revenue"]["achievement_score"]
+    )

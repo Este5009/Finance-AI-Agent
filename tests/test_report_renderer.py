@@ -230,6 +230,17 @@ def _sample_report_model() -> dict[str, object]:
                         "anomaly_id": "ANOM-1",
                         "title": "Gasto elevado",
                         "severity": "critical",
+                        "finding_type": "system_review_rule",
+                        "reference_origin": "system-derived/default",
+                        "reference_type": "system_threshold",
+                        "reference_source": "AnomalyThresholds configuration",
+                        "is_institutional_reference": False,
+                        "reason_for_flagging": "El valor observado supera la referencia analítica configurada por el sistema.",
+                        "reference_notice_es": (
+                            "Referencia analítica del sistema. No corresponde a una meta, límite o política institucional."
+                        ),
+                        "observed_value": 1_200,
+                        "threshold_value": 1_000,
                         "evidence": "Variance above threshold.",
                     }
                 ],
@@ -311,6 +322,17 @@ def test_html_generation_contains_required_sections_and_spanish_labels() -> None
     assert "Análisis por departamento" in html
     assert "Recomendaciones estratégicas" in html
     assert "Fuentes:" in html
+
+
+def test_html_anomaly_section_shows_finding_provenance() -> None:
+    """Verify executive anomaly cards distinguish finding and reference origin."""
+
+    html = render_report_html(_sample_report_model())
+
+    assert "Hallazgos y anomalías" in html
+    assert "Revisión sugerida por el sistema" in html
+    assert "Referencia analítica del sistema" in html
+    assert "No corresponde a una meta, límite o política institucional" in html
 
 
 def test_html_generation_renders_strategic_analysis_fields() -> None:
@@ -511,7 +533,7 @@ def test_current_anomalies_are_separate_from_historical_risks() -> None:
 
     html = render_report_html(model)
 
-    assert "Anomalías del período" in html
+    assert "Hallazgos y anomalías" in html
     assert "No se detectaron desviaciones que superaran los umbrales configurados en Dic 2026." in html
     assert "Riesgos históricos recurrentes" in html
     assert "Seguimiento de recomendaciones emitidas anteriormente" in html

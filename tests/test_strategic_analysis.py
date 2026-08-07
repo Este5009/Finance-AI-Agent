@@ -136,6 +136,44 @@ def _valid_analysis() -> dict[str, object]:
     }
 
 
+def test_strategic_prompt_serializes_anomaly_reference_provenance() -> None:
+    """Verify strategic prompt keeps system references distinct from policy."""
+
+    prompt = build_strategic_analysis_prompt(
+        evidence_package={"evidence_packages": []},
+        finance_summary={"finance_summary": {"total_revenue": 1000}},
+        anomaly_report={
+            "report_period": "Sep 2026",
+            "total_anomalies": 1,
+            "anomalies_by_severity": {"high": 1},
+            "anomalies": [
+                {
+                    "anomaly_id": "ANOM-001",
+                    "title": "Payroll threshold review",
+                    "metric": "payroll_percentage_of_revenue",
+                    "observed_value": 46.0,
+                    "threshold_value": 42.0,
+                    "severity": "high",
+                    "period": "2026_09",
+                    "evidence": "Payroll/revenue exceeded the system reference.",
+                    "finding_type": "system_review_rule",
+                    "reference_origin": "system-derived/default",
+                    "reference_source": "AnomalyThresholds configuration",
+                    "is_institutional_reference": False,
+                    "reason_for_flagging": "Exceeded system analytical reference.",
+                }
+            ],
+        },
+        risk_summary={},
+        period_slug="2026_09",
+    )
+
+    assert "tipo=system_review_rule" in prompt
+    assert "origen_referencia=system-derived/default" in prompt
+    assert "system_review_rule and statistical_anomaly references are analytical" in prompt
+    assert "not institutional goals, rules, policies, limits, or violations" in prompt
+
+
 def _evidence_package() -> dict[str, object]:
     """Build a compact Step 8-like evidence fixture.
 

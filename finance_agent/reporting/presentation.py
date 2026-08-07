@@ -110,7 +110,7 @@ SECTION_LABELS_ES: dict[str, str] = {
     "historical_trends": "Tendencias históricas",
     "revenue_expense_analysis": "Análisis de ingresos y gastos",
     "department_analysis": "Análisis por departamento",
-    "anomaly_summary": "Anomalías del período",
+    "anomaly_summary": "Hallazgos y anomalías",
     "investigation_evidence": "Evidencia de investigación",
     "recommendation_follow_up": "Seguimiento de recomendaciones emitidas anteriormente",
     "longitudinal_risk_assessment": "Riesgos históricos recurrentes",
@@ -134,7 +134,7 @@ RISK_TYPE_LABELS_ES: dict[str, str] = {
     "recurring_vendor_duplicate": "Riesgo recurrente en pagos a proveedores",
     "negative_cash_flow": "Flujo de caja negativo recurrente",
     "TUITION_COLLECTION_MIN": "Riesgo recurrente de cobranza estudiantil",
-    "PAYROLL_RATIO_MAX": "Nómina sobre ingresos por encima de meta",
+    "PAYROLL_RATIO_MAX": "Nómina sobre ingresos requiere revisión",
     "NET_CASH_FLOW_MIN": "Flujo neto de caja bajo o negativo",
     "OPERATING_RESULT_MIN": "Resultado operativo bajo o negativo",
     "OVERDUE_PAYMENT_MAX": "Pagos estudiantiles vencidos recurrentes",
@@ -143,13 +143,32 @@ RISK_TYPE_LABELS_ES: dict[str, str] = {
     "CATEGORY_OVERSPEND_FLAG": "Sobregasto recurrente por categoría",
 }
 
+FINDING_TYPE_LABELS_ES: dict[str, str] = {
+    "institutional_violation": "Incumplimiento institucional",
+    "statistical_anomaly": "Anomalía estadística",
+    "system_review_rule": "Revisión sugerida por el sistema",
+    "potential_duplicate": "Posible duplicidad por verificar",
+    "data_quality_finding": "Hallazgo de calidad de datos",
+    "informational_observation": "Observación informativa",
+}
+
+REFERENCE_ORIGIN_LABELS_ES: dict[str, str] = {
+    "institutional/workbook": "Meta, límite o política institucional documentada",
+    "approved_budget": "Presupuesto aprobado",
+    "historical/statistical": "Referencia histórica/estadística",
+    "system-derived/default": "Referencia analítica del sistema",
+    "synthetic/test": "Referencia sintética/de prueba",
+    "none": "Sin referencia externa",
+}
+
 ANOMALY_TITLE_LABELS_ES: dict[str, str] = {
     "Negative or low cash flow": "Flujo de caja bajo o negativo",
-    "Overdue student payments above limit": "Pagos estudiantiles vencidos por encima del límite",
+    "Overdue student payments above limit": "Pagos estudiantiles vencidos requieren revisión",
     "Negative or zero operating result": "Resultado operativo negativo o nulo",
-    "Vendor payment exceeds review threshold": "Pago a proveedor supera el umbral de revisión",
-    "Tuition collection below target": "Cobranza de matrícula por debajo de la meta",
-    "Payroll exceeds revenue threshold": "Nómina sobre ingresos por encima del umbral",
+    "Vendor payment exceeds review threshold": "Pago a proveedor requiere revisión analítica",
+    "Potential duplicate vendor payment": "Posible pago duplicado a proveedor",
+    "Tuition collection below target": "Cobranza de matrícula requiere revisión",
+    "Payroll exceeds revenue threshold": "Nómina sobre ingresos requiere revisión",
     "Supplies category overspending": "Sobregasto en suministros",
     "Facilities category overspending": "Sobregasto en instalaciones",
     "Services category overspending": "Sobregasto en servicios",
@@ -163,6 +182,8 @@ ANOMALY_TEXT_PHRASES_ES: tuple[tuple[str, str], ...] = (
     ("At least one vendor payment exceeds the configured review value.", "Al menos un pago a proveedor supera el valor configurado para revisión."),
     ("Student payment collections are below the configured minimum.", "La cobranza estudiantil está por debajo del mínimo configurado."),
     ("Payroll cost is above the configured maximum share of revenue.", "El costo de nómina supera la participación máxima configurada sobre ingresos."),
+    ("Reference analytical del sistema", "Referencia analítica del sistema"),
+    ("No corresponde a una meta, límite o política institucional.", "No corresponde a una meta, límite o política institucional."),
     ("Expense category actual value exceeds its budget range.", "El valor real de la categoría de gasto supera su rango presupuestario."),
     ("Department expense variance is outside the configured +/- range.", "La variación de gastos del departamento está fuera del rango configurado."),
     ("Review operating, scholarship, and capital cash outflows.", "Revisar salidas operativas, becas y desembolsos de capital."),
@@ -1318,9 +1339,14 @@ def build_anomaly_summary(report_model: dict[str, Any]) -> dict[str, Any]:
             reference = _format_anomaly_value(item.get("metric"), item.get("threshold_value"))
             observed = "" if observed in EMPTY_DISPLAY_VALUES else observed
             reference = "" if reference in EMPTY_DISPLAY_VALUES else reference
+            finding_type = str(item.get("finding_type") or "system_review_rule")
+            reference_origin = str(item.get("reference_origin") or "system-derived/default")
+            reference_notice = sanitize_text(item.get("reference_notice_es") or "")
             top_rows.append(
                 {
                     "title": display_anomaly_title(item.get("title") or item.get("description") or "Anomalía detectada"),
+                    "classification": FINDING_TYPE_LABELS_ES.get(finding_type, sanitize_text(finding_type)),
+                    "finding_type": finding_type,
                     "severity": SEVERITY_LABELS_ES.get(str(item.get("severity", "")).lower(), str(item.get("severity", ""))),
                     "severity_class": str(item.get("severity", "")).lower() or "info",
                     "recurrence": "Recurrente" if item.get("recurrence_count") or item.get("periods") else "Periodo actual",
@@ -1330,9 +1356,15 @@ def build_anomaly_summary(report_model: dict[str, Any]) -> dict[str, Any]:
                     "entity": display_entity_name(item.get("department") or item.get("entity") or item.get("vendor") or ""),
                     "observed_value": observed,
                     "reference_value": reference,
+                    "reference_type": sanitize_text(item.get("reference_type") or ""),
+                    "reference_origin": REFERENCE_ORIGIN_LABELS_ES.get(reference_origin, sanitize_text(reference_origin)),
+                    "is_institutional_reference": bool(item.get("is_institutional_reference")),
+                    "reference_notice": reference_notice,
+                    "reason_for_flagging": display_anomaly_text(item.get("reason_for_flagging") or ""),
                     "evidence": display_anomaly_text(item.get("evidence") or item.get("description") or ""),
+                    "supporting_evidence": display_anomaly_text(item.get("supporting_evidence") or item.get("evidence") or ""),
                     "description": display_anomaly_text(item.get("description") or ""),
-                    "recommended_next_check": display_anomaly_text(item.get("recommended_next_check") or ""),
+                    "recommended_next_check": display_anomaly_text(item.get("recommended_action") or item.get("recommended_next_check") or ""),
                     "source": compact_source_label(item.get("source_file") or ""),
                 }
             )
@@ -1357,7 +1389,7 @@ def build_anomaly_summary(report_model: dict[str, Any]) -> dict[str, Any]:
         "severity_chart": severity_chart,
         "chart_insight": deterministic_chart_insight(
             severity_chart,
-            title="anomalías por severidad",
+            title="hallazgos por severidad",
             chart_kind="ranking",
             unit="count",
         ),

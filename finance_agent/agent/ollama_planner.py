@@ -178,6 +178,13 @@ def _compact_anomaly_report(
                 "metric": anomaly.get("metric"),
                 "observed_value": anomaly.get("observed_value"),
                 "threshold_value": anomaly.get("threshold_value"),
+                "finding_type": anomaly.get("finding_type"),
+                "reference_type": anomaly.get("reference_type"),
+                "reference_origin": anomaly.get("reference_origin"),
+                "reference_source": anomaly.get("reference_source"),
+                "is_institutional_reference": anomaly.get("is_institutional_reference"),
+                "reason_for_flagging": anomaly.get("reason_for_flagging"),
+                "reference_notice_es": anomaly.get("reference_notice_es"),
                 "severity": anomaly.get("severity"),
                 "period": anomaly.get("period"),
                 "evidence": str(anomaly.get("evidence", ""))[:160],
@@ -358,7 +365,12 @@ def build_ollama_planner_prompt(
         "financial values, provide strategy, execute tools, or invent tool "
         "interfaces. Use only the supplied processed summaries. Prioritize severe, "
         "high-impact, repeated, goal-breaching, operational, and data-quality "
-        "risks. For anomaly_id, copy a supplied identifier character-for-character "
+        "risks. Respect anomaly_summary.anomalies[].finding_type and reference_origin: "
+        "do not describe system_review_rule or statistical_anomaly references as "
+        "institutional rules, goals, policies, limits, or violations unless "
+        "is_institutional_reference is true. Potential duplicates require later "
+        "verification and must not imply fraud or confirmed wrongdoing. For "
+        "anomaly_id, copy a supplied identifier character-for-character "
         "from anomaly_summary.anomalies[].anomaly_id, use DATA-TABLE- followed by "
         "an exact supplied unresolved table_id, or use null for a synthesized "
         "cross-cutting step. Never shorten, rename, or invent an identifier. "

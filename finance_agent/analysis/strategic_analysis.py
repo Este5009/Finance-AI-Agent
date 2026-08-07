@@ -460,18 +460,25 @@ def build_evidence_ledger(
         if not isinstance(anomaly, dict):
             continue
         anomaly_id = str(anomaly.get("anomaly_id") or _slug(anomaly.get("title")))
+        provenance_text = (
+            f"tipo={anomaly.get('finding_type') or 'system_review_rule'}; "
+            f"origen_referencia={anomaly.get('reference_origin') or 'system-derived/default'}; "
+            f"institucional={bool(anomaly.get('is_institutional_reference'))}; "
+            f"motivo={anomaly.get('reason_for_flagging') or anomaly.get('description') or ''}; "
+            f"evidencia={anomaly.get('supporting_evidence') or anomaly.get('evidence') or anomaly.get('title') or anomaly_id}"
+        )
         add_fact(
             evidence_id=f"anomaly.{_slug(anomaly_id)}",
             category="current_finding",
             field=str(anomaly.get("metric") or "anomaly"),
             metric=str(anomaly.get("metric") or "anomaly"),
             value=anomaly.get("observed_value"),
-            display_value=str(anomaly.get("evidence") or anomaly.get("title") or anomaly_id)[:220],
+            display_value=provenance_text[:360],
             period=anomaly.get("period") or period_slug,
             entity=anomaly.get("department") or "",
             source_reference=anomaly_source,
             supports=(*GENERAL_FACT_SUPPORTS, "anomaly_analysis"),
-            claim=str(anomaly.get("title") or anomaly.get("evidence") or ""),
+            claim=str(anomaly.get("title") or anomaly.get("reason_for_flagging") or anomaly.get("evidence") or ""),
         )
 
     evidence_source = f"outputs/evidence/evidence_package_{period_slug}.json"
@@ -1523,6 +1530,13 @@ def _compact_anomalies(
                 "period": item.get("period"),
                 "observed_value": item.get("observed_value"),
                 "threshold_value": item.get("threshold_value"),
+                "finding_type": item.get("finding_type"),
+                "reference_type": item.get("reference_type"),
+                "reference_origin": item.get("reference_origin"),
+                "reference_source": item.get("reference_source"),
+                "is_institutional_reference": item.get("is_institutional_reference"),
+                "reason_for_flagging": item.get("reason_for_flagging"),
+                "reference_notice_es": item.get("reference_notice_es"),
                 "evidence": str(item.get("evidence", ""))[:220],
             }
             for item in ranked
@@ -1857,7 +1871,12 @@ def build_strategic_analysis_prompt(
         "interpolate, or calculate. Do not include numbers, periods, departments, vendors "
         "or claims unless they appear in evidence_ledger.approved_numbers, "
         "evidence_ledger.approved_periods, evidence_ledger.approved_entities, or "
-        "evidence_ledger.facts. Omit or keep concise any section whose evidence is "
+        "evidence_ledger.facts. Respect anomaly finding_type/reference_origin facts: "
+        "system_review_rule and statistical_anomaly references are analytical "
+        "references, not institutional goals, rules, policies, limits, or "
+        "violations unless is_institutional_reference is explicitly true. "
+        "Potential duplicates require verification and must never be described "
+        "as fraud, confirmed duplicate payment, or wrongdoing. Omit or keep concise any section whose evidence is "
         "absent rather than inventing content. Avoid generic filler such as "
         "'se requiere más información' unless it names the specific missing "
         "evidence. Return STRICT JSON only, with exactly the fields listed in "

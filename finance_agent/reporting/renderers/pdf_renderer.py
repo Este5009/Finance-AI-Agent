@@ -826,27 +826,28 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
             story.append(_para(anomalies.get("distinction_note"), styles["body"]))
     else:
         _append_narrative(story, view, "anomaly_summary", styles)
-        story.append(HorizontalBarChart(anomalies.get("severity_chart", []), "Anomalías por severidad"))
+        story.append(HorizontalBarChart(anomalies.get("severity_chart", []), "Hallazgos por severidad"))
         story.append(_insight_para(anomalies.get("chart_insight", ""), styles["insight"]))
         if len(anomalies["severity_rows"]) > 4:
             story.append(_table(["Severidad", "Cantidad"], [[row["severity"], row["count"]] for row in anomalies["severity_rows"]], styles, force=True))
         if len(anomalies["top_rows"]) > 3:
             story.append(
                 _table(
-                    ["Anomalía", "Severidad", "Indicador", "Valor", "Referencia", "Evidencia"],
+                    ["Hallazgo", "Clasificación", "Sev.", "Valor", "Referencia", "Origen", "Motivo"],
                     [
                         [
                             row["title"],
+                            row.get("classification"),
                             row["severity"],
-                            row.get("metric"),
                             row.get("observed_value"),
                             row.get("reference_value"),
-                            row["evidence"],
+                            row.get("reference_origin"),
+                            row.get("reason_for_flagging") or row["evidence"],
                         ]
                         for row in anomalies["top_rows"]
                     ],
                     styles,
-                    widths=[1.35 * inch, 0.7 * inch, 0.95 * inch, 0.75 * inch, 0.75 * inch, 2.0 * inch],
+                    widths=[1.2 * inch, 1.05 * inch, 0.45 * inch, 0.75 * inch, 0.75 * inch, 1.05 * inch, 1.7 * inch],
                     force=True,
                 )
             )

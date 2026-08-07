@@ -178,6 +178,11 @@ def build_risk_summary(report: AnomalyReport) -> dict[str, Any]:
                 "severity": anomaly.severity,
                 "period": anomaly.period,
                 "metric": anomaly.metric,
+                "finding_type": anomaly.finding_type,
+                "reference_origin": anomaly.reference_origin,
+                "reference_source": anomaly.reference_source,
+                "is_institutional_reference": anomaly.is_institutional_reference,
+                "reason_for_flagging": anomaly.reason_for_flagging,
                 "recommended_next_check": anomaly.recommended_next_check,
             }
             for anomaly in anomalies[:10]

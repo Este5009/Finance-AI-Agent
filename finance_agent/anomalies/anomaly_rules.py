@@ -48,6 +48,14 @@ def _make_anomaly(
     evidence: str,
     recommended_next_check: str,
     rule_id: str,
+    finding_type: str = "system_review_rule",
+    reference_type: str = "threshold",
+    reference_origin: str = "system-derived/default",
+    reference_source: str = "AnomalyThresholds configuration",
+    is_institutional_reference: bool = False,
+    reason_for_flagging: str | None = None,
+    supporting_evidence: str | None = None,
+    recommended_action: str | None = None,
 ) -> Anomaly:
     """Build one rule-based anomaly with a generated identifier.
 
@@ -70,6 +78,29 @@ def _make_anomaly(
         recommended_next_check=recommended_next_check,
         detection_method="rule_based",
         rule_id=rule_id,
+        finding_type=finding_type,
+        reference_type=reference_type,
+        reference_origin=reference_origin,
+        reference_source=reference_source,
+        is_institutional_reference=is_institutional_reference,
+        reason_for_flagging=reason_for_flagging or description,
+        supporting_evidence=supporting_evidence or evidence,
+        recommended_action=recommended_action or recommended_next_check,
+    )
+
+
+def _system_reason(observed: object, reference: object, relation: str) -> str:
+    """Explain a system review rule without implying institutional policy.
+
+    Inputs: observed value, reference value, and comparison relation.
+    Outputs: concise reason for flagging.
+    Assumptions: configured anomaly thresholds are analytical references unless
+    an institutional source is explicitly recorded elsewhere.
+    """
+
+    return (
+        f"El valor observado ({observed}) {relation} la referencia analítica "
+        f"configurada por el sistema ({reference})."
     )
 
 
@@ -99,7 +130,7 @@ def _detect_summary_rules(
                     generator,
                     title="Payroll exceeds revenue threshold",
                     description=(
-                        "Payroll cost is above the configured maximum share of revenue."
+                        "Payroll cost is above the system analytical reference for revenue share."
                     ),
                     metric="payroll_percentage_of_revenue",
                     observed_value=observed,
@@ -112,12 +143,18 @@ def _detect_summary_rules(
                     source_file=source_file,
                     evidence=(
                         f"Calculated payroll/revenue is {observed:.2f}% "
-                        f"versus a {thresholds.payroll_percent_max:.2f}% maximum."
+                        f"versus the system analytical reference of "
+                        f"{thresholds.payroll_percent_max:.2f}%."
                     ),
                     recommended_next_check=(
                         "Review payroll by department, overtime, benefits, and headcount."
                     ),
                     rule_id="PAYROLL_RATIO_MAX",
+                    reason_for_flagging=_system_reason(
+                        f"{observed:.2f}%",
+                        f"{thresholds.payroll_percent_max:.2f}%",
+                        "supera",
+                    ),
                 )
             )
 
@@ -131,7 +168,7 @@ def _detect_summary_rules(
                     generator,
                     title="Tuition collection below target",
                     description=(
-                        "Student payment collections are below the configured minimum."
+                        "Student payment collections are below the system analytical reference."
                     ),
                     metric="student_payment_collection_rate",
                     observed_value=observed,
@@ -151,6 +188,11 @@ def _detect_summary_rules(
                         "Inspect overdue invoices, aging buckets, and payment plans."
                     ),
                     rule_id="TUITION_COLLECTION_MIN",
+                    reason_for_flagging=_system_reason(
+                        f"{observed:.2f}%",
+                        f"{thresholds.tuition_collection_min_percent:.2f}%",
+                        "está por debajo de",
+                    ),
                 )
             )
 
@@ -163,7 +205,7 @@ def _detect_summary_rules(
                     generator,
                     title="Overdue student payments above limit",
                     description=(
-                        "The share of overdue student invoices exceeds policy."
+                        "The share of overdue student invoices exceeds the system analytical reference."
                     ),
                     metric="overdue_payment_percentage",
                     observed_value=observed,
@@ -183,6 +225,11 @@ def _detect_summary_rules(
                         "Review student receivables by aging and department."
                     ),
                     rule_id="OVERDUE_PAYMENT_MAX",
+                    reason_for_flagging=_system_reason(
+                        f"{observed:.2f}%",
+                        f"{thresholds.overdue_payment_max_percent:.2f}%",
+                        "supera",
+                    ),
                 )
             )
 
@@ -211,6 +258,11 @@ def _detect_summary_rules(
                     "Review revenue shortfalls and expense drivers by department."
                 ),
                 rule_id="OPERATING_RESULT_MIN",
+                reason_for_flagging=_system_reason(
+                    f"${operating_result:,.0f}",
+                    "$0",
+                    "está en o por debajo de",
+                ),
             )
         )
 
@@ -225,7 +277,7 @@ def _detect_summary_rules(
             _make_anomaly(
                 generator,
                 title="Negative or low cash flow",
-                description="Net cash flow is at or below the configured minimum.",
+                description="Net cash flow is at or below the system analytical reference.",
                 metric="net_cash_flow",
                 observed_value=net_cash_flow,
                 threshold_value=thresholds.low_cash_flow_threshold,
@@ -243,6 +295,11 @@ def _detect_summary_rules(
                     "Review operating, scholarship, and capital cash outflows."
                 ),
                 rule_id="NET_CASH_FLOW_MIN",
+                reason_for_flagging=_system_reason(
+                    f"${net_cash_flow:,.0f}",
+                    f"${thresholds.low_cash_flow_threshold:,.0f}",
+                    "está en o por debajo de",
+                ),
             )
         )
 
@@ -257,7 +314,7 @@ def _detect_summary_rules(
                 generator,
                 title="Vendor payment exceeds review threshold",
                 description=(
-                    "At least one vendor payment exceeds the configured review value."
+                    "At least one vendor payment exceeds the system analytical review reference."
                 ),
                 metric="maximum_vendor_payment",
                 observed_value=maximum_payment,
@@ -270,14 +327,64 @@ def _detect_summary_rules(
                 source_file=source_file,
                 evidence=(
                     f"Maximum payment is ${maximum_payment:,.0f} versus a "
-                    f"${thresholds.vendor_payment_review_threshold:,.0f} threshold."
+                    f"${thresholds.vendor_payment_review_threshold:,.0f} system review reference."
                 ),
                 recommended_next_check=(
                     "Inspect the underlying vendor invoice, approval, and duplicate checks."
                 ),
                 rule_id="VENDOR_PAYMENT_REVIEW",
+                reason_for_flagging=_system_reason(
+                    f"${maximum_payment:,.0f}",
+                    f"${thresholds.vendor_payment_review_threshold:,.0f}",
+                    "supera",
+                ),
             )
         )
+
+    duplicate_candidates = vendor.get("duplicate_candidates")
+    if isinstance(duplicate_candidates, list):
+        for candidate in duplicate_candidates:
+            if not isinstance(candidate, dict):
+                continue
+            vendor_name = candidate.get("vendor") or candidate.get("vendor_name") or "unknown vendor"
+            invoice = candidate.get("invoice") or candidate.get("invoice_id") or candidate.get("invoice_number")
+            amount = _number(candidate.get("amount"))
+            payment_date = candidate.get("date") or candidate.get("payment_date")
+            evidence_parts = [
+                f"vendor={vendor_name}",
+                f"invoice={invoice}" if invoice else "",
+                f"amount=${amount:,.0f}" if amount is not None else "",
+                f"date={payment_date}" if payment_date else "",
+            ]
+            evidence = "; ".join(part for part in evidence_parts if part)
+            anomalies.append(
+                _make_anomaly(
+                    generator,
+                    title="Potential duplicate vendor payment",
+                    description=(
+                        "Transaction evidence contains matching vendor/invoice/payment attributes that require verification."
+                    ),
+                    metric="vendor_payment_duplicate_candidate",
+                    observed_value=amount,
+                    threshold_value=None,
+                    severity="high",
+                    period=period,
+                    source_file=source_file,
+                    evidence=evidence or "Duplicate candidate was present in processed vendor evidence.",
+                    recommended_next_check=(
+                        "Verify the vendor, invoice, amount, approval, and payment date before drawing conclusions."
+                    ),
+                    rule_id="VENDOR_POTENTIAL_DUPLICATE",
+                    finding_type="potential_duplicate",
+                    reference_type="transaction_match",
+                    reference_origin="none",
+                    reference_source="processed vendor transaction evidence",
+                    is_institutional_reference=False,
+                    reason_for_flagging=(
+                        "Processed transaction evidence shows matching vendor/invoice/amount/date attributes."
+                    ),
+                )
+            )
     return anomalies
 
 
@@ -311,7 +418,7 @@ def _detect_department_rules(
                     generator,
                     title=f"{department} overspending exceeds flag threshold",
                     description=(
-                        "Department actual expenses materially exceed budget."
+                        "Department actual expenses exceed budget and cross the system review reference."
                     ),
                     metric="department_expense_variance_pct",
                     observed_value=variance_percent,
@@ -331,6 +438,14 @@ def _detect_department_rules(
                         "Inspect department expense categories, payroll, and vendors."
                     ),
                     rule_id="DEPARTMENT_OVERSPEND_FLAG",
+                    reference_type="budget_variance_review_threshold",
+                    reference_source=(
+                        "approved department budget plus AnomalyThresholds.department_overspend_flag_percent"
+                    ),
+                    reason_for_flagging=(
+                        f"{department} variance of {variance_percent:.2f}% exceeds the "
+                        f"{thresholds.department_overspend_flag_percent:.2f}% system review reference."
+                    ),
                 )
             )
         elif abs(variance_percent) > thresholds.department_budget_target_range_percent:
@@ -339,7 +454,7 @@ def _detect_department_rules(
                     generator,
                     title=f"{department} outside budget target range",
                     description=(
-                        "Department expense variance is outside the configured +/- range."
+                        "Department expense variance is outside the system analytical +/- range."
                     ),
                     metric="department_expense_variance_pct",
                     observed_value=variance_percent,
@@ -355,6 +470,14 @@ def _detect_department_rules(
                         "Confirm whether the variance is timing-related or structural."
                     ),
                     rule_id="DEPARTMENT_BUDGET_RANGE",
+                    reference_type="budget_variance_review_range",
+                    reference_source=(
+                        "approved department budget plus AnomalyThresholds.department_budget_target_range_percent"
+                    ),
+                    reason_for_flagging=(
+                        f"{department} variance of {variance_percent:.2f}% is outside the "
+                        f"+/-{thresholds.department_budget_target_range_percent:.2f}% system review range."
+                    ),
                 )
             )
     return anomalies
@@ -395,7 +518,7 @@ def _detect_category_rules(
                     if is_flag
                     else f"{category} category outside budget target"
                 ),
-                description="Expense category actual value exceeds its budget range.",
+                description="Expense category actual value exceeds its budget and crosses a system review reference.",
                 metric="category_expense_variance_pct",
                 observed_value=variance_percent,
                 threshold_value=(
@@ -425,6 +548,14 @@ def _detect_category_rules(
                     "CATEGORY_OVERSPEND_FLAG"
                     if is_flag
                     else "CATEGORY_BUDGET_RANGE"
+                ),
+                reference_type="budget_variance_review_threshold",
+                reference_source=(
+                    "approved category budget plus AnomalyThresholds budget variance review settings"
+                ),
+                reason_for_flagging=(
+                    f"{category} variance of {variance_percent:.2f}% exceeds the "
+                    "configured system review reference."
                 ),
             )
         )
@@ -467,6 +598,11 @@ def _detect_availability_rules(
                         "Review calculation warnings and source table availability."
                     ),
                     rule_id="METRIC_UNAVAILABLE",
+                    finding_type="data_quality_finding",
+                    reference_type="data_availability",
+                    reference_origin="none",
+                    reference_source="processed KPI availability",
+                    reason_for_flagging="A processed KPI was marked unavailable by deterministic calculations.",
                 )
             )
 
@@ -489,6 +625,11 @@ def _detect_availability_rules(
                         "Resolve the missing or invalid calculation input."
                     ),
                     rule_id="CALCULATION_WARNING",
+                    finding_type="data_quality_finding",
+                    reference_type="calculation_warning",
+                    reference_origin="none",
+                    reference_source="finance calculation warning",
+                    reason_for_flagging="A deterministic calculation warning was emitted.",
                 )
             )
     return anomalies

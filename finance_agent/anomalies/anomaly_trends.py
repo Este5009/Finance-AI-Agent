@@ -30,6 +30,11 @@ def _trend_anomaly(
     evidence: str,
     recommended_next_check: str,
     rule_id: str,
+    finding_type: str = "system_review_rule",
+    reference_type: str = "trend_review_threshold",
+    reference_origin: str = "system-derived/default",
+    reference_source: str = "AnomalyThresholds trend configuration",
+    reason_for_flagging: str | None = None,
 ) -> Anomaly:
     """Build one trend-based anomaly record.
 
@@ -52,6 +57,14 @@ def _trend_anomaly(
         recommended_next_check=recommended_next_check,
         detection_method="trend_based",
         rule_id=rule_id,
+        finding_type=finding_type,
+        reference_type=reference_type,
+        reference_origin=reference_origin,
+        reference_source=reference_source,
+        is_institutional_reference=False,
+        reason_for_flagging=reason_for_flagging or description,
+        supporting_evidence=evidence,
+        recommended_action=recommended_next_check,
     )
 
 
@@ -95,7 +108,7 @@ def detect_trend_anomalies(
                 _trend_anomaly(
                     generator,
                     title="Month-over-month revenue drop",
-                    description="Monthly revenue declined beyond the configured limit.",
+                    description="Monthly revenue declined beyond the system analytical review reference.",
                     metric="month_over_month_revenue_drop_percent",
                     observed_value=observed_drop,
                     threshold_value=thresholds.month_over_month_revenue_drop_percent,
@@ -113,6 +126,10 @@ def detect_trend_anomalies(
                         "Review revenue categories, enrollment, and collection timing."
                     ),
                     rule_id="MOM_REVENUE_DROP",
+                    reason_for_flagging=(
+                        f"Revenue drop of {observed_drop:.2f}% exceeds the "
+                        f"{thresholds.month_over_month_revenue_drop_percent:.2f}% system review reference."
+                    ),
                 )
             )
 
@@ -127,7 +144,7 @@ def detect_trend_anomalies(
                 _trend_anomaly(
                     generator,
                     title="Month-over-month expense increase",
-                    description="Monthly expenses increased beyond the configured limit.",
+                    description="Monthly expenses increased beyond the system analytical review reference.",
                     metric="month_over_month_expense_increase_percent",
                     observed_value=observed_increase,
                     threshold_value=thresholds.month_over_month_expense_increase_percent,
@@ -145,6 +162,10 @@ def detect_trend_anomalies(
                         "Review monthly expense categories, departments, and vendors."
                     ),
                     rule_id="MOM_EXPENSE_INCREASE",
+                    reason_for_flagging=(
+                        f"Expense increase of {observed_increase:.2f}% exceeds the "
+                        f"{thresholds.month_over_month_expense_increase_percent:.2f}% system review reference."
+                    ),
                 )
             )
 
@@ -178,6 +199,10 @@ def detect_trend_anomalies(
                         "Compare monthly revenue and expense drivers with budget."
                     ),
                     rule_id="MONTHLY_OPERATING_DEFICIT",
+                    reference_type="zero_result_review_reference",
+                    reason_for_flagging=(
+                        f"Monthly operating result ${value:,.0f} is below the $0 system review reference."
+                    ),
                 )
             )
 
@@ -193,7 +218,7 @@ def detect_trend_anomalies(
                 _trend_anomaly(
                     generator,
                     title="Monthly payroll ratio above threshold",
-                    description="Payroll consumed too large a share of monthly revenue.",
+                    description="Payroll consumed a share of monthly revenue above the system analytical reference.",
                     metric="monthly_payroll_percentage_of_revenue",
                     observed_value=observed,
                     threshold_value=thresholds.payroll_percent_max,
@@ -205,12 +230,17 @@ def detect_trend_anomalies(
                     source_file=source_file,
                     evidence=(
                         f"Monthly payroll/revenue is {observed:.2f}% versus "
-                        f"{thresholds.payroll_percent_max:.2f}% maximum."
+                        f"{thresholds.payroll_percent_max:.2f}% system analytical reference."
                     ),
                     recommended_next_check=(
                         "Review payroll components and the month's revenue denominator."
                     ),
                     rule_id="MONTHLY_PAYROLL_RATIO_MAX",
+                    reference_type="ratio_review_threshold",
+                    reason_for_flagging=(
+                        f"Monthly payroll/revenue {observed:.2f}% exceeds the "
+                        f"{thresholds.payroll_percent_max:.2f}% system review reference."
+                    ),
                 )
             )
 
@@ -224,7 +254,7 @@ def detect_trend_anomalies(
                 _trend_anomaly(
                     generator,
                     title="Monthly collection rate below target",
-                    description="Monthly student collections are below target.",
+                    description="Monthly student collections are below the system analytical reference.",
                     metric="monthly_student_collection_rate",
                     observed_value=observed,
                     threshold_value=thresholds.tuition_collection_min_percent,
@@ -236,12 +266,17 @@ def detect_trend_anomalies(
                     source_file=source_file,
                     evidence=(
                         f"Monthly collection rate is {observed:.2f}% versus "
-                        f"{thresholds.tuition_collection_min_percent:.2f}% minimum."
+                        f"{thresholds.tuition_collection_min_percent:.2f}% system analytical reference."
                     ),
                     recommended_next_check=(
                         "Inspect that month's overdue invoices and collection actions."
                     ),
                     rule_id="MONTHLY_COLLECTION_MIN",
+                    reference_type="ratio_review_threshold",
+                    reason_for_flagging=(
+                        f"Monthly collection rate {observed:.2f}% is below the "
+                        f"{thresholds.tuition_collection_min_percent:.2f}% system review reference."
+                    ),
                 )
             )
     return anomalies

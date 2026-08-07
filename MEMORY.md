@@ -2,6 +2,18 @@
 
 ## Architecture Decisions
 
+- Anomaly/finding records must preserve canonical provenance for every
+  observed-vs-reference comparison. Executive-facing output distinguishes
+  `institutional_violation`, `statistical_anomaly`, `system_review_rule`,
+  `potential_duplicate`, `data_quality_finding`, and
+  `informational_observation`; each finding carries observed value, reference
+  value/type/origin/source, institutional-reference boolean, reason for
+  flagging, supporting evidence, and recommended action. Configured/default
+  detector thresholds are analytical system references unless explicit
+  workbook/budget/policy provenance proves otherwise, and they must never be
+  described as university goals, policies, limits, or violations. Potential
+  duplicate findings require transaction-match evidence and must never rely on
+  an arbitrary monetary threshold or imply fraud/confirmed wrongdoing.
 - The supported user input workflow is one integrated Excel workbook (`.xlsx`
   or `.xls`) per reporting period. The workbook must contain actuals, budgets,
   goals/targets, variances, departments, payroll, collections, cash-flow, and

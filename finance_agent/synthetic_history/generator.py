@@ -703,6 +703,10 @@ def _build_anomaly_rows(
                 "Description": "Health Sciences overtime remains above the reduction threshold.",
                 "Observed_Value": round(float(hs_payroll["Overtime"]), 2),
                 "Threshold": round(float(hs_payroll["Payroll_Budget"]) * 0.08, 2),
+                "Finding_Type": "system_review_rule",
+                "Reference_Origin": "synthetic/test",
+                "Reference_Source": "Synthetic recovery_2026 scenario overtime reference",
+                "Is_Institutional_Reference": False,
                 "Source_Sheet": "Payroll",
             }
         )
@@ -717,6 +721,10 @@ def _build_anomaly_rows(
                 "Description": "Net cash flow is materially negative for the month.",
                 "Observed_Value": round(net_cash_flow, 2),
                 "Threshold": 0.0,
+                "Finding_Type": "system_review_rule",
+                "Reference_Origin": "synthetic/test",
+                "Reference_Source": "Synthetic recovery_2026 cash-flow review reference",
+                "Is_Institutional_Reference": False,
                 "Source_Sheet": "Cash_Flow",
             }
         )
@@ -728,9 +736,13 @@ def _build_anomaly_rows(
                 "Department": "Health Sciences",
                 "Anomaly_Type": "recurring_vendor_duplicate",
                 "Severity": "High",
-                "Description": "Recurring MedSupply Co payment shares an invoice number and high-value flag.",
+                "Description": "Recurring MedSupply Co payment shares transaction attributes requiring verification.",
                 "Observed_Value": 149_000.0,
                 "Threshold": 50_000.0,
+                "Finding_Type": "potential_duplicate",
+                "Reference_Origin": "synthetic/test",
+                "Reference_Source": "Synthetic recovery_2026 duplicate transaction evidence plus system review reference",
+                "Is_Institutional_Reference": False,
                 "Source_Sheet": "Vendor_Payments",
             }
         )

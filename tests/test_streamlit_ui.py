@@ -585,7 +585,7 @@ def test_july_anomaly_tab_renders_deterministic_detail_cards() -> None:
     streamlit_app._render_anomaly_tab(fake_st, report_model)
 
     visible = "\n".join(fake_st.markdown_calls)
-    assert "Anomalías detectadas" in visible
+    assert "Hallazgos detectados" in visible
     assert "Indicador afectado" in visible
     assert "Valor observado" in visible
     assert "Referencia" in visible
@@ -657,7 +657,7 @@ def test_download_tab_presentation_error_does_not_break_other_result_tabs(monkey
     ]
     assert "Resumen ejecutivo" in visible_text
     assert "Indicadores principales" in visible_text
-    assert "Anomalías del periodo" in visible_text
+    assert "Hallazgos y anomalías del periodo" in visible_text
     assert "Situación financiera actual" in visible_text
     assert "Acciones para la gestión" in visible_text
     assert "Recomendaciones estratégicas actuales" in visible_text
@@ -690,8 +690,8 @@ def test_october_anomaly_labels_are_spanish_in_presentation_view() -> None:
     streamlit_app._render_anomaly_tab(fake_st, report_model)
 
     visible = "\n".join(fake_st.markdown_calls)
-    assert "Nómina sobre ingresos por encima del umbral" in visible
-    assert "Cobranza de matrícula por debajo de la meta" in visible
+    assert "Nómina sobre ingresos requiere revisión" in visible
+    assert "Cobranza de matrícula requiere revisión" in visible
     assert "Payroll exceeds revenue threshold" not in visible
     assert "Tuition collection below target" not in visible
     assert "Collection rate is" not in visible

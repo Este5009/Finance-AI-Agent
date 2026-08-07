@@ -95,6 +95,22 @@ def detect_statistical_anomalies(
                     ),
                     detection_method="statistical",
                     rule_id=f"Z_SCORE_{column.upper()}",
+                    finding_type="statistical_anomaly",
+                    reference_type="z_score_threshold",
+                    reference_origin="historical/statistical",
+                    reference_source="annual monthly trend distribution",
+                    is_institutional_reference=False,
+                    reason_for_flagging=(
+                        f"Absolute z-score {abs(z_score):.3f} meets or exceeds the "
+                        f"statistical reference {thresholds.statistical_z_score_threshold:.3f}."
+                    ),
+                    supporting_evidence=(
+                        f"Raw value {raw_value:.6g}; mean {mean:.6g}; "
+                        f"standard deviation {standard_deviation:.6g}; z-score {z_score:.3f}."
+                    ),
+                    recommended_action=(
+                        f"Validate the {label.lower()} source and investigate drivers; do not treat this as a policy breach."
+                    ),
                 )
             )
     return anomalies

@@ -2591,7 +2591,7 @@ def _render_anomaly_tab(st: Any, report_model: dict[str, Any]) -> None:
 
     view = build_presentation_view(report_model) if report_model else {}
     anomalies = view.get("anomalies", {}) if isinstance(view, dict) else {}
-    st.markdown("### Anomalías del periodo")
+    st.markdown("### Hallazgos y anomalías del periodo")
     if anomalies.get("current_period_status"):
         _render_section_card(
             st,
@@ -2614,20 +2614,24 @@ def _render_anomaly_tab(st: Any, report_model: dict[str, Any]) -> None:
         )
     top_rows = anomalies.get("top_rows", []) if isinstance(anomalies, dict) else []
     if top_rows:
-        st.markdown("#### Anomalías detectadas")
+        st.markdown("#### Hallazgos detectados")
         _render_responsive_card_grid(
             st,
             [
                 {
-                    "title": item.get("title") or "Anomalía detectada",
+                    "title": item.get("title") or "Hallazgo detectado",
                     "body": item.get("evidence"),
                     "variant": _card_variant_from_text(item.get("severity"), item.get("severity_class")),
                     "badge": item.get("severity") or "Riesgo",
                     "rows": [
+                        ("Clasificación", item.get("classification")),
                         ("Indicador afectado", item.get("metric")),
                         ("Entidad/departamento", item.get("entity")),
                         ("Valor observado", item.get("observed_value")),
                         ("Referencia", item.get("reference_value")),
+                        ("Origen de referencia", item.get("reference_origin")),
+                        ("Motivo del hallazgo", item.get("reason_for_flagging")),
+                        ("Nota de referencia", item.get("reference_notice")),
                         ("Periodo", item.get("period")),
                         ("Severidad", item.get("severity")),
                         ("Recurrencia", item.get("recurrence")),
