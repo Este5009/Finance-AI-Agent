@@ -18,6 +18,10 @@ from finance_agent.anomalies.anomaly_severity import (
 )
 
 
+VARIANCE_AMOUNT_TOLERANCE = 0.05
+VARIANCE_RATIO_TOLERANCE = 0.0001
+
+
 def _number(value: object) -> float | None:
     """Convert a calculation output scalar to float when possible.
 
@@ -56,6 +60,7 @@ def _make_anomaly(
     reason_for_flagging: str | None = None,
     supporting_evidence: str | None = None,
     recommended_action: str | None = None,
+    comparison_details: dict[str, Any] | None = None,
 ) -> Anomaly:
     """Build one rule-based anomaly with a generated identifier.
 
@@ -86,6 +91,7 @@ def _make_anomaly(
         reason_for_flagging=reason_for_flagging or description,
         supporting_evidence=supporting_evidence or evidence,
         recommended_action=recommended_action or recommended_next_check,
+        comparison_details=comparison_details,
     )
 
 
@@ -101,6 +107,91 @@ def _system_reason(observed: object, reference: object, relation: str) -> str:
     return (
         f"El valor observado ({observed}) {relation} la referencia analítica "
         f"configurada por el sistema ({reference})."
+    )
+
+
+def _expense_variance_details(
+    row: pd.Series,
+    *,
+    budget_key: str,
+    actual_key: str,
+    variance_key: str,
+    variance_pct_key: str,
+) -> tuple[dict[str, float] | None, str | None]:
+    """Reconcile workbook/calculation variance fields against recomputation.
+
+    Inputs: row with budget, actual, variance, and variance percentage fields.
+    Outputs: comparison details or a data-quality reason.
+    Assumptions: variance formula is actual minus budget, divided by budget.
+    """
+
+    budget = _number(row.get(budget_key))
+    actual = _number(row.get(actual_key))
+    provided_variance = _number(row.get(variance_key))
+    provided_pct = _number(row.get(variance_pct_key))
+    if budget is None or actual is None:
+        return None, "Budget or actual expense value is missing."
+    calculated_variance = actual - budget
+    calculated_pct = calculated_variance / budget if budget else None
+    if provided_variance is not None and abs(provided_variance - calculated_variance) > VARIANCE_AMOUNT_TOLERANCE:
+        return None, (
+            f"Provided variance {provided_variance:.2f} does not match "
+            f"actual minus budget {calculated_variance:.2f}."
+        )
+    if (
+        provided_pct is not None
+        and calculated_pct is not None
+        and abs(provided_pct - calculated_pct) > VARIANCE_RATIO_TOLERANCE
+    ):
+        return None, (
+            f"Provided variance percentage {provided_pct:.6f} does not match "
+            f"recomputed percentage {calculated_pct:.6f}."
+        )
+    return {
+        "budget_expense": budget,
+        "actual_expense": actual,
+        "expense_variance": provided_variance if provided_variance is not None else calculated_variance,
+        "expense_variance_pct": provided_pct if provided_pct is not None else calculated_pct,
+        "recomputed_expense_variance": calculated_variance,
+        "recomputed_expense_variance_pct": calculated_pct,
+    }, None
+
+
+def _variance_data_quality_anomaly(
+    generator: AnomalyIdGenerator,
+    *,
+    entity: str,
+    metric: str,
+    period: str,
+    source_file: str,
+    reason: str,
+    rule_id: str,
+) -> Anomaly:
+    """Create a data-quality finding for unreconciled budget variance fields.
+
+    Inputs: entity, metric, period, source, reason, and rule ID.
+    Outputs: anomaly record that does not use a threshold.
+    Assumptions: inconsistent values must block budget review findings.
+    """
+
+    return _make_anomaly(
+        generator,
+        title=f"{entity} budget variance data quality issue",
+        description="Budget variance fields do not reconcile with budget and actual expense values.",
+        metric=metric,
+        observed_value=None,
+        threshold_value=None,
+        severity="low",
+        period=period,
+        source_file=source_file,
+        evidence=reason,
+        recommended_next_check="Review the source workbook budget, actual, variance, and variance percentage fields.",
+        rule_id=rule_id,
+        finding_type="data_quality_finding",
+        reference_type="variance_reconciliation",
+        reference_origin="none",
+        reference_source=source_file,
+        reason_for_flagging=reason,
     )
 
 
@@ -407,11 +498,31 @@ def _detect_department_rules(
         return anomalies
 
     for _, row in dataframe.iterrows():
-        variance_ratio = _number(row.get("expense_variance_pct"))
+        department = str(row.get("department") or "Unknown department")
+        details, data_quality_reason = _expense_variance_details(
+            row,
+            budget_key="budget_expenses",
+            actual_key="actual_expenses",
+            variance_key="expense_variance",
+            variance_pct_key="expense_variance_pct",
+        )
+        if data_quality_reason:
+            anomalies.append(
+                _variance_data_quality_anomaly(
+                    generator,
+                    entity=department,
+                    metric="department_expense_variance_pct",
+                    period=bundle.report_period,
+                    source_file=source_file,
+                    reason=data_quality_reason,
+                    rule_id="DEPARTMENT_BUDGET_VARIANCE_MISMATCH",
+                )
+            )
+            continue
+        variance_ratio = details["expense_variance_pct"] if details else None
         if variance_ratio is None:
             continue
         variance_percent = variance_ratio * 100
-        department = str(row.get("department") or "Unknown department")
         if variance_percent > thresholds.department_overspend_flag_percent:
             anomalies.append(
                 _make_anomaly(
@@ -430,8 +541,8 @@ def _detect_department_rules(
                     period=bundle.report_period,
                     source_file=source_file,
                     evidence=(
-                        f"{department} spent ${float(row.get('actual_expenses')):,.0f} "
-                        f"against ${float(row.get('budget_expenses')):,.0f} budget "
+                        f"{department} spent ${details['actual_expense']:,.0f} "
+                        f"against ${details['budget_expense']:,.0f} budget "
                         f"({variance_percent:.2f}% variance)."
                     ),
                     recommended_next_check=(
@@ -446,6 +557,7 @@ def _detect_department_rules(
                         f"{department} variance of {variance_percent:.2f}% exceeds the "
                         f"{thresholds.department_overspend_flag_percent:.2f}% system review reference."
                     ),
+                    comparison_details=details,
                 )
             )
         elif abs(variance_percent) > thresholds.department_budget_target_range_percent:
@@ -464,7 +576,7 @@ def _detect_department_rules(
                     source_file=source_file,
                     evidence=(
                         f"{department} expense variance is {variance_percent:.2f}% "
-                        f"versus a +/-{thresholds.department_budget_target_range_percent:.2f}% target."
+                        f"versus the +/-{thresholds.department_budget_target_range_percent:.2f}% system review reference."
                     ),
                     recommended_next_check=(
                         "Confirm whether the variance is timing-related or structural."
@@ -478,6 +590,7 @@ def _detect_department_rules(
                         f"{department} variance of {variance_percent:.2f}% is outside the "
                         f"+/-{thresholds.department_budget_target_range_percent:.2f}% system review range."
                     ),
+                    comparison_details=details,
                 )
             )
     return anomalies
@@ -502,13 +615,33 @@ def _detect_category_rules(
         return anomalies
 
     for _, row in dataframe.iterrows():
-        variance_ratio = _number(row.get("variance_pct"))
+        category = str(row.get("category") or "Unknown category")
+        details, data_quality_reason = _expense_variance_details(
+            row,
+            budget_key="budget_amount",
+            actual_key="actual_amount",
+            variance_key="variance",
+            variance_pct_key="variance_pct",
+        )
+        if data_quality_reason:
+            anomalies.append(
+                _variance_data_quality_anomaly(
+                    generator,
+                    entity=category,
+                    metric="category_expense_variance_pct",
+                    period=bundle.report_period,
+                    source_file=source_file,
+                    reason=data_quality_reason,
+                    rule_id="CATEGORY_BUDGET_VARIANCE_MISMATCH",
+                )
+            )
+            continue
+        variance_ratio = details["expense_variance_pct"] if details else None
         if variance_ratio is None:
             continue
         variance_percent = variance_ratio * 100
         if variance_percent <= thresholds.department_budget_target_range_percent:
             continue
-        category = str(row.get("category") or "Unknown category")
         is_flag = variance_percent > thresholds.department_overspend_flag_percent
         anomalies.append(
             _make_anomaly(
@@ -537,8 +670,8 @@ def _detect_category_rules(
                 period=bundle.report_period,
                 source_file=source_file,
                 evidence=(
-                    f"{category} actual ${float(row.get('actual_amount')):,.0f} "
-                    f"versus budget ${float(row.get('budget_amount')):,.0f}; "
+                    f"{category} actual ${details['actual_expense']:,.0f} "
+                    f"versus budget ${details['budget_expense']:,.0f}; "
                     f"variance {variance_percent:.2f}%."
                 ),
                 recommended_next_check=(
@@ -557,6 +690,7 @@ def _detect_category_rules(
                     f"{category} variance of {variance_percent:.2f}% exceeds the "
                     "configured system review reference."
                 ),
+                comparison_details=details,
             )
         )
     return anomalies

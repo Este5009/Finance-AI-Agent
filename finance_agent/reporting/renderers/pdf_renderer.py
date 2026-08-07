@@ -839,8 +839,8 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
                             row["title"],
                             row.get("classification"),
                             row["severity"],
-                            row.get("observed_value"),
-                            row.get("reference_value"),
+                            row.get("expense_variance") or row.get("observed_value"),
+                            row.get("expense_variance_pct") or row.get("reference_value"),
                             row.get("reference_origin"),
                             row.get("reason_for_flagging") or row["evidence"],
                         ]

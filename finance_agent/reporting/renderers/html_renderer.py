@@ -715,8 +715,8 @@ def _render_anomalies(view: dict[str, Any]) -> str:
             row.get("classification"),
             row["severity"],
             row.get("metric"),
-            row.get("observed_value"),
-            row.get("reference_value"),
+            row.get("expense_variance") or row.get("observed_value"),
+            row.get("expense_variance_pct") or row.get("reference_value"),
             row.get("reference_origin"),
             row.get("reason_for_flagging") or row["evidence"],
         ]
@@ -730,6 +730,11 @@ def _render_anomalies(view: dict[str, Any]) -> str:
         meta = "".join(
             f"<p><strong>{_escape(label)}:</strong> {_escape(value)}</p>"
             for label, value in (
+                ("Presupuesto", row.get("budget_expense")),
+                ("Gasto real", row.get("actual_expense")),
+                ("Diferencia monetaria", row.get("expense_variance")),
+                ("Diferencia porcentual", row.get("expense_variance_pct")),
+                ("Clasificación del hallazgo", row.get("classification")),
                 ("Indicador afectado", row.get("metric")),
                 ("Entidad/departamento", row.get("entity")),
                 ("Valor observado", row.get("observed_value")),

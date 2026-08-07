@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+import pytest
 
 from finance_agent.anomalies.anomaly_config import AnomalyThresholds
 from finance_agent.anomalies.anomaly_loader import CalculationOutputBundle
@@ -202,6 +203,93 @@ def test_department_overspending_detection() -> None:
     assert "DEPARTMENT_OVERSPEND_FLAG" in _rule_ids(
         _bundle(department_summary=departments)
     )
+
+
+def test_september_department_variances_reconcile_to_workbook_values() -> None:
+    """Verify September workbook, normalized, and calculation variance values match."""
+
+    root = Path(__file__).resolve().parents[1]
+    workbook = root / "data" / "synthetic_history" / "recovery_2026" / "reports" / "university_financial_report_2026_09.xlsx"
+    normalized = root / "outputs" / "intermediate" / "2026_09" / "normalized_tables" / "university_financial_report_2026_09__department_summary__table_01.csv"
+    calculated = root / "outputs" / "calculations" / "department_summary_2026_09.csv"
+    departments = ["Engineering", "Business"]
+
+    workbook_rows = pd.read_excel(workbook, sheet_name="Department_Summary", header=4)
+    normalized_rows = pd.read_csv(normalized)
+    calculated_rows = pd.read_csv(calculated)
+
+    expected = {
+        "Engineering": (442_894.57, 460_663.19, 17_768.62, 0.0401),
+        "Business": (402_631.41, 418_784.70, 16_153.29, 0.0401),
+    }
+    for department, (budget, actual, variance, variance_pct) in expected.items():
+        workbook_row = workbook_rows.loc[workbook_rows["Department"] == department].iloc[0]
+        normalized_row = normalized_rows.loc[normalized_rows["department"] == department].iloc[0]
+        calculated_row = calculated_rows.loc[calculated_rows["department"] == department].iloc[0]
+
+        assert workbook_row["Budget_Expense"] == pytest.approx(budget, abs=0.01)
+        assert workbook_row["Actual_Expense"] == pytest.approx(actual, abs=0.01)
+        assert workbook_row["Expense_Variance"] == pytest.approx(variance, abs=0.01)
+        assert workbook_row["Expense_Variance_Pct"] == pytest.approx(variance_pct, abs=0.0001)
+        assert normalized_row["budget_expense"] == pytest.approx(budget, abs=0.01)
+        assert normalized_row["actual_expense"] == pytest.approx(actual, abs=0.01)
+        assert normalized_row["expense_variance"] == pytest.approx(variance, abs=0.01)
+        assert normalized_row["expense_variance_pct"] == pytest.approx(variance_pct, abs=0.0001)
+        assert calculated_row["budget_expenses"] == pytest.approx(budget, abs=0.01)
+        assert calculated_row["actual_expenses"] == pytest.approx(actual, abs=0.01)
+        assert calculated_row["expense_variance"] == pytest.approx(actual - budget, abs=0.05)
+        assert calculated_row["expense_variance_pct"] == pytest.approx((actual - budget) / budget, abs=0.0001)
+
+
+def test_september_department_variances_do_not_trigger_eight_percent_review() -> None:
+    """Verify September Engineering/Business rows below 8% produce no budget finding."""
+
+    root = Path(__file__).resolve().parents[1]
+    department_summary = pd.read_csv(root / "outputs" / "calculations" / "department_summary_2026_09.csv")
+    filtered = department_summary.loc[department_summary["department"].isin(["Engineering", "Business"])]
+
+    anomalies = detect_rule_based_anomalies(
+        _bundle(department_summary=filtered),
+        AnomalyThresholds(),
+        AnomalyIdGenerator("TEST"),
+    )
+
+    budget_findings = [
+        anomaly
+        for anomaly in anomalies
+        if anomaly.metric == "department_expense_variance_pct"
+    ]
+    assert budget_findings == []
+    assert not any(
+        isinstance(anomaly.observed_value, (int, float))
+        and anomaly.observed_value == pytest.approx(10.7533, abs=0.001)
+        for anomaly in anomalies
+    )
+
+
+def test_department_variance_mismatch_becomes_data_quality_finding() -> None:
+    """Verify workbook/calculation disagreement is surfaced as data quality."""
+
+    departments = pd.DataFrame(
+        {
+            "department": ["Engineering"],
+            "budget_expenses": [1000.0],
+            "actual_expenses": [1040.0],
+            "expense_variance": [200.0],
+            "expense_variance_pct": [0.04],
+        }
+    )
+
+    anomalies = detect_rule_based_anomalies(
+        _bundle(department_summary=departments),
+        AnomalyThresholds(),
+        AnomalyIdGenerator("TEST"),
+    )
+    finding = next(item for item in anomalies if item.rule_id == "DEPARTMENT_BUDGET_VARIANCE_MISMATCH")
+
+    assert finding.finding_type == "data_quality_finding"
+    assert finding.reference_origin == "none"
+    assert "Provided variance" in finding.reason_for_flagging
 
 
 def test_month_over_month_trend_detection() -> None:

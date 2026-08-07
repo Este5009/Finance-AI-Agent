@@ -230,6 +230,9 @@ METRIC_LABELS_ES: dict[str, tuple[str, str, str]] = {
     "revenue_budget_variance_pct": ("Variación presupuestaria de ingresos", "ratio", "Diferencia porcentual entre ingresos reales y presupuesto."),
     "expense_budget_variance": ("Variación presupuestaria de gastos", "USD", "Diferencia entre gastos reales y presupuesto."),
     "expense_budget_variance_pct": ("Variación presupuestaria de gastos", "ratio", "Diferencia porcentual entre gastos reales y presupuesto."),
+    "department_expense_variance_pct": ("Variación porcentual del gasto departamental", "ratio", "Diferencia porcentual entre gasto real y presupuesto departamental."),
+    "category_expense_variance_pct": ("Variación porcentual del gasto por categoría", "ratio", "Diferencia porcentual entre gasto real y presupuesto por categoría."),
+    "maximum_vendor_payment": ("Pago máximo a proveedor", "USD", "Mayor pago individual registrado a proveedor."),
 }
 
 SEVERITY_LABELS_ES: dict[str, str] = {
@@ -801,7 +804,67 @@ def display_anomaly_title(value: Any) -> str:
     budget_suffix = " outside budget target range"
     if text.endswith(budget_suffix):
         entity = text[: -len(budget_suffix)]
-        return f"{display_entity_name(entity)} fuera del rango presupuestario objetivo"
+        return f"Gastos de {display_entity_name(entity)} requieren revisión presupuestaria"
+    return text
+
+
+def _display_finding_title(item: dict[str, Any]) -> str:
+    """Return a Spanish title from structured finding metadata.
+
+    Inputs: anomaly/finding dictionary from the report model.
+    Outputs: executive-facing Spanish title.
+    Assumptions: budget findings should lead with budget-vs-actual meaning.
+    """
+
+    metric = str(item.get("metric") or "")
+    raw_title = item.get("title") or item.get("description") or "Hallazgo detectado"
+    if metric in {"department_expense_variance_pct", "category_expense_variance_pct"}:
+        title_text = str(raw_title)
+        entity = (
+            item.get("department")
+            or item.get("category")
+            or item.get("entity")
+            or title_text.split(" outside budget", 1)[0].split(" overspending", 1)[0]
+        )
+        details = item.get("comparison_details") if isinstance(item.get("comparison_details"), dict) else {}
+        variance = number_value(details.get("expense_variance") if details else None)
+        if variance is not None and variance > 0:
+            return f"Gastos de {display_entity_name(entity)} por encima del presupuesto"
+        if variance is not None and variance < 0:
+            return f"Gastos de {display_entity_name(entity)} por debajo del presupuesto"
+        return f"Gastos de {display_entity_name(entity)} requieren revisión presupuestaria"
+    return display_anomaly_title(raw_title)
+
+
+def _localize_budget_variance_sentence(text: str) -> str:
+    """Localize deterministic budget-variance rule sentences without inference.
+
+    Inputs: one sanitized anomaly sentence emitted by Python rule detectors.
+    Outputs: Spanish sentence when the stable budget-variance pattern is found.
+    Assumptions: the sentence already contains deterministic entity, observed
+    percentage, and system reference percentage values.
+    """
+
+    if " expense variance is " in text and " versus " in text:
+        entity, remainder = text.split(" expense variance is ", 1)
+        observed, reference_text = remainder.split("% versus ", 1)
+        reference_match = re.search(r"([0-9]+(?:\.[0-9]+)?)%", reference_text)
+        if reference_match:
+            return (
+                f"La variación de gastos de {display_entity_name(entity.strip())} "
+                f"es {observed.strip()}% frente a una referencia analítica del sistema "
+                f"de +/-{reference_match.group(1)}%."
+            )
+    if " variance of " in text and " is outside " in text:
+        entity, remainder = text.split(" variance of ", 1)
+        observed, reference_text = remainder.split("% is outside ", 1)
+        reference_match = re.search(r"([0-9]+(?:\.[0-9]+)?)%", reference_text)
+        if reference_match:
+            return (
+                f"La variación de gastos de {display_entity_name(entity.strip())} "
+                f"es {observed.strip()}% y está fuera de la referencia analítica "
+                f"del sistema de +/-{reference_match.group(1)}%."
+            )
     return text
 
 
@@ -817,6 +880,33 @@ def display_anomaly_text(value: Any) -> str:
     text = sanitize_text(value)
     if not text:
         return ""
+    localized = _localize_budget_variance_sentence(text)
+    if localized != text:
+        return localized
+    text = re.sub(
+        r"\b([A-Za-z &]+?) expense variance is ([0-9.,-]+)% versus .*?([0-9.,-]+)% target\.?",
+        lambda match: (
+            f"La variación de gastos de {display_entity_name(match.group(1).strip())} "
+            f"es {match.group(2)}% frente a una referencia analítica del sistema de +/-{match.group(3)}%."
+        ),
+        text,
+    )
+    text = re.sub(
+        r"\b([A-Za-z &]+?) expense variance is ([0-9.,-]+)% versus .*?([0-9.,-]+)% system review reference\.?",
+        lambda match: (
+            f"La variación de gastos de {display_entity_name(match.group(1).strip())} "
+            f"es {match.group(2)}% frente a una referencia analítica del sistema de +/-{match.group(3)}%."
+        ),
+        text,
+    )
+    text = re.sub(
+        r"\b([A-Za-z &]+?) variance of ([0-9.,-]+)% is outside .*?([0-9.,-]+)% system review range\.?",
+        lambda match: (
+            f"La variación de gastos de {display_entity_name(match.group(1).strip())} "
+            f"es {match.group(2)}% y está fuera de la referencia analítica del sistema de +/-{match.group(3)}%."
+        ),
+        text,
+    )
     for source, target in ANOMALY_TEXT_PHRASES_ES:
         text = text.replace(source, target)
     text = re.sub(r"\b([A-Za-z &]+) expense variance is", lambda match: f"La variación de gastos de {display_entity_name(match.group(1).strip())} es", text)
@@ -842,6 +932,8 @@ def display_anomaly_text(value: Any) -> str:
     text = text.replace("actual", "real")
     text = text.replace("versus budget", "frente a presupuesto")
     text = text.replace("variance", "variación")
+    text = text.replace("expense variación is", "variación de gastos es")
+    text = text.replace("configured system review reference", "referencia analítica del sistema")
     return text
 
 
@@ -1339,12 +1431,17 @@ def build_anomaly_summary(report_model: dict[str, Any]) -> dict[str, Any]:
             reference = _format_anomaly_value(item.get("metric"), item.get("threshold_value"))
             observed = "" if observed in EMPTY_DISPLAY_VALUES else observed
             reference = "" if reference in EMPTY_DISPLAY_VALUES else reference
+            details = item.get("comparison_details") if isinstance(item.get("comparison_details"), dict) else {}
+            budget_expense = format_value(details.get("budget_expense"), "USD") if details else ""
+            actual_expense = format_value(details.get("actual_expense"), "USD") if details else ""
+            expense_variance = format_value(details.get("expense_variance"), "USD") if details else ""
+            expense_variance_pct = format_value(details.get("expense_variance_pct"), "ratio") if details else ""
             finding_type = str(item.get("finding_type") or "system_review_rule")
             reference_origin = str(item.get("reference_origin") or "system-derived/default")
             reference_notice = sanitize_text(item.get("reference_notice_es") or "")
             top_rows.append(
                 {
-                    "title": display_anomaly_title(item.get("title") or item.get("description") or "Anomalía detectada"),
+                    "title": _display_finding_title(item),
                     "classification": FINDING_TYPE_LABELS_ES.get(finding_type, sanitize_text(finding_type)),
                     "finding_type": finding_type,
                     "severity": SEVERITY_LABELS_ES.get(str(item.get("severity", "")).lower(), str(item.get("severity", ""))),
@@ -1356,6 +1453,10 @@ def build_anomaly_summary(report_model: dict[str, Any]) -> dict[str, Any]:
                     "entity": display_entity_name(item.get("department") or item.get("entity") or item.get("vendor") or ""),
                     "observed_value": observed,
                     "reference_value": reference,
+                    "budget_expense": "" if budget_expense in EMPTY_DISPLAY_VALUES else budget_expense,
+                    "actual_expense": "" if actual_expense in EMPTY_DISPLAY_VALUES else actual_expense,
+                    "expense_variance": "" if expense_variance in EMPTY_DISPLAY_VALUES else expense_variance,
+                    "expense_variance_pct": "" if expense_variance_pct in EMPTY_DISPLAY_VALUES else expense_variance_pct,
                     "reference_type": sanitize_text(item.get("reference_type") or ""),
                     "reference_origin": REFERENCE_ORIGIN_LABELS_ES.get(reference_origin, sanitize_text(reference_origin)),
                     "is_institutional_reference": bool(item.get("is_institutional_reference")),

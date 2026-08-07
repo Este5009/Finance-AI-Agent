@@ -17,7 +17,10 @@ from finance_agent.reporting.renderers import pdf_renderer as pdf_renderer_modul
 from finance_agent.reporting.presentation import (
     REPORT_SECTION_TEMPLATES,
     adaptive_axis_domain,
+    build_anomaly_summary,
     build_presentation_view,
+    display_anomaly_text,
+    display_metric_name,
 )
 import finance_agent.reporting.presentation as presentation
 from finance_agent.reporting.report_quality import (
@@ -333,6 +336,71 @@ def test_html_anomaly_section_shows_finding_provenance() -> None:
     assert "Revisión sugerida por el sistema" in html
     assert "Referencia analítica del sistema" in html
     assert "No corresponde a una meta, límite o política institucional" in html
+
+
+def test_budget_variance_finding_presentation_uses_exact_comparison_fields() -> None:
+    """Verify budget findings lead with budget, actual, and exact variance facts."""
+
+    model = _sample_report_model()
+    for section in model["sections"]:
+        if section["section_id"] == "anomaly_summary":
+            section["content"] = {
+                "report_period": "Sep 2026",
+                "anomalies_by_severity": {"medium": 1},
+                "top_anomalies": [
+                    {
+                        "title": "Business outside budget target range",
+                        "description": "Department expense variance is outside the system analytical +/- range.",
+                        "metric": "department_expense_variance_pct",
+                        "department": "Business",
+                        "observed_value": 4.0119,
+                        "threshold_value": 8.0,
+                        "severity": "medium",
+                        "period": "2026_09",
+                        "finding_type": "system_review_rule",
+                        "reference_origin": "system-derived/default",
+                        "reference_notice_es": "Referencia analítica del sistema. No corresponde a una meta, límite o política institucional.",
+                        "reason_for_flagging": "Business variance of 4.01% is outside the +/-8.00% system review range.",
+                        "evidence": "Business expense variance is 4.01% versus the +/-8.00% system review reference.",
+                        "comparison_details": {
+                            "budget_expense": 402_631.41,
+                            "actual_expense": 418_784.70,
+                            "expense_variance": 16_153.29,
+                            "expense_variance_pct": 0.0401,
+                        },
+                    }
+                ],
+            }
+            break
+
+    summary = build_anomaly_summary(model)
+    row = summary["top_rows"][0]
+
+    assert row["title"] == "Gastos de Negocios por encima del presupuesto"
+    assert row["budget_expense"] == "$402,631"
+    assert row["actual_expense"] == "$418,785"
+    assert row["expense_variance"] == "$16,153"
+    assert row["expense_variance_pct"] == "4.0%"
+    assert row["reference_value"] == "8.0%"
+
+
+def test_budget_variance_text_and_metric_labels_are_spanish() -> None:
+    """Verify legacy detector phrases and canonical metric IDs display in Spanish."""
+
+    rendered = [
+        display_anomaly_text("Engineering expense variance is 10.75% versus a +/-8.00% target."),
+        display_anomaly_text("Business expense variance is 10.75% versus the +/-8.00% system review reference."),
+        display_anomaly_text("Business variance of 10.75% is outside the +/-8.00% system review range."),
+    ]
+
+    assert display_metric_name("department_expense_variance_pct") == "Variación porcentual del gasto departamental"
+    assert display_metric_name("category_expense_variance_pct") == "Variación porcentual del gasto por categoría"
+    assert display_metric_name("maximum_vendor_payment") == "Pago máximo a proveedor"
+    for text in rendered:
+        assert "expense variación" not in text
+        assert "target" not in text
+        assert "configured system review reference" not in text
+        assert "referencia analítica del sistema" in text
 
 
 def test_html_generation_renders_strategic_analysis_fields() -> None:

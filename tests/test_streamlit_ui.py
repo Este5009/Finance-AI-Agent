@@ -148,6 +148,11 @@ class FakeStreamlitRenderer:
     def progress(self, *_args: object, **_kwargs: object) -> None:
         """Accept progress calls without rendering."""
 
+    def write(self, value: Any = "", *_args: object, **_kwargs: object) -> None:
+        """Capture generic Streamlit write output for diagnostics expanders."""
+
+        self.markdown_calls.append(str(value))
+
 
 def _july_report_model() -> dict[str, Any]:
     """Load the existing July report model used for UI presentation validation."""
@@ -593,6 +598,57 @@ def test_july_anomaly_tab_renders_deterministic_detail_cards() -> None:
     assert "Overdue student payments above limit" not in visible
     assert "Negative or low cash flow" not in visible
     assert "No hay anomalías relevantes para mostrar." not in fake_st.info_messages
+
+
+def test_budget_variance_anomaly_tab_renders_exact_budget_actual_values() -> None:
+    """Verify Streamlit renders deterministic budget facts, not stale percentages."""
+
+    report_model = _july_report_model()
+    for section in report_model["sections"]:
+        if section.get("section_id") == "anomaly_summary":
+            section["content"] = {
+                "report_period": "Sep 2026",
+                "anomalies_by_severity": {"medium": 1},
+                "top_anomalies": [
+                    {
+                        "title": "Business outside budget target range",
+                        "metric": "department_expense_variance_pct",
+                        "department": "Business",
+                        "observed_value": 4.0119,
+                        "threshold_value": 8.0,
+                        "severity": "medium",
+                        "period": "2026_09",
+                        "finding_type": "system_review_rule",
+                        "reference_origin": "system-derived/default",
+                        "reference_notice_es": "Referencia analítica del sistema. No corresponde a una meta, límite o política institucional.",
+                        "reason_for_flagging": "Business variance of 4.01% is outside the +/-8.00% system review range.",
+                        "evidence": "Business expense variance is 4.01% versus the +/-8.00% system review reference.",
+                        "comparison_details": {
+                            "budget_expense": 402_631.41,
+                            "actual_expense": 418_784.70,
+                            "expense_variance": 16_153.29,
+                            "expense_variance_pct": 0.0401,
+                        },
+                    }
+                ],
+            }
+            break
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_anomaly_tab(fake_st, report_model)
+
+    visible = "\n".join(fake_st.markdown_calls)
+    assert "Gastos de Negocios por encima del presupuesto" in visible
+    assert "Presupuesto" in visible
+    assert "$402,631" in visible
+    assert "Gasto real" in visible
+    assert "$418,785" in visible
+    assert "Diferencia monetaria" in visible
+    assert "$16,153" in visible
+    assert "Diferencia porcentual" in visible
+    assert "4.0%" in visible
+    assert "expense variación" not in visible
+    assert "Technology real" not in visible
 
 
 def test_july_analysis_tab_contains_deterministic_fallback_text() -> None:

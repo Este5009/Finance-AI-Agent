@@ -14,6 +14,13 @@
   described as university goals, policies, limits, or violations. Potential
   duplicate findings require transaction-match evidence and must never rely on
   an arbitrary monetary threshold or imply fraud/confirmed wrongdoing.
+- Department/category budget-variance findings must reconcile workbook-provided
+  variance fields against the deterministic formula `actual_expense -
+  budget_expense` and `(actual_expense - budget_expense) / budget_expense`
+  before any finding is emitted. Disagreement beyond tolerance becomes a
+  `data_quality_finding`; valid review findings carry structured
+  `comparison_details` so UI/PDF/HTML lead with budget, actual spend, monetary
+  difference, percentage difference, and then any system analytical reference.
 - The supported user input workflow is one integrated Excel workbook (`.xlsx`
   or `.xls`) per reporting period. The workbook must contain actuals, budgets,
   goals/targets, variances, departments, payroll, collections, cash-flow, and

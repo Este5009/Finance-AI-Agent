@@ -2624,6 +2624,10 @@ def _render_anomaly_tab(st: Any, report_model: dict[str, Any]) -> None:
                     "variant": _card_variant_from_text(item.get("severity"), item.get("severity_class")),
                     "badge": item.get("severity") or "Riesgo",
                     "rows": [
+                        ("Presupuesto", item.get("budget_expense")),
+                        ("Gasto real", item.get("actual_expense")),
+                        ("Diferencia monetaria", item.get("expense_variance")),
+                        ("Diferencia porcentual", item.get("expense_variance_pct")),
                         ("Clasificación", item.get("classification")),
                         ("Indicador afectado", item.get("metric")),
                         ("Entidad/departamento", item.get("entity")),

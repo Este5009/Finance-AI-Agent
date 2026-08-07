@@ -66,6 +66,7 @@ class Anomaly:
     supporting_evidence: str = ""
     recommended_action: str = ""
     reference_notice_es: str = SYSTEM_REFERENCE_NOTICE_ES
+    comparison_details: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize the anomaly as a JSON/CSV-compatible dictionary.
