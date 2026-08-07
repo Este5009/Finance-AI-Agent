@@ -127,6 +127,10 @@ ENTITY_LABELS_ES: dict[str, str] = {
     "Arts & Humanities": "Artes y Humanidades",
     "Student Services": "Servicios Estudiantiles",
     "Administration": "Administración",
+    "Supplies": "Suministros",
+    "Facilities": "Instalaciones",
+    "Services": "Servicios",
+    "Technology": "Tecnología",
 }
 
 RISK_TYPE_LABELS_ES: dict[str, str] = {
@@ -194,6 +198,23 @@ ANOMALY_TEXT_PHRASES_ES: tuple[tuple[str, str], ...] = (
     ("Review payroll by department, overtime, benefits, and headcount.", "Revisar nómina por departamento, horas extra, beneficios y dotación."),
     ("Review the category by department and underlying transactions.", "Revisar la categoría por departamento y sus transacciones de soporte."),
     ("Confirm whether the variance is timing-related or structural.", "Confirmar si la variación responde a calendario o a una causa estructural."),
+)
+
+SPANISH_EXECUTIVE_ENGLISH_LEAK_PATTERNS: tuple[str, ...] = (
+    " spent ",
+    " against ",
+    " budget",
+    " target",
+    "review threshold",
+    " exceeds",
+    " below ",
+    "negative or",
+    " overdue",
+    "vendor payment",
+    "expense variance",
+    "Net cash flow is",
+    "Maximum payment is",
+    "Collection rate is",
 )
 
 RECOMMENDATION_TOPIC_LABELS_ES: dict[str, str] = {
@@ -654,6 +675,25 @@ def display_metric_name(metric: Any) -> str:
     return text.replace("_", " ").strip().capitalize() or "Indicador"
 
 
+def find_spanish_executive_localization_leaks(text: Any) -> list[str]:
+    """Return known English deterministic phrases leaked into Spanish output.
+
+    Inputs: rendered executive-facing text.
+    Outputs: matching English fragments that should not appear under Spanish UI.
+    Assumptions: source filenames/technical details are tested separately; this
+    helper guards rendered Spanish executive surfaces.
+    """
+
+    haystack = sanitize_text(text)
+    lowered = haystack.casefold()
+    leaks: list[str] = []
+    for pattern in SPANISH_EXECUTIVE_ENGLISH_LEAK_PATTERNS:
+        candidate = pattern.casefold()
+        if candidate.strip() and candidate in lowered:
+            leaks.append(pattern.strip())
+    return leaks
+
+
 def compact_source_label(source: Any) -> str:
     """Return a compact source label without absolute paths.
 
@@ -805,6 +845,10 @@ def display_anomaly_title(value: Any) -> str:
     if text.endswith(budget_suffix):
         entity = text[: -len(budget_suffix)]
         return f"Gastos de {display_entity_name(entity)} requieren revisión presupuestaria"
+    category_suffix = " category outside budget target"
+    if text.endswith(category_suffix):
+        entity = text[: -len(category_suffix)]
+        return f"Gastos de {display_entity_name(entity)} requieren revisión presupuestaria"
     return text
 
 
@@ -826,6 +870,8 @@ def _display_finding_title(item: dict[str, Any]) -> str:
             or item.get("entity")
             or title_text.split(" outside budget", 1)[0].split(" overspending", 1)[0]
         )
+        if isinstance(entity, str) and entity.endswith(" category"):
+            entity = entity[: -len(" category")]
         details = item.get("comparison_details") if isinstance(item.get("comparison_details"), dict) else {}
         variance = number_value(details.get("expense_variance") if details else None)
         if variance is not None and variance > 0:
@@ -868,6 +914,60 @@ def _localize_budget_variance_sentence(text: str) -> str:
     return text
 
 
+def _localize_dynamic_anomaly_sentence(text: str) -> str:
+    """Localize stable dynamic anomaly evidence templates.
+
+    Inputs: sanitized detector evidence text containing deterministic values.
+    Outputs: Spanish evidence text with original numbers and entity names.
+    Assumptions: this only rewrites known Python-generated templates; it does
+    not add interpretation, change values, or translate proper names blindly.
+    """
+
+    patterns: tuple[tuple[str, Any], ...] = (
+        (
+            r"^(.+?) spent (\$[\d,.-]+) against (\$[\d,.-]+) budget \(([\d.,-]+)% variance\)\.?$",
+            lambda match: (
+                f"{display_entity_name(match.group(1).strip())} gastó {match.group(2)} "
+                f"frente a un presupuesto de {match.group(3)} "
+                f"(variación de {match.group(4)}%)."
+            ),
+        ),
+        (
+            r"^(.+?) actual (\$[\d,.-]+) versus budget (\$[\d,.-]+); variance ([\d.,-]+)%\.?$",
+            lambda match: (
+                f"{display_entity_name(match.group(1).strip())}: gasto real {match.group(2)} "
+                f"frente a presupuesto {match.group(3)}; variación {match.group(4)}%."
+            ),
+        ),
+        (
+            r"^Collection rate is ([\d.,-]+)% from (\$[\d,.-]+) paid against (\$[\d,.-]+) due\.?$",
+            lambda match: (
+                f"La tasa de cobranza es {match.group(1)}%: {match.group(2)} "
+                f"pagados frente a {match.group(3)} adeudados."
+            ),
+        ),
+        (
+            r"^Maximum payment is (\$[\d,.-]+) versus a (\$[\d,.-]+) threshold\.?$",
+            lambda match: (
+                f"El pago máximo es {match.group(1)} frente a una referencia "
+                f"de revisión de {match.group(2)}."
+            ),
+        ),
+        (
+            r"^Calculated payroll/revenue is ([\d.,-]+)% versus ([\d.,-]+)% maximum\.?$",
+            lambda match: (
+                f"La nómina sobre ingresos calculada es {match.group(1)}% "
+                f"frente a un máximo de {match.group(2)}%."
+            ),
+        ),
+    )
+    for pattern, replacement in patterns:
+        localized = re.sub(pattern, replacement, text)
+        if localized != text:
+            return localized
+    return text
+
+
 def display_anomaly_text(value: Any) -> str:
     """Return Spanish display text for deterministic anomaly rule descriptions.
 
@@ -881,6 +981,9 @@ def display_anomaly_text(value: Any) -> str:
     if not text:
         return ""
     localized = _localize_budget_variance_sentence(text)
+    if localized != text:
+        return localized
+    localized = _localize_dynamic_anomaly_sentence(text)
     if localized != text:
         return localized
     text = re.sub(
@@ -1774,7 +1877,7 @@ def build_goal_budget_view(report_model: dict[str, Any]) -> dict[str, Any]:
                 "source": compact_source_label(
                     (item.get("source_provenance_actual") or {}).get("artifact") or ""
                 ),
-                "calculation_method": sanitize_text(item.get("calculation_method") or ""),
+                "calculation_method": _localize_goal_calculation_method(item.get("calculation_method")),
             }
         )
     return {
@@ -1805,6 +1908,7 @@ def build_goal_budget_view(report_model: dict[str, Any]) -> dict[str, Any]:
         "chart_groups": _goal_chart_groups(items),
         "conclusion": sanitize_text(content.get("deterministic_conclusion") or ""),
         "technical_details": content.get("technical_details", {}),
+        "technical_details_display": _localize_goal_technical_details(content.get("technical_details", {})),
         "sources": source_labels(section),
     }
 
@@ -1844,6 +1948,63 @@ def _localize_goal_direction(value: Any) -> str:
         "exact_target": "Meta exacta",
     }
     return mapping.get(str(value or ""), "Dirección no disponible")
+
+
+def _localize_goal_calculation_method(value: Any) -> str:
+    """Translate deterministic goal calculation method labels for display.
+
+    Inputs: internal method string from goal scoring.
+    Outputs: Spanish explanation for executive/diagnostic presentation.
+    Assumptions: this does not change the scoring method, only its label.
+    """
+
+    text = sanitize_text(value)
+    method_labels = {
+        "actual_revenue compared with approved revenue budget; higher is favorable": (
+            "ingresos reales comparados con el presupuesto aprobado de ingresos; un valor mayor es favorable"
+        ),
+        "actual_expenses compared with approved expense budget; lower is favorable": (
+            "gastos reales comparados con el presupuesto aprobado de gastos; un valor menor es favorable"
+        ),
+        "net operating result compared with net budget or minimum positive result": (
+            "resultado operativo comparado con el presupuesto neto o con el resultado positivo mínimo"
+        ),
+        "payroll ratio compared with the configured maximum threshold": (
+            "relación nómina/ingresos comparada con el límite máximo configurado"
+        ),
+        "collection rate compared with the configured minimum threshold": (
+            "tasa de cobranza comparada con la meta mínima configurada"
+        ),
+        "net cash flow compared with the minimum zero-cash-flow target": (
+            "flujo neto de caja comparado con la meta mínima de no registrar flujo negativo"
+        ),
+    }
+    return method_labels.get(text, text)
+
+
+def _localize_goal_technical_details(value: Any) -> dict[str, Any]:
+    """Return Spanish display text for deterministic goal technical metadata.
+
+    Inputs: raw technical metadata dictionary from goal scoring.
+    Outputs: compact Spanish dictionary for hidden diagnostics.
+    Assumptions: raw English metadata may remain in JSON artifacts, but the
+    Streamlit executive surface should display Spanish labels.
+    """
+
+    details = value if isinstance(value, dict) else {}
+    directions = details.get("directions") if isinstance(details.get("directions"), list) else []
+    return {
+        "Fórmula de puntaje": (
+            "Para metas donde más alto o un mínimo es favorable: real ÷ referencia × 100. "
+            "Para límites máximos o metas donde menos es favorable: referencia ÷ real × 100. "
+            "El puntaje visible se limita al rango 0–100 y las metas satisfechas se muestran como Cumplida."
+        ),
+        "Bandas de estado": (
+            "Cumplida si la condición se satisface; Cerca de cumplir entre 90 y 99.9; "
+            "En riesgo entre 75 y 89.9; Crítica por debajo de 75; Sin datos cuando se excluye."
+        ),
+        "Direcciones evaluadas": [_localize_goal_direction(direction) for direction in directions],
+    }
 
 
 def _goal_reference_label(item: dict[str, Any]) -> str:

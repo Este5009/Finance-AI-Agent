@@ -21,6 +21,7 @@ from finance_agent.reporting.presentation import (
     build_presentation_view,
     display_anomaly_text,
     display_metric_name,
+    find_spanish_executive_localization_leaks,
 )
 import finance_agent.reporting.presentation as presentation
 from finance_agent.reporting.report_quality import (
@@ -391,16 +392,21 @@ def test_budget_variance_text_and_metric_labels_are_spanish() -> None:
         display_anomaly_text("Engineering expense variance is 10.75% versus a +/-8.00% target."),
         display_anomaly_text("Business expense variance is 10.75% versus the +/-8.00% system review reference."),
         display_anomaly_text("Business variance of 10.75% is outside the +/-8.00% system review range."),
+        display_anomaly_text("Arts & Humanities spent $328,089 against $275,851 budget (18.94% variance)."),
+        display_anomaly_text("Technology actual $112,295 versus budget $103,124; variance 8.89%."),
+        display_anomaly_text("Collection rate is 92.00% from $1,406,842 paid against $1,529,176 due."),
+        display_anomaly_text("Maximum payment is $74,500 versus a $50,000 threshold."),
     ]
 
     assert display_metric_name("department_expense_variance_pct") == "Variación porcentual del gasto departamental"
     assert display_metric_name("category_expense_variance_pct") == "Variación porcentual del gasto por categoría"
     assert display_metric_name("maximum_vendor_payment") == "Pago máximo a proveedor"
     for text in rendered:
-        assert "expense variación" not in text
-        assert "target" not in text
-        assert "configured system review reference" not in text
-        assert "referencia analítica del sistema" in text
+        assert find_spanish_executive_localization_leaks(text) == []
+    assert "Artes y Humanidades gastó $328,089 frente a un presupuesto de $275,851" in rendered[3]
+    assert "Tecnología: gasto real $112,295 frente a presupuesto $103,124" in rendered[4]
+    assert "La tasa de cobranza es 92.00%" in rendered[5]
+    assert "referencia de revisión de $50,000" in rendered[6]
 
 
 def test_known_deterministic_anomaly_strings_do_not_leak_to_html_or_pdf(tmp_path: Path) -> None:
@@ -413,6 +419,8 @@ def test_known_deterministic_anomaly_strings_do_not_leak_to_html_or_pdf(tmp_path
         ("Negative or zero operating result", "Net operating result is $-5 on $100 of revenue."),
         ("Vendor payment exceeds review threshold", "Maximum payment is $60,000 versus a $50,000 threshold."),
         ("Tuition collection below target", "Collection rate is 90.00% from $900 paid against $1,000 due."),
+        ("Technology category outside budget target", "Technology actual $112,295 versus budget $103,124; variance 8.89%."),
+        ("Arts & Humanities outside budget target range", "Arts & Humanities spent $328,089 against $275,851 budget (18.94% variance)."),
     ]
     for section in model["sections"]:
         if section["section_id"] == "anomaly_summary":
@@ -456,6 +464,25 @@ def test_known_deterministic_anomaly_strings_do_not_leak_to_html_or_pdf(tmp_path
     assert "Flujo de caja bajo o negativo" in combined
     assert "Pagos estudiantiles vencidos requieren revisión" in combined
     assert "Pago a proveedor requiere revisión analítica" in combined
+    assert find_spanish_executive_localization_leaks(combined) == []
+
+
+def test_august_and_september_html_pdf_have_no_deterministic_english_leaks(tmp_path: Path) -> None:
+    """Verify synthetic report artifacts render Spanish executive strings end to end."""
+
+    from pypdf import PdfReader
+
+    for period in ("2026_08", "2026_09"):
+        path = Path(f"outputs/report/report_model_{period}.json")
+        if not path.is_file():
+            pytest.skip(f"{period} report model artifact is not available.")
+        model = load_report_model(path)
+        html = render_report_html(model)
+        pdf_path = render_report_pdf(model, tmp_path / f"{period}.pdf")
+        pdf_text = "\n".join(page.extract_text() or "" for page in PdfReader(str(pdf_path)).pages)
+
+        assert find_spanish_executive_localization_leaks(html) == []
+        assert find_spanish_executive_localization_leaks(pdf_text) == []
 
 
 def test_september_goal_chart_groups_are_grouped_and_preserve_exact_values() -> None:

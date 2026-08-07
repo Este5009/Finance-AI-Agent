@@ -24,6 +24,7 @@ from finance_agent.orchestration.pipeline_models import (
 )
 from finance_agent.ui import streamlit_app
 from finance_agent.reporting import ReportInputBundle, build_report_model
+from finance_agent.reporting.presentation import find_spanish_executive_localization_leaks
 from finance_agent.ui.streamlit_app import (
     StreamlitRunSettings,
     build_input_model_from_uploads,
@@ -661,6 +662,8 @@ def test_streamlit_known_deterministic_anomaly_strings_are_spanish() -> None:
         ("Negative or zero operating result", "Net operating result is $-5 on $100 of revenue."),
         ("Vendor payment exceeds review threshold", "Maximum payment is $60,000 versus a $50,000 threshold."),
         ("Tuition collection below target", "Collection rate is 90.00% from $900 paid against $1,000 due."),
+        ("Technology category outside budget target", "Technology actual $112,295 versus budget $103,124; variance 8.89%."),
+        ("Arts & Humanities outside budget target range", "Arts & Humanities spent $328,089 against $275,851 budget (18.94% variance)."),
     ]
     for section in report_model["sections"]:
         if section.get("section_id") == "anomaly_summary":
@@ -694,6 +697,34 @@ def test_streamlit_known_deterministic_anomaly_strings_are_spanish() -> None:
     assert "Flujo de caja bajo o negativo" in visible
     assert "Pagos estudiantiles vencidos requieren revisión" in visible
     assert "Pago a proveedor requiere revisión analítica" in visible
+
+
+def test_august_and_september_streamlit_tabs_have_no_deterministic_english_leaks() -> None:
+    """Verify representative Streamlit result tabs stay fully Spanish."""
+
+    for period in ("2026_08", "2026_09"):
+        path = Path(f"outputs/report/report_model_{period}.json")
+        if not path.is_file():
+            pytest.skip(f"{period} report model artifact is not available.")
+        report_model = streamlit_app._load_json(path)
+        fake_st = FakeStreamlitRenderer()
+        for renderer in (
+            streamlit_app._render_kpi_tab,
+            streamlit_app._render_goal_budget_tab,
+            streamlit_app._render_anomaly_tab,
+            streamlit_app._render_analysis_tab,
+            streamlit_app._render_recommendations_tab,
+        ):
+            renderer(fake_st, report_model)
+
+        visible = "\n".join(
+            fake_st.markdown_calls
+            + fake_st.info_messages
+            + fake_st.success_messages
+            + fake_st.warning_messages
+            + fake_st.error_messages
+        )
+        assert find_spanish_executive_localization_leaks(visible) == []
 
 
 def test_streamlit_goal_charts_are_grouped_not_stacked_for_september() -> None:

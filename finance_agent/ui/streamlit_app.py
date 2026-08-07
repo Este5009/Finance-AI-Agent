@@ -2641,7 +2641,7 @@ def _render_goal_budget_tab(st: Any, report_model: dict[str, Any]) -> None:
             st.markdown(f"#### {group.get('title')}")
             st.dataframe(spec["data"]["values"], use_container_width=True, hide_index=True)
     with st.expander("Detalles técnicos de cálculo y proveniencia", expanded=False):
-        st.write(goals.get("technical_details", {}))
+        st.write(goals.get("technical_details_display", {}))
         st.dataframe(
             [
                 {

@@ -26,6 +26,13 @@
   "Presupuesto", "Meta", "Límite máximo", and "Meta mínima"; currency and ratio
   metrics are charted separately, and renderers consume the same explicit
   grouped chart rows so actual and reference values are never summed visually.
+- Spanish executive surfaces must not render deterministic English templates.
+  Titles, finding descriptions, evidence sentences, recommendation/status
+  labels, chart labels, tooltips, and hidden-but-visible diagnostic expanders
+  pass through the presentation/localization layer before UI/HTML/PDF output.
+  Raw source artifacts may retain English internals, but rendered Spanish
+  output is guarded by localization-leak tests for phrases such as "spent",
+  "against", "budget", "target", "review threshold", and "expense variance".
 - The supported user input workflow is one integrated Excel workbook (`.xlsx`
   or `.xls`) per reporting period. The workbook must contain actuals, budgets,
   goals/targets, variances, departments, payroll, collections, cash-flow, and
