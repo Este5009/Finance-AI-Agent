@@ -1769,6 +1769,7 @@ def build_goal_budget_view(report_model: dict[str, Any]) -> dict[str, Any]:
                 "unit": unit,
                 "actual_value": number_value(item.get("actual_value")),
                 "target_value": number_value(item.get("target_value")),
+                "reference_label": _goal_reference_label(item),
                 "budget_classification": sanitize_text(item.get("budget_classification") or ""),
                 "source": compact_source_label(
                     (item.get("source_provenance_actual") or {}).get("artifact") or ""
@@ -1845,6 +1846,27 @@ def _localize_goal_direction(value: Any) -> str:
     return mapping.get(str(value or ""), "Dirección no disponible")
 
 
+def _goal_reference_label(item: dict[str, Any]) -> str:
+    """Return the executive label for a goal reference value.
+
+    Inputs: one deterministic goal-performance item.
+    Outputs: Spanish reference label such as Presupuesto or Límite máximo.
+    Assumptions: this affects presentation only; source values and directions
+    remain unchanged in the report model.
+    """
+
+    metric_id = str(item.get("metric_id") or "")
+    direction = str(item.get("direction") or item.get("comparison_operator") or "")
+    target_path = str((item.get("source_provenance_target") or {}).get("path") or "")
+    if "budget_vs_actual" in target_path or metric_id in {"total_expenses"}:
+        return "Presupuesto"
+    if direction == "maximum_threshold" or metric_id in {"payroll_percentage_of_revenue"}:
+        return "Límite máximo"
+    if metric_id in {"collection_rate"}:
+        return "Meta mínima"
+    return "Meta"
+
+
 def _goal_chart_groups(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Group actual-vs-target chart rows by compatible unit.
 
@@ -1857,20 +1879,50 @@ def _goal_chart_groups(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for item in items:
         if item.get("actual_value") is None or item.get("target_value") is None:
             continue
-        groups.setdefault(str(item.get("unit") or "value"), []).append(
+        unit = str(item.get("unit") or "value")
+        reference_label = str(item.get("reference_label") or "Meta")
+        chart_rows = [
+            {
+                "metric": item["label"],
+                "series": "Real",
+                "value": item["actual_value"],
+                "display_value": item["actual"],
+                "unit": unit,
+                "gap": item.get("gap"),
+                "status": item.get("status"),
+            },
+            {
+                "metric": item["label"],
+                "series": reference_label,
+                "value": item["target_value"],
+                "display_value": item["target"],
+                "unit": unit,
+                "gap": item.get("gap"),
+                "status": item.get("status"),
+            },
+        ]
+        groups.setdefault(unit, []).append(
             {
                 "label": item["label"],
                 "actual": item["actual_value"],
                 "target": item["target_value"],
+                "actual_display": item["actual"],
+                "target_display": item["target"],
+                "reference_label": reference_label,
                 "unit": item.get("unit") or "",
+                "gap": item.get("gap"),
+                "status": item.get("status"),
+                "rows": chart_rows,
             }
         )
     return [
         {
             "unit": unit,
-            "title": "Comparación real vs meta"
+            "title": "Comparación real vs referencia"
             + (" (%)" if unit == "ratio" else " (USD)" if unit == "USD" else ""),
             "items": rows,
+            "rows": [row for item in rows for row in item["rows"]],
+            "encoding": "grouped_actual_reference",
         }
         for unit, rows in groups.items()
     ]

@@ -291,6 +291,65 @@ def _bar_chart(items: list[dict[str, Any]], *, title: str) -> str:
     return f"<svg class='svg-chart' viewBox='0 0 {width} {height}' role='img' aria-label='{_escape(title)}'>{''.join(rows)}</svg>"
 
 
+def _grouped_goal_bar_chart(group: dict[str, Any]) -> str:
+    """Render side-by-side actual/reference bars for goal comparisons.
+
+    Inputs: one goal chart group from the presentation view.
+    Outputs: SVG chart with grouped bars, never stacked values.
+    Assumptions: currency and percentage groups are separated upstream.
+    """
+
+    rows = [row for row in group.get("rows", []) if isinstance(row, dict)]
+    if not rows:
+        return ""
+    metrics = list(dict.fromkeys(str(row.get("metric") or "") for row in rows if row.get("metric")))
+    series = list(dict.fromkeys(str(row.get("series") or "") for row in rows if row.get("series")))
+    values = [float(row.get("value") or 0.0) for row in rows]
+    if not metrics or not series:
+        return ""
+    width = 820
+    height = 330
+    margin_left = 76
+    margin_right = 28
+    margin_top = 44
+    margin_bottom = 86
+    chart_width = width - margin_left - margin_right
+    chart_height = height - margin_top - margin_bottom
+    min_value = min(0.0, min(values))
+    max_value = max(0.0, max(values))
+    if min_value == max_value:
+        max_value = max_value + 1.0
+    scale = chart_height / (max_value - min_value)
+    zero_y = margin_top + max_value * scale
+    group_width = chart_width / max(1, len(metrics))
+    bar_width = min(28.0, group_width / max(1, len(series)) * 0.62)
+    palette = ["#4f9ad7", "#f2b84b", "#8ac17d", "#d77a61"]
+    svg = [
+        f"<text x='0' y='20' class='chart-title'>{_escape(group.get('title') or 'Comparación real vs referencia')}</text>",
+        f"<text x='{margin_left}' y='38' class='axis-label'>Valor</text>",
+    ]
+    for tick in range(5):
+        value = min_value + (max_value - min_value) * tick / 4
+        y = margin_top + (max_value - value) * scale
+        svg.append(f"<line x1='{margin_left}' y1='{y:.1f}' x2='{width - margin_right}' y2='{y:.1f}' class='grid-line' />")
+        svg.append(f"<text x='{margin_left - 8}' y='{y + 4:.1f}' text-anchor='end' class='tick-label'>{_escape(format_compact_axis_value(value, group.get('unit')))}</text>")
+    for metric_index, metric in enumerate(metrics):
+        center_x = margin_left + metric_index * group_width + group_width / 2
+        svg.append(f"<text x='{center_x:.1f}' y='{height - 42}' text-anchor='middle' class='tick-label'>{_escape(metric)}</text>")
+        metric_rows = [row for row in rows if str(row.get("metric") or "") == metric]
+        for series_index, row in enumerate(metric_rows):
+            value = float(row.get("value") or 0.0)
+            x = center_x - (len(metric_rows) * bar_width + (len(metric_rows) - 1) * 6) / 2 + series_index * (bar_width + 6)
+            bar_height = abs(value) * scale
+            y = zero_y - bar_height if value >= 0 else zero_y
+            svg.append(
+                f"<rect x='{x:.1f}' y='{y:.1f}' width='{bar_width:.1f}' height='{max(2, bar_height):.1f}' "
+                f"rx='4' fill='{palette[series_index % len(palette)]}' />"
+            )
+            svg.append(f"<text x='{x + bar_width / 2:.1f}' y='{height - 24}' text-anchor='middle' class='tick-label'>{_escape(row.get('series'))}</text>")
+    return f"<svg class='svg-chart grouped-goal-chart' viewBox='0 0 {width} {height}' role='img' aria-label='{_escape(group.get('title') or '')}'>{''.join(svg)}</svg>"
+
+
 def _line_chart(series: dict[str, Any]) -> str:
     """Render a compact SVG line chart for one historical KPI.
 
@@ -526,16 +585,13 @@ def _render_goal_budget(view: dict[str, Any]) -> str:
     )
     chart_markup = ""
     for group in goals.get("chart_groups", []):
-        rows = []
-        for item in group.get("items", []):
-            rows.append({"label": f"{item['label']} · Real", "value": item["actual"], "unit": group["unit"]})
-            rows.append({"label": f"{item['label']} · Meta", "value": item["target"], "unit": group["unit"]})
-        chart_markup += _bar_chart(rows, title=group.get("title") or "Real vs meta")
+        chart_markup += _grouped_goal_bar_chart(group)
     rows = [
         [
             item["label"],
             item["actual"],
             item["target"],
+            item.get("reference_label", "Meta"),
             item["gap"],
             item["score"],
             item["status"],
@@ -552,7 +608,7 @@ def _render_goal_budget(view: dict[str, Any]) -> str:
         + status_chart
         + chart_markup
         + _table(
-            ["Meta", "Real", "Objetivo", "Brecha", "Puntaje", "Estado", "Dirección histórica", "Fuente"],
+            ["Meta", "Real", "Referencia", "Tipo de referencia", "Brecha", "Puntaje", "Estado", "Dirección histórica", "Fuente"],
             rows,
             force=True,
         )

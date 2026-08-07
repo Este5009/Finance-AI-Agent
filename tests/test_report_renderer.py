@@ -403,6 +403,112 @@ def test_budget_variance_text_and_metric_labels_are_spanish() -> None:
         assert "referencia analítica del sistema" in text
 
 
+def test_known_deterministic_anomaly_strings_do_not_leak_to_html_or_pdf(tmp_path: Path) -> None:
+    """Verify known Python detector titles/descriptions are localized in final artifacts."""
+
+    model = _sample_report_model()
+    known = [
+        ("Negative or low cash flow", "Net cash flow is $-1; ending cash is $100."),
+        ("Overdue student payments above limit", "10 of 100 invoices are overdue."),
+        ("Negative or zero operating result", "Net operating result is $-5 on $100 of revenue."),
+        ("Vendor payment exceeds review threshold", "Maximum payment is $60,000 versus a $50,000 threshold."),
+        ("Tuition collection below target", "Collection rate is 90.00% from $900 paid against $1,000 due."),
+    ]
+    for section in model["sections"]:
+        if section["section_id"] == "anomaly_summary":
+            section["content"] = {
+                "anomalies_by_severity": {"medium": len(known)},
+                "top_anomalies": [
+                    {
+                        "anomaly_id": f"ANOM-{index}",
+                        "title": title,
+                        "description": description,
+                        "evidence": description,
+                        "metric": "net_cash_flow" if "cash" in title.lower() else "collection_rate",
+                        "observed_value": 1,
+                        "threshold_value": 0,
+                        "severity": "medium",
+                        "finding_type": "system_review_rule",
+                        "reference_origin": "system-derived/default",
+                    }
+                    for index, (title, description) in enumerate(known)
+                ],
+            }
+            break
+
+    html = render_report_html(model)
+    pdf_path = render_report_pdf(model, tmp_path / "spanish_anomalies.pdf")
+
+    from pypdf import PdfReader
+
+    pdf_text = "\n".join(page.extract_text() or "" for page in PdfReader(str(pdf_path)).pages)
+    combined = html + "\n" + pdf_text
+    for english, _description in known:
+        assert english not in combined
+    for phrase in (
+        "Net cash flow is",
+        "Overdue student payments above limit",
+        "Negative or zero operating result",
+        "Vendor payment exceeds review threshold",
+        "Tuition collection below target",
+    ):
+        assert phrase not in combined
+    assert "Flujo de caja bajo o negativo" in combined
+    assert "Pagos estudiantiles vencidos requieren revisión" in combined
+    assert "Pago a proveedor requiere revisión analítica" in combined
+
+
+def test_september_goal_chart_groups_are_grouped_and_preserve_exact_values() -> None:
+    """Verify September goal charts compare values side-by-side without sums."""
+
+    path = Path("outputs/report/report_model_2026_09.json")
+    if not path.is_file():
+        pytest.skip("September report model artifact is not available.")
+    view = build_presentation_view(load_report_model(path))
+    groups = view["goal_budget"]["chart_groups"]
+    currency = next(group for group in groups if group["unit"] == "USD")
+    ratio = next(group for group in groups if group["unit"] == "ratio")
+    values_by_key = {
+        (row["metric"], row["series"]): row["value"]
+        for group in groups
+        for row in group["rows"]
+    }
+
+    assert currency["encoding"] == "grouped_actual_reference"
+    assert ratio["encoding"] == "grouped_actual_reference"
+    assert {row["series"] for row in currency["rows"]} >= {"Real", "Meta", "Presupuesto"}
+    assert {row["series"] for row in ratio["rows"]} >= {"Real", "Límite máximo", "Meta mínima"}
+    assert values_by_key[("Ingresos totales", "Real")] == 2_123_856.0
+    assert values_by_key[("Ingresos totales", "Presupuesto")] == 2_167_200.0
+    assert values_by_key[("Gastos totales", "Real")] == 2_096_356.0
+    assert values_by_key[("Gastos totales", "Presupuesto")] == 2_015_496.0
+    assert values_by_key[("Resultado operativo", "Real")] == 27_500.0
+    assert values_by_key[("Resultado operativo", "Presupuesto")] == 151_704.0
+    assert values_by_key[("Flujo neto de caja", "Real")] == 50_000.0
+    assert values_by_key[("Flujo neto de caja", "Meta")] == 0.0
+    assert values_by_key[("Nómina / ingresos", "Real")] == 0.46
+    assert values_by_key[("Nómina / ingresos", "Límite máximo")] == 0.42
+    assert values_by_key[("Tasa de cobranza", "Real")] == pytest.approx(0.9199999665)
+    assert values_by_key[("Tasa de cobranza", "Meta mínima")] == 0.94
+    assert 2_123_856.0 + 2_167_200.0 not in [row["value"] for row in currency["rows"]]
+    assert set(group["unit"] for group in groups) >= {"USD", "ratio"}
+
+
+def test_html_goal_charts_use_grouped_semantics_and_reference_labels() -> None:
+    """Verify HTML goal charts expose grouped comparison labels, not stacked rows."""
+
+    path = Path("outputs/report/report_model_2026_09.json")
+    if not path.is_file():
+        pytest.skip("September report model artifact is not available.")
+    html = render_report_html(load_report_model(path))
+
+    assert "grouped-goal-chart" in html
+    assert "Límite máximo" in html
+    assert "Meta mínima" in html
+    assert "Tipo de referencia" in html
+    assert "Real vs Objetivo" not in html
+
+
 def test_html_generation_renders_strategic_analysis_fields() -> None:
     """Verify accepted strategy fields appear in the HTML report."""
 

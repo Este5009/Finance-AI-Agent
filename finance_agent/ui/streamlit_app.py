@@ -995,6 +995,83 @@ def _trend_chart_spec(trend: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _goal_comparison_chart_spec(group: dict[str, Any]) -> dict[str, Any]:
+    """Build an explicit grouped bar chart for actual-vs-reference goals.
+
+    Inputs: one goal chart group from the presentation layer.
+    Outputs: Vega-Lite spec with side-by-side bars and no stacking.
+    Assumptions: values are deterministic; this only controls visual encoding.
+    """
+
+    rows = [
+        {
+            "metric": _safe_display_text(row.get("metric")),
+            "series": _safe_display_text(row.get("series")),
+            "value": float(row.get("value") or 0.0),
+            "display_value": _safe_display_text(row.get("display_value")),
+            "gap": _safe_display_text(row.get("gap")),
+            "status": _safe_display_text(row.get("status")),
+        }
+        for row in group.get("rows", [])
+        if isinstance(row, dict) and row.get("metric") and row.get("series") and row.get("value") is not None
+    ]
+    if not rows:
+        return {}
+    labels = list(dict.fromkeys(str(row["metric"]) for row in rows))
+    series_labels = list(dict.fromkeys(str(row["series"]) for row in rows))
+    unit = str(group.get("unit") or "")
+    y_title = "Porcentaje" if unit == "ratio" else ("Monto" if unit == "USD" else "Valor")
+    return {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "description": "Comparación agrupada de valores reales frente a referencias.",
+        "data": {"values": rows},
+        "mark": {"type": "bar", "cornerRadiusTopLeft": 4, "cornerRadiusTopRight": 4},
+        "encoding": {
+            "x": {
+                "field": "metric",
+                "type": "ordinal",
+                "sort": labels,
+                "title": "Indicador",
+                "axis": {"labelAngle": -15, "labelLimit": 180, "labelOverlap": False},
+            },
+            "xOffset": {
+                "field": "series",
+                "sort": series_labels,
+            },
+            "y": {
+                "field": "value",
+                "type": "quantitative",
+                "title": y_title,
+                "stack": None,
+                "axis": {"grid": True},
+            },
+            "color": {
+                "field": "series",
+                "type": "nominal",
+                "title": "Comparación",
+                "scale": {
+                    "domain": series_labels,
+                    "range": ["#4f9ad7", "#f2b84b", "#8ac17d", "#d77a61"][: len(series_labels)],
+                },
+            },
+            "tooltip": [
+                {"field": "metric", "type": "ordinal", "title": "Indicador"},
+                {"field": "series", "type": "nominal", "title": "Tipo"},
+                {"field": "display_value", "type": "nominal", "title": "Valor"},
+                {"field": "gap", "type": "nominal", "title": "Brecha"},
+                {"field": "status", "type": "nominal", "title": "Estado"},
+            ],
+        },
+        "width": 360,
+        "height": 220,
+        "config": {
+            "view": {"stroke": "transparent"},
+            "axis": {"labelFontSize": 11, "titleFontSize": 12, "gridColor": "#d7dde8"},
+            "legend": {"labelFontSize": 11, "titleFontSize": 12},
+        },
+    }
+
+
 def _render_streamlit_trend_chart(st: Any, trend: dict[str, Any]) -> bool:
     """Render one historical trend chart using explicit Streamlit chart data.
 
@@ -2542,7 +2619,8 @@ def _render_goal_budget_tab(st: Any, report_model: dict[str, Any]) -> None:
         {
             "Meta": item.get("label"),
             "Real": item.get("actual"),
-            "Objetivo": item.get("target"),
+            "Referencia": item.get("target"),
+            "Tipo de referencia": item.get("reference_label"),
             "Brecha": item.get("gap"),
             "Puntaje": item.get("score"),
             "Estado": item.get("status"),
@@ -2555,13 +2633,13 @@ def _render_goal_budget_tab(st: Any, report_model: dict[str, Any]) -> None:
     if rows:
         st.dataframe(rows, use_container_width=True, hide_index=True)
     for group in goals.get("chart_groups", []):
-        chart_rows: list[dict[str, Any]] = []
-        for item in group.get("items", []):
-            chart_rows.append({"Meta": item.get("label"), "Tipo": "Real", "Valor": item.get("actual")})
-            chart_rows.append({"Meta": item.get("label"), "Tipo": "Objetivo", "Valor": item.get("target")})
-        if chart_rows and hasattr(st, "bar_chart"):
+        spec = _goal_comparison_chart_spec(group) if isinstance(group, dict) else {}
+        if spec and hasattr(st, "vega_lite_chart"):
             st.markdown(f"#### {group.get('title')}")
-            st.bar_chart(chart_rows, x="Meta", y="Valor", color="Tipo", use_container_width=True)
+            st.vega_lite_chart(spec, use_container_width=True)
+        elif spec:
+            st.markdown(f"#### {group.get('title')}")
+            st.dataframe(spec["data"]["values"], use_container_width=True, hide_index=True)
     with st.expander("Detalles técnicos de cálculo y proveniencia", expanded=False):
         st.write(goals.get("technical_details", {}))
         st.dataframe(

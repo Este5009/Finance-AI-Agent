@@ -651,6 +651,115 @@ def test_budget_variance_anomaly_tab_renders_exact_budget_actual_values() -> Non
     assert "Technology real" not in visible
 
 
+def test_streamlit_known_deterministic_anomaly_strings_are_spanish() -> None:
+    """Verify known deterministic anomaly strings are localized in Streamlit."""
+
+    report_model = _july_report_model()
+    known = [
+        ("Negative or low cash flow", "Net cash flow is $-1; ending cash is $100."),
+        ("Overdue student payments above limit", "10 of 100 invoices are overdue."),
+        ("Negative or zero operating result", "Net operating result is $-5 on $100 of revenue."),
+        ("Vendor payment exceeds review threshold", "Maximum payment is $60,000 versus a $50,000 threshold."),
+        ("Tuition collection below target", "Collection rate is 90.00% from $900 paid against $1,000 due."),
+    ]
+    for section in report_model["sections"]:
+        if section.get("section_id") == "anomaly_summary":
+            section["content"] = {
+                "anomalies_by_severity": {"medium": len(known)},
+                "top_anomalies": [
+                    {
+                        "anomaly_id": f"ANOM-{index}",
+                        "title": title,
+                        "description": description,
+                        "evidence": description,
+                        "metric": "net_cash_flow" if "cash" in title.lower() else "collection_rate",
+                        "observed_value": 1,
+                        "threshold_value": 0,
+                        "severity": "medium",
+                        "finding_type": "system_review_rule",
+                        "reference_origin": "system-derived/default",
+                    }
+                    for index, (title, description) in enumerate(known)
+                ],
+            }
+            break
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_anomaly_tab(fake_st, report_model)
+
+    visible = "\n".join(fake_st.markdown_calls)
+    for title, description in known:
+        assert title not in visible
+        assert description not in visible
+    assert "Flujo de caja bajo o negativo" in visible
+    assert "Pagos estudiantiles vencidos requieren revisión" in visible
+    assert "Pago a proveedor requiere revisión analítica" in visible
+
+
+def test_streamlit_goal_charts_are_grouped_not_stacked_for_september() -> None:
+    """Verify Streamlit goal charts use explicit grouped Vega-Lite specs."""
+
+    path = Path("outputs/report/report_model_2026_09.json")
+    if not path.is_file():
+        pytest.skip("September report model artifact is not available.")
+    report_model = streamlit_app._load_json(path)
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_goal_budget_tab(fake_st, report_model)
+
+    assert len(fake_st.vega_lite_charts) >= 2
+    goal_specs = [
+        chart["spec"]
+        for chart in fake_st.vega_lite_charts
+        if chart["spec"].get("description") == "Comparación agrupada de valores reales frente a referencias."
+    ]
+    assert len(goal_specs) == 2
+    all_rows = [row for spec in goal_specs for row in spec["data"]["values"]]
+    values_by_key = {(row["metric"], row["series"]): row["value"] for row in all_rows}
+    for spec in goal_specs:
+        assert "xOffset" in spec["encoding"]
+        assert spec["encoding"]["y"]["stack"] is None
+    assert values_by_key[("Ingresos totales", "Real")] == 2_123_856.0
+    assert values_by_key[("Ingresos totales", "Presupuesto")] == 2_167_200.0
+    assert values_by_key[("Gastos totales", "Real")] == 2_096_356.0
+    assert values_by_key[("Gastos totales", "Presupuesto")] == 2_015_496.0
+    assert values_by_key[("Nómina / ingresos", "Límite máximo")] == 0.42
+    assert values_by_key[("Tasa de cobranza", "Meta mínima")] == 0.94
+    assert 2_123_856.0 + 2_167_200.0 not in [row["value"] for row in all_rows]
+
+
+def test_goal_chart_spec_preserves_negative_and_zero_reference_values() -> None:
+    """Verify negative/zero goal values remain independent chart bars."""
+
+    group = {
+        "unit": "USD",
+        "rows": [
+            {
+                "metric": "Flujo neto de caja",
+                "series": "Real",
+                "value": -500.0,
+                "display_value": "$-500",
+                "gap": "$-500",
+                "status": "Crítica",
+            },
+            {
+                "metric": "Flujo neto de caja",
+                "series": "Meta",
+                "value": 0.0,
+                "display_value": "$0",
+                "gap": "$-500",
+                "status": "Crítica",
+            },
+        ],
+    }
+
+    spec = streamlit_app._goal_comparison_chart_spec(group)
+
+    assert spec["encoding"]["y"]["stack"] is None
+    assert spec["data"]["values"][0]["value"] == -500.0
+    assert spec["data"]["values"][1]["value"] == 0.0
+
+
 def test_july_analysis_tab_contains_deterministic_fallback_text() -> None:
     """Verify rejected strategy does not empty executive analysis sections."""
 
@@ -965,6 +1074,7 @@ def test_streamlit_chart_input_preserves_exact_september_revenue_and_expense_poi
         chart["spec"]["data"]["values"][0]["metric_id"]: chart["spec"]
         for chart in fake_st.vega_lite_charts
         if chart["spec"].get("data", {}).get("values")
+        and "metric_id" in chart["spec"]["data"]["values"][0]
     }
     captured = {
         metric: [
@@ -1032,11 +1142,11 @@ def test_september_artifact_streamlit_specs_keep_all_monthly_points() -> None:
 
     streamlit_app._render_analysis_tab(fake_st, report_model)
 
-    specs_by_metric = {
-        chart["spec"]["data"]["values"][0]["metric_id"]: chart["spec"]
-        for chart in fake_st.vega_lite_charts
-        if chart["spec"].get("data", {}).get("values")
-    }
+    specs_by_metric = {}
+    for chart in fake_st.vega_lite_charts:
+        values = chart["spec"].get("data", {}).get("values")
+        if values and isinstance(values[0], dict) and "metric_id" in values[0]:
+            specs_by_metric[values[0]["metric_id"]] = chart["spec"]
     assert len(fake_st.vega_lite_charts) == 7
     assert [
         (row["period_label"], float(row["value"]))
@@ -1142,11 +1252,11 @@ def test_results_refresh_stale_period_model_before_streamlit_charts(tmp_path: Pa
     assert streamlit_app._period_slug_from_result(result) == "2026_09"
     streamlit_app._render_results(fake_st, result)
 
-    specs_by_metric = {
-        chart["spec"]["data"]["values"][0]["metric_id"]: chart["spec"]
-        for chart in fake_st.vega_lite_charts
-        if chart["spec"].get("data", {}).get("values")
-    }
+    specs_by_metric: dict[str, dict[str, Any]] = {}
+    for chart in fake_st.vega_lite_charts:
+        values = chart["spec"].get("data", {}).get("values")
+        if values and isinstance(values[0], dict) and "metric_id" in values[0]:
+            specs_by_metric[str(values[0]["metric_id"])] = chart["spec"]
     revenue_rows = specs_by_metric["total_revenue"]["data"]["values"]
     expense_rows = specs_by_metric["total_expenses"]["data"]["values"]
     assert [(row["period_label"], float(row["value"])) for row in revenue_rows] == [

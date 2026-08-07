@@ -635,29 +635,23 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
         )
         for group in goal_budget.get("chart_groups", [])[:2]:
             chart_rows: list[dict[str, Any]] = []
-            for item in group.get("items", [])[:4]:
+            for row in group.get("rows", [])[:8]:
                 chart_rows.append(
                     {
-                        "label": f"{item.get('label')} · Real",
-                        "value": item.get("actual"),
-                        "unit": group.get("unit") or "",
-                    }
-                )
-                chart_rows.append(
-                    {
-                        "label": f"{item.get('label')} · Objetivo",
-                        "value": item.get("target"),
+                        "label": f"{row.get('metric')} · {row.get('series')}",
+                        "value": row.get("value"),
                         "unit": group.get("unit") or "",
                     }
                 )
             if chart_rows:
                 story.append(Spacer(1, 0.08 * inch))
-                story.append(HorizontalBarChart(chart_rows, str(group.get("title") or "Real vs objetivo")))
+                story.append(HorizontalBarChart(chart_rows, str(group.get("title") or "Real vs referencia")))
         rows = [
             [
                 item["label"],
                 item["actual"],
                 item["target"],
+                item.get("reference_label", "Meta"),
                 item["gap"],
                 item["score"],
                 item["status"],
@@ -666,10 +660,10 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
         ]
         story.append(
             _table(
-                ["Meta", "Real", "Objetivo", "Brecha", "Puntaje", "Estado"],
+                ["Meta", "Real", "Referencia", "Tipo", "Brecha", "Puntaje", "Estado"],
                 rows,
                 styles,
-                widths=[1.55 * inch, 1.0 * inch, 1.0 * inch, 1.0 * inch, 0.85 * inch, 1.1 * inch],
+                widths=[1.35 * inch, 0.8 * inch, 0.85 * inch, 0.8 * inch, 0.85 * inch, 0.75 * inch, 1.0 * inch],
                 force=True,
             )
         )

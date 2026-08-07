@@ -21,6 +21,11 @@
   `data_quality_finding`; valid review findings carry structured
   `comparison_details` so UI/PDF/HTML lead with budget, actual spend, monetary
   difference, percentage difference, and then any system analytical reference.
+- Goal/budget comparison charts are grouped actual-vs-reference visuals, never
+  stacked bars. The presentation layer owns Spanish reference labels such as
+  "Presupuesto", "Meta", "Límite máximo", and "Meta mínima"; currency and ratio
+  metrics are charted separately, and renderers consume the same explicit
+  grouped chart rows so actual and reference values are never summed visually.
 - The supported user input workflow is one integrated Excel workbook (`.xlsx`
   or `.xls`) per reporting period. The workbook must contain actuals, budgets,
   goals/targets, variances, departments, payroll, collections, cash-flow, and
