@@ -928,8 +928,8 @@ def _render_recommendations(view: dict[str, Any]) -> str:
         attention_cards = "".join(
             "<article class='risk-card'>"
             f"<div><em class='badge warning'>{_escape(item.get('severity') or 'Atención')}</em></div>"
-            f"<h3>{_escape(item.get('title') or 'Hallazgo determinístico')}</h3>"
-            f"<p>{_escape(item.get('evidence') or '')}</p>"
+            f"<h3>{_escape(item.get('display_title_es') or item.get('title') or 'Hallazgo determinístico')}</h3>"
+            f"<p>{_escape(item.get('display_evidence_es') or item.get('evidence') or '')}</p>"
             f"<p><strong>Indicador:</strong> {_escape(item.get('metric') or '')}</p>"
             f"<p><strong>Departamento/entidad:</strong> {_escape(item.get('department') or '')}</p>"
             f"<p><strong>Periodo:</strong> {_escape(item.get('period') or '')}</p>"

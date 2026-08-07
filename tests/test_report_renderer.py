@@ -461,9 +461,52 @@ def test_known_deterministic_anomaly_strings_do_not_leak_to_html_or_pdf(tmp_path
         "Tuition collection below target",
     ):
         assert phrase not in combined
-    assert "Flujo de caja bajo o negativo" in combined
-    assert "Pagos estudiantiles vencidos requieren revisión" in combined
-    assert "Pago a proveedor requiere revisión analítica" in combined
+    assert "Flujo de caja negativo o insuficiente" in combined
+    assert "Pagos estudiantiles vencidos por encima de la referencia" in combined
+    assert "Pago a proveedor supera la referencia de revisión" in combined
+    assert find_spanish_executive_localization_leaks(combined) == []
+
+
+def test_july_deterministic_attention_items_are_spanish_in_html_pdf(tmp_path: Path) -> None:
+    """Verify July fallback findings do not render raw English detector fields."""
+
+    path = Path("outputs/report/report_model_2026_07.json")
+    if not path.is_file():
+        pytest.skip("July report model artifact is not available.")
+
+    model = load_report_model(path)
+    html = render_report_html(model)
+    pdf_path = render_report_pdf(model, tmp_path / "july_attention_items.pdf")
+
+    from pypdf import PdfReader
+
+    pdf_text = "\n".join(page.extract_text() or "" for page in PdfReader(str(pdf_path)).pages)
+    combined = html + "\n" + pdf_text
+    forbidden = (
+        "Negative or",
+        "Overdue student",
+        "Net cash flow is",
+        "Vendor payment",
+        "Maximum payment is",
+        "Tuition collection",
+        "Collection rate is",
+        "operating result is",
+    )
+    expected = (
+        "Flujo de caja negativo o insuficiente",
+        "El flujo neto de caja es de $-350,000",
+        "Pagos estudiantiles vencidos por encima de la referencia",
+        "24 de 24 facturas están vencidas",
+        "Resultado operativo negativo o nulo",
+        "Pago a proveedor supera la referencia de revisión",
+        "El pago máximo es de $74,500",
+        "Tasa de cobranza por debajo de la referencia",
+        "La tasa de cobranza es 85.00%",
+    )
+    for phrase in forbidden:
+        assert phrase not in combined
+    for phrase in expected:
+        assert phrase in combined
     assert find_spanish_executive_localization_leaks(combined) == []
 
 

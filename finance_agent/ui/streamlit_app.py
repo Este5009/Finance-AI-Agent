@@ -2697,8 +2697,8 @@ def _render_anomaly_tab(st: Any, report_model: dict[str, Any]) -> None:
             st,
             [
                 {
-                    "title": item.get("title") or "Hallazgo detectado",
-                    "body": item.get("evidence"),
+                    "title": item.get("display_title_es") or item.get("title") or "Hallazgo detectado",
+                    "body": item.get("display_evidence_es") or item.get("evidence"),
                     "variant": _card_variant_from_text(item.get("severity"), item.get("severity_class")),
                     "badge": item.get("severity") or "Riesgo",
                     "rows": [
@@ -2712,13 +2712,13 @@ def _render_anomaly_tab(st: Any, report_model: dict[str, Any]) -> None:
                         ("Valor observado", item.get("observed_value")),
                         ("Referencia", item.get("reference_value")),
                         ("Origen de referencia", item.get("reference_origin")),
-                        ("Motivo del hallazgo", item.get("reason_for_flagging")),
+                        ("Motivo del hallazgo", item.get("display_reason_es") or item.get("reason_for_flagging")),
                         ("Nota de referencia", item.get("reference_notice")),
                         ("Periodo", item.get("period")),
                         ("Severidad", item.get("severity")),
                         ("Recurrencia", item.get("recurrence")),
                         ("Períodos afectados", item.get("period_chips")),
-                        ("Próxima verificación", item.get("recommended_next_check")),
+                        ("Próxima verificación", item.get("display_action_es") or item.get("recommended_next_check")),
                     ],
                 }
                 for item in top_rows
@@ -2845,7 +2845,7 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
             [
                 {
                     "title": item.get("title") or "Anomalía detectada",
-                    "body": item.get("evidence") or item.get("description"),
+                    "body": item.get("display_evidence_es") or item.get("evidence") or item.get("description"),
                     "variant": _card_variant_from_text(item.get("severity"), item.get("severity_class")),
                     "badge": item.get("severity") or "Riesgo",
                     "rows": [
@@ -3015,8 +3015,8 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
             st,
             [
                 {
-                    "title": item.get("title") or "Hallazgo que requiere atención",
-                    "body": item.get("evidence"),
+                    "title": item.get("display_title_es") or item.get("title") or "Hallazgo que requiere atención",
+                    "body": item.get("display_evidence_es") or item.get("evidence"),
                     "variant": _card_variant_from_text(item.get("severity")),
                     "badge": item.get("severity") or "Requiere atención",
                     "rows": [("Indicador", item.get("metric")), ("Departamento/entidad", item.get("department"))],
@@ -3155,8 +3155,8 @@ def _render_recommendations_tab(st: Any, report_model: dict[str, Any]) -> None:
                 st,
                 [
                     {
-                        "title": item.get("title") or "Hallazgo verificado",
-                        "body": item.get("evidence"),
+                        "title": item.get("display_title_es") or item.get("title") or "Hallazgo verificado",
+                        "body": item.get("display_evidence_es") or item.get("evidence"),
                         "variant": _card_variant_from_text(item.get("severity")),
                         "badge": item.get("severity") or "Requiere atención",
                         "rows": [

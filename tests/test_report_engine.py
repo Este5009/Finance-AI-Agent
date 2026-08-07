@@ -632,7 +632,7 @@ def test_university_wide_anomalies_are_not_hidden_without_department_rows() -> N
     view = build_presentation_view(model)
 
     assert view["anomalies"]["top_rows"]
-    assert view["anomalies"]["top_rows"][0]["title"] == "Flujo de caja bajo o negativo"
+    assert view["anomalies"]["top_rows"][0]["title"] == "Flujo de caja negativo o insuficiente"
 
 
 def test_generic_period_source_files_are_preserved() -> None:

@@ -166,12 +166,12 @@ REFERENCE_ORIGIN_LABELS_ES: dict[str, str] = {
 }
 
 ANOMALY_TITLE_LABELS_ES: dict[str, str] = {
-    "Negative or low cash flow": "Flujo de caja bajo o negativo",
-    "Overdue student payments above limit": "Pagos estudiantiles vencidos requieren revisión",
+    "Negative or low cash flow": "Flujo de caja negativo o insuficiente",
+    "Overdue student payments above limit": "Pagos estudiantiles vencidos por encima de la referencia",
     "Negative or zero operating result": "Resultado operativo negativo o nulo",
-    "Vendor payment exceeds review threshold": "Pago a proveedor requiere revisión analítica",
+    "Vendor payment exceeds review threshold": "Pago a proveedor supera la referencia de revisión",
     "Potential duplicate vendor payment": "Posible pago duplicado a proveedor",
-    "Tuition collection below target": "Cobranza de matrícula requiere revisión",
+    "Tuition collection below target": "Tasa de cobranza por debajo de la referencia",
     "Payroll exceeds revenue threshold": "Nómina sobre ingresos requiere revisión",
     "Supplies category overspending": "Sobregasto en suministros",
     "Facilities category overspending": "Sobregasto en instalaciones",
@@ -189,6 +189,7 @@ ANOMALY_TEXT_PHRASES_ES: tuple[tuple[str, str], ...] = (
     ("Reference analytical del sistema", "Referencia analítica del sistema"),
     ("No corresponde a una meta, límite o política institucional.", "No corresponde a una meta, límite o política institucional."),
     ("Expense category actual value exceeds its budget range.", "El valor real de la categoría de gasto supera su rango presupuestario."),
+    ("Expense category actual value exceeds its budget and crosses a system review reference.", "El gasto real de la categoría supera su presupuesto y cruza una referencia analítica del sistema."),
     ("Department expense variance is outside the configured +/- range.", "La variación de gastos del departamento está fuera del rango configurado."),
     ("Review operating, scholarship, and capital cash outflows.", "Revisar salidas operativas, becas y desembolsos de capital."),
     ("Review student receivables by aging and department.", "Revisar cuentas por cobrar estudiantiles por antigüedad y departamento."),
@@ -215,6 +216,7 @@ SPANISH_EXECUTIVE_ENGLISH_LEAK_PATTERNS: tuple[str, ...] = (
     "Net cash flow is",
     "Maximum payment is",
     "Collection rate is",
+    "operating result is",
 )
 
 RECOMMENDATION_TOPIC_LABELS_ES: dict[str, str] = {
@@ -923,7 +925,36 @@ def _localize_dynamic_anomaly_sentence(text: str) -> str:
     not add interpretation, change values, or translate proper names blindly.
     """
 
+    money = r"(?:-?\$[\d,]+(?:\.\d+)?|\$-?[\d,]+(?:\.\d+)?)"
     patterns: tuple[tuple[str, Any], ...] = (
+        (
+            rf"^Net cash flow is ({money}); ending cash is ({money})\.?$",
+            lambda match: (
+                f"El flujo neto de caja es de {match.group(1)} "
+                f"y el saldo final de caja es de {match.group(2)}."
+            ),
+        ),
+        (
+            r"^(\d+) of (\d+) invoices are overdue \(([\d.,-]+%)\)\.?$",
+            lambda match: (
+                f"{match.group(1)} de {match.group(2)} facturas están vencidas "
+                f"({match.group(3)})."
+            ),
+        ),
+        (
+            rf"^Net operating result is ({money}) on ({money}) of revenue\.?$",
+            lambda match: (
+                f"El resultado operativo neto es de {match.group(1)} "
+                f"sobre ingresos de {match.group(2)}."
+            ),
+        ),
+        (
+            rf"^Maximum payment is ({money}) versus a ({money}) system review reference\.?$",
+            lambda match: (
+                f"El pago máximo es de {match.group(1)} frente a una referencia "
+                f"analítica del sistema de {match.group(2)}."
+            ),
+        ),
         (
             r"^(.+?) spent (\$[\d,.-]+) against (\$[\d,.-]+) budget \(([\d.,-]+)% variance\)\.?$",
             lambda match: (
@@ -940,10 +971,17 @@ def _localize_dynamic_anomaly_sentence(text: str) -> str:
             ),
         ),
         (
+            r"^(.+?) variance of ([\d.,-]+)% exceeds the configured system review reference\.?$",
+            lambda match: (
+                f"La variación de {display_entity_name(match.group(1).strip())} "
+                f"es {match.group(2)}% y supera la referencia analítica configurada por el sistema."
+            ),
+        ),
+        (
             r"^Collection rate is ([\d.,-]+)% from (\$[\d,.-]+) paid against (\$[\d,.-]+) due\.?$",
             lambda match: (
-                f"La tasa de cobranza es {match.group(1)}%: {match.group(2)} "
-                f"pagados frente a {match.group(3)} adeudados."
+                f"La tasa de cobranza es {match.group(1)}%, con {match.group(2)} "
+                f"cobrados sobre {match.group(3)} facturados."
             ),
         ),
         (
@@ -1038,6 +1076,30 @@ def display_anomaly_text(value: Any) -> str:
     text = text.replace("expense variación is", "variación de gastos es")
     text = text.replace("configured system review reference", "referencia analítica del sistema")
     return text
+
+
+def localized_finding_display_fields(item: dict[str, Any]) -> dict[str, str]:
+    """Return Spanish executive display fields for one deterministic finding.
+
+    Inputs: canonical anomaly/finding dictionary from report artifacts.
+    Outputs: localized title, evidence, reason, description, and action fields.
+    Assumptions: raw English detector fields remain available in JSON artifacts
+    for diagnostics, but executive Streamlit/HTML/PDF renderers consume these
+    presentation fields when the report language is Spanish.
+    """
+
+    evidence = item.get("evidence") or item.get("description") or ""
+    action = item.get("recommended_action") or item.get("recommended_next_check") or ""
+    return {
+        "display_title_es": _display_finding_title(item),
+        "display_evidence_es": display_anomaly_text(evidence),
+        "display_reason_es": display_anomaly_text(item.get("reason_for_flagging") or ""),
+        "display_description_es": display_anomaly_text(item.get("description") or ""),
+        "display_action_es": display_anomaly_text(action),
+        "display_supporting_evidence_es": display_anomaly_text(
+            item.get("supporting_evidence") or evidence
+        ),
+    }
 
 
 def _format_anomaly_value(metric: Any, value: Any) -> str:
@@ -1542,9 +1604,11 @@ def build_anomaly_summary(report_model: dict[str, Any]) -> dict[str, Any]:
             finding_type = str(item.get("finding_type") or "system_review_rule")
             reference_origin = str(item.get("reference_origin") or "system-derived/default")
             reference_notice = sanitize_text(item.get("reference_notice_es") or "")
+            display_fields = localized_finding_display_fields(item)
             top_rows.append(
                 {
-                    "title": _display_finding_title(item),
+                    **display_fields,
+                    "title": display_fields["display_title_es"],
                     "classification": FINDING_TYPE_LABELS_ES.get(finding_type, sanitize_text(finding_type)),
                     "finding_type": finding_type,
                     "severity": SEVERITY_LABELS_ES.get(str(item.get("severity", "")).lower(), str(item.get("severity", ""))),
@@ -1564,11 +1628,11 @@ def build_anomaly_summary(report_model: dict[str, Any]) -> dict[str, Any]:
                     "reference_origin": REFERENCE_ORIGIN_LABELS_ES.get(reference_origin, sanitize_text(reference_origin)),
                     "is_institutional_reference": bool(item.get("is_institutional_reference")),
                     "reference_notice": reference_notice,
-                    "reason_for_flagging": display_anomaly_text(item.get("reason_for_flagging") or ""),
-                    "evidence": display_anomaly_text(item.get("evidence") or item.get("description") or ""),
-                    "supporting_evidence": display_anomaly_text(item.get("supporting_evidence") or item.get("evidence") or ""),
-                    "description": display_anomaly_text(item.get("description") or ""),
-                    "recommended_next_check": display_anomaly_text(item.get("recommended_action") or item.get("recommended_next_check") or ""),
+                    "reason_for_flagging": display_fields["display_reason_es"],
+                    "evidence": display_fields["display_evidence_es"],
+                    "supporting_evidence": display_fields["display_supporting_evidence_es"],
+                    "description": display_fields["display_description_es"],
+                    "recommended_next_check": display_fields["display_action_es"],
                     "source": compact_source_label(item.get("source_file") or ""),
                 }
             )
@@ -1663,6 +1727,30 @@ def build_recommendation_cards(report_model: dict[str, Any]) -> list[dict[str, s
                 }
             )
     return cards
+
+
+def build_attention_item_display(item: dict[str, Any]) -> dict[str, Any]:
+    """Build one localized deterministic attention item for executive display.
+
+    Inputs: raw `deterministic_attention_items` entry from the report model.
+    Outputs: localized row/card data consumed by Streamlit, HTML, and PDF.
+    Assumptions: raw detector fields are audit data only; executive renderers
+    should use `display_*_es` or the localized compatibility fields here.
+    """
+
+    display_fields = localized_finding_display_fields(item)
+    return {
+        **display_fields,
+        "title": display_fields["display_title_es"],
+        "severity": _localize_severity(item.get("severity")),
+        "metric": display_metric_name(item.get("metric")),
+        "department": display_entity_name(item.get("department") or ""),
+        "period": format_period_label(item.get("period")),
+        "evidence": display_fields["display_evidence_es"],
+        "reason_for_flagging": display_fields["display_reason_es"],
+        "recommended_next_check": display_fields["display_action_es"],
+        "source": compact_source_label(item.get("source") or ""),
+    }
 
 
 def build_historical_presentation(report_model: dict[str, Any]) -> dict[str, Any]:
@@ -1793,15 +1881,7 @@ def build_presentation_view(report_model: dict[str, Any], *, mode: str = "execut
             "cards": build_recommendation_cards(report_model),
             "strategy_unavailable_note": sanitize_text(recommendations.get("strategy_unavailable_note") or ""),
             "attention_items": [
-                {
-                    "title": sanitize_text(item.get("title") or "Hallazgo determinístico"),
-                    "severity": _localize_severity(item.get("severity")),
-                    "metric": display_metric_name(item.get("metric")),
-                    "department": display_entity_name(item.get("department") or ""),
-                    "period": format_period_label(item.get("period")),
-                    "evidence": sanitize_text(item.get("evidence") or ""),
-                    "source": compact_source_label(item.get("source") or ""),
-                }
+                build_attention_item_display(item)
                 for item in recommendations.get("deterministic_attention_items", []) or []
                 if isinstance(item, dict)
             ],

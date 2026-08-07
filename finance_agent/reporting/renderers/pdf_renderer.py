@@ -883,11 +883,11 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
                     ["Hallazgo", "Severidad", "Indicador", "Periodo", "Evidencia"],
                     [
                         [
-                            item.get("title"),
+                            item.get("display_title_es") or item.get("title"),
                             item.get("severity"),
                             item.get("metric"),
                             item.get("period"),
-                            item.get("evidence"),
+                            item.get("display_evidence_es") or item.get("evidence"),
                         ]
                         for item in attention_items[:6]
                     ],

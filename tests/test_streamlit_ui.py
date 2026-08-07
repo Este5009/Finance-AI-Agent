@@ -595,7 +595,10 @@ def test_july_anomaly_tab_renders_deterministic_detail_cards() -> None:
     assert "Indicador afectado" in visible
     assert "Valor observado" in visible
     assert "Referencia" in visible
-    assert "Pagos estudiantiles vencidos por encima del límite" in visible or "Flujo de caja bajo o negativo" in visible
+    assert (
+        "Pagos estudiantiles vencidos por encima de la referencia" in visible
+        or "Flujo de caja negativo o insuficiente" in visible
+    )
     assert "Overdue student payments above limit" not in visible
     assert "Negative or low cash flow" not in visible
     assert "No hay anomalías relevantes para mostrar." not in fake_st.info_messages
@@ -694,9 +697,52 @@ def test_streamlit_known_deterministic_anomaly_strings_are_spanish() -> None:
     for title, description in known:
         assert title not in visible
         assert description not in visible
-    assert "Flujo de caja bajo o negativo" in visible
-    assert "Pagos estudiantiles vencidos requieren revisión" in visible
-    assert "Pago a proveedor requiere revisión analítica" in visible
+    assert "Flujo de caja negativo o insuficiente" in visible
+    assert "Pagos estudiantiles vencidos por encima de la referencia" in visible
+    assert "Pago a proveedor supera la referencia de revisión" in visible
+
+
+def test_streamlit_july_deterministic_attention_items_are_spanish() -> None:
+    """Verify verified deterministic fallback cards use localized display fields."""
+
+    report_model = _july_report_model()
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_recommendations_tab(fake_st, report_model)
+
+    visible = "\n".join(
+        fake_st.markdown_calls
+        + fake_st.info_messages
+        + fake_st.success_messages
+        + fake_st.warning_messages
+        + fake_st.error_messages
+    )
+    forbidden = (
+        "Negative or",
+        "Overdue student",
+        "Net cash flow is",
+        "Vendor payment",
+        "Maximum payment is",
+        "Tuition collection",
+        "Collection rate is",
+        "operating result is",
+    )
+    expected = (
+        "Flujo de caja negativo o insuficiente",
+        "El flujo neto de caja es de $-350,000",
+        "Pagos estudiantiles vencidos por encima de la referencia",
+        "24 de 24 facturas están vencidas",
+        "Resultado operativo negativo o nulo",
+        "Pago a proveedor supera la referencia de revisión",
+        "El pago máximo es de $74,500",
+        "Tasa de cobranza por debajo de la referencia",
+        "La tasa de cobranza es 85.00%",
+    )
+    for phrase in forbidden:
+        assert phrase not in visible
+    for phrase in expected:
+        assert phrase in visible
+    assert find_spanish_executive_localization_leaks(visible) == []
 
 
 def test_august_and_september_streamlit_tabs_have_no_deterministic_english_leaks() -> None:
@@ -887,7 +933,7 @@ def test_october_anomaly_labels_are_spanish_in_presentation_view() -> None:
 
     visible = "\n".join(fake_st.markdown_calls)
     assert "Nómina sobre ingresos requiere revisión" in visible
-    assert "Cobranza de matrícula requiere revisión" in visible
+    assert "Tasa de cobranza por debajo de la referencia" in visible
     assert "Payroll exceeds revenue threshold" not in visible
     assert "Tuition collection below target" not in visible
     assert "Collection rate is" not in visible
