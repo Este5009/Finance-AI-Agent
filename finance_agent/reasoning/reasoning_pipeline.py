@@ -192,19 +192,13 @@ def create_modular_strategic_analysis(
         )
         state.add_stage_result(financial_result)
         if not financial_result.accepted:
-            return _degraded_result(
+            return _rejected_result(
                 finance_summary=finance_summary,
-                anomaly_report=anomaly_report,
-                evidence_package=evidence_package,
                 period_slug=period_slug,
                 historical_context=historical_context,
                 evidence_ledger=evidence_ledger,
                 state=state,
                 telemetry=telemetry,
-                started=started,
-                reason=financial_result.validation_errors,
-                ollama_available=True,
-                model_name=model_name,
             )
 
         historical_result = _run_structured_stage(
@@ -230,19 +224,13 @@ def create_modular_strategic_analysis(
         )
         state.add_stage_result(historical_result)
         if not historical_result.accepted:
-            return _degraded_result(
+            return _rejected_result(
                 finance_summary=finance_summary,
-                anomaly_report=anomaly_report,
-                evidence_package=evidence_package,
                 period_slug=period_slug,
                 historical_context=historical_context,
                 evidence_ledger=evidence_ledger,
                 state=state,
                 telemetry=telemetry,
-                started=started,
-                reason=historical_result.validation_errors,
-                ollama_available=True,
-                model_name=model_name,
             )
 
         strategic_prompt = build_strategic_synthesis_prompt(
@@ -323,19 +311,27 @@ def create_modular_strategic_analysis(
             )
             state.add_stage_result(strategic_result)
     except OllamaError as exc:
-        return _degraded_result(
+        state.add_stage_result(
+            ReasoningStageResult(
+                stage_id="strategic_analysis",
+                stage_name="Strategic Analysis",
+                accepted=False,
+                payload={},
+                validation_errors=(str(exc),),
+                telemetry={
+                    "stage_id": "strategic_analysis",
+                    "error_category": exc.category,
+                    **getattr(exc, "telemetry", {}),
+                },
+            )
+        )
+        return _rejected_result(
             finance_summary=finance_summary,
-            anomaly_report=anomaly_report,
-            evidence_package=evidence_package,
             period_slug=period_slug,
             historical_context=historical_context,
             evidence_ledger=evidence_ledger,
             state=state,
             telemetry=telemetry,
-            started=started,
-            reason=(str(exc),),
-            ollama_available=True,
-            model_name=model_name,
         )
 
     accepted = state.stage_results[-1].accepted if state.stage_results else False
@@ -1441,14 +1437,27 @@ def _run_structured_stage(
     previous_response_format = getattr(client, "response_format", None)
     if previous_response_format is not None:
         setattr(client, "response_format", response_format)
+    model_retry_attempted = False
     try:
-        if hasattr(client, "generate_with_metadata"):
-            generation = client.generate_with_metadata(prompt)
-            response = str(generation["response"])
-            ollama_telemetry = dict(generation.get("telemetry", {}))
-        else:
-            response = client.generate(prompt)
-            ollama_telemetry = {}
+        try:
+            if hasattr(client, "generate_with_metadata"):
+                generation = client.generate_with_metadata(prompt)
+                response = str(generation["response"])
+                ollama_telemetry = dict(generation.get("telemetry", {}))
+            else:
+                response = client.generate(prompt)
+                ollama_telemetry = {}
+        except OllamaError:
+            # A single bounded retry handles transient local-model hiccups while
+            # preserving the hard no-infinite-loop runtime contract.
+            model_retry_attempted = True
+            if hasattr(client, "generate_with_metadata"):
+                generation = client.generate_with_metadata(prompt)
+                response = str(generation["response"])
+                ollama_telemetry = dict(generation.get("telemetry", {}))
+            else:
+                response = client.generate(prompt)
+                ollama_telemetry = {}
     except OllamaError as exc:
         telemetry = {
             "stage_id": stage_id,
@@ -1458,6 +1467,7 @@ def _run_structured_stage(
             "total_stage_time_seconds": time.perf_counter() - started,
             "timeout_error_category": exc.category,
             "error_category": exc.category,
+            "model_retry_attempted": model_retry_attempted,
             **getattr(exc, "telemetry", {}),
         }
         return ReasoningStageResult(
@@ -1492,6 +1502,7 @@ def _run_structured_stage(
     validation = validator(response)
     validation_time = time.perf_counter() - validation_started
     schema_retry_attempted = False
+    validation_repair_attempted = False
     if not validation.is_valid and _is_schema_only_error(validation.errors):
         schema_retry_attempted = True
         retry_prompt = build_schema_repair_prompt(
@@ -1523,6 +1534,37 @@ def _run_structured_stage(
         validation_started = time.perf_counter()
         validation = validator(response)
         validation_time += time.perf_counter() - validation_started
+    if not validation.is_valid and not _is_schema_only_error(validation.errors):
+        validation_repair_attempted = True
+        repair_prompt = build_reasoning_validation_repair_prompt(
+            stage_name=stage_name,
+            validation_errors=validation.errors,
+            original_response=response,
+            fact_registry=fact_registry,
+        )
+        previous_response_format = getattr(client, "response_format", None)
+        if previous_response_format is not None:
+            setattr(client, "response_format", response_format)
+        try:
+            if hasattr(client, "generate_with_metadata"):
+                generation = client.generate_with_metadata(repair_prompt)
+                response = str(generation["response"])
+                repair_telemetry = dict(generation.get("telemetry", {}))
+                ollama_telemetry = _merge_retry_telemetry(ollama_telemetry, repair_telemetry)
+            else:
+                response = client.generate(repair_prompt)
+        except OllamaError as exc:
+            validation = ReasoningValidationResult(False, None, (str(exc),))
+            ollama_telemetry = {
+                **ollama_telemetry,
+                "validation_repair_error_category": exc.category,
+            }
+        finally:
+            if previous_response_format is not None:
+                setattr(client, "response_format", previous_response_format)
+        validation_started = time.perf_counter()
+        validation = validator(response)
+        validation_time += time.perf_counter() - validation_started
     telemetry = {
         "stage_id": stage_id,
         "prompt_characters": len(prompt),
@@ -1533,6 +1575,8 @@ def _run_structured_stage(
         "timeout_error_category": ollama_telemetry.get("timeout_error_category"),
         "stage_timeout_budget_exceeded": stage_timeout_exceeded_after_generation,
         "schema_retry_attempted": schema_retry_attempted,
+        "validation_repair_attempted": validation_repair_attempted,
+        "model_retry_attempted": model_retry_attempted,
         "placeholder_retry_attempted": False,
         **ollama_telemetry,
     }
@@ -1960,6 +2004,41 @@ def build_schema_repair_prompt(
         "Devuelve JSON estricto únicamente.\n"
         f"SCHEMA_ERRORS:\n{json.dumps(list(schema_errors), ensure_ascii=False)}\n"
         f"REQUIRED_SCHEMA:\n{schema}\n"
+        "ORIGINAL_RESPONSE:\n"
+        + original_response[:20_000]
+    )
+
+
+def build_reasoning_validation_repair_prompt(
+    *,
+    stage_name: str,
+    validation_errors: tuple[str, ...],
+    original_response: str,
+    fact_registry: FactRegistry | None,
+) -> str:
+    """Build one evidence-validation repair prompt for Stage 1/2 reasoning.
+
+    Inputs: stage name, exact validation errors, original model output and
+    optional fact registry.
+    Outputs: compact prompt asking Ollama to preserve valid reasoning while
+    removing unsupported facts/numbers only.
+    Assumptions: this is bounded to one retry and Python validation remains
+    authoritative after repair.
+    """
+
+    facts = fact_registry.prompt_facts()[:80] if fact_registry is not None else []
+    return (
+        f"STAGE_VALIDATION_REPAIR: {stage_name}\n"
+        "La respuesta JSON fue estructuralmente válida, pero incluyó afirmaciones no respaldadas.\n"
+        "Reescribe el MISMO JSON manteniendo las claves requeridas del stage.\n"
+        "Preserva el razonamiento válido y elimina o corrige solo las afirmaciones indicadas.\n"
+        "No agregues cifras, porcentajes, periodos, departamentos ni causas nuevas.\n"
+        "No calcules diferencias, complementos, porcentajes ni redondeos.\n"
+        "Si una cifra no aparece literalmente en ALLOWED_FACTS, no la escribas.\n"
+        "Devuelve JSON estricto únicamente.\n"
+        f"VALIDATION_ERRORS:\n{json.dumps(list(validation_errors), ensure_ascii=False)}\n"
+        "ALLOWED_FACTS:\n"
+        f"{json.dumps(facts, ensure_ascii=False, separators=(',', ':'))}\n"
         "ORIGINAL_RESPONSE:\n"
         + original_response[:20_000]
     )

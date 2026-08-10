@@ -23,6 +23,7 @@ from finance_agent.orchestration.pipeline_orchestrator import (
     _cache_manifest_path,
     _load_valid_cache,
     _is_degraded_strategy_document,
+    _is_ai_backed_strategy_document,
     _pipeline_cache_key,
     _ollama_client_for_stage,
     _pending_after_failure_stage_results,
@@ -147,7 +148,29 @@ def _valid_report_artifacts(config: PipelineConfig, period_slug: str) -> None:
     pdf.drawString(72, 720, "Accepted strategy summary.")
     pdf.save()
     (analysis_dir / f"strategic_analysis_{period_slug}.json").write_text(
-        json.dumps({"validation_status": "accepted"}),
+        json.dumps(
+            {
+                "validation_status": "accepted",
+                "analysis_source": "ollama_modular_reasoning",
+                "ai_usage": {
+                    "ollama_called": True,
+                    "model": "qwen3:30b-a3b",
+                    "model_calls": 3,
+                    "successful_responses": 3,
+                    "accepted_responses": 3,
+                    "rejected_responses": 0,
+                    "final_report_fields_with_ai_output": ["executive_summary"],
+                },
+                "section_provenance": {
+                    "executive_summary": {
+                        "generated_by": "ollama",
+                        "model": "qwen3:30b-a3b",
+                        "generation_stage": "strategic_synthesis",
+                        "validation_status": "validated",
+                    }
+                },
+            }
+        ),
         encoding="utf-8",
     )
 
@@ -387,6 +410,12 @@ def test_cache_hit_reuses_valid_outputs(tmp_path: Path) -> None:
 
     assert result is not None
     assert result.cache_hit is True
+    analysis = json.loads(
+        (config.output_directory / "analysis" / f"strategic_analysis_{period_slug}.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert _is_ai_backed_strategy_document(analysis)
     assert result.stages[0].skipped is True
 
 
@@ -550,6 +579,34 @@ def test_cache_invalid_for_degraded_strategy_in_normal_ai_mode(tmp_path: Path) -
 
     assert result is None
     assert _is_degraded_strategy_document(json.loads(analysis_path.read_text(encoding="utf-8")))
+
+
+def test_cache_invalid_for_accepted_strategy_without_ai_provenance(tmp_path: Path) -> None:
+    """Verify old accepted deterministic artifacts cannot satisfy normal AI mode."""
+
+    config = _config(tmp_path)
+    input_model = _input_model(tmp_path)
+    period_slug = "2026_06"
+    _valid_report_artifacts(config, period_slug)
+    analysis_path = config.output_directory / "analysis" / f"strategic_analysis_{period_slug}.json"
+    analysis_path.write_text(
+        json.dumps({"validation_status": "accepted", "analysis_source": "ollama_modular_reasoning"}),
+        encoding="utf-8",
+    )
+    cache_key = _pipeline_cache_key(input_model, config)
+    manifest = _cache_manifest_path(config, cache_key)
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(json.dumps({"cache_key": cache_key, "period_slug": period_slug}), encoding="utf-8")
+
+    result = _load_valid_cache(
+        input_model=input_model,
+        config=config,
+        period_slug=period_slug,
+        cache_key=cache_key,
+        pipeline_started=0.0,
+    )
+
+    assert result is None
 
 
 def test_degraded_mode_changes_pipeline_cache_key(tmp_path: Path) -> None:

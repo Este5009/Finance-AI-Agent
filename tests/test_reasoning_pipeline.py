@@ -14,12 +14,13 @@ from finance_agent.reasoning.reasoning_pipeline import (
     validate_reasoning_stage_response,
 )
 from finance_agent.analysis.strategic_analysis import build_evidence_ledger
+from finance_agent.reporting.presentation import build_presentation_view
 from finance_agent.reporting.report_engine import ReportInputBundle, build_report_model
 from finance_agent.reporting.renderers import render_report_html
-from finance_agent.reporting.report_quality import validate_report_model_quality
 from finance_agent.reasoning.fact_registry import FactRegistry
 from finance_agent.reasoning.reasoning_models import ReasoningStageResult
 from finance_agent.reasoning.reasoning_state import ReasoningState
+from finance_agent.llm.ollama_client import OllamaError
 
 
 class FakeReasoningClient:
@@ -560,6 +561,79 @@ def test_stage_validation_rejection_is_telemetry_category() -> None:
 
     first_stage = result.analysis_document["reasoning_state"]["stage_results"][0]
     assert first_stage["telemetry"]["error_category"] == "validation_rejection"
+    assert result.accepted is False
+    assert result.analysis_document["analysis_source"] == "ollama_modular_reasoning"
+
+
+def test_stage_validation_repair_preserves_ai_reasoning() -> None:
+    """Verify a July-style unsupported number is repaired instead of degrading."""
+
+    invalid_stage = _stage_1()
+    invalid_stage["risks"].append(
+        {
+            "text": "La tasa de cobro del 95.0% deja 5.0% no cobrado.",
+            "confidence": 0.72,
+        }
+    )
+    repaired_stage = _stage_1()
+    repaired_stage["risks"].append(
+        {
+            "text": "La tasa de cobro del 95.0% requiere seguimiento de cobranza.",
+            "confidence": 0.72,
+        }
+    )
+    client = FakeReasoningClient((invalid_stage, repaired_stage, _stage_2(), _stage_3()))
+
+    result = create_modular_strategic_analysis(
+        client=client,
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="2026_12",
+    )
+
+    first_stage = result.analysis_document["reasoning_state"]["stage_results"][0]
+    assert result.accepted is True
+    assert result.analysis_document["analysis_source"] == "ollama_modular_reasoning"
+    assert result.analysis_document["ai_usage"]["final_report_fields_with_ai_output"]
+    assert first_stage["telemetry"]["validation_repair_attempted"] is True
+    assert len(client.prompts) == 4
+
+
+def test_temporary_model_failure_gets_one_bounded_retry() -> None:
+    """Verify one transient Ollama failure does not discard AI reasoning."""
+
+    class FlakyClient(FakeReasoningClient):
+        """Fake client that fails once before returning valid model output."""
+
+        def __init__(self, responses: tuple[dict[str, Any], ...]) -> None:
+            """Initialize a one-time failure flag plus queued responses."""
+
+            super().__init__(responses)
+            self.failed_once = False
+
+        def generate_with_metadata(self, prompt: str) -> dict[str, Any]:
+            """Raise once, then behave like the normal fake Ollama client."""
+
+            if not self.failed_once:
+                self.failed_once = True
+                raise OllamaError("temporary local model failure", category="inference_timeout")
+            return super().generate_with_metadata(prompt)
+
+    result = create_modular_strategic_analysis(
+        client=FlakyClient((_stage_1(), _stage_2(), _stage_3())),
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="2026_12",
+    )
+
+    first_stage = result.analysis_document["reasoning_state"]["stage_results"][0]
+    assert result.accepted is True
+    assert first_stage["telemetry"]["model_retry_attempted"] is True
+    assert result.analysis_document["ai_usage"]["final_report_fields_with_ai_output"]
 
 
 def test_modular_pipeline_runs_three_stages_with_mocked_ollama() -> None:
@@ -592,6 +666,43 @@ def test_modular_pipeline_runs_three_stages_with_mocked_ollama() -> None:
     analysis_text = json.dumps(report_ready_analysis, ensure_ascii=False)
     assert "{{FACT_" not in analysis_text
     assert "finance.metric.net_operating_result" not in result.analysis_document["analysis"]["executive_summary"]
+
+
+def test_ai_reasoning_survives_report_model_presentation_and_html() -> None:
+    """Verify accepted AI text reaches final report surfaces with provenance."""
+
+    result = create_modular_strategic_analysis(
+        client=FakeReasoningClient((_stage_1(), _stage_2(), _stage_3())),
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="2026_12",
+    )
+    model = build_report_model(
+        ReportInputBundle(
+            period_slug="2026_12",
+            finance_summary=_finance_summary(),
+            kpi_summary=(),
+            anomaly_report=_anomaly_report(),
+            evidence_package=_evidence_package(),
+            strategic_analysis=result.analysis_document,
+            source_files=(
+                "outputs/calculations/finance_summary_2026_12.json",
+                "outputs/calculations/kpi_summary_2026_12.json",
+                "outputs/anomalies/anomaly_report_2026_12.json",
+                "outputs/evidence/evidence_package_2026_12.json",
+                "outputs/analysis/strategic_analysis_2026_12.json",
+            ),
+        )
+    ).to_dict()
+    view = build_presentation_view(model)
+    html = render_report_html(model)
+
+    assert result.analysis_document["ai_usage"]["ollama_called"] is True
+    assert view["ai_usage"]["status_text"] == "IA utilizada en este análisis: Sí — qwen3:30b-a3b"
+    assert view["generation_sources"]["executive_summary"]["label"] == "IA · qwen3:30b-a3b · Validado"
+    assert "IA · qwen3:30b-a3b · Validado" in html
 
 
 def test_degraded_modular_strategy_records_deterministic_provenance() -> None:
@@ -657,8 +768,8 @@ def test_unsupported_causal_recommendation_is_softened_not_fatal() -> None:
     assert "requiere validación" in recommendation["rationale"].casefold()
 
 
-def test_failed_strategy_still_builds_deterministic_report_model() -> None:
-    """Verify deterministic report content remains renderable when strategy fails."""
+def test_failed_strategy_rejects_normal_mode_instead_of_degrading() -> None:
+    """Verify normal AI mode does not silently return deterministic fallback."""
 
     result = create_modular_strategic_analysis(
         client=FakeReasoningClient(({"bad": "shape"}, {"bad": "shape"})),
@@ -668,34 +779,10 @@ def test_failed_strategy_still_builds_deterministic_report_model() -> None:
         risk_summary=_risk_summary(),
         period_slug="2026_12",
     )
-    model = build_report_model(
-        ReportInputBundle(
-            period_slug="2026_12",
-            finance_summary=_finance_summary(),
-            kpi_summary=(),
-            anomaly_report=_anomaly_report(),
-            evidence_package=_evidence_package(),
-            strategic_analysis=result.analysis_document,
-            source_files=(
-                "outputs/calculations/finance_summary_2026_12.json",
-                "outputs/calculations/kpi_summary_2026_12.json",
-                "outputs/anomalies/anomaly_report_2026_12.json",
-                "outputs/evidence/evidence_package_2026_12.json",
-                "outputs/analysis/strategic_analysis_2026_12.json",
-            ),
-        )
-    )
-    model_dict = model.to_dict()
-    quality = validate_report_model_quality(model_dict)
-    html = render_report_html(model_dict)
-
-    assert result.accepted is True
-    assert result.analysis_document["analysis_source"] == "degraded_deterministic"
-    assert result.analysis_document["strategic_recovery"]["degraded_mode"] is True
-    assert result.analysis_document["strategic_recovery"]["source_label"] == "Modo degradado: análisis determinístico"
-    assert quality.is_valid is True
-    assert "Modo degradado" in html
-    assert "No hay recomendaciones estratégicas validadas" not in html
+    assert result.accepted is False
+    assert result.analysis_document["validation_status"] == "rejected"
+    assert result.analysis_document["analysis_source"] == "ollama_modular_reasoning"
+    assert result.analysis_document["ai_usage"]["final_report_fields_with_ai_output"] == []
 
 
 def test_stage_timeout_checkpoint_metadata_is_preserved() -> None:

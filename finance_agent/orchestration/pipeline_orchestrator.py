@@ -80,6 +80,8 @@ from finance_agent.understanding.structure_fallback import (
 
 StageExecutor = Callable[["PipelineStage", PipelineConfig], PipelineStageResult]
 
+REASONING_PROVENANCE_VERSION = "ai_provenance_v2"
+
 
 OBJECT_PIPELINE_STAGE_ORDER: tuple[tuple[str, str, bool], ...] = (
     ("ingestion", "Document ingestion", True),
@@ -622,6 +624,7 @@ def _pipeline_cache_key(input_model: PipelineInputModel, config: PipelineConfig)
             "deduplicate_context": config.deduplicate_context,
         },
         "strategic_ai_mode": config.strategic_ai_mode,
+        "reasoning_provenance_version": REASONING_PROVENANCE_VERSION,
         "reasoning_enabled_stages": [
             "ollama_investigation_planner",
             "strategic_analysis",
@@ -833,9 +836,9 @@ def _load_valid_cache(
         return None
     if analysis.get("validation_status") != "accepted":
         return None
-    if (
-        config.strategic_ai_mode == "ai"
-        and _is_degraded_strategy_document(analysis)
+    if config.strategic_ai_mode == "ai" and (
+        _is_degraded_strategy_document(analysis)
+        or not _is_ai_backed_strategy_document(analysis)
     ):
         return None
     quality = validate_report_artifacts(
@@ -899,7 +902,10 @@ def _write_cache_manifest(
         return
     if analysis.get("validation_status") != "accepted" or not quality.is_valid:
         return
-    if result.config.strategic_ai_mode == "ai" and _is_degraded_strategy_document(analysis):
+    if result.config.strategic_ai_mode == "ai" and (
+        _is_degraded_strategy_document(analysis)
+        or not _is_ai_backed_strategy_document(analysis)
+    ):
         return
     manifest_path = _cache_manifest_path(result.config, cache_key)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -940,6 +946,32 @@ def _is_degraded_strategy_document(document: dict[str, Any]) -> bool:
         or "deterministic" in outcome
         or "determinística" in label
     )
+
+
+def _is_ai_backed_strategy_document(document: dict[str, Any]) -> bool:
+    """Return whether a strategy artifact contains accepted Ollama prose.
+
+    Inputs: saved strategic-analysis document.
+    Outputs: True when at least one final report field is explicitly marked as
+    Ollama-authored and survived validation.
+    Assumptions: model availability, attempted calls, or deterministic fallback
+    text are not enough for a normal AI-mode cache hit.
+    """
+
+    if document.get("validation_status") not in {"accepted", "sanitized"}:
+        return False
+    ai_usage = document.get("ai_usage")
+    if isinstance(ai_usage, dict):
+        fields = ai_usage.get("final_report_fields_with_ai_output", [])
+        if fields and int(ai_usage.get("accepted_responses") or 0) > 0:
+            return True
+    provenance = document.get("section_provenance")
+    if isinstance(provenance, dict):
+        return any(
+            isinstance(value, dict) and value.get("generated_by") == "ollama"
+            for value in provenance.values()
+        )
+    return False
 
 
 def _safe_period_slug(input_model: PipelineInputModel) -> str:
@@ -1892,6 +1924,68 @@ def run_object_pipeline_for_report(
             reasoning_state if isinstance(reasoning_state, dict) else {},
             analysis_dir / f"reasoning_state_{period_slug}.json",
         )
+        normal_ai_missing_accepted_content = (
+            config.strategic_ai_mode == "ai"
+            and (
+                not analysis_result.accepted
+                or not _is_ai_backed_strategy_document(analysis_result.analysis_document)
+            )
+        )
+        if normal_ai_missing_accepted_content:
+            error_message = (
+                "El análisis de IA no produjo narrativa validada. "
+                "Revise los detalles técnicos de validación antes de generar el reporte."
+            )
+            stages.append(
+                _stage_result(
+                    name="strategic_analysis",
+                    display="Strategic analysis",
+                    critical=True,
+                    started=started,
+                    outputs=(
+                        strategic_context_path,
+                        financial_reasoning_path,
+                        historical_reasoning_path,
+                        strategic_reasoning_path,
+                        reasoning_state_path,
+                        analysis_path,
+                    ),
+                    warnings=tuple(analysis_result.validation_errors),
+                    error=error_message,
+                    telemetry=_aggregate_stage_telemetry(
+                        {
+                            **(analysis_result.telemetry or {}),
+                            "historical_context": strategic_history.telemetry,
+                            "ollama_readiness": readiness.to_dict() if readiness is not None else None,
+                            "strategic_ai_mode": config.strategic_ai_mode,
+                            "normal_ai_invariant_failed": True,
+                            "ai_usage": analysis_result.analysis_document.get("ai_usage", {}),
+                        }
+                    ),
+                )
+            )
+            stages.extend(_pending_after_failure_stage_results("strategic_analysis"))
+            _emit_progress(
+                progress_callback,
+                stage_id="generate_strategic_recommendations",
+                status="failed",
+                detail=error_message,
+                started=pipeline_started,
+            )
+            result = _finalize_pipeline_result(
+                config=config,
+                stages=stages,
+                started=pipeline_started,
+                cache_key=cache_key,
+            )
+            _emit_progress(
+                progress_callback,
+                stage_id="analysis_completed",
+                status="failed",
+                detail=error_message,
+                started=pipeline_started,
+            )
+            return result
         stages.append(
             _stage_result(
                 name="strategic_analysis",

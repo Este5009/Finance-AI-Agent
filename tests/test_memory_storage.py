@@ -193,6 +193,30 @@ def _write_artifacts(config: PipelineConfig, period_slug: str = "2026_06") -> tu
     _write_json(outputs / "evidence" / f"retrieval_summary_{period_slug}.json", {})
     analysis = {
         "validation_status": "accepted",
+        "analysis_source": "ollama_modular_reasoning",
+        "ai_usage": {
+            "ollama_called": True,
+            "model": "qwen3:30b-a3b",
+            "model_calls": 3,
+            "successful_responses": 3,
+            "accepted_responses": 3,
+            "rejected_responses": 0,
+            "final_report_fields_with_ai_output": ["executive_summary", "recommendations"],
+        },
+        "section_provenance": {
+            "executive_summary": {
+                "generated_by": "ollama",
+                "model": "qwen3:30b-a3b",
+                "generation_stage": "strategic_synthesis",
+                "validation_status": "validated",
+            },
+            "recommendations": {
+                "generated_by": "ollama",
+                "model": "qwen3:30b-a3b",
+                "generation_stage": "strategic_synthesis",
+                "validation_status": "validated",
+            },
+        },
         "analysis": {
             "executive_summary": "Accepted summary.",
             "key_findings": ["Payroll is elevated."],
