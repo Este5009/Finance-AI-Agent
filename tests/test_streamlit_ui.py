@@ -864,7 +864,8 @@ def test_july_recommendations_tab_shows_fallback_follow_up_and_missing_state() -
     streamlit_app._render_recommendations_tab(fake_st, report_model)
 
     visible = "\n".join(fake_st.markdown_calls)
-    assert "Recomendaciones estratégicas no validadas" in visible
+    assert "Síntesis estratégica determinística" in visible
+    assert "Recomendaciones estratégicas no validadas" not in visible
     assert "Hallazgos verificados que requieren atención" in visible
     assert "Seguimiento verificado de recomendaciones previas" in visible
     assert "Emitida en" in visible

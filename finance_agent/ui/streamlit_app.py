@@ -1103,8 +1103,15 @@ def _analysis_mode_label(report_model: dict[str, Any]) -> tuple[str, str]:
 
     executive = _section_by_id(report_model, "executive_summary").get("content", {})
     status = str(executive.get("analysis_status") or "").lower()
+    recovery = executive.get("strategy_recovery", {})
+    recovery = recovery if isinstance(recovery, dict) else {}
+    source_label = str(recovery.get("source_label") or "").strip()
     warnings = _section_by_id(report_model, "executive_summary").get("warnings", [])
     recommendations = build_presentation_view(report_model).get("recommendations", {}) if report_model else {}
+    if source_label == "Síntesis estratégica determinística":
+        return source_label, "warning"
+    if source_label == "Análisis reparado y validado":
+        return source_label, "warning"
     if status == "accepted" and recommendations.get("cards"):
         return "Análisis estratégico validado", "positive"
     if status == "sanitized" or warnings:
@@ -3030,7 +3037,7 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
         _render_section_card(
             st,
             title="Sin acciones nuevas validadas",
-            body="No hay recomendaciones estratégicas nuevas aceptadas para este período.",
+            body="La síntesis estratégica determinística mantiene acciones de revisión vinculadas a los hallazgos y KPIs procesados.",
             variant="warning",
             badge="Advertencia",
         )
@@ -3137,12 +3144,12 @@ def _render_recommendations_tab(st: Any, report_model: dict[str, Any]) -> None:
     else:
         _render_section_card(
             st,
-            title="Recomendaciones estratégicas no validadas",
+            title="Síntesis estratégica determinística",
             body=_safe_display_text(
                 recommendations.get("strategy_unavailable_note")
                 or (
-                    "No se incluyeron recomendaciones estratégicas nuevas porque el análisis generado "
-                    "no superó la validación de evidencia."
+                    "El reporte conserva hallazgos verificados, KPIs, historial y evidencia procesada "
+                    "para orientar la revisión ejecutiva."
                 )
             ),
             variant="warning",

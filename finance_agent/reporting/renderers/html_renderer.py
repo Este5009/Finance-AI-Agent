@@ -937,9 +937,9 @@ def _render_recommendations(view: dict[str, Any]) -> str:
             for item in recs.get("attention_items", [])[:6]
         )
         recommendation_display = _info_card(
-            "Recomendaciones estratégicas",
+            "Síntesis estratégica determinística",
             recs.get("strategy_unavailable_note")
-            or "No hay recomendaciones estratégicas validadas para este período. El reporte conserva los hallazgos determinísticos, KPIs, anomalías, historial y evidencia procesada.",
+            or "El reporte conserva hallazgos verificados, KPIs, historial y evidencia procesada para orientar la revisión ejecutiva.",
             klass="warning",
         ) + (
             f"<h3>Hallazgos determinísticos que requieren atención</h3><div class='recommendation-grid'>{attention_cards}</div>"

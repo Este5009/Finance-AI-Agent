@@ -647,7 +647,8 @@ def _analysis_unavailable_warnings(document: dict[str, Any]) -> tuple[str, ...]:
 
     Inputs: Step 9 strategic-analysis document.
     Outputs: warning tuple for report model sections.
-    Assumptions: final renderers should make missing strategy visible.
+    Assumptions: current successful runs should use deterministic synthesis
+    before report rendering; this remains for legacy diagnostics.
     """
 
     status = document.get("validation_status")
@@ -689,7 +690,7 @@ def _deterministic_executive_summary(
         parts.append(f"El detector determinístico registró {anomaly_count} anomalías del período.")
     if analysis_status != "accepted":
         parts.append(
-            "Las recomendaciones estratégicas validadas no están disponibles; el reporte conserva KPIs, comparaciones, anomalías, historial y evidencia procesada."
+            "Síntesis estratégica determinística: el reporte conserva KPIs, comparaciones, anomalías, historial y evidencia procesada para orientar la revisión ejecutiva."
         )
     return " ".join(parts)
 
@@ -1690,8 +1691,8 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "strategy_recovery": strategy_recovery,
                 "deterministic_attention_items": deterministic_attention_items,
                 "strategy_unavailable_note": (
-                    "No hay recomendaciones estratégicas validadas para este período; "
-                    "el reporte conserva los hallazgos determinísticos y la evidencia procesada."
+                    "Síntesis estratégica determinística: el reporte conserva hallazgos verificados, "
+                    "KPIs, historial y evidencia procesada para orientar la revisión ejecutiva."
                     if analysis_status != "accepted"
                     and not analysis.get("strategic_recommendations", analysis.get("recommendations", []))
                     else ""

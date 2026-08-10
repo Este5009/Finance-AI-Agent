@@ -830,7 +830,37 @@ def test_report_model_quality_warns_for_missing_strategy() -> None:
 
     assert result.is_valid is False
     assert any("placeholder" in error for error in result.errors)
-    assert any("Strategic recommendations are not available" in warning for warning in result.warnings)
+    assert any("Deterministic strategic synthesis" in warning for warning in result.warnings)
+
+
+def test_html_pdf_do_not_render_old_recommendations_unavailable_state(tmp_path: Path) -> None:
+    """Verify legacy empty recommendation models render deterministic synthesis wording."""
+
+    model = _sample_report_model()
+    sections = model["sections"]  # type: ignore[assignment]
+    for section in sections:  # type: ignore[union-attr]
+        if section["section_id"] == "executive_summary":
+            section["content"]["analysis_status"] = "unavailable"
+        if section["section_id"] == "strategic_recommendations":
+            section["content"]["recommendations"] = []
+            section["content"]["strategy_unavailable_note"] = ""
+
+    html = render_report_html(model)
+    pdf_path = render_report_pdf(model, tmp_path / "deterministic_synthesis.pdf")
+
+    from pypdf import PdfReader
+
+    pdf_text = "\n".join(page.extract_text() or "" for page in PdfReader(str(pdf_path)).pages)
+    combined = html + "\n" + pdf_text
+    forbidden = (
+        "Recomendaciones estratégicas no validadas",
+        "No hay recomendaciones estratégicas validadas",
+        "Las recomendaciones estratégicas validadas no están disponibles",
+        "Strategic analysis was unavailable",
+    )
+    for phrase in forbidden:
+        assert phrase not in combined
+    assert "Síntesis estratégica determinística" in combined
 
 
 def test_save_html_writes_document(tmp_path: Path) -> None:

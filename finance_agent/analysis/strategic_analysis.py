@@ -1973,6 +1973,86 @@ def build_evidence_repair_prompt(
     )
 
 
+def build_targeted_repair_prompt(
+    rejected_response: str,
+    *,
+    validation_errors: tuple[str, ...],
+    evidence_ledger: dict[str, Any],
+) -> str:
+    """Build one bounded schema/validation repair prompt.
+
+    Inputs: rejected model response, exact validation errors, and verified evidence.
+    Outputs: compact repair prompt for one retry attempt.
+    Assumptions: this prompt asks Ollama to restructure or remove unsupported
+    content only; it does not authorize new facts, calculations, or thresholds.
+    """
+
+    repair_context = {
+        "rejected_output": rejected_response[:MAX_RESPONSE_CHARACTERS],
+        "validation_errors": list(validation_errors),
+        "verified_evidence": _prompt_evidence_ledger(evidence_ledger),
+        "required_schema": strategic_analysis_json_schema(),
+    }
+    return (
+        "TARGETED_STRATEGIC_REPAIR:\n"
+        + json.dumps(repair_context, ensure_ascii=False, separators=(",", ":"))
+        + "\n\nINSTRUCTIONS:\n"
+        "Return STRICT JSON with exactly the required schema. Preserve any valid "
+        "Spanish strategic content from rejected_output, but fix or remove only "
+        "items named in validation_errors. Do not add unsupported numbers, "
+        "periods, departments, vendors, institutional-policy claims, or evidence "
+        "references. Numeric values may only be copied exactly from "
+        "verified_evidence.facts.display_value. Keep recommendations concrete, "
+        "actionable, and tied to evidence_ids. Return JSON only."
+    )
+
+
+def build_constrained_generation_prompt(
+    *,
+    evidence_ledger: dict[str, Any],
+    period_slug: str,
+) -> str:
+    """Build a reduced strategic generation prompt for the final Ollama attempt.
+
+    Inputs: verified evidence ledger and current period slug.
+    Outputs: compact prompt requiring simple but complete strategic output.
+    Assumptions: this is attempted once after targeted repair fails.
+    """
+
+    relevant_facts = [
+        fact
+        for fact in evidence_ledger.get("facts", [])
+        if isinstance(fact, dict)
+        and (
+            str(fact.get("category")) in {"current_finding", "kpi_trend", "recurring_anomaly"}
+            or str(fact.get("field")) in {"total_anomalies", "evidence_summary"}
+        )
+    ][:25]
+    reduced_ledger = {
+        **_prompt_evidence_ledger({**evidence_ledger, "facts": relevant_facts}),
+        "period_slug": period_slug,
+    }
+    return (
+        "CONSTRAINED_STRATEGIC_GENERATION:\n"
+        + json.dumps(
+            {
+                "period_slug": period_slug,
+                "verified_evidence": reduced_ledger,
+                "required_schema": strategic_analysis_json_schema(),
+            },
+            ensure_ascii=False,
+            separators=(",", ":"),
+        )
+        + "\n\nINSTRUCTIONS:\n"
+        "Generate a simpler strategic response in professional Spanish. Use 2-5 "
+        "executive observations, 2-5 priorities, and 2-5 actionable "
+        "recommendations. Use only verified_evidence facts and evidence_ids. Do "
+        "not introduce new numeric values, calculations, institutional-policy "
+        "claims, or unsupported causes. If a cause is uncertain, label it as "
+        "hipótesis. Return STRICT JSON only with exactly the required schema."
+    )
+
+
 def _schema_valid_but_not_spanish(response_text: str) -> tuple[dict[str, Any] | None, tuple[str, ...]]:
     """Detect whether a response only failed Spanish-language validation.
 
@@ -1991,6 +2071,276 @@ def _schema_valid_but_not_spanish(response_text: str) -> tuple[dict[str, Any] | 
     if language_errors:
         return schema_validation.analysis, language_errors
     return None, ()
+
+
+def _ledger_fact_by_metric(evidence_ledger: dict[str, Any], metric: str) -> dict[str, Any] | None:
+    """Return the first ledger fact for a metric.
+
+    Inputs: evidence ledger and canonical metric ID.
+    Outputs: matching fact dictionary or None.
+    Assumptions: facts were deduplicated when the ledger was built.
+    """
+
+    for fact in evidence_ledger.get("facts", []):
+        if isinstance(fact, dict) and fact.get("metric") == metric:
+            return fact
+    return None
+
+
+def _fact_display(fact: dict[str, Any] | None, fallback: str = "no disponible") -> str:
+    """Return one safe fact display value.
+
+    Inputs: optional ledger fact and fallback label.
+    Outputs: display value already formatted by Python.
+    Assumptions: no calculations occur here.
+    """
+
+    if not fact:
+        return fallback
+    value = str(fact.get("display_value") or "").strip()
+    return value or fallback
+
+
+def _fact_id(fact: dict[str, Any] | None) -> str | None:
+    """Return one evidence ID from a ledger fact.
+
+    Inputs: optional fact.
+    Outputs: evidence ID string or None.
+    Assumptions: empty IDs are ignored by callers.
+    """
+
+    if not fact:
+        return None
+    evidence_id = str(fact.get("evidence_id") or "").strip()
+    return evidence_id or None
+
+
+def _first_existing_ids(*facts: dict[str, Any] | None, fallback_ids: tuple[str, ...] = ()) -> list[str]:
+    """Return deduplicated evidence IDs from candidate facts.
+
+    Inputs: optional facts and fallback IDs.
+    Outputs: at least one ID when fallback IDs are supplied.
+    Assumptions: order matters for readable diagnostics.
+    """
+
+    ids = [_fact_id(fact) for fact in facts]
+    ids.extend(fallback_ids)
+    return list(dict.fromkeys(item for item in ids if item))
+
+
+def _top_anomaly_facts(evidence_ledger: dict[str, Any], *, limit: int = 3) -> list[dict[str, Any]]:
+    """Return highest-value anomaly facts already selected into the ledger.
+
+    Inputs: evidence ledger and item limit.
+    Outputs: anomaly fact dictionaries.
+    Assumptions: ledger anomaly facts are already ranked upstream.
+    """
+
+    facts = [
+        fact
+        for fact in evidence_ledger.get("facts", [])
+        if isinstance(fact, dict) and str(fact.get("evidence_id", "")).startswith("anomaly.")
+    ]
+    return facts[:limit]
+
+
+def build_deterministic_strategic_synthesis(
+    *,
+    evidence_ledger: dict[str, Any],
+    finance_summary: dict[str, Any],
+    anomaly_report: dict[str, Any],
+    evidence_package: dict[str, Any],
+    period_slug: str,
+) -> dict[str, Any]:
+    """Create a non-empty strategic synthesis from verified deterministic facts.
+
+    Inputs: evidence ledger plus processed finance/anomaly/evidence artifacts.
+    Outputs: analysis payload matching the validated strategic-analysis schema.
+    Assumptions: this fallback is used only after bounded Ollama attempts fail
+    or Ollama is unavailable; it never invents or recalculates financial data.
+    """
+
+    revenue = _ledger_fact_by_metric(evidence_ledger, "total_revenue")
+    expenses = _ledger_fact_by_metric(evidence_ledger, "total_expenses")
+    result = _ledger_fact_by_metric(evidence_ledger, "net_operating_result")
+    cash_flow = _ledger_fact_by_metric(evidence_ledger, "net_cash_flow")
+    ending_cash = _ledger_fact_by_metric(evidence_ledger, "ending_cash")
+    payroll_ratio = _ledger_fact_by_metric(evidence_ledger, "payroll_percentage_of_revenue")
+    collection = _ledger_fact_by_metric(evidence_ledger, "collection_rate")
+    anomaly_count = _ledger_fact_by_metric(evidence_ledger, "total_anomalies")
+    core_ids = _first_existing_ids(
+        revenue,
+        expenses,
+        result,
+        cash_flow,
+        collection,
+        fallback_ids=tuple(evidence_ledger.get("evidence_ids", [])[:1]),
+    )
+    anomaly_ids = _first_existing_ids(*_top_anomaly_facts(evidence_ledger), fallback_ids=tuple(core_ids[:1]))
+    period_label = str(finance_summary.get("report_period") or period_slug).replace("_", "-")
+    analysis_title = "Síntesis estratégica determinística"
+    executive_summary = (
+        f"{analysis_title}: para {period_label}, los datos procesados muestran "
+        f"ingresos de {_fact_display(revenue)}, gastos de {_fact_display(expenses)}, "
+        f"resultado operativo de {_fact_display(result)} y flujo neto de caja de "
+        f"{_fact_display(cash_flow)}. La gestión debe priorizar los indicadores "
+        "con presión verificada y las acciones correctivas vinculadas a evidencia."
+    )
+    key_findings = [
+        f"El resultado operativo procesado es {_fact_display(result)} con ingresos de {_fact_display(revenue)} y gastos de {_fact_display(expenses)}.",
+        f"El flujo neto de caja procesado es {_fact_display(cash_flow)} y el saldo final de caja es {_fact_display(ending_cash)}.",
+    ]
+    if collection:
+        key_findings.append(f"La tasa de cobranza procesada es {_fact_display(collection)}.")
+    if anomaly_count:
+        key_findings.append(f"El detector verificó {_fact_display(anomaly_count)} hallazgos/anomalías para el período.")
+    root_causes = [
+        "Como hipótesis operativa, la presión entre ingresos, gastos y caja debe revisarse con los hallazgos verificados antes de atribuir una causa definitiva.",
+        "Como hipótesis, los indicadores de cobranza y nómina pueden explicar parte de la presión si la evidencia departamental confirma el patrón.",
+    ]
+    priorities = [
+        "Proteger la liquidez del período con seguimiento de caja y cobranza.",
+        "Revisar los rubros de gasto que explican la presión sobre el resultado operativo.",
+    ]
+    recommendations = [
+        {
+            "priority": "high",
+            "action": (
+                "Priorizar una revisión ejecutiva del resultado operativo y del flujo de caja usando "
+                "los gastos, ingresos y saldos procesados como base de control."
+            ),
+            "rationale": (
+                f"El resultado operativo es {_fact_display(result)} y el flujo neto de caja es "
+                f"{_fact_display(cash_flow)}, por lo que la administración necesita identificar "
+                "las partidas que están presionando el margen y la liquidez."
+            ),
+            "supporting_evidence": "La recomendación se basa en métricas financieras procesadas y hallazgos verificados.",
+            "expected_impact": "Definir acciones de contención o recuperación con trazabilidad hacia datos verificados.",
+            "evidence_ids": core_ids[:4],
+            "confidence": 0.72,
+        }
+    ]
+    if collection:
+        priorities.append("Acelerar la recuperación de cobranza estudiantil cuando el indicador esté bajo presión.")
+        recommendations.append(
+            {
+                "priority": "high",
+                "action": "Revisar facturas vencidas, planes de pago y seguimiento de cobranza estudiantil del período.",
+                "rationale": f"La tasa de cobranza procesada es {_fact_display(collection)}, lo que afecta la conversión de ingresos en caja.",
+                "supporting_evidence": "La recomendación usa el KPI de cobranza calculado por Python.",
+                "expected_impact": "Reducir saldos pendientes y mejorar la entrada de caja en el siguiente ciclo.",
+                "evidence_ids": _first_existing_ids(collection, fallback_ids=tuple(core_ids[:1])),
+                "confidence": 0.70,
+            }
+        )
+    if payroll_ratio:
+        recommendations.append(
+            {
+                "priority": "medium",
+                "action": "Revisar la composición de nómina por departamento, incluyendo horas extra, beneficios y dotación.",
+                "rationale": f"La relación nómina/ingresos procesada es {_fact_display(payroll_ratio)}, indicador relevante para explicar presión de costos.",
+                "supporting_evidence": "La recomendación se apoya en el KPI determinístico de nómina sobre ingresos.",
+                "expected_impact": "Identificar controles operativos sin modificar la calidad académica ni asumir causas no verificadas.",
+                "evidence_ids": _first_existing_ids(payroll_ratio, fallback_ids=tuple(core_ids[:1])),
+                "confidence": 0.68,
+            }
+        )
+    if anomaly_ids:
+        recommendations.append(
+            {
+                "priority": "medium",
+                "action": "Revisar los hallazgos/anomalías con mayor severidad y confirmar la evidencia transaccional antes de decidir acciones.",
+                "rationale": "Los hallazgos verificados señalan puntos que requieren revisión sin convertir referencias analíticas del sistema en políticas institucionales.",
+                "supporting_evidence": "La recomendación cita únicamente hallazgos determinísticos con procedencia registrada.",
+                "expected_impact": "Separar desviaciones reales, referencias analíticas y posibles problemas de calidad de datos antes de escalar decisiones.",
+                "evidence_ids": anomaly_ids,
+                "confidence": 0.66,
+            }
+        )
+    recommendations = recommendations[:5]
+    narrative_evidence = {
+        "executive_summary": core_ids,
+        "key_findings": core_ids,
+        "root_causes": core_ids,
+        "financial_health_analysis": core_ids,
+        "kpi_analysis": _first_existing_ids(collection, payroll_ratio, fallback_ids=tuple(core_ids[:1])),
+        "historical_summary": core_ids,
+        "historical_trend_analysis": core_ids,
+        "department_analysis": core_ids,
+        "anomaly_analysis": anomaly_ids,
+        "recommendation_follow_up_analysis": core_ids,
+        "longitudinal_risk_analysis": core_ids,
+        "strategic_priorities": core_ids,
+        "missing_information": core_ids,
+        "reasoning_summary": core_ids,
+    }
+    return {
+        "executive_summary": executive_summary,
+        "key_findings": key_findings[:5],
+        "root_causes": root_causes,
+        "financial_health_analysis": (
+            f"La salud financiera debe evaluarse desde ingresos de {_fact_display(revenue)}, "
+            f"gastos de {_fact_display(expenses)}, resultado operativo de {_fact_display(result)} "
+            f"y flujo neto de caja de {_fact_display(cash_flow)}."
+        ),
+        "kpi_analysis": (
+            f"Los KPIs determinísticos relevantes incluyen cobranza de {_fact_display(collection)} "
+            f"y nómina/ingresos de {_fact_display(payroll_ratio)}."
+        ),
+        "historical_summary": "La síntesis determinística conserva el contexto histórico procesado cuando está disponible y evita afirmar tendencias no respaldadas.",
+        "historical_trend_analysis": "Las tendencias históricas deben leerse desde las series procesadas del reporte, sin interpolar meses ni recalcular indicadores.",
+        "department_analysis": "La revisión departamental debe centrarse en las áreas con evidencia procesada de variación presupuestaria o presión operativa.",
+        "anomaly_analysis": (
+            f"El reporte de anomalías registra {_fact_display(anomaly_count)} hallazgos/anomalías; "
+            "las referencias analíticas del sistema no se presentan como reglas institucionales."
+        ),
+        "recommendation_follow_up_analysis": "El seguimiento de recomendaciones previas debe usarse solo cuando exista evidencia histórica procesada para el período.",
+        "longitudinal_risk_analysis": "El riesgo longitudinal se mantiene como hipótesis operativa hasta que los patrones históricos procesados confirmen recurrencia.",
+        "strategic_recommendations": recommendations,
+        "recommendations": recommendations,
+        "strategic_priorities": priorities[:5],
+        "missing_information": [],
+        "narrative_evidence": narrative_evidence,
+        "confidence": 0.70,
+        "reasoning_summary": (
+            "La síntesis fue generada por Python con evidencia verificada porque las respuestas de Ollama no produjeron una salida estratégica validada dentro de los intentos acotados."
+        ),
+    }
+
+
+def _validate_generated_analysis_candidate(
+    response_text: str,
+    *,
+    finance_summary: dict[str, Any],
+    anomaly_report: dict[str, Any],
+    evidence_package: dict[str, Any],
+    risk_summary: dict[str, Any],
+    historical_context: dict[str, Any] | None,
+    evidence_ledger: dict[str, Any],
+) -> AnalysisValidationResult:
+    """Validate one generated strategic-analysis candidate end to end.
+
+    Inputs: raw JSON response and processed evidence artifacts.
+    Outputs: valid analysis result or precise schema/language/evidence errors.
+    Assumptions: this helper centralizes the validation order without repairing
+    or weakening any factual guard.
+    """
+
+    validation = validate_strategic_analysis_response(response_text)
+    if not validation.is_valid or validation.analysis is None:
+        return validation
+    claim_errors = validate_evidence_bound_claims(
+        validation.analysis,
+        finance_summary=finance_summary,
+        anomaly_report=anomaly_report,
+        evidence_package=evidence_package,
+        risk_summary=risk_summary,
+        historical_context=historical_context,
+        evidence_ledger=evidence_ledger,
+    )
+    if claim_errors:
+        return AnalysisValidationResult(False, None, claim_errors)
+    return validation
 
 
 def _empty_rejected_analysis() -> dict[str, Any]:
@@ -2033,6 +2383,8 @@ def _build_analysis_document(
     analysis: dict[str, Any],
     historical_context: dict[str, Any] | None = None,
     evidence_ledger: dict[str, Any] | None = None,
+    analysis_source: str = "ollama",
+    strategic_recovery: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble one auditable strategic-analysis output document.
 
@@ -2043,15 +2395,19 @@ def _build_analysis_document(
 
     recommendations = analysis.get("recommendations", [])
     recommendations = recommendations if isinstance(recommendations, list) else []
+    analysis_payload = dict(analysis)
+    analysis_payload.setdefault("executive_analysis", analysis_payload.get("executive_summary", ""))
+    analysis_payload.setdefault("priorities", analysis_payload.get("strategic_priorities", []))
     return {
         "analysis_id": f"STRATEGIC-ANALYSIS-{period_slug.upper().replace('_', '-')}",
         "period_slug": period_slug,
         "report_period": report_period,
-        "analysis_source": "ollama",
+        "analysis_source": analysis_source,
         "ollama_available": ollama_available,
         "validation_status": validation_status,
         "analysis_generated": validation_status == "accepted",
         "validation_errors": list(validation_errors),
+        "strategic_recovery": strategic_recovery or {},
         "recommendation_count": len(recommendations),
         "historical_context_summary": (historical_context or {}).get("summary", {}),
         "historical_context": historical_context or {},
@@ -2061,7 +2417,7 @@ def _build_analysis_document(
             "approved_period_count": len((evidence_ledger or {}).get("approved_periods", [])),
             "approved_entity_count": len((evidence_ledger or {}).get("approved_entities", [])),
         },
-        "analysis": analysis,
+        "analysis": analysis_payload,
     }
 
 
@@ -2095,6 +2451,10 @@ def create_strategic_analysis(
     validation_time = 0.0
     spanish_rewrite_attempted = False
     evidence_repair_attempted = False
+    targeted_repair_attempted = False
+    constrained_generation_attempted = False
+    response = ""
+    recovery_outcome = "primary_validated"
     evidence_ledger = build_evidence_ledger(
         finance_summary=finance_summary,
         anomaly_report=anomaly_report,
@@ -2242,12 +2602,98 @@ def create_strategic_analysis(
         finally:
             if previous_response_format is not None:
                 setattr(client, "response_format", previous_response_format)
+        if available and not (validation is not None and validation.is_valid) and response:
+            targeted_repair_attempted = True
+            repair_prompt = build_targeted_repair_prompt(
+                response,
+                validation_errors=errors,
+                evidence_ledger=evidence_ledger,
+            )
+            try:
+                if hasattr(client, "generate_with_metadata"):
+                    generation = client.generate_with_metadata(repair_prompt)  # type: ignore[attr-defined]
+                    response = str(generation["response"])
+                    ollama_telemetry = merge_telemetry(
+                        ollama_telemetry,
+                        dict(generation.get("telemetry", {})),
+                    )
+                else:
+                    response = client.generate(repair_prompt)
+                validation_started = time.perf_counter()
+                validation = _validate_generated_analysis_candidate(
+                    response,
+                    finance_summary=finance_summary,
+                    anomaly_report=anomaly_report,
+                    evidence_package=evidence_package,
+                    risk_summary=risk_summary,
+                    historical_context=historical_context,
+                    evidence_ledger=evidence_ledger,
+                )
+                validation_time += time.perf_counter() - validation_started
+                errors = validation.errors
+                if validation.is_valid:
+                    recovery_outcome = "targeted_repair_validated"
+            except OllamaError as exc:
+                errors = (str(exc),)
+        if available and not (validation is not None and validation.is_valid):
+            constrained_generation_attempted = True
+            constrained_prompt = build_constrained_generation_prompt(
+                evidence_ledger=evidence_ledger,
+                period_slug=period_slug,
+            )
+            try:
+                if hasattr(client, "generate_with_metadata"):
+                    generation = client.generate_with_metadata(constrained_prompt)  # type: ignore[attr-defined]
+                    response = str(generation["response"])
+                    ollama_telemetry = merge_telemetry(
+                        ollama_telemetry,
+                        dict(generation.get("telemetry", {})),
+                    )
+                else:
+                    response = client.generate(constrained_prompt)
+                validation_started = time.perf_counter()
+                validation = _validate_generated_analysis_candidate(
+                    response,
+                    finance_summary=finance_summary,
+                    anomaly_report=anomaly_report,
+                    evidence_package=evidence_package,
+                    risk_summary=risk_summary,
+                    historical_context=historical_context,
+                    evidence_ledger=evidence_ledger,
+                )
+                validation_time += time.perf_counter() - validation_started
+                errors = validation.errors
+                if validation.is_valid:
+                    recovery_outcome = "constrained_generation_validated"
+            except OllamaError as exc:
+                errors = (str(exc),)
     else:
         preprocessing_time = time.perf_counter() - preprocessing_started
         errors = ("Ollama is unavailable.",)
 
     accepted = validation is not None and validation.is_valid
-    analysis = validation.analysis if accepted and validation else _empty_rejected_analysis()
+    analysis_source = "ollama"
+    if accepted and recovery_outcome == "primary_validated" and (spanish_rewrite_attempted or evidence_repair_attempted):
+        recovery_outcome = "repaired_validated"
+    if not accepted:
+        fallback_errors = errors
+        analysis = build_deterministic_strategic_synthesis(
+            evidence_ledger=evidence_ledger,
+            finance_summary=finance_summary,
+            anomaly_report=anomaly_report,
+            evidence_package=evidence_package,
+            period_slug=period_slug,
+        )
+        accepted = True
+        errors = ()
+        analysis_source = "deterministic"
+        recovery_outcome = "deterministic_fallback"
+        analysis["_strategic_recovery"] = {
+            "source_label": "Síntesis estratégica determinística",
+            "fallback_reason": list(fallback_errors),
+        }
+    else:
+        analysis = validation.analysis if validation else _empty_rejected_analysis()
     if accepted:
         analysis = _remove_false_missing_information(
             analysis,
@@ -2255,17 +2701,36 @@ def create_strategic_analysis(
             finance_summary,
             anomaly_report,
         )
+    strategic_recovery = {
+        "outcome": recovery_outcome,
+        "source_label": (
+            "Síntesis estratégica determinística"
+            if recovery_outcome == "deterministic_fallback"
+            else (
+                "Análisis reparado y validado"
+                if recovery_outcome in {"repaired_validated", "targeted_repair_validated", "constrained_generation_validated"}
+                else "Análisis estratégico validado"
+            )
+        ),
+        "primary_attempts": 1 if available else 0,
+        "spanish_rewrite_attempted": spanish_rewrite_attempted,
+        "evidence_repair_attempted": evidence_repair_attempted,
+        "targeted_repair_attempted": targeted_repair_attempted,
+        "constrained_generation_attempted": constrained_generation_attempted,
+    }
+    if isinstance(analysis.get("_strategic_recovery"), dict):
+        strategic_recovery = {**strategic_recovery, **analysis["_strategic_recovery"]}
     document = _build_analysis_document(
         period_slug=period_slug,
         report_period=report_period,
         ollama_available=available,
-        validation_status="accepted"
-        if accepted
-        else ("rejected" if available else "unavailable"),
+        validation_status="accepted",
         validation_errors=errors,
         analysis=analysis,
         historical_context=historical_context,
         evidence_ledger=evidence_ledger,
+        analysis_source=analysis_source,
+        strategic_recovery=strategic_recovery,
     )
     return StrategicAnalysisResult(
         analysis_document=document,
@@ -2282,6 +2747,10 @@ def create_strategic_analysis(
                 "deduplicate_context": deduplicate_context,
                 "spanish_rewrite_attempted": spanish_rewrite_attempted,
                 "evidence_repair_attempted": evidence_repair_attempted,
+                "targeted_repair_attempted": targeted_repair_attempted,
+                "constrained_generation_attempted": constrained_generation_attempted,
+                "strategic_recovery_outcome": recovery_outcome,
+                "analysis_source": analysis_source,
                 "evidence_ledger_fact_count": len(evidence_ledger.get("facts", [])),
                 "compact_context_json_characters": compact_json_size(
                     {

@@ -665,7 +665,8 @@ def test_failed_strategy_still_builds_deterministic_report_model() -> None:
     assert result.accepted is False
     assert quality.is_valid is True
     assert "Reporte financiero determinístico" in html
-    assert "No hay recomendaciones estratégicas validadas" in html
+    assert "Síntesis estratégica determinística" in html
+    assert "No hay recomendaciones estratégicas validadas" not in html
 
 
 def test_stage_timeout_checkpoint_metadata_is_preserved() -> None:

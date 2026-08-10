@@ -116,8 +116,8 @@ def validate_report_model_quality(report_model: dict[str, Any]) -> ReportQuality
 
     Inputs: renderer-agnostic report model dictionary.
     Outputs: ReportQualityResult with blocking errors and warnings.
-    Assumptions: deterministic report content may be valid even when strategic
-    recommendations are unavailable.
+    Assumptions: current successful reports should contain strategic content;
+    legacy report models without recommendations are treated as fallback drafts.
     """
 
     errors: list[str] = []
@@ -136,7 +136,7 @@ def validate_report_model_quality(report_model: dict[str, Any]) -> ReportQuality
         errors.append("Executive summary is missing.")
     recs = recommendation_content.get("recommendations", [])
     if not isinstance(recs, list) or not recs:
-        warnings.append("Strategic recommendations are not available; deterministic report remains renderable.")
+        warnings.append("Deterministic strategic synthesis should be used when model recommendations are absent.")
         rec_count = 0
     else:
         rec_count = len(recs)

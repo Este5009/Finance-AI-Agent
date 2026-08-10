@@ -1902,7 +1902,7 @@ def run_object_pipeline_for_report(
         report_warning = ()
         if not analysis_result.accepted:
             report_warning = (
-                "Strategic analysis was unavailable or rejected; deterministic report rendered without validated recommendations.",
+                "Deterministic strategic synthesis should be used because model strategy was not accepted.",
             )
         elif analysis_result.analysis_document.get("validation_status") == "sanitized":
             report_warning = (

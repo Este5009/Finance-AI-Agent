@@ -868,11 +868,11 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
             _info_card(
                 view["recommendations"].get("strategy_unavailable_note")
                 or (
-                    "No hay recomendaciones estratégicas validadas para este período. "
-                    "El reporte conserva los hallazgos determinísticos, KPIs, anomalías, historial y evidencia procesada."
+                    "El reporte conserva hallazgos verificados, KPIs, anomalías, historial y evidencia procesada "
+                    "para orientar la revisión ejecutiva."
                 ),
                 styles,
-                title="Recomendaciones estratégicas",
+                title="Síntesis estratégica determinística",
             )
         )
         attention_items = view["recommendations"].get("attention_items", [])

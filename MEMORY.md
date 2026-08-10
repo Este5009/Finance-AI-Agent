@@ -74,6 +74,14 @@
   rejected, or partially sanitized, the pipeline should preserve validated
   Python-derived KPIs, anomalies, evidence, history, and report artifacts while
   clearly warning that strategic recommendations were not fully validated.
+- Successful deterministic financial runs must never produce an empty strategic
+  executive section. Step 9 uses a bounded recovery pipeline: one primary
+  Ollama generation, targeted/schema or evidence repair where applicable, one
+  constrained reduced-context generation, and then a mandatory Python-authored
+  "Síntesis estratégica determinística" from verified evidence. Final accepted
+  report artifacts must contain non-empty executive analysis, priorities, and
+  recommendations, with source/recovery metadata shown as a badge rather than
+  an unavailable-recommendations empty state.
 - Pipeline progress reporting is an optional orchestration callback, not
   Streamlit-specific business logic. `PipelineProgressEvent` carries Spanish
   labels/details, status, elapsed seconds, and completed/total major-stage

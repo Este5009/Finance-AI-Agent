@@ -17,6 +17,7 @@ from finance_agent.common.evidence_availability import (
     contradicted_department_missing_claims,
     filter_contradicted_missing_information,
 )
+from finance_agent.llm.ollama_client import OllamaError
 
 
 @dataclass
@@ -56,6 +57,26 @@ class FakeAnalysisClient:
             index = min(self.generate_calls - 1, len(self.responses) - 1)
             return self.responses[index]
         return self.response
+
+
+@dataclass
+class FailingAnalysisClient:
+    """Test double that raises an Ollama error during generation."""
+
+    available: bool = True
+    generate_calls: int = 0
+    response_format: object = "json"
+
+    def is_available(self) -> bool:
+        """Return configured availability without network access."""
+
+        return self.available
+
+    def generate(self, prompt: str) -> str:
+        """Raise a deterministic Ollama error for timeout/failure tests."""
+
+        self.generate_calls += 1
+        raise OllamaError("inference/read timeout")
 
 
 def _valid_analysis() -> dict[str, object]:
@@ -457,8 +478,8 @@ def test_spanish_rewrite_retry_accepts_second_response() -> None:
     assert result.analysis_document["analysis"]["recommendations"][0]["priority"] == "high"
 
 
-def test_spanish_rewrite_retry_failure_rejects_analysis() -> None:
-    """Verify analysis is rejected when the bounded Spanish retry still fails."""
+def test_spanish_rewrite_retry_failure_uses_deterministic_fallback() -> None:
+    """Verify failed bounded language repair still returns deterministic strategy."""
 
     english = _valid_analysis()
     english["executive_summary"] = "The financial performance shows cash flow risk and requires management review."
@@ -473,10 +494,12 @@ def test_spanish_rewrite_retry_failure_rejects_analysis() -> None:
         period_slug="june_2026",
     )
 
-    assert result.accepted is False
-    assert client.generate_calls == 2
-    assert result.analysis_document["validation_status"] == "rejected"
-    assert any("executive_summary" in error for error in result.validation_errors)
+    assert result.accepted is True
+    assert client.generate_calls == 4
+    assert result.analysis_document["validation_status"] == "accepted"
+    assert result.analysis_document["analysis_source"] == "deterministic"
+    assert result.analysis_document["strategic_recovery"]["source_label"] == "Síntesis estratégica determinística"
+    assert result.analysis_document["recommendation_count"] >= 1
 
 
 def test_evidence_repair_retry_accepts_corrected_claims() -> None:
@@ -501,8 +524,8 @@ def test_evidence_repair_retry_accepts_corrected_claims() -> None:
     assert "EVIDENCE_REPAIR_TASK" in client.last_prompt
 
 
-def test_unavailable_ollama_rejects_without_generation() -> None:
-    """Verify unavailable Ollama does not call generate or invent analysis."""
+def test_unavailable_ollama_uses_deterministic_fallback_without_generation() -> None:
+    """Verify unavailable Ollama returns a non-empty deterministic synthesis."""
 
     client = FakeAnalysisClient(False)
 
@@ -515,10 +538,125 @@ def test_unavailable_ollama_rejects_without_generation() -> None:
         period_slug="june_2026",
     )
 
-    assert result.accepted is False
-    assert result.analysis_document["validation_status"] == "unavailable"
-    assert result.analysis_document["analysis_generated"] is False
+    assert result.accepted is True
+    assert result.analysis_document["validation_status"] == "accepted"
+    assert result.analysis_document["analysis_source"] == "deterministic"
+    assert result.analysis_document["analysis_generated"] is True
+    assert result.analysis_document["recommendation_count"] >= 1
+    assert result.analysis_document["analysis"]["strategic_priorities"]
+    assert result.analysis_document["analysis"]["executive_summary"].startswith("Síntesis estratégica determinística")
     assert client.generate_calls == 0
+
+
+def test_repair_failure_then_constrained_generation_succeeds() -> None:
+    """Verify one reduced evidence generation can recover after repair failure."""
+
+    client = FakeAnalysisClient(
+        True,
+        responses=("not json", "still not json", json.dumps(_valid_analysis(), ensure_ascii=False)),
+    )
+
+    result = create_strategic_analysis(
+        client=client,
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="june_2026",
+    )
+
+    assert result.accepted is True
+    assert client.generate_calls == 3
+    assert "CONSTRAINED_STRATEGIC_GENERATION" in client.last_prompt
+    assert result.analysis_document["analysis_source"] == "ollama"
+    assert result.analysis_document["strategic_recovery"]["outcome"] == "constrained_generation_validated"
+    assert result.telemetry is not None
+    assert result.telemetry["constrained_generation_attempted"] is True
+
+
+def test_all_ollama_attempts_fail_uses_deterministic_fallback() -> None:
+    """Verify malformed outputs across all bounded attempts still produce strategy."""
+
+    client = FakeAnalysisClient(True, responses=("not json", "still not json", "bad json"))
+
+    result = create_strategic_analysis(
+        client=client,
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="june_2026",
+    )
+
+    assert result.accepted is True
+    assert client.generate_calls == 3
+    assert result.analysis_document["analysis_source"] == "deterministic"
+    assert result.analysis_document["strategic_recovery"]["outcome"] == "deterministic_fallback"
+    assert result.analysis_document["analysis"]["strategic_recommendations"]
+
+
+def test_ollama_timeout_uses_deterministic_fallback() -> None:
+    """Verify Ollama read/inference errors do not leave strategy empty."""
+
+    client = FailingAnalysisClient()
+
+    result = create_strategic_analysis(
+        client=client,
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="june_2026",
+    )
+
+    assert result.accepted is True
+    assert result.analysis_document["analysis_source"] == "deterministic"
+    assert result.analysis_document["recommendation_count"] >= 1
+    assert client.generate_calls == 2
+
+
+def test_unsupported_numbers_do_not_survive_deterministic_fallback() -> None:
+    """Verify rejected hallucinated numbers are absent from fallback strategy."""
+
+    invalid = _valid_analysis()
+    invalid["executive_summary"] = "El resultado mejoró en 99% durante 2030."
+    client = FakeAnalysisClient(True, responses=(json.dumps(invalid), json.dumps(invalid), json.dumps(invalid)))
+
+    result = create_strategic_analysis(
+        client=client,
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="june_2026",
+    )
+
+    public_analysis = {
+        key: value
+        for key, value in result.analysis_document["analysis"].items()
+        if key != "_strategic_recovery"
+    }
+    rendered = json.dumps(public_analysis, ensure_ascii=False)
+    assert result.analysis_document["analysis_source"] == "deterministic"
+    assert "99%" not in rendered
+    assert "2030" not in rendered
+
+
+def test_system_thresholds_are_not_institutionalized_in_fallback() -> None:
+    """Verify deterministic fallback preserves system-reference caution."""
+
+    result = create_strategic_analysis(
+        client=FakeAnalysisClient(False),
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="june_2026",
+    )
+
+    text = json.dumps(result.analysis_document["analysis"], ensure_ascii=False)
+    assert "referencias analíticas del sistema" in text
+    assert "reglas institucionales" in text
 
 
 def test_supported_payroll_missing_information_is_removed() -> None:
