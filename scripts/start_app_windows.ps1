@@ -44,27 +44,60 @@ if (-not $ollamaPort) {
 }
 
 $ModelCheckScript = Join-Path $RepoRoot "scripts\check_ollama_model.py"
-$modelCheckRaw = & $Python $ModelCheckScript --model $Model --endpoint $OllamaEndpoint --timeout 10
-$modelCheck = $modelCheckRaw | ConvertFrom-Json
-Write-Host "Modelo requerido: $($modelCheck.required_model)"
-Write-Host "Modelos detectados: $($modelCheck.installed_model_names -join ', ')"
-Write-Host "Resultado de comparación exacta: $($modelCheck.model_available)"
+function Invoke-OllamaModelCheck {
+    param(
+        [switch]$NoCliFallback
+    )
 
-if (-not $modelCheck.model_available) {
+    $checkArgs = @($ModelCheckScript, "--model", $Model, "--endpoint", $OllamaEndpoint, "--timeout", "10")
+    if ($NoCliFallback) {
+        $checkArgs += "--no-cli-fallback"
+    }
+
+    $rawOutput = & $Python @checkArgs
+    $exitCode = $LASTEXITCODE
+    try {
+        $parsed = $rawOutput | ConvertFrom-Json
+    } catch {
+        throw "No se pudo interpretar la salida del verificador de Ollama. Ejecute: $Python $ModelCheckScript --model $Model --endpoint $OllamaEndpoint"
+    }
+
+    Write-Host "Modelo requerido: $($parsed.required_model)"
+    Write-Host "Modelos detectados: $($parsed.installed_model_names -join ', ')"
+    Write-Host "Estado del verificador: $($parsed.detector_status)"
+    Write-Host "Resultado de comparación exacta: $($parsed.model_available)"
+
+    if ($exitCode -eq 3 -or $parsed.detector_status -eq "checker_error") {
+        throw "El verificador de modelos falló. Revise Python, el entorno virtual y el paquete finance_agent. Detalle: $($parsed.error)"
+    }
+    if ($exitCode -eq 4 -or $parsed.detector_status -eq "ollama_unreachable") {
+        throw "No se pudo consultar Ollama en $OllamaEndpoint. Confirme que Ollama esté ejecutándose y vuelva a intentar. Detalle: $($parsed.error)"
+    }
+    return [pscustomobject]@{
+        ExitCode = $exitCode
+        Data = $parsed
+    }
+}
+
+$modelCheckResult = Invoke-OllamaModelCheck
+$modelCheck = $modelCheckResult.Data
+
+if ($modelCheckResult.ExitCode -eq 2 -or $modelCheck.detector_status -eq "model_missing") {
     $answer = Read-Host "El modelo $Model no está instalado. ¿Desea descargarlo ahora con 'ollama pull'? (s/N)"
     if ($answer -match "^[sS]") {
         & ollama pull $Model
         if ($LASTEXITCODE -ne 0) {
             throw "No se pudo descargar el modelo $Model."
         }
-        $modelCheckRaw = & $Python $ModelCheckScript --model $Model --endpoint $OllamaEndpoint --timeout 10 --no-cli-fallback
-        $modelCheck = $modelCheckRaw | ConvertFrom-Json
-        if (-not $modelCheck.model_available) {
+        $modelCheckResult = Invoke-OllamaModelCheck -NoCliFallback
+        if ($modelCheckResult.ExitCode -ne 0 -or -not $modelCheckResult.Data.model_available) {
             throw "El modelo $Model no fue detectado por Ollama después de la descarga."
         }
     } else {
         throw "El modelo $Model es requerido para el modo normal de IA."
     }
+} elseif ($modelCheckResult.ExitCode -ne 0 -or -not $modelCheck.model_available) {
+    throw "No se pudo confirmar el modelo $Model. Estado: $($modelCheck.detector_status)"
 }
 
 Write-Host "Iniciando Streamlit en primer plano..." -ForegroundColor Green

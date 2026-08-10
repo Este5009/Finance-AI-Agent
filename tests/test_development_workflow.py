@@ -103,6 +103,17 @@ def test_manual_app_launchers_include_ollama_readiness_and_parse() -> None:
     assert "streamlit run" in macos_text
     assert "ollama list" not in windows_text
     assert "ollama list" not in macos_text
+    assert "$LASTEXITCODE" in windows_text
+    assert "detector_status" in windows_text
+    assert "checker_error" in windows_text
+    assert "ollama_unreachable" in windows_text
+    assert "model_check_code=$?" in macos_text
+    assert "detector_status" in macos_text
+    assert "checker_error" in macos_text
+    assert "ollama_unreachable" in macos_text
+    assert "|| true" not in macos_text
+    assert "estÃ" not in windows_text + macos_text
+    assert "Â¿" not in windows_text + macos_text
 
     powershell = shutil.which("powershell") or shutil.which("pwsh")
     if powershell is not None:
