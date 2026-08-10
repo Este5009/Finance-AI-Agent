@@ -119,6 +119,27 @@ SECTION_LABELS_ES: dict[str, str] = {
     "appendix": "Metodología y fuentes",
 }
 
+GENERATION_SOURCE_LABELS_ES: dict[str, str] = {
+    "ai": "Generado por IA · Qwen3 30B",
+    "ai_repaired": "IA · Reparado y validado",
+    "deterministic": "Determinístico",
+}
+
+GENERATION_SOURCE_CLASSES: dict[str, str] = {
+    "ai": "ai",
+    "ai_repaired": "ai-repaired",
+    "deterministic": "deterministic",
+}
+
+DETERMINISTIC_GENERATION_SECTION_IDS: frozenset[str] = frozenset(
+    {
+        "cover",
+        "goal_budget_performance",
+        "investigation_evidence",
+        "appendix",
+    }
+)
+
 ENTITY_LABELS_ES: dict[str, str] = {
     "Health Sciences": "Ciencias de la Salud",
     "University": "Universidad",
@@ -776,6 +797,81 @@ def section_narratives(report_model: dict[str, Any]) -> dict[str, str]:
             if template.section_id in narratives:
                 break
     return narratives
+
+
+def generation_source_badge(source: Any) -> dict[str, str]:
+    """Return a safe display badge for one narrative/source provenance object.
+
+    Inputs: report-model ``generation_source`` metadata or a source kind string.
+    Outputs: Spanish badge payload consumed by Streamlit, HTML, and PDF.
+    Assumptions: source kind was set by report generation from real pipeline
+    provenance; this helper only normalizes display labels.
+    """
+
+    if isinstance(source, dict):
+        kind = str(source.get("kind") or "").strip()
+    else:
+        kind = str(source or "").strip()
+    if kind not in GENERATION_SOURCE_LABELS_ES:
+        kind = "deterministic"
+    return {
+        "kind": kind,
+        "label": GENERATION_SOURCE_LABELS_ES[kind],
+        "class": GENERATION_SOURCE_CLASSES[kind],
+    }
+
+
+def section_generation_sources(report_model: dict[str, Any]) -> dict[str, dict[str, str]]:
+    """Return generation-source badges for report sections.
+
+    Inputs: renderer-agnostic report model.
+    Outputs: section ID to Spanish badge payload.
+    Assumptions: report generation populated section-level provenance from
+    actual strategic-analysis metadata and deterministic fallback choices.
+    """
+
+    sources: dict[str, dict[str, str]] = {}
+    for section in report_model.get("sections", []):
+        if not isinstance(section, dict):
+            continue
+        section_id = str(section.get("section_id") or "")
+        content = section.get("content", {})
+        content = content if isinstance(content, dict) else {}
+        source = content.get("generation_source")
+        if not source:
+            source = _legacy_generation_source_from_content(section_id, content)
+        if source:
+            sources[section_id] = generation_source_badge(source)
+    return sources
+
+
+def _legacy_generation_source_from_content(section_id: str, content: dict[str, Any]) -> dict[str, str] | None:
+    """Infer a safe badge from legacy report-model provenance fields.
+
+    Inputs: section ID and legacy content payload.
+    Outputs: source kind or None when no provenance exists.
+    Assumptions: this reads explicit pipeline metadata such as
+    ``strategy_recovery`` and degraded-mode notes; it never inspects narrative
+    text to decide whether content is AI or deterministic.
+    """
+
+    if section_id in DETERMINISTIC_GENERATION_SECTION_IDS:
+        return {"kind": "deterministic"}
+    if content.get("strategy_unavailable_note"):
+        return {"kind": "deterministic"}
+    recovery = content.get("strategy_recovery")
+    if isinstance(recovery, dict):
+        changed = any(
+            recovery.get(key)
+            for key in ("repaired_fields", "sanitized_fields", "removed_fields")
+        )
+        return {"kind": "ai_repaired" if changed else "ai"}
+    status = str(content.get("analysis_status") or "").casefold()
+    if status in {"accepted", "sanitized", "repaired"}:
+        return {"kind": "ai_repaired" if status in {"sanitized", "repaired"} else "ai"}
+    if content.get("deterministic_conclusion"):
+        return {"kind": "deterministic"}
+    return None
 
 
 def sanitize_text(value: Any) -> str:
@@ -1857,6 +1953,7 @@ def build_presentation_view(report_model: dict[str, Any], *, mode: str = "execut
         "labels": SECTION_LABELS_ES,
         "templates": section_templates_payload(),
         "section_narratives": section_narratives(report_model),
+        "generation_sources": section_generation_sources(report_model),
         "executive_summary": {
             "summary": sanitize_text(executive.get("summary") or ""),
             "key_findings": sanitize_items(executive.get("key_findings"), limit=6),

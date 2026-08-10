@@ -642,6 +642,99 @@ def _analysis_text(analysis: dict[str, Any], field_name: str, fallback: str = ""
     return ""
 
 
+def _recovery_touched_field(recovery: dict[str, Any], field_name: str) -> bool:
+    """Return whether strategic recovery modified or removed a field.
+
+    Inputs: strategic-recovery metadata and a field name.
+    Outputs: True when the recovery log mentions that field.
+    Assumptions: recovery metadata is produced by Step 9 validation; report
+    generation only reads it to label provenance honestly.
+    """
+
+    prefixes = (field_name, f"{field_name}[", f"{field_name}.")
+    for key in ("repaired_fields", "sanitized_fields", "removed_fields"):
+        values = recovery.get(key, [])
+        for value in values if isinstance(values, list) else []:
+            text = str(value)
+            if text == field_name or text.startswith(prefixes):
+                return True
+    return False
+
+
+def _section_generation_source(
+    *,
+    strategic_analysis: dict[str, Any],
+    recovery: dict[str, Any],
+    field_name: str | None = None,
+    used_model_content: bool = False,
+    deterministic: bool = False,
+) -> dict[str, Any]:
+    """Build section-level generation provenance for executive badges.
+
+    Inputs: strategic-analysis artifact metadata, recovery metadata, optional
+    narrative field, and whether the rendered content came from model prose.
+    Outputs: compact provenance object stored in the report model.
+    Assumptions: badge kind is based on pipeline metadata, never on text content.
+    """
+
+    analysis_source = str(strategic_analysis.get("analysis_source") or "").casefold()
+    if deterministic or not used_model_content or "deterministic" in analysis_source:
+        return {
+            "kind": "deterministic",
+            "source": strategic_analysis.get("analysis_source") or "python_rules",
+        }
+    if field_name and _recovery_touched_field(recovery, field_name):
+        kind = "ai_repaired"
+    elif str(strategic_analysis.get("validation_status") or "").casefold() in {"repaired", "sanitized"}:
+        kind = "ai_repaired"
+    else:
+        kind = "ai"
+    return {
+        "kind": kind,
+        "source": strategic_analysis.get("analysis_source") or "ollama",
+        "model_display": "Qwen3 30B",
+    }
+
+
+def _analysis_text_with_source(
+    analysis: dict[str, Any],
+    field_name: str,
+    strategic_analysis: dict[str, Any],
+    recovery: dict[str, Any],
+    deterministic_summaries: dict[str, str],
+    fallback_key: str,
+) -> tuple[str, dict[str, Any]]:
+    """Return section analysis text plus truthful generation provenance.
+
+    Inputs: strategic-analysis payload, field name, source metadata, recovery
+    metadata, and deterministic fallback summaries.
+    Outputs: narrative text and generation-source object.
+    Assumptions: if the model field is missing/removed, deterministic fallback
+    text is used and labeled deterministic.
+    """
+
+    model_text = _analysis_text(analysis, field_name)
+    if model_text:
+        return (
+            model_text,
+            _section_generation_source(
+                strategic_analysis=strategic_analysis,
+                recovery=recovery,
+                field_name=field_name,
+                used_model_content=True,
+            ),
+        )
+    return (
+        deterministic_summaries.get(fallback_key, ""),
+        _section_generation_source(
+            strategic_analysis=strategic_analysis,
+            recovery=recovery,
+            field_name=fallback_key,
+            deterministic=True,
+        ),
+    )
+
+
 def _analysis_unavailable_warnings(document: dict[str, Any]) -> tuple[str, ...]:
     """Return report warnings when strategic analysis is not accepted.
 
@@ -1263,6 +1356,8 @@ def _historical_sections(
     historical_context: dict[str, Any],
     analysis: dict[str, Any],
     analysis_source: tuple[str, ...],
+    strategic_analysis: dict[str, Any],
+    strategy_recovery: dict[str, Any],
     *,
     period_slug: str,
     finance: dict[str, Any],
@@ -1329,13 +1424,45 @@ def _historical_sections(
         }
         for trend in historical.get("trends", [])
     ]
+    historical_summary_text, historical_summary_source = _analysis_text_with_source(
+        analysis,
+        "historical_summary",
+        strategic_analysis,
+        strategy_recovery,
+        deterministic_summaries,
+        "historical_summary",
+    )
+    historical_trend_text, historical_trend_source = _analysis_text_with_source(
+        analysis,
+        "historical_trend_analysis",
+        strategic_analysis,
+        strategy_recovery,
+        deterministic_summaries,
+        "historical_trend_analysis",
+    )
+    follow_up_text, follow_up_source = _analysis_text_with_source(
+        analysis,
+        "recommendation_follow_up_analysis",
+        strategic_analysis,
+        strategy_recovery,
+        deterministic_summaries,
+        "recommendation_follow_up_analysis",
+    )
+    risk_text, risk_source = _analysis_text_with_source(
+        analysis,
+        "longitudinal_risk_analysis",
+        strategic_analysis,
+        strategy_recovery,
+        deterministic_summaries,
+        "longitudinal_risk_analysis",
+    )
     return (
         _section(
             "historical_summary",
             "Historical Summary",
             {
-                "analysis": _analysis_text(analysis, "historical_summary")
-                or deterministic_summaries.get("historical_summary", ""),
+                "analysis": historical_summary_text,
+                "generation_source": historical_summary_source,
                 "historical_context": historical_context,
                 "narrative": historical.get("narrative", []),
                 "retrieval_count": summary.get("available_retrievals", 0),
@@ -1350,8 +1477,8 @@ def _historical_sections(
             "historical_trends",
             "Historical Trends",
             {
-                "analysis": _analysis_text(analysis, "historical_trend_analysis")
-                or deterministic_summaries.get("historical_trend_analysis", ""),
+                "analysis": historical_trend_text,
+                "generation_source": historical_trend_source,
                 "historical_context": historical_context,
                 "trend_series": trend_overview,
                 "narrative": historical.get("narrative", []),
@@ -1362,7 +1489,8 @@ def _historical_sections(
             "recommendation_follow_up",
             "Recommendation Follow-up",
             {
-                "analysis": _analysis_text(analysis, "recommendation_follow_up_analysis"),
+                "analysis": follow_up_text,
+                "generation_source": follow_up_source,
                 "historical_context": historical_context,
                 "intro": historical.get("recommendation_intro", ""),
                 "summary": historical.get("recommendation_summary", ""),
@@ -1374,7 +1502,8 @@ def _historical_sections(
             "longitudinal_risk_assessment",
             "Longitudinal Risk Assessment",
             {
-                "analysis": _analysis_text(analysis, "longitudinal_risk_analysis"),
+                "analysis": risk_text,
+                "generation_source": risk_source,
                 "historical_context": historical_context,
                 "recurring_risks": historical.get("recurring_risks", []),
                 "risk_summary": historical.get("risk_summary", ""),
@@ -1489,8 +1618,10 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
         analysis_status=analysis_status,
     )
     executive_summary = analysis.get("executive_summary") or deterministic_summary
+    executive_uses_model = bool(analysis.get("executive_summary"))
     if not _narrative_quantitative_claims_supported(str(executive_summary), kpi_comparisons):
         executive_summary = deterministic_summary
+        executive_uses_model = False
         analysis_warnings = (
             *analysis_warnings,
             "Executive summary was replaced because a quantitative comparison claim did not match processed data.",
@@ -1499,6 +1630,13 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
     if not isinstance(strategy_recovery, dict):
         strategy_recovery = analysis.get("_strategic_recovery", {})
     strategy_recovery = strategy_recovery if isinstance(strategy_recovery, dict) else {}
+    executive_generation_source = _section_generation_source(
+        strategic_analysis=inputs.strategic_analysis,
+        recovery=strategy_recovery,
+        field_name="executive_summary",
+        used_model_content=executive_uses_model,
+        deterministic=not executive_uses_model,
+    )
     deterministic_summaries = _deterministic_analysis_summaries(
         kpi_comparisons=kpi_comparisons,
         anomaly_report=inputs.anomaly_report,
@@ -1530,6 +1668,70 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
             "Department analysis fell back to deterministic facts because model prose contradicted processed department evidence.",
         )
     ranked_anomalies = _rank_anomalies_for_report(inputs.anomaly_report)
+    financial_health_text, financial_health_source = _analysis_text_with_source(
+        analysis,
+        "financial_health_analysis",
+        inputs.strategic_analysis,
+        strategy_recovery,
+        deterministic_summaries,
+        "financial_health_analysis",
+    )
+    kpi_text, kpi_source_payload = _analysis_text_with_source(
+        analysis,
+        "kpi_analysis",
+        inputs.strategic_analysis,
+        strategy_recovery,
+        deterministic_summaries,
+        "kpi_analysis",
+    )
+    revenue_text, revenue_source_payload = _analysis_text_with_source(
+        analysis,
+        "financial_health_analysis",
+        inputs.strategic_analysis,
+        strategy_recovery,
+        deterministic_summaries,
+        "revenue_analysis",
+    )
+    expense_text, expense_source_payload = _analysis_text_with_source(
+        analysis,
+        "financial_health_analysis",
+        inputs.strategic_analysis,
+        strategy_recovery,
+        deterministic_summaries,
+        "expense_analysis",
+    )
+    department_text, department_source_payload = _analysis_text_with_source(
+        analysis,
+        "department_analysis",
+        inputs.strategic_analysis,
+        strategy_recovery,
+        deterministic_summaries,
+        "department_analysis",
+    )
+    anomaly_text, anomaly_source_payload = _analysis_text_with_source(
+        analysis,
+        "anomaly_analysis",
+        inputs.strategic_analysis,
+        strategy_recovery,
+        deterministic_summaries,
+        "anomaly_analysis",
+    )
+    recommendations_payload = analysis.get("strategic_recommendations", analysis.get("recommendations", []))
+    recommendations_uses_model = bool(recommendations_payload)
+    strategic_recommendations_source = _section_generation_source(
+        strategic_analysis=inputs.strategic_analysis,
+        recovery=strategy_recovery,
+        field_name="strategic_recommendations",
+        used_model_content=recommendations_uses_model,
+        deterministic=not recommendations_uses_model,
+    )
+    missing_source = _section_generation_source(
+        strategic_analysis=inputs.strategic_analysis,
+        recovery=strategy_recovery,
+        field_name="missing_information",
+        used_model_content=bool(analysis.get("missing_information")),
+        deterministic=not bool(analysis.get("missing_information")),
+    )
     deterministic_attention_items = [
         {
             "title": item.get("title") or item.get("description") or "Anomalía detectada",
@@ -1571,6 +1773,7 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "confidence": analysis.get("confidence"),
                 "analysis_status": analysis_status,
                 "strategy_recovery": strategy_recovery,
+                "generation_source": executive_generation_source,
             },
             analysis_source,
             analysis_warnings,
@@ -1587,8 +1790,8 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "payroll_percentage_of_revenue": finance.get("payroll_percentage_of_revenue"),
                 "collection_rate": payments.get("collection_rate"),
                 "kpi_comparisons": kpi_comparisons,
-                "analysis": _analysis_text(analysis, "financial_health_analysis")
-                or deterministic_summaries.get("financial_health_analysis", ""),
+                "analysis": financial_health_text,
+                "generation_source": financial_health_source,
             },
             finance_source,
         ),
@@ -1597,15 +1800,22 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
             "KPI Overview",
             {
                 "kpis": list(inputs.kpi_summary),
-                "analysis": _analysis_text(analysis, "kpi_analysis")
-                or deterministic_summaries.get("kpi_analysis", ""),
+                "analysis": kpi_text,
+                "generation_source": kpi_source_payload,
             },
             kpi_source,
         ),
         _section(
             "goal_budget_performance",
             "Cumplimiento de metas y presupuesto",
-            goal_performance,
+            {
+                **goal_performance,
+                "generation_source": _section_generation_source(
+                    strategic_analysis=inputs.strategic_analysis,
+                    recovery=strategy_recovery,
+                    deterministic=True,
+                ),
+            },
             finance_source,
         ),
         _section(
@@ -1617,8 +1827,8 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "revenue_variance": budget.get("revenue_variance"),
                 "revenue_variance_pct": budget.get("revenue_variance_pct"),
                 "department_summary": inputs.finance_summary.get("department_summary", []),
-                "analysis": _analysis_text(analysis, "financial_health_analysis")
-                or deterministic_summaries.get("revenue_analysis", ""),
+                "analysis": revenue_text,
+                "generation_source": revenue_source_payload,
             },
             finance_source,
         ),
@@ -1632,8 +1842,8 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "expense_variance_pct": budget.get("expense_variance_pct"),
                 "payroll_total": finance.get("payroll_total"),
                 "category_summary": inputs.finance_summary.get("category_summary", []),
-                "analysis": _analysis_text(analysis, "financial_health_analysis")
-                or deterministic_summaries.get("expense_analysis", ""),
+                "analysis": expense_text,
+                "generation_source": expense_source_payload,
             },
             finance_source,
         ),
@@ -1647,8 +1857,8 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                     for item in _evidence_items(inputs.evidence_package)
                     if item.get("retrieval_name") == "department_history"
                 ],
-                "analysis": _analysis_text(analysis, "department_analysis")
-                or deterministic_summaries.get("department_analysis", ""),
+                "analysis": department_text,
+                "generation_source": department_source_payload,
             },
             (inputs.source_files[0], inputs.source_files[3]),
         ),
@@ -1662,10 +1872,18 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "anomalies": ranked_anomalies,
                 "top_anomalies": ranked_anomalies[:20],
                 "analysis": (
-                    _analysis_text(analysis, "anomaly_analysis")
-                    or deterministic_summaries.get("anomaly_analysis", "")
+                    anomaly_text
                     if int(inputs.anomaly_report.get("total_anomalies") or 0) > 0
                     else ""
+                ),
+                "generation_source": (
+                    anomaly_source_payload
+                    if int(inputs.anomaly_report.get("total_anomalies") or 0) > 0
+                    else _section_generation_source(
+                        strategic_analysis=inputs.strategic_analysis,
+                        recovery=strategy_recovery,
+                        deterministic=True,
+                    )
                 ),
             },
             anomaly_source,
@@ -1676,6 +1894,11 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
             {
                 "retrieval_summary": inputs.evidence_package.get("summary", {}),
                 "evidence_items": _evidence_items(inputs.evidence_package),
+                "generation_source": _section_generation_source(
+                    strategic_analysis=inputs.strategic_analysis,
+                    recovery=strategy_recovery,
+                    deterministic=True,
+                ),
             },
             evidence_source,
         ),
@@ -1683,13 +1906,14 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
             "strategic_recommendations",
             "Strategic Recommendations",
             {
-                "recommendations": analysis.get("strategic_recommendations", analysis.get("recommendations", [])),
+                "recommendations": recommendations_payload,
                 "root_causes": analysis.get("root_causes", []),
                 "strategic_priorities": analysis.get("strategic_priorities", []),
                 "reasoning_summary": analysis.get("reasoning_summary", ""),
                 "analysis": _analysis_text(analysis, "longitudinal_risk_analysis"),
                 "strategy_recovery": strategy_recovery,
                 "deterministic_attention_items": deterministic_attention_items,
+                "generation_source": strategic_recommendations_source,
                 "strategy_unavailable_note": (
                     "Modo degradado: análisis determinístico. "
                     "Las capacidades de razonamiento de IA no estuvieron disponibles para este análisis."
@@ -1706,6 +1930,7 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
             "Missing Information",
             {
                 "missing_information": analysis.get("missing_information", []),
+                "generation_source": missing_source,
                 "evidence_warnings": [
                     warning
                     for item in _evidence_items(inputs.evidence_package)
@@ -1728,6 +1953,11 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "source_files": list(inputs.source_files),
                 "calculation_warnings": inputs.finance_summary.get("calculation_warnings", []),
                 "analysis_validation_errors": inputs.strategic_analysis.get("validation_errors", []),
+                "generation_source": _section_generation_source(
+                    strategic_analysis=inputs.strategic_analysis,
+                    recovery=strategy_recovery,
+                    deterministic=True,
+                ),
             },
             inputs.source_files,
         ),
@@ -1736,6 +1966,8 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
         historical_context,
         analysis,
         analysis_source,
+        inputs.strategic_analysis,
+        strategy_recovery,
         period_slug=inputs.period_slug,
         finance=finance,
         payments=payments,

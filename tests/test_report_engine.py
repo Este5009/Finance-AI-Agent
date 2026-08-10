@@ -247,6 +247,88 @@ def test_september_report_model_preserves_explicit_intermediate_trend_points() -
     assert len(_trend_points(report_model, "total_expenses")) == 4
 
 
+def _content(report_model: dict[str, object], section_id: str) -> dict[str, object]:
+    """Return one section content payload from a report model fixture."""
+
+    for section in report_model.get("sections", []):  # type: ignore[union-attr]
+        if isinstance(section, dict) and section.get("section_id") == section_id:
+            content = section.get("content", {})
+            return content if isinstance(content, dict) else {}
+    return {}
+
+
+def test_generation_source_labels_ollama_content_as_ai_not_deterministic() -> None:
+    """Verify Ollama-authored sections cannot be mislabeled deterministic."""
+
+    bundle = _bundle()
+    strategic = json.loads(json.dumps(bundle.strategic_analysis))
+    strategic["analysis_source"] = "ollama_modular_reasoning"
+    report_model = build_report_model(
+        ReportInputBundle(
+            period_slug=bundle.period_slug,
+            finance_summary=bundle.finance_summary,
+            kpi_summary=bundle.kpi_summary,
+            anomaly_report=bundle.anomaly_report,
+            evidence_package=bundle.evidence_package,
+            strategic_analysis=strategic,
+            source_files=bundle.source_files,
+        )
+    ).to_dict()
+
+    source = _content(report_model, "executive_summary").get("generation_source", {})
+    assert isinstance(source, dict)
+    assert source["kind"] == "ai"
+    assert source["model_display"] == "Qwen3 30B"
+
+
+def test_generation_source_labels_repaired_ollama_as_repaired_validated() -> None:
+    """Verify repaired/sanitized Ollama content receives the repaired badge."""
+
+    bundle = _bundle()
+    strategic = json.loads(json.dumps(bundle.strategic_analysis))
+    strategic["analysis_source"] = "ollama_modular_reasoning"
+    strategic["validation_status"] = "sanitized"
+    strategic["strategic_recovery"] = {"sanitized_fields": ["strategic_recommendations[0].action"]}
+    report_model = build_report_model(
+        ReportInputBundle(
+            period_slug=bundle.period_slug,
+            finance_summary=bundle.finance_summary,
+            kpi_summary=bundle.kpi_summary,
+            anomaly_report=bundle.anomaly_report,
+            evidence_package=bundle.evidence_package,
+            strategic_analysis=strategic,
+            source_files=bundle.source_files,
+        )
+    ).to_dict()
+
+    source = _content(report_model, "strategic_recommendations").get("generation_source", {})
+    assert isinstance(source, dict)
+    assert source["kind"] == "ai_repaired"
+
+
+def test_generation_source_labels_deterministic_fallback_as_deterministic() -> None:
+    """Verify deterministic fallback content cannot be mislabeled AI."""
+
+    bundle = _bundle()
+    strategic = json.loads(json.dumps(bundle.strategic_analysis))
+    strategic["analysis_source"] = "degraded_deterministic"
+    report_model = build_report_model(
+        ReportInputBundle(
+            period_slug=bundle.period_slug,
+            finance_summary=bundle.finance_summary,
+            kpi_summary=bundle.kpi_summary,
+            anomaly_report=bundle.anomaly_report,
+            evidence_package=bundle.evidence_package,
+            strategic_analysis=strategic,
+            source_files=bundle.source_files,
+        )
+    ).to_dict()
+
+    view = build_presentation_view(report_model)
+    assert view["generation_sources"]["executive_summary"]["label"] == "Determinístico"
+    assert view["generation_sources"]["strategic_recommendations"]["label"] == "Determinístico"
+
+
 def test_september_report_model_materializes_six_point_recovery_window() -> None:
     """Verify refreshed memory context becomes a full Apr-Sep report-model series."""
 

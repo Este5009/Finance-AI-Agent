@@ -233,6 +233,37 @@ def _narrative(view: dict[str, Any], section_id: str) -> str:
     return f"<p class='section-analysis'>{_escape(text)}</p>" if text else ""
 
 
+def _source_badge(view: dict[str, Any], section_id: str) -> str:
+    """Render one subtle generation-source badge for a section.
+
+    Inputs: presentation view and section ID.
+    Outputs: HTML badge or empty string.
+    Assumptions: provenance was set upstream from real pipeline metadata.
+    """
+
+    badge = view.get("generation_sources", {}).get(section_id, {})
+    if not isinstance(badge, dict) or not badge.get("label"):
+        return ""
+    klass = str(badge.get("class") or "deterministic")
+    return f"<span class='source-badge {klass}'>{_escape(badge.get('label'))}</span>"
+
+
+def _section_heading(view: dict[str, Any], section_id: str) -> str:
+    """Render a Spanish section title with optional generation-source badge.
+
+    Inputs: presentation view and section ID.
+    Outputs: heading markup.
+    Assumptions: one badge per major section is enough for executive readers.
+    """
+
+    return (
+        "<div class='section-heading'>"
+        f"<h2>{_escape(SECTION_LABELS_ES.get(section_id, section_id))}</h2>"
+        f"{_source_badge(view, section_id)}"
+        "</div>"
+    )
+
+
 def _insight_box(text: Any) -> str:
     """Render one deterministic chart conclusion box.
 
@@ -456,9 +487,9 @@ def _render_summary(view: dict[str, Any]) -> str:
     roots = "".join(f"<li>{_escape(item)}</li>" for item in summary["root_causes"])
     return (
         "<section id='executive_summary'>"
-        f"<h2>{SECTION_LABELS_ES['executive_summary']}</h2>"
-        f"<p class='lead'>{_escape(summary['summary'])}</p>"
-        "<div class='two-col'>"
+        + _section_heading(view, "executive_summary")
+        + f"<p class='lead'>{_escape(summary['summary'])}</p>"
+        + "<div class='two-col'>"
         f"<div><h3>Hallazgos clave</h3><ul>{findings or '<li>Sin hallazgos materiales.</li>'}</ul></div>"
         f"<div><h3>Causas raíz probables</h3><ul>{roots or '<li>Sin causas raíz materiales.</li>'}</ul></div>"
         "</div>"
@@ -504,7 +535,7 @@ def _render_health(view: dict[str, Any]) -> str:
     ]
     return (
         "<section id='financial_health_overview'>"
-        f"<h2>{SECTION_LABELS_ES['financial_health_overview']}</h2>"
+        + _section_heading(view, "financial_health_overview")
         + _narrative(view, "financial_health_overview")
         + f"<div class='kpi-grid'>{cards}</div>"
         + (
@@ -550,7 +581,7 @@ def _render_kpis(view: dict[str, Any]) -> str:
         detail = _table(["Indicador", "Valor", "Estado", "Descripción"], rows, force=True)
     return (
         "<section id='kpi_overview'>"
-        f"<h2>{SECTION_LABELS_ES['kpi_overview']}</h2>"
+        + _section_heading(view, "kpi_overview")
         + _narrative(view, "kpi_overview")
         + (f"<div class='mini-grid'>{cards}</div>" if cards else "")
         + detail
@@ -602,8 +633,8 @@ def _render_goal_budget(view: dict[str, Any]) -> str:
     ]
     return (
         "<section id='goal_budget_performance'>"
-        f"<h2>{SECTION_LABELS_ES['goal_budget_performance']}</h2>"
-        f"<div class='executive-insight'><strong>Conclusión ejecutiva:</strong> {_escape(goals.get('conclusion'))}</div>"
+        + _section_heading(view, "goal_budget_performance")
+        + f"<div class='executive-insight'><strong>Conclusión ejecutiva:</strong> {_escape(goals.get('conclusion'))}</div>"
         + summary_cards
         + status_chart
         + chart_markup
@@ -670,19 +701,19 @@ def _render_historical(view: dict[str, Any]) -> str:
     )
     return (
         "<section id='historical_trends'><span id='historical_summary'></span>"
-        f"<h2>{SECTION_LABELS_ES['historical_trends']}</h2>"
+        + _section_heading(view, "historical_trends")
         + _narrative(view, "historical_summary")
         + _narrative(view, "historical_trends")
         + f"<div class='trend-grid'>{charts}{fallback_cards}</div>"
-        "</section>"
-        "<section id='recommendation_follow_up'>"
-        f"<h2>{SECTION_LABELS_ES['recommendation_follow_up']}</h2>"
+        + "</section>"
+        + "<section id='recommendation_follow_up'>"
+        + _section_heading(view, "recommendation_follow_up")
         + (f"<p class='section-analysis'>{_escape(historical.get('recommendation_intro'))}</p>" if historical.get("recommendation_intro") else "")
         + (f"<div class='info-card neutral'><p>{_escape(historical.get('recommendation_summary'))}</p></div>" if historical.get("recommendation_summary") else "")
         + follow_markup
         + "</section>"
-        "<section id='longitudinal_risk_assessment'>"
-        f"<h2>{SECTION_LABELS_ES['longitudinal_risk_assessment']}</h2>"
+        + "<section id='longitudinal_risk_assessment'>"
+        + _section_heading(view, "longitudinal_risk_assessment")
         + (f"<div class='info-card neutral'><p>{_escape(historical.get('risk_summary'))}</p></div>" if historical.get("risk_summary") else "")
         + risk_markup
         + "</section>"
@@ -701,7 +732,7 @@ def _render_revenue_expense(view: dict[str, Any]) -> str:
     rows = [[row["metric"], row["value"], row["description"]] for row in data["rows"]]
     return (
         "<section id='revenue_expense_analysis'><span id='revenue_analysis'></span><span id='expense_analysis'></span>"
-        f"<h2>{SECTION_LABELS_ES['revenue_expense_analysis']}</h2>"
+        + _section_heading(view, "revenue_expense_analysis")
         + _narrative(view, "revenue_expense_analysis")
         + _bar_chart(data["chart"], title="Ingresos, gastos y resultado")
         + _insight_box(data.get("chart_insight"))
@@ -745,7 +776,7 @@ def _render_departments(view: dict[str, Any]) -> str:
     cards = "".join(department_cards)
     return (
         "<section id='department_analysis'>"
-        f"<h2>{SECTION_LABELS_ES['department_analysis']}</h2>"
+        + _section_heading(view, "department_analysis")
         + _narrative(view, "department_analysis")
         + f"<div class='mini-grid'>{cards}</div>"
         + _bar_chart(chart, title="Resultado operativo por departamento")
@@ -825,7 +856,7 @@ def _render_anomalies(view: dict[str, Any]) -> str:
     if current_status:
         return (
             "<section id='anomaly_summary'>"
-            f"<h2>{SECTION_LABELS_ES['anomaly_summary']}</h2>"
+            + _section_heading(view, "anomaly_summary")
             + f"<div class='status-card positive'>{_escape(current_status)}</div>"
             + (
                 f"<p class='section-analysis'>{_escape(anomalies.get('distinction_note'))}</p>"
@@ -852,7 +883,7 @@ def _render_anomalies(view: dict[str, Any]) -> str:
         )
     return (
         "<section id='anomaly_summary'>"
-        f"<h2>{SECTION_LABELS_ES['anomaly_summary']}</h2>"
+        + _section_heading(view, "anomaly_summary")
         + _narrative(view, "anomaly_summary")
         + _bar_chart(severity_chart, title="Hallazgos por severidad")
         + _insight_box(anomalies.get("chart_insight"))
@@ -888,7 +919,7 @@ def _render_evidence(view: dict[str, Any]) -> str:
         )
     return (
         "<section id='investigation_evidence'>"
-        f"<h2>{SECTION_LABELS_ES['investigation_evidence']}</h2>"
+        + _section_heading(view, "investigation_evidence")
         + content
         + "</section>"
     )
@@ -948,7 +979,7 @@ def _render_recommendations(view: dict[str, Any]) -> str:
         )
     return (
         "<section id='strategic_recommendations'>"
-        f"<h2>{SECTION_LABELS_ES['strategic_recommendations']}</h2>"
+        + _section_heading(view, "strategic_recommendations")
         + _narrative(view, "strategic_recommendations")
         + (f"<h3>Prioridades estratégicas</h3><ul>{priorities}</ul>" if priorities else "")
         + recommendation_display
@@ -970,15 +1001,15 @@ def _render_missing_and_appendix(view: dict[str, Any]) -> str:
     sources = "".join(f"<li>{_escape(item)}</li>" for item in appendix["sources"])
     return (
         "<section id='missing_information'>"
-        f"<h2>{SECTION_LABELS_ES['missing_information']}</h2>"
+        + _section_heading(view, "missing_information")
         + _narrative(view, "missing_information")
         + (f"<ul>{missing}</ul>" if missing else _info_card("Estado de información", "No se reportan brechas de información relevantes.", klass="positive"))
         + "</section>"
         + "<section id='appendix'>"
-        f"<h2>{SECTION_LABELS_ES['appendix']}</h2>"
-        f"<h3>Metodología</h3><ul>{methodology}</ul>"
-        f"<h3>Fuentes:</h3><ul>{sources}</ul>"
-        "</section>"
+        + _section_heading(view, "appendix")
+        + f"<h3>Metodología</h3><ul>{methodology}</ul>"
+        + f"<h3>Fuentes:</h3><ul>{sources}</ul>"
+        + "</section>"
     )
 
 
@@ -1031,6 +1062,12 @@ def _styles() -> str:
     .cover-mark { letter-spacing:.16em; text-transform:uppercase; font-size:13px; opacity:.82; }
     h1 { margin:.35em 0; font-size:44px; line-height:1.05; }
     h2 { margin:0 0 24px; color:var(--navy); font-size:25px; border-left:6px solid var(--blue); padding-left:12px; break-after: avoid; page-break-after: avoid; }
+    .section-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:0 0 24px; }
+    .section-heading h2 { margin:0; flex:1 1 260px; }
+    .source-badge { display:inline-flex; align-items:center; gap:4px; padding:4px 9px; border-radius:999px; border:1px solid #cfd9e4; background:#f3f7fb; color:#516174; font-size:11px; font-weight:700; letter-spacing:.01em; white-space:nowrap; }
+    .source-badge.ai { border-color:#c7d8ee; background:#eef6ff; color:#245b89; }
+    .source-badge.ai-repaired { border-color:#e6c977; background:#fff7df; color:#8a5c00; }
+    .source-badge.deterministic { border-color:#cfd9e4; background:#f5f7fa; color:#516174; }
     h3 { color:var(--navy); margin:22px 0 12px; }
     .cover h1, .cover h2 { color:#fff; border:0; padding:0; }
     .period { font-size:22px; font-weight:700; }

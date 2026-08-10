@@ -1,4 +1,4 @@
-﻿"""Professional PDF renderer for Finance AI Agent report models."""
+"""Professional PDF renderer for Finance AI Agent report models."""
 
 from __future__ import annotations
 
@@ -253,6 +253,7 @@ def _styles() -> dict[str, ParagraphStyle]:
         "h2": ParagraphStyle("SubHeading", parent=sample["Heading2"], fontName="Helvetica-Bold", fontSize=10.5, leading=13, textColor=NAVY, spaceBefore=12, spaceAfter=7, keepWithNext=True),
         "body": ParagraphStyle("Body", parent=sample["BodyText"], fontName="Helvetica", fontSize=8.8, leading=12.2, textColor=INK, spaceAfter=7),
         "small": ParagraphStyle("Small", parent=sample["BodyText"], fontName="Helvetica", fontSize=7.2, leading=9.8, textColor=MUTED, spaceAfter=4),
+        "source_badge": ParagraphStyle("SourceBadge", parent=sample["BodyText"], fontName="Helvetica-Bold", fontSize=6.9, leading=8.5, textColor=MUTED, backColor=colors.HexColor("#f3f7fb"), borderColor=LINE, borderWidth=0.3, borderPadding=3, spaceAfter=6),
         "card_value": ParagraphStyle("CardValue", parent=sample["BodyText"], fontName="Helvetica-Bold", fontSize=13, leading=15, textColor=NAVY),
         "insight": ParagraphStyle("ExecutiveConclusion", parent=sample["BodyText"], fontName="Helvetica", fontSize=8, leading=11.2, textColor=colors.HexColor("#24364a"), backColor=colors.HexColor("#eef7ff"), borderColor=BLUE, borderWidth=0.4, borderPadding=7, spaceBefore=8, spaceAfter=14),
     }
@@ -436,15 +437,23 @@ def _compact_cards(items: list[dict[str, Any]], styles: dict[str, ParagraphStyle
     return cards
 
 
-def _section_title(story: list[Any], section_id: str, styles: dict[str, ParagraphStyle]) -> None:
+def _section_title(
+    story: list[Any],
+    section_id: str,
+    styles: dict[str, ParagraphStyle],
+    view: dict[str, Any] | None = None,
+) -> None:
     """Append a section title.
 
-    Inputs: story list, section ID, and styles.
+    Inputs: story list, section ID, styles, and optional presentation view.
     Outputs: mutates story.
-    Assumptions: Spanish labels are centrally defined.
+    Assumptions: Spanish labels and generation provenance are centrally defined.
     """
 
     story.append(_para(SECTION_LABELS_ES.get(section_id, section_id), styles["h1"]))
+    badge = (view or {}).get("generation_sources", {}).get(section_id, {})
+    if isinstance(badge, dict) and badge.get("label"):
+        story.append(_para(str(badge.get("label")), styles["source_badge"]))
 
 
 def _append_narrative(story: list[Any], view: dict[str, Any], section_id: str, styles: dict[str, ParagraphStyle]) -> None:
@@ -570,7 +579,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
     story.append(_para("Síntesis ejecutiva generada desde salidas procesadas, validadas y trazables.", styles["cover"]))
     story.append(PageBreak())
 
-    _section_title(story, "executive_summary", styles)
+    _section_title(story, "executive_summary", styles, view)
     story.append(_para(view["executive_summary"]["summary"], styles["body"]))
     story.append(_para("Hallazgos clave", styles["h2"]))
     story.extend(_bullet_list(view["executive_summary"]["key_findings"], styles, limit=6))
@@ -578,7 +587,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
     story.extend(_bullet_list(view["executive_summary"]["root_causes"], styles, limit=6))
     story.append(_para(f"Confianza del análisis: {view['executive_summary']['confidence']}", styles["small"]))
 
-    _section_title(story, "financial_health_overview", styles)
+    _section_title(story, "financial_health_overview", styles, view)
     _append_narrative(story, view, "financial_health_overview", styles)
     story.append(_metric_cards(view, styles))
     chart_items = [
@@ -590,7 +599,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
     story.append(HorizontalBarChart(chart_items, "Resumen financiero principal"))
     story.append(_insight_para(view["financial_health"].get("chart_insight", ""), styles["insight"]))
 
-    _section_title(story, "kpi_overview", styles)
+    _section_title(story, "kpi_overview", styles, view)
     _append_narrative(story, view, "kpi_overview", styles)
     if len(view["kpis"]) > 6:
         story.append(
@@ -607,7 +616,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
 
     goal_budget = view.get("goal_budget", {})
     if goal_budget.get("available"):
-        _section_title(story, "goal_budget_performance", styles)
+        _section_title(story, "goal_budget_performance", styles, view)
         story.append(
             _info_card(
                 goal_budget.get("conclusion") or "Cumplimiento calculado con datos procesados.",
@@ -670,7 +679,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
 
     historical = view["historical"]
     if historical.get("available"):
-        _section_title(story, "historical_trends", styles)
+        _section_title(story, "historical_trends", styles, view)
         _append_narrative(story, view, "historical_summary", styles)
         _append_narrative(story, view, "historical_trends", styles)
         chartable_ids = {id(series) for series in historical_chart_series(historical)}
@@ -726,7 +735,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
             rendered_chart_count,
             renderer_name="PDF renderer",
         )
-        _section_title(story, "recommendation_follow_up", styles)
+        _section_title(story, "recommendation_follow_up", styles, view)
         if historical.get("recommendation_intro"):
             story.append(_para(historical.get("recommendation_intro"), styles["body"]))
         if historical.get("recommendation_summary"):
@@ -750,7 +759,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
                     widths=[1.15 * inch, 0.7 * inch, 0.9 * inch, 1.45 * inch, 1.25 * inch, 1.15 * inch],
                 )
             )
-        _section_title(story, "longitudinal_risk_assessment", styles)
+        _section_title(story, "longitudinal_risk_assessment", styles, view)
         if historical.get("risk_summary"):
             story.append(_info_card(historical.get("risk_summary"), styles, title="Lectura ejecutiva"))
             story.append(Spacer(1, 0.08 * inch))
@@ -772,7 +781,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
                 )
             )
 
-    _section_title(story, "revenue_expense_analysis", styles)
+    _section_title(story, "revenue_expense_analysis", styles, view)
     _append_narrative(story, view, "revenue_expense_analysis", styles)
     story.append(HorizontalBarChart(view["revenue_expense"]["chart"], "Ingresos, gastos y resultado"))
     story.append(_insight_para(view["revenue_expense"].get("chart_insight", ""), styles["insight"]))
@@ -787,7 +796,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
         )
     )
 
-    _section_title(story, "department_analysis", styles)
+    _section_title(story, "department_analysis", styles, view)
     _append_narrative(story, view, "department_analysis", styles)
     story.append(
         _table(
@@ -812,7 +821,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
             styles["insight"],
         ))
 
-    _section_title(story, "anomaly_summary", styles)
+    _section_title(story, "anomaly_summary", styles, view)
     anomalies = view["anomalies"]
     if anomalies.get("current_period_status") or anomalies.get("positive_status"):
         story.append(_info_card(anomalies.get("current_period_status") or anomalies.get("positive_status"), styles))
@@ -846,7 +855,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
                 )
             )
 
-    _section_title(story, "investigation_evidence", styles)
+    _section_title(story, "investigation_evidence", styles, view)
     evidence_rows = [[row["priority"], row["evidence"], row["records"], row["summary"]] for row in view["evidence"][:8]]
     story.append(
         _table(
@@ -858,7 +867,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
         )
     )
 
-    _section_title(story, "strategic_recommendations", styles)
+    _section_title(story, "strategic_recommendations", styles, view)
     _append_narrative(story, view, "strategic_recommendations", styles)
     if view["recommendations"]["priorities"]:
         story.append(_para("Prioridades estratégicas", styles["h2"]))
@@ -911,14 +920,14 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
                 force=True,
             )
         )
-    _section_title(story, "missing_information", styles)
+    _section_title(story, "missing_information", styles, view)
     _append_narrative(story, view, "missing_information", styles)
     if view["missing_information"]:
         story.extend(_bullet_list(view["missing_information"], styles, limit=8))
     else:
         story.append(_info_card("No se reportan brechas de información relevantes.", styles, title="Estado de información"))
 
-    _section_title(story, "appendix", styles)
+    _section_title(story, "appendix", styles, view)
     story.append(_para("Metodología", styles["h2"]))
     story.extend(_bullet_list(view["appendix"]["methodology"], styles, limit=6))
     story.append(_para("Fuentes procesadas", styles["h2"]))

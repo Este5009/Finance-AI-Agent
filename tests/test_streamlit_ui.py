@@ -185,6 +185,33 @@ def _july_report_model() -> dict[str, Any]:
     ).to_dict()
 
 
+def test_streamlit_generation_source_heading_uses_report_model_provenance() -> None:
+    """Verify Streamlit headings display the supplied generation-source badge."""
+
+    fake_st = FakeStreamlitRenderer()
+    view = {
+        "generation_sources": {
+            "executive_summary": {
+                "kind": "ai",
+                "label": "Generado por IA · Qwen3 30B",
+                "class": "ai",
+            },
+            "goal_budget_performance": {
+                "kind": "deterministic",
+                "label": "Determinístico",
+                "class": "deterministic",
+            },
+        }
+    }
+
+    streamlit_app._render_generated_section_heading(fake_st, view, "executive_summary", "Resumen ejecutivo")
+    streamlit_app._render_generated_section_heading(fake_st, view, "goal_budget_performance", "Metas y presupuesto")
+
+    rendered = "\n".join(fake_st.markdown_calls)
+    assert "Generado por IA · Qwen3 30B" in rendered
+    assert "Determinístico" in rendered
+
+
 def _october_report_model() -> dict[str, Any]:
     """Load the existing October report model for presentation-only validation."""
 

@@ -328,6 +328,50 @@ def test_html_generation_contains_required_sections_and_spanish_labels() -> None
     assert "Fuentes:" in html
 
 
+def test_html_renders_generation_source_badges_from_report_model() -> None:
+    """Verify HTML shows source badges without inferring them from narrative."""
+
+    model = _sample_report_model()
+    for section in model["sections"]:
+        content = section.get("content", {})
+        if not isinstance(content, dict):
+            continue
+        if section["section_id"] == "executive_summary":
+            content["generation_source"] = {"kind": "ai", "source": "ollama_modular_reasoning"}
+        elif section["section_id"] == "strategic_recommendations":
+            content["generation_source"] = {"kind": "ai_repaired", "source": "ollama_modular_reasoning"}
+        elif section["section_id"] == "goal_budget_performance":
+            content["generation_source"] = {"kind": "deterministic", "source": "python_rules"}
+
+    html = render_report_html(model)
+
+    assert "Generado por IA · Qwen3 30B" in html
+    assert "IA · Reparado y validado" in html
+    assert "Determinístico" in html
+
+
+def test_pdf_renders_generation_source_badges_from_report_model(tmp_path: Path) -> None:
+    """Verify PDF section headings include subtle source badges."""
+
+    from pypdf import PdfReader
+
+    model = _sample_report_model()
+    for section in model["sections"]:
+        content = section.get("content", {})
+        if not isinstance(content, dict):
+            continue
+        if section["section_id"] == "executive_summary":
+            content["generation_source"] = {"kind": "ai", "source": "ollama_modular_reasoning"}
+        elif section["section_id"] == "strategic_recommendations":
+            content["generation_source"] = {"kind": "ai_repaired", "source": "ollama_modular_reasoning"}
+
+    pdf_path = render_report_pdf(model, tmp_path / "source_badges.pdf")
+    pdf_text = "\n".join(page.extract_text() or "" for page in PdfReader(str(pdf_path)).pages)
+
+    assert "Generado por IA · Qwen3 30B" in pdf_text
+    assert "IA · Reparado y validado" in pdf_text
+
+
 def test_html_anomaly_section_shows_finding_provenance() -> None:
     """Verify executive anomaly cards distinguish finding and reference origin."""
 

@@ -1763,6 +1763,33 @@ def _apply_page_styles(st: Any) -> None:
             background: #efe7fb;
             border-color: #d1b7f0;
         }
+        .ui-section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin: 0.85rem 0 0.45rem;
+        }
+        .ui-section-heading h3,
+        .ui-section-heading h4 {
+            margin: 0;
+            color: var(--fa-text-strong);
+            line-height: 1.25;
+        }
+        .ui-source-badge {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid var(--fa-border);
+            border-radius: 999px;
+            background: var(--fa-surface-elevated);
+            color: var(--fa-muted);
+            padding: 3px 9px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            line-height: 1.15;
+            white-space: nowrap;
+        }
         .ui-kpi-description {
             color: var(--fa-muted);
             font-size: 0.86rem;
@@ -1884,6 +1911,11 @@ def _apply_page_styles(st: Any) -> None:
                 color: #ecdfff;
                 background: #302345;
                 border-color: #61448e;
+            }
+            .ui-source-badge {
+                color: #c5d0dc;
+                background: #1b2638;
+                border-color: #35465a;
             }
             .ui-kpi-row,
             .ui-card-row { border-top-color: #33465a; }
@@ -2133,6 +2165,37 @@ def _section_by_id(report_model: dict[str, Any], section_id: str) -> dict[str, A
         if isinstance(section, dict) and section.get("section_id") == section_id:
             return section
     return {}
+
+
+def _render_generated_section_heading(
+    st: Any,
+    view: dict[str, Any],
+    section_id: str,
+    title: str,
+    *,
+    level: int = 3,
+) -> None:
+    """Render one executive section title with truthful generation-source badge.
+
+    Inputs: Streamlit module, presentation view, section ID, display title, and
+    heading level.
+    Outputs: title HTML with at most one subtle badge.
+    Assumptions: badges come from report-model provenance, never text inference.
+    """
+
+    badge = view.get("generation_sources", {}).get(section_id, {}) if isinstance(view, dict) else {}
+    label = str(badge.get("label") or "") if isinstance(badge, dict) else ""
+    heading_tag = "h4" if level >= 4 else "h3"
+    badge_html = f"<span class='ui-source-badge'>{escape(label)}</span>" if label else ""
+    st.markdown(
+        (
+            "<div class='ui-section-heading'>"
+            f"<{heading_tag}>{escape(title)}</{heading_tag}>"
+            f"{badge_html}"
+            "</div>"
+        ),
+        unsafe_allow_html=True,
+    )
 
 
 def _ui_section_consistency_rows(
@@ -2496,7 +2559,7 @@ def _render_overview_tab(st: Any, report_model: dict[str, Any], result: Pipeline
     view = build_presentation_view(report_model) if report_model else {}
     executive = view.get("executive_summary", {}) if isinstance(view, dict) else {}
     health_cards = view.get("financial_health", {}).get("cards", []) if isinstance(view, dict) else []
-    st.markdown("### Resumen ejecutivo")
+    _render_generated_section_heading(st, view, "executive_summary", "Resumen ejecutivo")
     _render_safe_text_block(
         st,
         executive.get("summary") or "El resumen ejecutivo no está disponible.",
@@ -2526,7 +2589,7 @@ def _render_overview_tab(st: Any, report_model: dict[str, Any], result: Pipeline
             ],
             min_width_px=230,
         )
-    st.markdown("### Salud financiera")
+    _render_generated_section_heading(st, view, "financial_health_overview", "Salud financiera")
     if health_cards:
         _render_grouped_kpi_cards(st, health_cards[:8])
         _render_attention_summary(st, report_model)
@@ -2545,7 +2608,7 @@ def _render_kpi_tab(st: Any, report_model: dict[str, Any]) -> None:
     view = build_presentation_view(report_model) if report_model else {}
     cards = view.get("financial_health", {}).get("cards", []) if isinstance(view, dict) else []
     if cards:
-        st.markdown("### Indicadores principales")
+        _render_generated_section_heading(st, view, "kpi_overview", "Indicadores principales")
         _render_grouped_kpi_cards(st, cards[:8])
     rows = [
         {
@@ -2595,7 +2658,7 @@ def _render_goal_budget_tab(st: Any, report_model: dict[str, Any]) -> None:
 
     view = build_presentation_view(report_model) if report_model else {}
     goals = view.get("goal_budget", {}) if isinstance(view, dict) else {}
-    st.markdown("### Metas y presupuesto")
+    _render_generated_section_heading(st, view, "goal_budget_performance", "Metas y presupuesto")
     if not goals.get("available"):
         st.info("No hay metas o presupuestos suficientes para mostrar esta sección.")
         return
@@ -2684,7 +2747,7 @@ def _render_anomaly_tab(st: Any, report_model: dict[str, Any]) -> None:
 
     view = build_presentation_view(report_model) if report_model else {}
     anomalies = view.get("anomalies", {}) if isinstance(view, dict) else {}
-    st.markdown("### Hallazgos y anomalías del periodo")
+    _render_generated_section_heading(st, view, "anomaly_summary", "Hallazgos y anomalías del periodo")
     if anomalies.get("current_period_status"):
         _render_section_card(
             st,
@@ -2777,7 +2840,7 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
     rows = revenue_expense.get("rows", []) if isinstance(revenue_expense, dict) else []
     top_anomalies = anomalies.get("top_rows", []) if isinstance(anomalies, dict) else []
 
-    st.markdown("### Situación financiera actual")
+    _render_generated_section_heading(st, view, "financial_health_overview", "Situación financiera actual")
     current_cards = []
     for metric_id in ("total_revenue", "total_expenses", "net_operating_result", "ending_cash"):
         card = kpi_by_id.get(metric_id)
@@ -2803,7 +2866,7 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
             badge="Verificado",
         )
 
-    st.markdown("### Cambios frente al período anterior")
+    _render_generated_section_heading(st, view, "kpi_overview", "Cambios frente al período anterior")
     comparison_cards = []
     for metric_id in ("total_revenue", "total_expenses", "net_operating_result", "payroll_percentage_of_revenue", "collection_rate"):
         card = kpi_by_id.get(metric_id)
@@ -2832,7 +2895,7 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
             badge="No disponible",
         )
 
-    st.markdown("### Presiones y riesgos")
+    _render_generated_section_heading(st, view, "anomaly_summary", "Presiones y riesgos")
     severity_rows = anomalies.get("severity_rows", []) if isinstance(anomalies, dict) else []
     severity_cards = [
         {
@@ -2876,7 +2939,7 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
             min_width_px=280,
         )
 
-    st.markdown("### Resultados por departamento")
+    _render_generated_section_heading(st, view, "department_analysis", "Resultados por departamento")
     if departments:
         best = next((row for row in departments if isinstance(row, dict) and row.get("rank_badge") == "Mejor"), None)
         weakest = next((row for row in departments if isinstance(row, dict) and row.get("rank_badge") == "Mayor presión"), None)
@@ -2936,7 +2999,7 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
             badge="No disponible",
         )
 
-    st.markdown("### Tendencias históricas")
+    _render_generated_section_heading(st, view, "historical_trends", "Tendencias históricas")
     if historical.get("available"):
         narrative = historical.get("narrative", []) or []
         trend_cards = []
@@ -2977,7 +3040,7 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
             )
         risks = historical.get("recurring_risks", []) or []
         if risks:
-            st.markdown("#### Riesgos históricos recurrentes")
+            _render_generated_section_heading(st, view, "longitudinal_risk_assessment", "Riesgos históricos recurrentes", level=4)
             _render_responsive_card_grid(
                 st,
                 [
@@ -3006,7 +3069,7 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
             badge="No disponible",
         )
 
-    st.markdown("### Acciones para la gestión")
+    _render_generated_section_heading(st, view, "strategic_recommendations", "Acciones para la gestión")
     action_cards = recommendations.get("cards", []) if isinstance(recommendations, dict) else []
     follow_up = historical.get("recommendation_follow_up", []) if isinstance(historical, dict) else []
     if action_cards:
@@ -3116,7 +3179,7 @@ def _render_recommendations_tab(st: Any, report_model: dict[str, Any]) -> None:
     recommendations = view.get("recommendations", {}) if isinstance(view, dict) else {}
     historical = view.get("historical", {}) if isinstance(view, dict) else {}
     missing_items = view.get("missing_information", []) if isinstance(view, dict) else []
-    st.markdown("### Recomendaciones estratégicas actuales")
+    _render_generated_section_heading(st, view, "strategic_recommendations", "Recomendaciones estratégicas actuales")
     priorities = recommendations.get("priorities", []) or []
     if priorities:
         st.markdown("#### Prioridades validadas")
@@ -3189,7 +3252,7 @@ def _render_recommendations_tab(st: Any, report_model: dict[str, Any]) -> None:
 
     follow_up = historical.get("recommendation_follow_up", []) if isinstance(historical, dict) else []
     if follow_up:
-        st.markdown("### Seguimiento verificado de recomendaciones previas")
+        _render_generated_section_heading(st, view, "recommendation_follow_up", "Seguimiento verificado de recomendaciones previas")
         if historical.get("recommendation_summary"):
             _render_section_card(
                 st,
@@ -3230,7 +3293,7 @@ def _render_recommendations_tab(st: Any, report_model: dict[str, Any]) -> None:
         )
 
     if missing_items:
-        st.markdown("### Información pendiente")
+        _render_generated_section_heading(st, view, "missing_information", "Información pendiente")
         for item in missing_items:
             _render_section_card(
                 st,
