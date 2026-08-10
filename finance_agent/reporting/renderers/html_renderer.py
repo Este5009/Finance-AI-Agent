@@ -937,7 +937,7 @@ def _render_recommendations(view: dict[str, Any]) -> str:
             for item in recs.get("attention_items", [])[:6]
         )
         recommendation_display = _info_card(
-            "Síntesis estratégica determinística",
+            "Modo degradado: análisis determinístico",
             recs.get("strategy_unavailable_note")
             or "El reporte conserva hallazgos verificados, KPIs, historial y evidencia procesada para orientar la revisión ejecutiva.",
             klass="warning",

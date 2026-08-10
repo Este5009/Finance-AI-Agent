@@ -22,6 +22,7 @@ from finance_agent.orchestration.pipeline_orchestrator import (
     PipelineStage,
     _cache_manifest_path,
     _load_valid_cache,
+    _is_degraded_strategy_document,
     _pipeline_cache_key,
     _ollama_client_for_stage,
     _pending_after_failure_stage_results,
@@ -511,6 +512,58 @@ def test_cache_invalid_if_strategy_unavailable(tmp_path: Path) -> None:
     )
 
     assert result is None
+
+
+def test_cache_invalid_for_degraded_strategy_in_normal_ai_mode(tmp_path: Path) -> None:
+    """Verify degraded deterministic artifacts are not reused as AI successes."""
+
+    config = _config(tmp_path)
+    input_model = _input_model(tmp_path)
+    period_slug = "2026_06"
+    _valid_report_artifacts(config, period_slug)
+    analysis_path = config.output_directory / "analysis" / f"strategic_analysis_{period_slug}.json"
+    analysis_path.write_text(
+        json.dumps(
+            {
+                "validation_status": "accepted",
+                "analysis_source": "degraded_deterministic",
+                "strategic_recovery": {
+                    "degraded_mode": True,
+                    "source_label": "Modo degradado: análisis determinístico",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    cache_key = _pipeline_cache_key(input_model, config)
+    manifest = _cache_manifest_path(config, cache_key)
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(json.dumps({"cache_key": cache_key, "period_slug": period_slug}), encoding="utf-8")
+
+    result = _load_valid_cache(
+        input_model=input_model,
+        config=config,
+        period_slug=period_slug,
+        cache_key=cache_key,
+        pipeline_started=0.0,
+    )
+
+    assert result is None
+    assert _is_degraded_strategy_document(json.loads(analysis_path.read_text(encoding="utf-8")))
+
+
+def test_degraded_mode_changes_pipeline_cache_key(tmp_path: Path) -> None:
+    """Verify explicit degraded strategy mode is part of cache identity."""
+
+    input_model = _input_model(tmp_path)
+    ai_config = _config(tmp_path)
+    degraded_config = PipelineConfig.from_project_root(
+        tmp_path,
+        python_executable=sys.executable,
+        strategic_ai_mode="degraded",
+    )
+
+    assert _pipeline_cache_key(input_model, ai_config) != _pipeline_cache_key(input_model, degraded_config)
 
 
 def test_timeout_style_unavailable_strategy_allows_fallback_report() -> None:

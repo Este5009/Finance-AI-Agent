@@ -860,7 +860,7 @@ def test_html_pdf_do_not_render_old_recommendations_unavailable_state(tmp_path: 
     )
     for phrase in forbidden:
         assert phrase not in combined
-    assert "Síntesis estratégica determinística" in combined
+    assert "Modo degradado" in combined
 
 
 def test_save_html_writes_document(tmp_path: Path) -> None:

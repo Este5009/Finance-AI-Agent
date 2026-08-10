@@ -2178,7 +2178,7 @@ def build_deterministic_strategic_synthesis(
     )
     anomaly_ids = _first_existing_ids(*_top_anomaly_facts(evidence_ledger), fallback_ids=tuple(core_ids[:1]))
     period_label = str(finance_summary.get("report_period") or period_slug).replace("_", "-")
-    analysis_title = "Síntesis estratégica determinística"
+    analysis_title = "Modo degradado: análisis determinístico"
     executive_summary = (
         f"{analysis_title}: para {period_label}, los datos procesados muestran "
         f"ingresos de {_fact_display(revenue)}, gastos de {_fact_display(expenses)}, "
@@ -2453,6 +2453,7 @@ def create_strategic_analysis(
     evidence_repair_attempted = False
     targeted_repair_attempted = False
     constrained_generation_attempted = False
+    final_constrained_generation_attempted = False
     response = ""
     recovery_outcome = "primary_validated"
     evidence_ledger = build_evidence_ledger(
@@ -2667,6 +2668,42 @@ def create_strategic_analysis(
                     recovery_outcome = "constrained_generation_validated"
             except OllamaError as exc:
                 errors = (str(exc),)
+        if available and not (validation is not None and validation.is_valid):
+            final_constrained_generation_attempted = True
+            final_prompt = (
+                build_constrained_generation_prompt(
+                    evidence_ledger=evidence_ledger,
+                    period_slug=period_slug,
+                )
+                + "\nÚltimo intento: produce una respuesta más breve, sin cifras nuevas, "
+                "con 2-5 observaciones, 2-5 prioridades y 2-5 recomendaciones accionables."
+            )
+            try:
+                if hasattr(client, "generate_with_metadata"):
+                    generation = client.generate_with_metadata(final_prompt)  # type: ignore[attr-defined]
+                    response = str(generation["response"])
+                    ollama_telemetry = merge_telemetry(
+                        ollama_telemetry,
+                        dict(generation.get("telemetry", {})),
+                    )
+                else:
+                    response = client.generate(final_prompt)
+                validation_started = time.perf_counter()
+                validation = _validate_generated_analysis_candidate(
+                    response,
+                    finance_summary=finance_summary,
+                    anomaly_report=anomaly_report,
+                    evidence_package=evidence_package,
+                    risk_summary=risk_summary,
+                    historical_context=historical_context,
+                    evidence_ledger=evidence_ledger,
+                )
+                validation_time += time.perf_counter() - validation_started
+                errors = validation.errors
+                if validation.is_valid:
+                    recovery_outcome = "final_constrained_generation_validated"
+            except OllamaError as exc:
+                errors = (str(exc),)
     else:
         preprocessing_time = time.perf_counter() - preprocessing_started
         errors = ("Ollama is unavailable.",)
@@ -2686,10 +2723,12 @@ def create_strategic_analysis(
         )
         accepted = True
         errors = ()
-        analysis_source = "deterministic"
-        recovery_outcome = "deterministic_fallback"
+        analysis_source = "degraded_deterministic"
+        recovery_outcome = "degraded_deterministic_fallback"
         analysis["_strategic_recovery"] = {
-            "source_label": "Síntesis estratégica determinística",
+            "source_label": "Modo degradado: análisis determinístico",
+            "degraded_mode": True,
+            "user_message": "Las capacidades de razonamiento de IA no estuvieron disponibles para este análisis.",
             "fallback_reason": list(fallback_errors),
         }
     else:
@@ -2704,11 +2743,11 @@ def create_strategic_analysis(
     strategic_recovery = {
         "outcome": recovery_outcome,
         "source_label": (
-            "Síntesis estratégica determinística"
-            if recovery_outcome == "deterministic_fallback"
+            "Modo degradado: análisis determinístico"
+            if recovery_outcome == "degraded_deterministic_fallback"
             else (
                 "Análisis reparado y validado"
-                if recovery_outcome in {"repaired_validated", "targeted_repair_validated", "constrained_generation_validated"}
+                if recovery_outcome in {"repaired_validated", "targeted_repair_validated", "constrained_generation_validated", "final_constrained_generation_validated"}
                 else "Análisis estratégico validado"
             )
         ),
@@ -2717,6 +2756,7 @@ def create_strategic_analysis(
         "evidence_repair_attempted": evidence_repair_attempted,
         "targeted_repair_attempted": targeted_repair_attempted,
         "constrained_generation_attempted": constrained_generation_attempted,
+        "final_constrained_generation_attempted": final_constrained_generation_attempted,
     }
     if isinstance(analysis.get("_strategic_recovery"), dict):
         strategic_recovery = {**strategic_recovery, **analysis["_strategic_recovery"]}
@@ -2749,6 +2789,7 @@ def create_strategic_analysis(
                 "evidence_repair_attempted": evidence_repair_attempted,
                 "targeted_repair_attempted": targeted_repair_attempted,
                 "constrained_generation_attempted": constrained_generation_attempted,
+                "final_constrained_generation_attempted": final_constrained_generation_attempted,
                 "strategic_recovery_outcome": recovery_outcome,
                 "analysis_source": analysis_source,
                 "evidence_ledger_fact_count": len(evidence_ledger.get("facts", [])),

@@ -478,7 +478,7 @@ def test_spanish_rewrite_retry_accepts_second_response() -> None:
     assert result.analysis_document["analysis"]["recommendations"][0]["priority"] == "high"
 
 
-def test_spanish_rewrite_retry_failure_uses_deterministic_fallback() -> None:
+def test_spanish_rewrite_retry_failure_uses_degraded_deterministic_fallback() -> None:
     """Verify failed bounded language repair still returns deterministic strategy."""
 
     english = _valid_analysis()
@@ -495,10 +495,10 @@ def test_spanish_rewrite_retry_failure_uses_deterministic_fallback() -> None:
     )
 
     assert result.accepted is True
-    assert client.generate_calls == 4
+    assert client.generate_calls == 5
     assert result.analysis_document["validation_status"] == "accepted"
-    assert result.analysis_document["analysis_source"] == "deterministic"
-    assert result.analysis_document["strategic_recovery"]["source_label"] == "Síntesis estratégica determinística"
+    assert result.analysis_document["analysis_source"] == "degraded_deterministic"
+    assert result.analysis_document["strategic_recovery"]["source_label"] == "Modo degradado: análisis determinístico"
     assert result.analysis_document["recommendation_count"] >= 1
 
 
@@ -524,7 +524,7 @@ def test_evidence_repair_retry_accepts_corrected_claims() -> None:
     assert "EVIDENCE_REPAIR_TASK" in client.last_prompt
 
 
-def test_unavailable_ollama_uses_deterministic_fallback_without_generation() -> None:
+def test_unavailable_ollama_uses_degraded_deterministic_fallback_without_generation() -> None:
     """Verify unavailable Ollama returns a non-empty deterministic synthesis."""
 
     client = FakeAnalysisClient(False)
@@ -540,11 +540,11 @@ def test_unavailable_ollama_uses_deterministic_fallback_without_generation() -> 
 
     assert result.accepted is True
     assert result.analysis_document["validation_status"] == "accepted"
-    assert result.analysis_document["analysis_source"] == "deterministic"
+    assert result.analysis_document["analysis_source"] == "degraded_deterministic"
     assert result.analysis_document["analysis_generated"] is True
     assert result.analysis_document["recommendation_count"] >= 1
     assert result.analysis_document["analysis"]["strategic_priorities"]
-    assert result.analysis_document["analysis"]["executive_summary"].startswith("Síntesis estratégica determinística")
+    assert result.analysis_document["analysis"]["executive_summary"].startswith("Modo degradado: análisis determinístico")
     assert client.generate_calls == 0
 
 
@@ -574,7 +574,7 @@ def test_repair_failure_then_constrained_generation_succeeds() -> None:
     assert result.telemetry["constrained_generation_attempted"] is True
 
 
-def test_all_ollama_attempts_fail_uses_deterministic_fallback() -> None:
+def test_all_ollama_attempts_fail_uses_degraded_deterministic_fallback() -> None:
     """Verify malformed outputs across all bounded attempts still produce strategy."""
 
     client = FakeAnalysisClient(True, responses=("not json", "still not json", "bad json"))
@@ -589,13 +589,13 @@ def test_all_ollama_attempts_fail_uses_deterministic_fallback() -> None:
     )
 
     assert result.accepted is True
-    assert client.generate_calls == 3
-    assert result.analysis_document["analysis_source"] == "deterministic"
-    assert result.analysis_document["strategic_recovery"]["outcome"] == "deterministic_fallback"
+    assert client.generate_calls == 4
+    assert result.analysis_document["analysis_source"] == "degraded_deterministic"
+    assert result.analysis_document["strategic_recovery"]["outcome"] == "degraded_deterministic_fallback"
     assert result.analysis_document["analysis"]["strategic_recommendations"]
 
 
-def test_ollama_timeout_uses_deterministic_fallback() -> None:
+def test_ollama_timeout_uses_degraded_deterministic_fallback() -> None:
     """Verify Ollama read/inference errors do not leave strategy empty."""
 
     client = FailingAnalysisClient()
@@ -610,12 +610,12 @@ def test_ollama_timeout_uses_deterministic_fallback() -> None:
     )
 
     assert result.accepted is True
-    assert result.analysis_document["analysis_source"] == "deterministic"
+    assert result.analysis_document["analysis_source"] == "degraded_deterministic"
     assert result.analysis_document["recommendation_count"] >= 1
-    assert client.generate_calls == 2
+    assert client.generate_calls == 3
 
 
-def test_unsupported_numbers_do_not_survive_deterministic_fallback() -> None:
+def test_unsupported_numbers_do_not_survive_degraded_deterministic_fallback() -> None:
     """Verify rejected hallucinated numbers are absent from fallback strategy."""
 
     invalid = _valid_analysis()
@@ -637,7 +637,7 @@ def test_unsupported_numbers_do_not_survive_deterministic_fallback() -> None:
         if key != "_strategic_recovery"
     }
     rendered = json.dumps(public_analysis, ensure_ascii=False)
-    assert result.analysis_document["analysis_source"] == "deterministic"
+    assert result.analysis_document["analysis_source"] == "degraded_deterministic"
     assert "99%" not in rendered
     assert "2030" not in rendered
 

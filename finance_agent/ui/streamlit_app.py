@@ -102,6 +102,7 @@ class StreamlitRunSettings:
     enable_memory_storage: bool = True
     memory_database_path: Path | None = None
     source_revision_confirmed: bool = False
+    strategic_ai_mode: str = "ai"
 
 
 PipelineRunner = Callable[..., PipelineRunResult]
@@ -327,6 +328,7 @@ def build_pipeline_config(
         enable_cache=settings.enable_cache,
         enable_memory_storage=settings.enable_memory_storage,
         memory_database_path=settings.memory_database_path,
+        strategic_ai_mode=settings.strategic_ai_mode,
         input_model=input_model,
     )
 
@@ -1108,7 +1110,13 @@ def _analysis_mode_label(report_model: dict[str, Any]) -> tuple[str, str]:
     source_label = str(recovery.get("source_label") or "").strip()
     warnings = _section_by_id(report_model, "executive_summary").get("warnings", [])
     recommendations = build_presentation_view(report_model).get("recommendations", {}) if report_model else {}
-    if source_label == "Síntesis estratégica determinística":
+    if recovery.get("degraded_mode") or "determin" in source_label.casefold():
+        return "Modo degradado: análisis determinístico", "warning"
+    if source_label in {"Análisis reparado y validado", "Análisis reparado y validado"}:
+        return source_label, "warning"
+    if status == "accepted" and recommendations.get("cards"):
+        return "Análisis estratégico validado por IA", "positive"
+    if source_label == "Modo degradado: análisis determinístico":
         return source_label, "warning"
     if source_label == "Análisis reparado y validado":
         return source_label, "warning"
@@ -3144,7 +3152,7 @@ def _render_recommendations_tab(st: Any, report_model: dict[str, Any]) -> None:
     else:
         _render_section_card(
             st,
-            title="Síntesis estratégica determinística",
+            title="Modo degradado: análisis determinístico",
             body=_safe_display_text(
                 recommendations.get("strategy_unavailable_note")
                 or (
@@ -3410,6 +3418,14 @@ def _render_streamlit_app(st: Any) -> None:
                 value=True,
                 help="Guarda solo ejecuciones completas con análisis estratégico aceptado.",
             )
+            allow_degraded_strategy = st.checkbox(
+                "Permitir modo degradado determinístico",
+                value=False,
+                help=(
+                    "Use esta opción solo si Ollama no está disponible y necesita "
+                    "un reporte basado exclusivamente en evidencia procesada por Python."
+                ),
+            )
             memory_database = st.text_input(
                 "Base de memoria histórica",
                 value=str(PROJECT_ROOT / "data" / "memory" / "finance_memory.db"),
@@ -3587,6 +3603,7 @@ def _render_streamlit_app(st: Any) -> None:
         enable_memory_storage=bool(enable_memory_storage),
         memory_database_path=memory_database_path,
         source_revision_confirmed=revision_confirmed,
+        strategic_ai_mode="degraded" if allow_degraded_strategy else "ai",
     )
 
     try:

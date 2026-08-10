@@ -182,6 +182,60 @@ class OllamaClient:
             return False
         return True
 
+    def list_models(self) -> list[str]:
+        """Return model names advertised by the local Ollama service.
+
+        Inputs: configured Ollama endpoint.
+        Outputs: list of installed model names.
+        Assumptions: callers use this as a readiness check before expensive
+        reasoning, not as a substitute for generation validation.
+        """
+
+        response = self._request("/api/tags", method="GET")
+        models = response.get("models", [])
+        if not isinstance(models, list):
+            raise OllamaError(
+                "Ollama returned malformed model-list metadata.",
+                category="malformed_response",
+            )
+        names: list[str] = []
+        for model in models:
+            if isinstance(model, dict) and isinstance(model.get("name"), str):
+                names.append(model["name"])
+        return names
+
+    def model_exists(self, model_name: str | None = None) -> bool:
+        """Return whether a configured model is installed locally.
+
+        Inputs: optional model name, defaulting to this client's model.
+        Outputs: True when the exact model name appears in ``/api/tags``.
+        Assumptions: Ollama model names are case-sensitive operational IDs.
+        """
+
+        target = str(model_name or self.model).strip()
+        return bool(target) and target in set(self.list_models())
+
+    def health_prompt(self) -> dict[str, Any]:
+        """Run a tiny bounded generation request for AI readiness.
+
+        Inputs: this client's model, timeouts, and keep_alive settings.
+        Outputs: generation response envelope with telemetry.
+        Assumptions: a valid response proves the model can load/generate; the
+        content itself is not used for financial reasoning.
+        """
+
+        previous_format = self.response_format
+        previous_reasoning = self.reasoning_enabled
+        try:
+            self.response_format = "json"
+            self.reasoning_enabled = False
+            return self.generate_with_metadata(
+                'Responde únicamente este JSON: {"ok": true}'
+            )
+        finally:
+            self.response_format = previous_format
+            self.reasoning_enabled = previous_reasoning
+
     def health(self) -> dict[str, Any]:
         """Return detailed Ollama health status.
 

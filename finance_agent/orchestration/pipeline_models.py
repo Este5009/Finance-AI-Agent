@@ -239,6 +239,7 @@ class PipelineConfig:
     structure_fallback_column_threshold: float = 0.70
     enable_cache: bool = True
     allow_draft_report: bool = False
+    strategic_ai_mode: str = "ai"
     max_planner_anomalies: int = 5
     compact_context: bool = True
     deduplicate_context: bool = True
@@ -266,6 +267,7 @@ class PipelineConfig:
         structure_fallback_column_threshold: float = 0.70,
         enable_cache: bool = True,
         allow_draft_report: bool = False,
+        strategic_ai_mode: str = "ai",
         max_planner_anomalies: int = 5,
         compact_context: bool = True,
         deduplicate_context: bool = True,
@@ -307,6 +309,7 @@ class PipelineConfig:
             structure_fallback_column_threshold=structure_fallback_column_threshold,
             enable_cache=enable_cache,
             allow_draft_report=allow_draft_report,
+            strategic_ai_mode=strategic_ai_mode,
             max_planner_anomalies=max_planner_anomalies,
             compact_context=compact_context,
             deduplicate_context=deduplicate_context,
@@ -331,6 +334,18 @@ class PipelineConfig:
         data["input_model"] = self.input_model.to_dict() if self.input_model else None
         data["effective_ollama_models"] = self.effective_ollama_models()
         return data
+
+    def __post_init__(self) -> None:
+        """Validate strategic AI mode.
+
+        Inputs: this immutable config.
+        Outputs: None; raises ValueError when the strategy mode is unsupported.
+        Assumptions: normal production mode requires Ollama readiness; degraded
+        mode is an explicit user/runtime choice.
+        """
+
+        if self.strategic_ai_mode not in {"ai", "degraded"}:
+            raise ValueError("strategic_ai_mode must be 'ai' or 'degraded'")
 
     def model_for_stage(self, stage_name: str) -> str:
         """Return the configured Ollama model for one pipeline stage.

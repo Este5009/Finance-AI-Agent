@@ -87,6 +87,42 @@ def test_macos_launcher_is_foreground_and_parseable() -> None:
     assert result.returncode == 0, result.stdout
 
 
+def test_manual_app_launchers_include_ollama_readiness_and_parse() -> None:
+    """Manual app launchers should guide users through Ollama readiness."""
+
+    windows_script = ROOT / "scripts" / "start_app_windows.ps1"
+    macos_script = ROOT / "scripts" / "start_app_macos.sh"
+    windows_text = windows_script.read_text(encoding="utf-8")
+    macos_text = macos_script.read_text(encoding="utf-8")
+
+    assert "ollama list" in windows_text
+    assert "ollama pull" in windows_text
+    assert "streamlit run" in windows_text
+    assert "ollama list" in macos_text
+    assert "ollama pull" in macos_text
+    assert "streamlit run" in macos_text
+
+    powershell = shutil.which("powershell") or shutil.which("pwsh")
+    if powershell is not None:
+        command = [
+            powershell,
+            "-NoProfile",
+            "-Command",
+            (
+                "$errors = $null; "
+                f"[System.Management.Automation.PSParser]::Tokenize((Get-Content -Raw '{windows_script}'), [ref]$errors) | Out-Null; "
+                "if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Output $_.Message }; exit 1 }"
+            ),
+        ]
+        result = _run(command, timeout=10)
+        assert result.returncode == 0, result.stdout
+
+    bash = shutil.which("bash")
+    if bash is not None:
+        result = _run([bash, "-n", str(macos_script)], timeout=10)
+        assert result.returncode == 0, result.stdout
+
+
 def test_check_local_services_finishes_within_budget() -> None:
     """The local service checker should report status without starting services."""
 

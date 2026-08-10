@@ -9,6 +9,7 @@ from typing import Any
 
 from finance_agent.analysis.analysis_models import StrategicAnalysisResult
 from finance_agent.analysis.strategic_analysis import (
+    build_deterministic_strategic_synthesis,
     build_evidence_ledger,
     estimate_tokens_from_text,
     strategic_analysis_json_schema,
@@ -76,6 +77,8 @@ def create_modular_strategic_analysis(
     compact_context: bool = True,
     deduplicate_context: bool = True,
     stage_timeout_seconds: float | None = None,
+    force_degraded_deterministic: bool = False,
+    degraded_reason: tuple[str, ...] = (),
 ) -> StrategicAnalysisResult:
     """Run the three-stage reasoning pipeline and return Step-9-compatible output.
 
@@ -109,6 +112,20 @@ def create_modular_strategic_analysis(
         "stage_count": 3,
         "monolithic_prompt_baseline_characters": None,
     }
+    if force_degraded_deterministic:
+        return _degraded_result(
+            finance_summary=finance_summary,
+            anomaly_report=anomaly_report,
+            evidence_package=evidence_package,
+            period_slug=period_slug,
+            historical_context=historical_context,
+            evidence_ledger=evidence_ledger,
+            state=state,
+            telemetry=telemetry,
+            started=started,
+            reason=degraded_reason or ("Degraded deterministic mode was explicitly selected.",),
+            ollama_available=available,
+        )
     if not available:
         document = _analysis_document(
             period_slug=period_slug,
@@ -152,7 +169,19 @@ def create_modular_strategic_analysis(
         )
         state.add_stage_result(financial_result)
         if not financial_result.accepted:
-            return _rejected_result(finance_summary, period_slug, historical_context, evidence_ledger, state, telemetry)
+            return _degraded_result(
+                finance_summary=finance_summary,
+                anomaly_report=anomaly_report,
+                evidence_package=evidence_package,
+                period_slug=period_slug,
+                historical_context=historical_context,
+                evidence_ledger=evidence_ledger,
+                state=state,
+                telemetry=telemetry,
+                started=started,
+                reason=financial_result.validation_errors,
+                ollama_available=True,
+            )
 
         historical_result = _run_structured_stage(
             client=client,
@@ -177,7 +206,19 @@ def create_modular_strategic_analysis(
         )
         state.add_stage_result(historical_result)
         if not historical_result.accepted:
-            return _rejected_result(finance_summary, period_slug, historical_context, evidence_ledger, state, telemetry)
+            return _degraded_result(
+                finance_summary=finance_summary,
+                anomaly_report=anomaly_report,
+                evidence_package=evidence_package,
+                period_slug=period_slug,
+                historical_context=historical_context,
+                evidence_ledger=evidence_ledger,
+                state=state,
+                telemetry=telemetry,
+                started=started,
+                reason=historical_result.validation_errors,
+                ollama_available=True,
+            )
 
         strategic_prompt = build_strategic_synthesis_prompt(
             state=state,
@@ -205,24 +246,70 @@ def create_modular_strategic_analysis(
             fact_registry=fact_registry,
         )
         state.add_stage_result(strategic_result)
+        if not strategic_result.accepted:
+            strategic_result = _run_strategic_recovery_attempt(
+                client=client,
+                state=state,
+                finance_summary=finance_summary,
+                anomaly_report=anomaly_report,
+                evidence_package=evidence_package,
+                risk_summary=risk_summary,
+                historical_context=historical_context,
+                evidence_ledger=evidence_ledger,
+                fact_registry=fact_registry,
+                period_slug=period_slug,
+                previous_result=strategic_result,
+                stage_timeout_seconds=stage_timeout_seconds,
+                attempt_label="targeted_repair",
+            )
+            state.add_stage_result(strategic_result)
+        if not strategic_result.accepted:
+            strategic_result = _run_strategic_recovery_attempt(
+                client=client,
+                state=state,
+                finance_summary=finance_summary,
+                anomaly_report=anomaly_report,
+                evidence_package=evidence_package,
+                risk_summary=risk_summary,
+                historical_context=historical_context,
+                evidence_ledger=evidence_ledger,
+                fact_registry=fact_registry,
+                period_slug=period_slug,
+                previous_result=strategic_result,
+                stage_timeout_seconds=stage_timeout_seconds,
+                attempt_label="constrained_regeneration",
+            )
+            state.add_stage_result(strategic_result)
+        if not strategic_result.accepted:
+            strategic_result = _run_strategic_recovery_attempt(
+                client=client,
+                state=state,
+                finance_summary=finance_summary,
+                anomaly_report=anomaly_report,
+                evidence_package=evidence_package,
+                risk_summary=risk_summary,
+                historical_context=historical_context,
+                evidence_ledger=evidence_ledger,
+                fact_registry=fact_registry,
+                period_slug=period_slug,
+                previous_result=strategic_result,
+                stage_timeout_seconds=stage_timeout_seconds,
+                attempt_label="final_constrained_regeneration",
+            )
+            state.add_stage_result(strategic_result)
     except OllamaError as exc:
-        errors = (str(exc),)
-        document = _analysis_document(
+        return _degraded_result(
+            finance_summary=finance_summary,
+            anomaly_report=anomaly_report,
+            evidence_package=evidence_package,
             period_slug=period_slug,
-            report_period=str(finance_summary.get("report_period", period_slug)),
-            ollama_available=True,
-            validation_status="rejected",
-            validation_errors=errors,
-            analysis=_empty_analysis(),
             historical_context=historical_context,
             evidence_ledger=evidence_ledger,
-            reasoning_state=state,
-        )
-        return StrategicAnalysisResult(
-            analysis_document=document,
-            accepted=False,
-            validation_errors=errors,
-            telemetry={**telemetry, "total_stage_time_seconds": time.perf_counter() - started},
+            state=state,
+            telemetry=telemetry,
+            started=started,
+            reason=(str(exc),),
+            ollama_available=True,
         )
 
     accepted = state.stage_results[-1].accepted if state.stage_results else False
@@ -249,7 +336,22 @@ def create_modular_strategic_analysis(
         reasoning_state=state,
     )
     if isinstance(sanitized_recovery, dict) and sanitized_recovery:
-        document["strategic_recovery"] = sanitized_recovery
+        document["strategic_recovery"] = {
+            **sanitized_recovery,
+            "outcome": "ollama_repaired_validated",
+            "source_label": "Análisis reparado y validado",
+            "ai_mode_enabled": True,
+            "degraded_mode": False,
+            "attempts": _strategic_attempt_labels(state),
+        }
+    elif accepted:
+        document["strategic_recovery"] = {
+            "outcome": "ollama_validated",
+            "source_label": "Análisis estratégico validado por IA",
+            "ai_mode_enabled": True,
+            "degraded_mode": False,
+            "attempts": _strategic_attempt_labels(state),
+        }
     return StrategicAnalysisResult(
         analysis_document=document,
         accepted=accepted,
@@ -373,6 +475,106 @@ def build_strategic_synthesis_prompt(
             context=context,
         )
         + "\nStage 3 MUST NOT ask for or assume the full evidence ledger."
+    )
+
+
+def build_strategic_recovery_prompt(
+    *,
+    state: ReasoningState,
+    finance_summary: dict[str, Any],
+    period_slug: str,
+    fact_registry: FactRegistry | None,
+    validation_errors: tuple[str, ...],
+    original_payload: dict[str, Any],
+    attempt_label: str,
+) -> str:
+    """Build one bounded strategic repair/regeneration prompt.
+
+    Inputs: accepted prior reasoning state, exact validation errors, the
+    previous failed payload, and a recovery-attempt label.
+    Outputs: compact Stage-3-compatible prompt.
+    Assumptions: Ollama may rewrite reasoning, but Python still validates all
+    numbers, Spanish prose, and grounding after the attempt.
+    """
+
+    base_context = {
+        "period_slug": period_slug,
+        "report_period": finance_summary.get("report_period"),
+        "attempt": attempt_label,
+        "validation_errors_to_fix": list(validation_errors)[:12],
+        "previous_output": original_payload,
+        "validated_reasoning_state": state.to_prompt_context(),
+        "facts": _stage3_fact_cards(state, fact_registry, limit=16 if attempt_label == "targeted_repair" else 10),
+        "rules": (
+            "Conserva solamente contenido respaldado por los hechos suministrados.",
+            "Elimina o suaviza afirmaciones rechazadas; no agregues cifras nuevas.",
+            "Devuelve JSON estricto con el mismo esquema de Strategic Synthesis.",
+            "No conviertas referencias del sistema en reglas institucionales.",
+        ),
+    }
+    return _stage_prompt(
+        stage_name=f"Strategic Synthesis Recovery - {attempt_label}",
+        schema=(
+            "Return strategic analysis JSON without evidence IDs. "
+            "Narrative fields are plain Spanish strings. "
+            "key_findings, root_causes, strategic_priorities and missing_information are lists of strings. "
+            "strategic_recommendations items use priority, action, rationale, supporting_evidence, "
+            "expected_impact, confidence."
+        ),
+        context=base_context,
+    )
+
+
+def _run_strategic_recovery_attempt(
+    *,
+    client: Any,
+    state: ReasoningState,
+    finance_summary: dict[str, Any],
+    anomaly_report: dict[str, Any],
+    evidence_package: dict[str, Any],
+    risk_summary: dict[str, Any],
+    historical_context: dict[str, Any] | None,
+    evidence_ledger: dict[str, Any],
+    fact_registry: FactRegistry,
+    period_slug: str,
+    previous_result: ReasoningStageResult,
+    stage_timeout_seconds: float | None,
+    attempt_label: str,
+) -> ReasoningStageResult:
+    """Run one bounded Stage-3 recovery attempt.
+
+    Inputs: client, current reasoning state, deterministic contexts, prior
+    failed result, timeout budget, and attempt label.
+    Outputs: validated or rejected stage result.
+    Assumptions: this function never loops; callers decide the bounded sequence.
+    """
+
+    return _run_structured_stage(
+        client=client,
+        stage_id="strategic_synthesis",
+        stage_name=f"Strategic Synthesis {attempt_label.replace('_', ' ').title()}",
+        prompt=build_strategic_recovery_prompt(
+            state=state,
+            finance_summary=finance_summary,
+            period_slug=period_slug,
+            fact_registry=fact_registry,
+            validation_errors=previous_result.validation_errors,
+            original_payload=previous_result.payload,
+            attempt_label=attempt_label,
+        ),
+        validator=lambda text: validate_strategic_synthesis_response(
+            text,
+            finance_summary=finance_summary,
+            anomaly_report=anomaly_report,
+            evidence_package=evidence_package,
+            risk_summary=risk_summary,
+            historical_context=historical_context,
+            evidence_ledger=evidence_ledger,
+            fact_registry=fact_registry,
+        ),
+        response_format=strategic_synthesis_fact_json_schema(),
+        stage_timeout_seconds=stage_timeout_seconds,
+        fact_registry=fact_registry,
     )
 
 
@@ -2055,6 +2257,90 @@ def _rejected_result(
         validation_errors=errors,
         telemetry={**telemetry, "stage_telemetry": [stage.telemetry for stage in state.stage_results]},
     )
+
+
+def _degraded_result(
+    *,
+    finance_summary: dict[str, Any],
+    anomaly_report: dict[str, Any],
+    evidence_package: dict[str, Any],
+    period_slug: str,
+    historical_context: dict[str, Any] | None,
+    evidence_ledger: dict[str, Any],
+    state: ReasoningState,
+    telemetry: dict[str, Any],
+    started: float,
+    reason: tuple[str, ...],
+    ollama_available: bool,
+) -> StrategicAnalysisResult:
+    """Build an explicit degraded deterministic strategy document.
+
+    Inputs: deterministic evidence contexts, reasoning state, telemetry, and
+    degradation reason.
+    Outputs: accepted StrategicAnalysisResult clearly labeled as degraded.
+    Assumptions: this is an emergency fallback after explicit degraded mode,
+    Ollama unavailability, or exhausted bounded AI recovery.
+    """
+
+    analysis = build_deterministic_strategic_synthesis(
+        evidence_ledger=evidence_ledger,
+        finance_summary=finance_summary,
+        anomaly_report=anomaly_report,
+        evidence_package=evidence_package,
+        period_slug=period_slug,
+    )
+    recovery = {
+        "outcome": "degraded_deterministic_fallback",
+        "source_label": "Modo degradado: análisis determinístico",
+        "degraded_mode": True,
+        "degraded_reason": list(reason),
+        "ai_mode_enabled": not any("explicitly selected" in item for item in reason),
+        "attempts": _strategic_attempt_labels(state),
+        "user_message": "Las capacidades de razonamiento de IA no estuvieron disponibles para este análisis.",
+    }
+    analysis["_strategic_recovery"] = recovery
+    document = _analysis_document(
+        period_slug=period_slug,
+        report_period=str(finance_summary.get("report_period", period_slug)),
+        ollama_available=ollama_available,
+        validation_status="accepted",
+        validation_errors=(),
+        analysis=analysis,
+        historical_context=historical_context,
+        evidence_ledger=evidence_ledger,
+        reasoning_state=state,
+    )
+    document["analysis_source"] = "degraded_deterministic"
+    document["strategic_recovery"] = recovery
+    return StrategicAnalysisResult(
+        analysis_document=document,
+        accepted=True,
+        validation_errors=(),
+        telemetry={
+            **telemetry,
+            "ai_mode_enabled": recovery["ai_mode_enabled"],
+            "final_strategy_source": "degraded_deterministic",
+            "degraded_mode": True,
+            "degraded_reason": list(reason),
+            "stage_telemetry": [stage.telemetry for stage in state.stage_results],
+            "total_stage_time_seconds": time.perf_counter() - started,
+        },
+    )
+
+
+def _strategic_attempt_labels(state: ReasoningState) -> list[str]:
+    """Return labels for strategic-synthesis attempts captured in state.
+
+    Inputs: current reasoning state.
+    Outputs: stage names for strategic synthesis attempts in execution order.
+    Assumptions: callers use this only for diagnostics.
+    """
+
+    return [
+        stage.stage_name
+        for stage in state.stage_results
+        if stage.stage_id == "strategic_synthesis"
+    ]
 
 
 def _analysis_document(

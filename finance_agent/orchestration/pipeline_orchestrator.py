@@ -37,6 +37,7 @@ from finance_agent.calculations.periods import PeriodScope
 from finance_agent.ingestion.ingestion import inspect_workbook, load_excel_workbook
 from finance_agent.ingestion.schema import clean_column_name
 from finance_agent.llm.ollama_client import OllamaClient
+from finance_agent.llm.ollama_readiness import check_ollama_readiness
 from finance_agent.memory.context_builder import (
     HistoricalContextCache,
     build_historical_context,
@@ -620,6 +621,7 @@ def _pipeline_cache_key(input_model: PipelineInputModel, config: PipelineConfig)
             "compact_context": config.compact_context,
             "deduplicate_context": config.deduplicate_context,
         },
+        "strategic_ai_mode": config.strategic_ai_mode,
         "reasoning_enabled_stages": [
             "ollama_investigation_planner",
             "strategic_analysis",
@@ -831,6 +833,11 @@ def _load_valid_cache(
         return None
     if analysis.get("validation_status") != "accepted":
         return None
+    if (
+        config.strategic_ai_mode == "ai"
+        and _is_degraded_strategy_document(analysis)
+    ):
+        return None
     quality = validate_report_artifacts(
         artifacts["report_model"],
         html_path=artifacts["html"],
@@ -892,6 +899,8 @@ def _write_cache_manifest(
         return
     if analysis.get("validation_status") != "accepted" or not quality.is_valid:
         return
+    if result.config.strategic_ai_mode == "ai" and _is_degraded_strategy_document(analysis):
+        return
     manifest_path = _cache_manifest_path(result.config, cache_key)
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(
@@ -907,6 +916,29 @@ def _write_cache_manifest(
             allow_nan=False,
         ),
         encoding="utf-8",
+    )
+
+
+def _is_degraded_strategy_document(document: dict[str, Any]) -> bool:
+    """Return whether a strategic-analysis artifact is deterministic degraded.
+
+    Inputs: saved strategic-analysis document.
+    Outputs: True when the artifact should not masquerade as an AI strategy.
+    Assumptions: older artifacts may use either analysis_source or recovery
+    metadata to describe deterministic fallback.
+    """
+
+    recovery = document.get("strategic_recovery", {})
+    recovery = recovery if isinstance(recovery, dict) else {}
+    source = str(document.get("analysis_source", "")).casefold()
+    label = str(recovery.get("source_label", "")).casefold()
+    outcome = str(recovery.get("outcome", "")).casefold()
+    return (
+        "degraded" in source
+        or source == "deterministic"
+        or bool(recovery.get("degraded_mode"))
+        or "deterministic" in outcome
+        or "determinística" in label
     )
 
 
@@ -1743,6 +1775,54 @@ def run_object_pipeline_for_report(
             config,
             "strategic_analysis",
         )
+        readiness = None
+        if config.strategic_ai_mode == "ai":
+            readiness = check_ollama_readiness(
+                analysis_client,
+                model=config.model_for_stage("strategic_analysis"),
+                connect_timeout_seconds=config.connect_timeout_seconds,
+                read_timeout_seconds=config.read_timeout_seconds,
+                stage_timeout_seconds=config.stage_timeout_seconds,
+            )
+            if not readiness.is_ready:
+                stages.append(
+                    _stage_result(
+                        name="strategic_analysis",
+                        display="Strategic analysis",
+                        critical=True,
+                        started=started,
+                        outputs=(),
+                        warnings=tuple(readiness.issues),
+                        error=readiness.message_es,
+                        telemetry={
+                            "ai_mode_enabled": True,
+                            "ollama_readiness": readiness.to_dict(),
+                            "final_strategy_source": "none",
+                        },
+                    )
+                )
+                stages.extend(_pending_after_failure_stage_results("strategic_analysis"))
+                _emit_progress(
+                    progress_callback,
+                    stage_id="generate_strategic_recommendations",
+                    status="failed",
+                    detail=readiness.message_es,
+                    started=pipeline_started,
+                )
+                result = _finalize_pipeline_result(
+                    config=config,
+                    stages=stages,
+                    started=pipeline_started,
+                    cache_key=cache_key,
+                )
+                _emit_progress(
+                    progress_callback,
+                    stage_id="analysis_completed",
+                    status="failed",
+                    detail=readiness.message_es,
+                    started=pipeline_started,
+                )
+                return result
         strategic_history = build_historical_context(
             current_period=period_slug,
             finance_summary=finance_document,
@@ -1768,6 +1848,10 @@ def run_object_pipeline_for_report(
             deduplicate_context=config.deduplicate_context,
             historical_context=strategic_history.context,
             stage_timeout_seconds=config.stage_timeout_seconds,
+            force_degraded_deterministic=config.strategic_ai_mode == "degraded",
+            degraded_reason=("Modo degradado determinístico seleccionado explícitamente.",)
+            if config.strategic_ai_mode == "degraded"
+            else (),
         )
         analysis_dir = outputs / "analysis"
         analysis_path = save_analysis_json_artifact(
@@ -1834,6 +1918,8 @@ def run_object_pipeline_for_report(
                     {
                         **(analysis_result.telemetry or {}),
                         "historical_context": strategic_history.telemetry,
+                        "ollama_readiness": readiness.to_dict() if readiness is not None else None,
+                        "strategic_ai_mode": config.strategic_ai_mode,
                     }
                 ),
             )

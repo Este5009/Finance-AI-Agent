@@ -872,7 +872,7 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
                     "para orientar la revisión ejecutiva."
                 ),
                 styles,
-                title="Síntesis estratégica determinística",
+                title="Modo degradado: análisis determinístico",
             )
         )
         attention_items = view["recommendations"].get("attention_items", [])

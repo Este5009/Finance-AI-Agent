@@ -77,11 +77,21 @@
 - Successful deterministic financial runs must never produce an empty strategic
   executive section. Step 9 uses a bounded recovery pipeline: one primary
   Ollama generation, targeted/schema or evidence repair where applicable, one
-  constrained reduced-context generation, and then a mandatory Python-authored
-  "Síntesis estratégica determinística" from verified evidence. Final accepted
-  report artifacts must contain non-empty executive analysis, priorities, and
-  recommendations, with source/recovery metadata shown as a badge rather than
-  an unavailable-recommendations empty state.
+  constrained reduced-context generation, one final tightly constrained
+  regeneration when needed, and then a mandatory Python-authored degraded
+  synthesis from verified evidence. Final accepted report artifacts must
+  contain non-empty executive analysis, priorities, and recommendations, with
+  source/recovery metadata shown as a badge rather than an
+  unavailable-recommendations empty state.
+- Production strategic reasoning is AI-first. Normal runs must pass an Ollama
+  readiness contract before strategic analysis: service reachable, configured
+  model installed, tiny health prompt succeeds, timeouts valid, and active model
+  known. If readiness fails in normal AI mode, the pipeline stops at strategic
+  analysis with the Spanish message "El motor de IA no está disponible" rather
+  than silently generating a report. Deterministic strategy is now an explicit
+  degraded mode, labeled "Modo degradado: análisis determinístico" with the
+  note that AI reasoning capabilities were unavailable or exhausted; degraded
+  artifacts must not be reused as normal AI cache hits.
 - Pipeline progress reporting is an optional orchestration callback, not
   Streamlit-specific business logic. `PipelineProgressEvent` carries Spanish
   labels/details, status, elapsed seconds, and completed/total major-stage

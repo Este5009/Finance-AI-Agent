@@ -690,7 +690,7 @@ def _deterministic_executive_summary(
         parts.append(f"El detector determinístico registró {anomaly_count} anomalías del período.")
     if analysis_status != "accepted":
         parts.append(
-            "Síntesis estratégica determinística: el reporte conserva KPIs, comparaciones, anomalías, historial y evidencia procesada para orientar la revisión ejecutiva."
+            "Modo degradado: análisis determinístico. Las capacidades de razonamiento de IA no estuvieron disponibles para este análisis."
         )
     return " ".join(parts)
 
@@ -1691,8 +1691,8 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "strategy_recovery": strategy_recovery,
                 "deterministic_attention_items": deterministic_attention_items,
                 "strategy_unavailable_note": (
-                    "Síntesis estratégica determinística: el reporte conserva hallazgos verificados, "
-                    "KPIs, historial y evidencia procesada para orientar la revisión ejecutiva."
+                    "Modo degradado: análisis determinístico. "
+                    "Las capacidades de razonamiento de IA no estuvieron disponibles para este análisis."
                     if analysis_status != "accepted"
                     and not analysis.get("strategic_recommendations", analysis.get("recommendations", []))
                     else ""

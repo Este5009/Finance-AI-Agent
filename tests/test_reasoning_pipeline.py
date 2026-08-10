@@ -662,10 +662,12 @@ def test_failed_strategy_still_builds_deterministic_report_model() -> None:
     quality = validate_report_model_quality(model_dict)
     html = render_report_html(model_dict)
 
-    assert result.accepted is False
+    assert result.accepted is True
+    assert result.analysis_document["analysis_source"] == "degraded_deterministic"
+    assert result.analysis_document["strategic_recovery"]["degraded_mode"] is True
+    assert result.analysis_document["strategic_recovery"]["source_label"] == "Modo degradado: análisis determinístico"
     assert quality.is_valid is True
-    assert "Reporte financiero determinístico" in html
-    assert "Síntesis estratégica determinística" in html
+    assert "Modo degradado" in html
     assert "No hay recomendaciones estratégicas validadas" not in html
 
 
