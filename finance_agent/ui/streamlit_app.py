@@ -1174,12 +1174,24 @@ def _render_results_header(
     view = build_presentation_view(report_model) if report_model else {}
     mode_label, mode_variant = _analysis_mode_label(report_model)
     status_label, status_variant = _report_status_label(result, artifacts)
+    ai_usage = view.get("ai_usage", {}) if isinstance(view, dict) else {}
+    ai_status_text = str(ai_usage.get("status_text") or "IA utilizada en este análisis: No")
     st.markdown("## Resultado del análisis financiero")
     st.caption("Vista ejecutiva generada con cifras verificadas y evidencia procesada.")
+    st.markdown(
+        f"<div class='ui-ai-usage-status'>{escape(ai_status_text)}</div>",
+        unsafe_allow_html=True,
+    )
     _render_responsive_card_grid(
         st,
         [
             {"title": "Periodo", "body": view.get("period") or "No disponible", "variant": "info", "badge": "Verificado"},
+            {
+                "title": "Uso de IA",
+                "body": ai_status_text.replace("IA utilizada en este análisis: ", ""),
+                "variant": "positive" if ai_usage.get("ai_used") else "info",
+                "badge": "Trazabilidad visible",
+            },
             {"title": "Modo de análisis", "body": mode_label, "variant": mode_variant, "badge": mode_label},
             {"title": "Datos verificados", "body": "Cifras procesadas por Python", "variant": "positive", "badge": "Verificado"},
             {
@@ -1789,6 +1801,19 @@ def _apply_page_styles(st: Any) -> None:
             font-weight: 700;
             line-height: 1.15;
             white-space: nowrap;
+        }
+        .ui-ai-usage-status {
+            display: inline-flex;
+            align-items: center;
+            margin: 0.35rem 0 1rem;
+            padding: 0.42rem 0.75rem;
+            border: 1px solid var(--fa-border);
+            border-radius: 999px;
+            background: var(--fa-surface-elevated);
+            color: var(--fa-text-strong);
+            font-size: 0.88rem;
+            font-weight: 700;
+            line-height: 1.2;
         }
         .ui-kpi-description {
             color: var(--fa-muted);

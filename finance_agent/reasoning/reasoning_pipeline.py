@@ -64,6 +64,26 @@ STAGE_WRAPPER_KEYS = {
 }
 CLAIM_TYPES = {"fact", "interpretation", "hypothesis"}
 
+FINAL_NARRATIVE_FIELDS: tuple[str, ...] = (
+    "executive_summary",
+    "executive_analysis",
+    "key_findings",
+    "root_causes",
+    "financial_health_analysis",
+    "kpi_analysis",
+    "historical_summary",
+    "historical_trend_analysis",
+    "department_analysis",
+    "anomaly_analysis",
+    "recommendation_follow_up_analysis",
+    "longitudinal_risk_analysis",
+    "strategic_recommendations",
+    "strategic_priorities",
+    "missing_information",
+    "recommendations",
+    "reasoning_summary",
+)
+
 
 def create_modular_strategic_analysis(
     *,
@@ -112,6 +132,7 @@ def create_modular_strategic_analysis(
         "stage_count": 3,
         "monolithic_prompt_baseline_characters": None,
     }
+    model_name = str(getattr(client, "model", "") or "unknown")
     if force_degraded_deterministic:
         return _degraded_result(
             finance_summary=finance_summary,
@@ -125,6 +146,7 @@ def create_modular_strategic_analysis(
             started=started,
             reason=degraded_reason or ("Degraded deterministic mode was explicitly selected.",),
             ollama_available=available,
+            model_name=model_name,
         )
     if not available:
         document = _analysis_document(
@@ -137,6 +159,7 @@ def create_modular_strategic_analysis(
             historical_context=historical_context,
             evidence_ledger=evidence_ledger,
             reasoning_state=state,
+            model_name=model_name,
         )
         return StrategicAnalysisResult(
             analysis_document=document,
@@ -181,6 +204,7 @@ def create_modular_strategic_analysis(
                 started=started,
                 reason=financial_result.validation_errors,
                 ollama_available=True,
+                model_name=model_name,
             )
 
         historical_result = _run_structured_stage(
@@ -218,6 +242,7 @@ def create_modular_strategic_analysis(
                 started=started,
                 reason=historical_result.validation_errors,
                 ollama_available=True,
+                model_name=model_name,
             )
 
         strategic_prompt = build_strategic_synthesis_prompt(
@@ -310,6 +335,7 @@ def create_modular_strategic_analysis(
             started=started,
             reason=(str(exc),),
             ollama_available=True,
+            model_name=model_name,
         )
 
     accepted = state.stage_results[-1].accepted if state.stage_results else False
@@ -334,6 +360,7 @@ def create_modular_strategic_analysis(
         historical_context=historical_context,
         evidence_ledger=evidence_ledger,
         reasoning_state=state,
+        model_name=model_name,
     )
     if isinstance(sanitized_recovery, dict) and sanitized_recovery:
         document["strategic_recovery"] = {
@@ -2250,6 +2277,7 @@ def _rejected_result(
         historical_context=historical_context,
         evidence_ledger=evidence_ledger,
         reasoning_state=state,
+        model_name=None,
     )
     return StrategicAnalysisResult(
         analysis_document=document,
@@ -2272,6 +2300,7 @@ def _degraded_result(
     started: float,
     reason: tuple[str, ...],
     ollama_available: bool,
+    model_name: str | None = None,
 ) -> StrategicAnalysisResult:
     """Build an explicit degraded deterministic strategy document.
 
@@ -2309,6 +2338,7 @@ def _degraded_result(
         historical_context=historical_context,
         evidence_ledger=evidence_ledger,
         reasoning_state=state,
+        model_name=model_name,
     )
     document["analysis_source"] = "degraded_deterministic"
     document["strategic_recovery"] = recovery
@@ -2354,6 +2384,7 @@ def _analysis_document(
     historical_context: dict[str, Any] | None,
     evidence_ledger: dict[str, Any],
     reasoning_state: ReasoningState,
+    model_name: str | None = None,
 ) -> dict[str, Any]:
     """Assemble a Step-9-compatible strategic-analysis document.
 
@@ -2365,15 +2396,30 @@ def _analysis_document(
 
     recommendations = analysis.get("recommendations", analysis.get("strategic_recommendations", []))
     recommendations = recommendations if isinstance(recommendations, list) else []
+    analysis_source = "ollama_modular_reasoning"
+    section_provenance = _analysis_section_provenance(
+        analysis=analysis,
+        analysis_source=analysis_source,
+        validation_status=validation_status,
+        reasoning_state=reasoning_state,
+        model_name=model_name,
+    )
+    ai_usage = _ai_usage_diagnostics(
+        reasoning_state=reasoning_state,
+        section_provenance=section_provenance,
+        model_name=model_name,
+    )
     return {
         "analysis_id": f"STRATEGIC-ANALYSIS-{period_slug.upper().replace('_', '-')}",
         "period_slug": period_slug,
         "report_period": report_period,
-        "analysis_source": "ollama_modular_reasoning",
+        "analysis_source": analysis_source,
         "ollama_available": ollama_available,
         "validation_status": validation_status,
         "analysis_generated": validation_status in {"accepted", "sanitized"},
         "validation_errors": list(validation_errors),
+        "section_provenance": section_provenance,
+        "ai_usage": ai_usage,
         "recommendation_count": len(recommendations),
         "historical_context_summary": (historical_context or {}).get("summary", {})
         if isinstance(historical_context, dict)
@@ -2388,6 +2434,156 @@ def _analysis_document(
         "reasoning_state": reasoning_state.to_dict(),
         "analysis": analysis,
     }
+
+
+def _analysis_section_provenance(
+    *,
+    analysis: dict[str, Any],
+    analysis_source: str,
+    validation_status: str,
+    reasoning_state: ReasoningState,
+    model_name: str | None,
+) -> dict[str, dict[str, Any]]:
+    """Build explicit per-field provenance for final strategic prose.
+
+    Inputs: final analysis payload, source/status metadata, reasoning state and
+    configured model name.
+    Outputs: mapping from analysis field to provenance used by report badges.
+    Assumptions: provenance is metadata only; it never rewrites reasoning text.
+    """
+
+    recovery = analysis.get("_strategic_recovery")
+    recovery = recovery if isinstance(recovery, dict) else {}
+    removed_fields = _field_prefixes(recovery.get("removed_fields", []))
+    touched_fields = _field_prefixes(
+        [
+            *list(recovery.get("repaired_fields", []) or []),
+            *list(recovery.get("sanitized_fields", []) or []),
+        ]
+    )
+    deterministic = "deterministic" in analysis_source.casefold() or bool(recovery.get("degraded_mode"))
+    fields: dict[str, dict[str, Any]] = {}
+    for field_name in FINAL_NARRATIVE_FIELDS:
+        value = analysis.get(field_name)
+        if not _provenance_value_present(value):
+            continue
+        if deterministic or field_name in removed_fields:
+            fields[field_name] = {
+                "generated_by": "deterministic",
+                "model": None,
+                "generation_stage": (
+                    "deterministic_replacement_after_validation"
+                    if field_name in removed_fields
+                    else "deterministic_fallback"
+                ),
+                "validation_status": "accepted",
+            }
+            continue
+        stage = "strategic_synthesis"
+        fields[field_name] = {
+            "generated_by": "ollama",
+            "model": _model_from_stage_results(reasoning_state, model_name),
+            "generation_stage": stage,
+            "validation_status": (
+                "repaired_validated"
+                if field_name in touched_fields or validation_status == "sanitized"
+                else "validated"
+            ),
+        }
+    return fields
+
+
+def _ai_usage_diagnostics(
+    *,
+    reasoning_state: ReasoningState,
+    section_provenance: dict[str, dict[str, Any]],
+    model_name: str | None,
+) -> dict[str, Any]:
+    """Summarize actual Ollama calls and final AI-authored fields.
+
+    Inputs: completed reasoning state, field provenance and configured model.
+    Outputs: diagnostics persisted in strategic-analysis JSON.
+    Assumptions: a successful response means a stage has Ollama telemetry and
+    returned enough text to reach Python validation, whether accepted or not.
+    """
+
+    stage_results = list(reasoning_state.stage_results)
+    successful = [
+        stage
+        for stage in stage_results
+        if stage.telemetry.get("error_category") in {None, "validation_rejection"}
+    ]
+    ai_fields = [
+        field
+        for field, provenance in section_provenance.items()
+        if provenance.get("generated_by") == "ollama"
+    ]
+    repaired = [
+        stage
+        for stage in stage_results
+        if stage.stage_id == "strategic_synthesis"
+        and (
+            "repair" in stage.stage_name.casefold()
+            or "regeneration" in stage.stage_name.casefold()
+            or stage.telemetry.get("schema_retry_attempted")
+        )
+    ]
+    return {
+        "ollama_called": bool(stage_results),
+        "model": _model_from_stage_results(reasoning_state, model_name),
+        "model_calls": len(stage_results),
+        "successful_responses": len(successful),
+        "accepted_responses": len([stage for stage in stage_results if stage.accepted]),
+        "repaired_responses": len(repaired),
+        "rejected_responses": len([stage for stage in stage_results if not stage.accepted]),
+        "final_report_fields_with_ai_output": ai_fields,
+    }
+
+
+def _field_prefixes(values: Any) -> set[str]:
+    """Return root analysis field names from recovery paths.
+
+    Inputs: recovery path list such as ``field[0].subfield``.
+    Outputs: field names for provenance decisions.
+    Assumptions: malformed values are ignored as plain metadata.
+    """
+
+    roots: set[str] = set()
+    for value in values if isinstance(values, list) else []:
+        root = str(value).split("[", 1)[0].split(".", 1)[0].strip()
+        if root:
+            roots.add(root)
+    return roots
+
+
+def _provenance_value_present(value: Any) -> bool:
+    """Return whether one final field contains visible report content.
+
+    Inputs: arbitrary analysis field value.
+    Outputs: True when the value can reach executive output.
+    Assumptions: empty strings/lists/dicts carry no final provenance.
+    """
+
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, (list, dict)):
+        return bool(value)
+    return value is not None
+
+
+def _model_from_stage_results(state: ReasoningState, fallback_model: str | None) -> str | None:
+    """Return the exact model recorded by Ollama telemetry when available.
+
+    Inputs: reasoning state and configured model fallback.
+    Outputs: model name or None for deterministic-only outputs.
+    Assumptions: OllamaClient telemetry records ``model`` for every request.
+    """
+
+    for stage in reversed(state.stage_results):
+        model = stage.telemetry.get("model")
+        if isinstance(model, str) and model.strip():
+            return model.strip()
+    return str(fallback_model).strip() if fallback_model else None
 
 
 def _empty_analysis() -> dict[str, Any]:

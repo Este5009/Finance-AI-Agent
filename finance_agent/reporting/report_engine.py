@@ -677,10 +677,23 @@ def _section_generation_source(
     Assumptions: badge kind is based on pipeline metadata, never on text content.
     """
 
-    analysis_source = str(strategic_analysis.get("analysis_source") or "").casefold()
+    analysis_source_raw = str(strategic_analysis.get("analysis_source") or "")
+    analysis_source = analysis_source_raw.casefold()
+    explicit = _explicit_field_generation_source(
+        strategic_analysis=strategic_analysis,
+        field_name=field_name,
+    )
+    if explicit and not deterministic and used_model_content:
+        return explicit
+    if field_name and _recovery_field_removed(recovery, field_name):
+        deterministic = True
     if deterministic or not used_model_content or "deterministic" in analysis_source:
         return {
             "kind": "deterministic",
+            "generated_by": "deterministic",
+            "model": None,
+            "generation_stage": "python_rules",
+            "validation_status": "accepted",
             "source": strategic_analysis.get("analysis_source") or "python_rules",
         }
     if field_name and _recovery_touched_field(recovery, field_name):
@@ -692,8 +705,98 @@ def _section_generation_source(
     return {
         "kind": kind,
         "source": strategic_analysis.get("analysis_source") or "ollama",
-        "model_display": "Qwen3 30B",
+        "generated_by": "ollama",
+        "model": _strategic_model_name(strategic_analysis),
+        "generation_stage": analysis_source_raw or "ollama",
+        "validation_status": (
+            "repaired_validated" if kind == "ai_repaired" else "validated"
+        ),
     }
+
+
+def _recovery_field_removed(recovery: dict[str, Any], field_name: str) -> bool:
+    """Return whether validation removed one model field before reporting.
+
+    Inputs: strategic-recovery metadata and analysis field name.
+    Outputs: True when Step 9 recorded the field under removed_fields.
+    Assumptions: removed fields may later contain deterministic replacement
+    prose, so they must not be labeled as AI-authored.
+    """
+
+    prefixes = (field_name, f"{field_name}[", f"{field_name}.")
+    values = recovery.get("removed_fields", [])
+    for value in values if isinstance(values, list) else []:
+        text = str(value)
+        if text == field_name or text.startswith(prefixes):
+            return True
+    return False
+
+
+def _explicit_field_generation_source(
+    *,
+    strategic_analysis: dict[str, Any],
+    field_name: str | None,
+) -> dict[str, Any] | None:
+    """Return explicit field provenance from Step 9 when it exists.
+
+    Inputs: strategic-analysis artifact and optional analysis field name.
+    Outputs: report-model generation source or None for legacy fallback.
+    Assumptions: Step 9 owns real AI/deterministic provenance; report generation
+    only maps that metadata to section badges.
+    """
+
+    if not field_name:
+        return None
+    provenance = strategic_analysis.get("section_provenance", {})
+    if not isinstance(provenance, dict):
+        return None
+    field = provenance.get(field_name)
+    if not isinstance(field, dict):
+        return None
+    generated_by = str(field.get("generated_by") or "").casefold()
+    validation_status = str(field.get("validation_status") or "validated")
+    if generated_by == "deterministic":
+        kind = "deterministic"
+    elif "repair" in validation_status.casefold() or "sanitized" in validation_status.casefold():
+        kind = "ai_repaired"
+    else:
+        kind = "ai"
+    return {
+        "kind": kind,
+        "generated_by": "ollama" if kind in {"ai", "ai_repaired"} else "deterministic",
+        "model": field.get("model"),
+        "generation_stage": field.get("generation_stage") or strategic_analysis.get("analysis_source"),
+        "validation_status": validation_status,
+        "source": strategic_analysis.get("analysis_source") or field.get("generation_stage"),
+    }
+
+
+def _strategic_model_name(strategic_analysis: dict[str, Any]) -> str | None:
+    """Return the model persisted by strategic-analysis diagnostics.
+
+    Inputs: strategic-analysis artifact.
+    Outputs: exact model name or None when legacy artifacts did not persist it.
+    Assumptions: this never infers model from prose; it reads metadata only.
+    """
+
+    ai_usage = strategic_analysis.get("ai_usage")
+    if isinstance(ai_usage, dict) and isinstance(ai_usage.get("model"), str):
+        return str(ai_usage["model"]).strip() or None
+    for field in (strategic_analysis.get("section_provenance") or {}).values() if isinstance(strategic_analysis.get("section_provenance"), dict) else []:
+        if isinstance(field, dict) and isinstance(field.get("model"), str) and field.get("model"):
+            return str(field["model"]).strip()
+    reasoning_state = strategic_analysis.get("reasoning_state")
+    if isinstance(reasoning_state, dict):
+        stages = reasoning_state.get("stage_results", [])
+        for stage in reversed(stages if isinstance(stages, list) else []):
+            if not isinstance(stage, dict):
+                continue
+            telemetry = stage.get("telemetry", {})
+            if isinstance(telemetry, dict) and isinstance(telemetry.get("model"), str):
+                model = str(telemetry["model"]).strip()
+                if model:
+                    return model
+    return None
 
 
 def _analysis_text_with_source(
@@ -1953,6 +2056,7 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "source_files": list(inputs.source_files),
                 "calculation_warnings": inputs.finance_summary.get("calculation_warnings", []),
                 "analysis_validation_errors": inputs.strategic_analysis.get("validation_errors", []),
+                "ai_usage_diagnostics": inputs.strategic_analysis.get("ai_usage", {}),
                 "generation_source": _section_generation_source(
                     strategic_analysis=inputs.strategic_analysis,
                     recovery=strategy_recovery,

@@ -2385,6 +2385,8 @@ def _build_analysis_document(
     evidence_ledger: dict[str, Any] | None = None,
     analysis_source: str = "ollama",
     strategic_recovery: dict[str, Any] | None = None,
+    model_name: str | None = None,
+    ai_usage: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Assemble one auditable strategic-analysis output document.
 
@@ -2398,6 +2400,14 @@ def _build_analysis_document(
     analysis_payload = dict(analysis)
     analysis_payload.setdefault("executive_analysis", analysis_payload.get("executive_summary", ""))
     analysis_payload.setdefault("priorities", analysis_payload.get("strategic_priorities", []))
+    section_provenance = _legacy_analysis_section_provenance(
+        analysis=analysis_payload,
+        analysis_source=analysis_source,
+        validation_status=validation_status,
+        strategic_recovery=strategic_recovery or {},
+        model_name=model_name,
+    )
+    usage = ai_usage or _legacy_ai_usage_from_provenance(section_provenance, model_name)
     return {
         "analysis_id": f"STRATEGIC-ANALYSIS-{period_slug.upper().replace('_', '-')}",
         "period_slug": period_slug,
@@ -2408,6 +2418,8 @@ def _build_analysis_document(
         "analysis_generated": validation_status == "accepted",
         "validation_errors": list(validation_errors),
         "strategic_recovery": strategic_recovery or {},
+        "section_provenance": section_provenance,
+        "ai_usage": usage,
         "recommendation_count": len(recommendations),
         "historical_context_summary": (historical_context or {}).get("summary", {}),
         "historical_context": historical_context or {},
@@ -2419,6 +2431,129 @@ def _build_analysis_document(
         },
         "analysis": analysis_payload,
     }
+
+
+def _legacy_analysis_section_provenance(
+    *,
+    analysis: dict[str, Any],
+    analysis_source: str,
+    validation_status: str,
+    strategic_recovery: dict[str, Any],
+    model_name: str | None,
+) -> dict[str, dict[str, Any]]:
+    """Build field-level provenance for the legacy Step-9 generator.
+
+    Inputs: accepted analysis fields, source metadata, recovery metadata and
+    model name.
+    Outputs: provenance keyed by analysis field.
+    Assumptions: this metadata is read-only; it never changes strategic prose.
+    """
+
+    fields = (
+        "executive_summary",
+        "executive_analysis",
+        "key_findings",
+        "root_causes",
+        "financial_health_analysis",
+        "kpi_analysis",
+        "historical_summary",
+        "historical_trend_analysis",
+        "department_analysis",
+        "anomaly_analysis",
+        "recommendation_follow_up_analysis",
+        "longitudinal_risk_analysis",
+        "strategic_recommendations",
+        "strategic_priorities",
+        "missing_information",
+        "recommendations",
+        "reasoning_summary",
+    )
+    deterministic = "deterministic" in analysis_source.casefold() or bool(strategic_recovery.get("degraded_mode"))
+    touched = _legacy_recovery_roots(
+        [
+            *list(strategic_recovery.get("repaired_fields", []) or []),
+            *list(strategic_recovery.get("sanitized_fields", []) or []),
+        ]
+    )
+    removed = _legacy_recovery_roots(strategic_recovery.get("removed_fields", []))
+    provenance: dict[str, dict[str, Any]] = {}
+    for field_name in fields:
+        value = analysis.get(field_name)
+        if not _legacy_provenance_value_present(value):
+            continue
+        if deterministic or field_name in removed:
+            provenance[field_name] = {
+                "generated_by": "deterministic",
+                "model": None,
+                "generation_stage": (
+                    "deterministic_replacement_after_validation"
+                    if field_name in removed
+                    else "deterministic_fallback"
+                ),
+                "validation_status": "accepted",
+            }
+        else:
+            provenance[field_name] = {
+                "generated_by": "ollama",
+                "model": model_name,
+                "generation_stage": analysis_source or "ollama",
+                "validation_status": (
+                    "repaired_validated"
+                    if field_name in touched or validation_status in {"sanitized", "repaired"}
+                    else "validated"
+                ),
+            }
+    return provenance
+
+
+def _legacy_ai_usage_from_provenance(
+    section_provenance: dict[str, dict[str, Any]],
+    model_name: str | None,
+) -> dict[str, Any]:
+    """Build legacy AI usage diagnostics from field provenance.
+
+    Inputs: field provenance and model name.
+    Outputs: compact diagnostics compatible with modular artifacts.
+    Assumptions: legacy code has less granular call accounting than modular
+    reasoning, but it can still truthfully identify final AI-authored fields.
+    """
+
+    ai_fields = [
+        field
+        for field, provenance in section_provenance.items()
+        if provenance.get("generated_by") == "ollama"
+    ]
+    return {
+        "ollama_called": bool(ai_fields),
+        "model": model_name if ai_fields else None,
+        "model_calls": 1 if ai_fields else 0,
+        "successful_responses": 1 if ai_fields else 0,
+        "accepted_responses": 1 if ai_fields else 0,
+        "repaired_responses": 0,
+        "rejected_responses": 0,
+        "final_report_fields_with_ai_output": ai_fields,
+    }
+
+
+def _legacy_recovery_roots(values: Any) -> set[str]:
+    """Return root field names from legacy recovery metadata paths."""
+
+    return {
+        root
+        for value in values if isinstance(values, list)
+        for root in [str(value).split("[", 1)[0].split(".", 1)[0].strip()]
+        if root
+    }
+
+
+def _legacy_provenance_value_present(value: Any) -> bool:
+    """Return whether a legacy analysis field contains visible content."""
+
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, (list, dict)):
+        return bool(value)
+    return value is not None
 
 
 def create_strategic_analysis(
@@ -2771,6 +2906,7 @@ def create_strategic_analysis(
         evidence_ledger=evidence_ledger,
         analysis_source=analysis_source,
         strategic_recovery=strategic_recovery,
+        model_name=str(getattr(client, "model", "") or "") or None,
     )
     return StrategicAnalysisResult(
         analysis_document=document,

@@ -120,9 +120,9 @@ SECTION_LABELS_ES: dict[str, str] = {
 }
 
 GENERATION_SOURCE_LABELS_ES: dict[str, str] = {
-    "ai": "Generado por IA · Qwen3 30B",
-    "ai_repaired": "IA · Reparado y validado",
-    "deterministic": "Determinístico",
+    "ai": "IA · modelo no registrado · Validado",
+    "ai_repaired": "IA · modelo no registrado · Reparado y validado",
+    "deterministic": "Determinístico · IA no utilizada",
 }
 
 GENERATION_SOURCE_CLASSES: dict[str, str] = {
@@ -808,16 +808,38 @@ def generation_source_badge(source: Any) -> dict[str, str]:
     provenance; this helper only normalizes display labels.
     """
 
+    model = ""
+    validation_status = ""
+    generated_by = ""
     if isinstance(source, dict):
         kind = str(source.get("kind") or "").strip()
+        model = str(source.get("model") or source.get("model_display") or "").strip()
+        validation_status = str(source.get("validation_status") or "").strip()
+        generated_by = str(source.get("generated_by") or "").strip().casefold()
     else:
         kind = str(source or "").strip()
+    if generated_by == "deterministic":
+        kind = "deterministic"
+    elif generated_by == "ollama" and kind not in {"ai", "ai_repaired"}:
+        kind = "ai"
     if kind not in GENERATION_SOURCE_LABELS_ES:
         kind = "deterministic"
+    if kind in {"ai", "ai_repaired"}:
+        model_label = model or "modelo no registrado"
+        status_label = (
+            "Reparado y validado"
+            if kind == "ai_repaired" or "repair" in validation_status.casefold() or "sanitized" in validation_status.casefold()
+            else "Validado"
+        )
+        label = f"IA · {model_label} · {status_label}"
+    else:
+        label = GENERATION_SOURCE_LABELS_ES[kind]
     return {
         "kind": kind,
-        "label": GENERATION_SOURCE_LABELS_ES[kind],
+        "label": label,
         "class": GENERATION_SOURCE_CLASSES[kind],
+        "generated_by": "ollama" if kind in {"ai", "ai_repaired"} else "deterministic",
+        "model": model,
     }
 
 
@@ -843,6 +865,43 @@ def section_generation_sources(report_model: dict[str, Any]) -> dict[str, dict[s
         if source:
             sources[section_id] = generation_source_badge(source)
     return sources
+
+
+def ai_usage_summary(report_model: dict[str, Any]) -> dict[str, Any]:
+    """Summarize whether final executive report sections use AI prose.
+
+    Inputs: renderer-agnostic report model.
+    Outputs: compact Spanish status and list of AI-backed section IDs.
+    Assumptions: the answer is derived from explicit report-model provenance,
+    not from Ollama availability or narrative wording.
+    """
+
+    sources = section_generation_sources(report_model)
+    ai_sections = [
+        section_id
+        for section_id, source in sources.items()
+        if source.get("generated_by") == "ollama"
+    ]
+    models = sorted(
+        {
+            str(source.get("model")).strip()
+            for source in sources.values()
+            if source.get("generated_by") == "ollama" and str(source.get("model") or "").strip()
+        }
+    )
+    model_label = ", ".join(models)
+    if ai_sections and model_label:
+        status_text = f"IA utilizada en este análisis: Sí — {model_label}"
+    elif ai_sections:
+        status_text = "IA utilizada en este análisis: Sí — modelo no registrado"
+    else:
+        status_text = "IA utilizada en este análisis: No"
+    return {
+        "ai_used": bool(ai_sections),
+        "models": models,
+        "sections": ai_sections,
+        "status_text": status_text,
+    }
 
 
 def _legacy_generation_source_from_content(section_id: str, content: dict[str, Any]) -> dict[str, str] | None:
@@ -1954,6 +2013,7 @@ def build_presentation_view(report_model: dict[str, Any], *, mode: str = "execut
         "templates": section_templates_payload(),
         "section_narratives": section_narratives(report_model),
         "generation_sources": section_generation_sources(report_model),
+        "ai_usage": ai_usage_summary(report_model),
         "executive_summary": {
             "summary": sanitize_text(executive.get("summary") or ""),
             "key_findings": sanitize_items(executive.get("key_findings"), limit=6),

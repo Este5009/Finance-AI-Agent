@@ -337,17 +337,29 @@ def test_html_renders_generation_source_badges_from_report_model() -> None:
         if not isinstance(content, dict):
             continue
         if section["section_id"] == "executive_summary":
-            content["generation_source"] = {"kind": "ai", "source": "ollama_modular_reasoning"}
+            content["generation_source"] = {
+                "kind": "ai",
+                "generated_by": "ollama",
+                "model": "qwen3:30b-a3b",
+                "source": "ollama_modular_reasoning",
+                "validation_status": "validated",
+            }
         elif section["section_id"] == "strategic_recommendations":
-            content["generation_source"] = {"kind": "ai_repaired", "source": "ollama_modular_reasoning"}
+            content["generation_source"] = {
+                "kind": "ai_repaired",
+                "generated_by": "ollama",
+                "model": "qwen3:30b-a3b",
+                "source": "ollama_modular_reasoning",
+                "validation_status": "repaired_validated",
+            }
         elif section["section_id"] == "goal_budget_performance":
-            content["generation_source"] = {"kind": "deterministic", "source": "python_rules"}
+            content["generation_source"] = {"kind": "deterministic", "generated_by": "deterministic", "source": "python_rules"}
 
     html = render_report_html(model)
 
-    assert "Generado por IA · Qwen3 30B" in html
-    assert "IA · Reparado y validado" in html
-    assert "Determinístico" in html
+    assert "IA · qwen3:30b-a3b · Validado" in html
+    assert "IA · qwen3:30b-a3b · Reparado y validado" in html
+    assert "Determinístico · IA no utilizada" in html
 
 
 def test_pdf_renders_generation_source_badges_from_report_model(tmp_path: Path) -> None:
@@ -361,15 +373,27 @@ def test_pdf_renders_generation_source_badges_from_report_model(tmp_path: Path) 
         if not isinstance(content, dict):
             continue
         if section["section_id"] == "executive_summary":
-            content["generation_source"] = {"kind": "ai", "source": "ollama_modular_reasoning"}
+            content["generation_source"] = {
+                "kind": "ai",
+                "generated_by": "ollama",
+                "model": "qwen3:30b-a3b",
+                "source": "ollama_modular_reasoning",
+                "validation_status": "validated",
+            }
         elif section["section_id"] == "strategic_recommendations":
-            content["generation_source"] = {"kind": "ai_repaired", "source": "ollama_modular_reasoning"}
+            content["generation_source"] = {
+                "kind": "ai_repaired",
+                "generated_by": "ollama",
+                "model": "qwen3:30b-a3b",
+                "source": "ollama_modular_reasoning",
+                "validation_status": "repaired_validated",
+            }
 
     pdf_path = render_report_pdf(model, tmp_path / "source_badges.pdf")
     pdf_text = "\n".join(page.extract_text() or "" for page in PdfReader(str(pdf_path)).pages)
 
-    assert "Generado por IA · Qwen3 30B" in pdf_text
-    assert "IA · Reparado y validado" in pdf_text
+    assert "IA · qwen3:30b-a3b · Validado" in pdf_text
+    assert "IA · qwen3:30b-a3b · Reparado y validado" in pdf_text
 
 
 def test_html_anomaly_section_shows_finding_provenance() -> None:

@@ -36,6 +36,7 @@ class FakeReasoningClient:
         self.responses = [json.dumps(response, ensure_ascii=False) for response in responses]
         self.response_format: str | dict[str, Any] = "json"
         self.prompts: list[str] = []
+        self.model = "qwen3:30b-a3b"
 
     def is_available(self) -> bool:
         """Return mocked availability.
@@ -60,6 +61,7 @@ class FakeReasoningClient:
         return {
             "response": response,
             "telemetry": {
+                "model": self.model,
                 "prompt_characters": len(prompt),
                 "generation_time_seconds": 0.001,
             },
@@ -576,6 +578,11 @@ def test_modular_pipeline_runs_three_stages_with_mocked_ollama() -> None:
     assert result.accepted
     assert len(client.prompts) == 3
     assert result.analysis_document["analysis_source"] == "ollama_modular_reasoning"
+    assert result.analysis_document["ai_usage"]["ollama_called"] is True
+    assert result.analysis_document["ai_usage"]["model"] == "qwen3:30b-a3b"
+    assert result.analysis_document["ai_usage"]["model_calls"] == 3
+    assert result.analysis_document["section_provenance"]["executive_summary"]["generated_by"] == "ollama"
+    assert result.analysis_document["section_provenance"]["executive_summary"]["model"] == "qwen3:30b-a3b"
     assert result.analysis_document["reasoning_state"]["reasoning_outputs"]["strategic_synthesis"]
     report_ready_analysis = {
         key: value
@@ -585,6 +592,26 @@ def test_modular_pipeline_runs_three_stages_with_mocked_ollama() -> None:
     analysis_text = json.dumps(report_ready_analysis, ensure_ascii=False)
     assert "{{FACT_" not in analysis_text
     assert "finance.metric.net_operating_result" not in result.analysis_document["analysis"]["executive_summary"]
+
+
+def test_degraded_modular_strategy_records_deterministic_provenance() -> None:
+    """Verify fallback sections cannot be labeled as AI-authored."""
+
+    client = FakeReasoningClient((_stage_1(), _stage_2(), _stage_3()))
+    result = create_modular_strategic_analysis(
+        client=client,
+        evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(),
+        period_slug="2026_12",
+        force_degraded_deterministic=True,
+    )
+
+    assert result.accepted
+    assert result.analysis_document["analysis_source"] == "degraded_deterministic"
+    assert result.analysis_document["ai_usage"]["final_report_fields_with_ai_output"] == []
+    assert result.analysis_document["section_provenance"]["executive_summary"]["generated_by"] == "deterministic"
 
 
 def test_unsupported_recommendation_budget_is_sanitized_not_fatal() -> None:

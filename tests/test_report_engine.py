@@ -263,6 +263,14 @@ def test_generation_source_labels_ollama_content_as_ai_not_deterministic() -> No
     bundle = _bundle()
     strategic = json.loads(json.dumps(bundle.strategic_analysis))
     strategic["analysis_source"] = "ollama_modular_reasoning"
+    strategic["section_provenance"] = {
+        "executive_summary": {
+            "generated_by": "ollama",
+            "model": "qwen3:30b-a3b",
+            "generation_stage": "strategic_synthesis",
+            "validation_status": "validated",
+        }
+    }
     report_model = build_report_model(
         ReportInputBundle(
             period_slug=bundle.period_slug,
@@ -278,7 +286,8 @@ def test_generation_source_labels_ollama_content_as_ai_not_deterministic() -> No
     source = _content(report_model, "executive_summary").get("generation_source", {})
     assert isinstance(source, dict)
     assert source["kind"] == "ai"
-    assert source["model_display"] == "Qwen3 30B"
+    assert source["generated_by"] == "ollama"
+    assert source["model"] == "qwen3:30b-a3b"
 
 
 def test_generation_source_labels_repaired_ollama_as_repaired_validated() -> None:
@@ -289,6 +298,14 @@ def test_generation_source_labels_repaired_ollama_as_repaired_validated() -> Non
     strategic["analysis_source"] = "ollama_modular_reasoning"
     strategic["validation_status"] = "sanitized"
     strategic["strategic_recovery"] = {"sanitized_fields": ["strategic_recommendations[0].action"]}
+    strategic["section_provenance"] = {
+        "strategic_recommendations": {
+            "generated_by": "ollama",
+            "model": "qwen3:30b-a3b",
+            "generation_stage": "strategic_synthesis",
+            "validation_status": "repaired_validated",
+        }
+    }
     report_model = build_report_model(
         ReportInputBundle(
             period_slug=bundle.period_slug,
@@ -304,6 +321,74 @@ def test_generation_source_labels_repaired_ollama_as_repaired_validated() -> Non
     source = _content(report_model, "strategic_recommendations").get("generation_source", {})
     assert isinstance(source, dict)
     assert source["kind"] == "ai_repaired"
+    assert source["model"] == "qwen3:30b-a3b"
+
+
+def test_generation_source_recovers_model_from_reasoning_state_telemetry() -> None:
+    """Verify legacy modular artifacts still expose the actual Ollama model."""
+
+    bundle = _bundle()
+    strategic = json.loads(json.dumps(bundle.strategic_analysis))
+    strategic["analysis_source"] = "ollama_modular_reasoning"
+    strategic["reasoning_state"] = {
+        "stage_results": [
+            {
+                "stage_id": "strategic_synthesis",
+                "accepted": True,
+                "telemetry": {"model": "qwen3:30b-a3b"},
+            }
+        ]
+    }
+    report_model = build_report_model(
+        ReportInputBundle(
+            period_slug=bundle.period_slug,
+            finance_summary=bundle.finance_summary,
+            kpi_summary=bundle.kpi_summary,
+            anomaly_report=bundle.anomaly_report,
+            evidence_package=bundle.evidence_package,
+            strategic_analysis=strategic,
+            source_files=bundle.source_files,
+        )
+    ).to_dict()
+
+    view = build_presentation_view(report_model)
+
+    assert view["generation_sources"]["executive_summary"]["label"] == "IA · qwen3:30b-a3b · Validado"
+    assert view["ai_usage"]["status_text"] == "IA utilizada en este análisis: Sí — qwen3:30b-a3b"
+
+
+def test_removed_ai_field_replaced_by_python_is_labeled_deterministic() -> None:
+    """Verify sanitized replacement text is not presented as Ollama-authored."""
+
+    bundle = _bundle()
+    strategic = json.loads(json.dumps(bundle.strategic_analysis))
+    strategic["analysis_source"] = "ollama_modular_reasoning"
+    strategic["strategic_recovery"] = {"removed_fields": ["executive_summary"]}
+    strategic["reasoning_state"] = {
+        "stage_results": [
+            {
+                "stage_id": "strategic_synthesis",
+                "accepted": True,
+                "telemetry": {"model": "qwen3:30b-a3b"},
+            }
+        ]
+    }
+    strategic["analysis"]["executive_summary"] = "Resumen determinístico sustituto."
+    report_model = build_report_model(
+        ReportInputBundle(
+            period_slug=bundle.period_slug,
+            finance_summary=bundle.finance_summary,
+            kpi_summary=bundle.kpi_summary,
+            anomaly_report=bundle.anomaly_report,
+            evidence_package=bundle.evidence_package,
+            strategic_analysis=strategic,
+            source_files=bundle.source_files,
+        )
+    ).to_dict()
+
+    view = build_presentation_view(report_model)
+
+    assert view["generation_sources"]["executive_summary"]["label"] == "Determinístico · IA no utilizada"
 
 
 def test_generation_source_labels_deterministic_fallback_as_deterministic() -> None:
@@ -325,8 +410,9 @@ def test_generation_source_labels_deterministic_fallback_as_deterministic() -> N
     ).to_dict()
 
     view = build_presentation_view(report_model)
-    assert view["generation_sources"]["executive_summary"]["label"] == "Determinístico"
-    assert view["generation_sources"]["strategic_recommendations"]["label"] == "Determinístico"
+    assert view["generation_sources"]["executive_summary"]["label"] == "Determinístico · IA no utilizada"
+    assert view["generation_sources"]["strategic_recommendations"]["label"] == "Determinístico · IA no utilizada"
+    assert view["ai_usage"]["status_text"] == "IA utilizada en este análisis: No"
 
 
 def test_september_report_model_materializes_six_point_recovery_window() -> None:

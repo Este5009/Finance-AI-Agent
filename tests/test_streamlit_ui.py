@@ -193,12 +193,12 @@ def test_streamlit_generation_source_heading_uses_report_model_provenance() -> N
         "generation_sources": {
             "executive_summary": {
                 "kind": "ai",
-                "label": "Generado por IA · Qwen3 30B",
+                "label": "IA · qwen3:30b-a3b · Validado",
                 "class": "ai",
             },
             "goal_budget_performance": {
                 "kind": "deterministic",
-                "label": "Determinístico",
+                "label": "Determinístico · IA no utilizada",
                 "class": "deterministic",
             },
         }
@@ -208,8 +208,66 @@ def test_streamlit_generation_source_heading_uses_report_model_provenance() -> N
     streamlit_app._render_generated_section_heading(fake_st, view, "goal_budget_performance", "Metas y presupuesto")
 
     rendered = "\n".join(fake_st.markdown_calls)
-    assert "Generado por IA · Qwen3 30B" in rendered
-    assert "Determinístico" in rendered
+    assert "IA · qwen3:30b-a3b · Validado" in rendered
+    assert "Determinístico · IA no utilizada" in rendered
+
+
+def test_streamlit_results_header_visibly_renders_ai_usage_from_report_model() -> None:
+    """Verify final Streamlit results show whether AI-authored prose was used."""
+
+    fake_st = FakeStreamlitRenderer()
+    config = PipelineConfig.from_project_root(Path("."), python_executable="python")
+    result = PipelineRunResult(
+        success=True,
+        stages=(),
+        output_files=(),
+        warnings=(),
+        runtime_summary=RuntimeSummary(
+            total_runtime_seconds=3.0,
+            stages_requested=0,
+            stages_run=0,
+            stages_succeeded=0,
+            stages_failed=0,
+            stages_skipped=0,
+        ),
+        config=config,
+    )
+    report_model = {
+        "sections": [
+            {
+                "section_id": "executive_summary",
+                "content": {
+                    "summary": "Resumen generado y validado.",
+                    "analysis_status": "accepted",
+                    "strategy_recovery": {"source_label": "Análisis estratégico validado por IA"},
+                    "generation_source": {
+                        "kind": "ai",
+                        "generated_by": "ollama",
+                        "model": "qwen3:30b-a3b",
+                        "validation_status": "validated",
+                    },
+                },
+            },
+            {
+                "section_id": "strategic_recommendations",
+                "content": {
+                    "recommendations": [{"action": "Priorizar revisión de gastos.", "priority": "high"}],
+                    "generation_source": {
+                        "kind": "ai",
+                        "generated_by": "ollama",
+                        "model": "qwen3:30b-a3b",
+                        "validation_status": "validated",
+                    },
+                },
+            },
+        ],
+    }
+
+    streamlit_app._render_results_header(fake_st, report_model=report_model, result=result, artifacts={})
+
+    visible = "\n".join(fake_st.markdown_calls)
+    assert "IA utilizada en este análisis: Sí — qwen3:30b-a3b" in visible
+    assert "Uso de IA" in visible
 
 
 def _october_report_model() -> dict[str, Any]:
