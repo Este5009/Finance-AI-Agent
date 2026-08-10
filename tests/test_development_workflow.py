@@ -95,12 +95,14 @@ def test_manual_app_launchers_include_ollama_readiness_and_parse() -> None:
     windows_text = windows_script.read_text(encoding="utf-8")
     macos_text = macos_script.read_text(encoding="utf-8")
 
-    assert "ollama list" in windows_text
+    assert "check_ollama_model.py" in windows_text
     assert "ollama pull" in windows_text
     assert "streamlit run" in windows_text
-    assert "ollama list" in macos_text
+    assert "check_ollama_model.py" in macos_text
     assert "ollama pull" in macos_text
     assert "streamlit run" in macos_text
+    assert "ollama list" not in windows_text
+    assert "ollama list" not in macos_text
 
     powershell = shutil.which("powershell") or shutil.which("pwsh")
     if powershell is not None:

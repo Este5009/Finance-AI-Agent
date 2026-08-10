@@ -1,4 +1,4 @@
-<# 
+<#
 Manual foreground launcher for the Finance AI Agent on Windows.
 
 This script is intentionally user-owned: it may start Ollama and Streamlit only
@@ -9,7 +9,8 @@ development tasks.
 param(
     [string]$Model = "qwen3:30b-a3b",
     [int]$Port = 8501,
-    [string]$Address = "localhost"
+    [string]$Address = "localhost",
+    [string]$OllamaEndpoint = "http://localhost:11434"
 )
 
 $ErrorActionPreference = "Stop"
@@ -28,9 +29,12 @@ if ($streamlitPort) {
     throw "El puerto $Port ya está en uso. Cierre el proceso existente o seleccione otro puerto."
 }
 
-if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
+$OllamaCommand = Get-Command ollama -ErrorAction SilentlyContinue
+if (-not $OllamaCommand) {
     throw "Ollama no está instalado o no está en PATH. Instale Ollama y descargue el modelo $Model."
 }
+Write-Host "Ollama executable: $($OllamaCommand.Source)"
+Write-Host "Ollama API endpoint: $OllamaEndpoint"
 
 $ollamaPort = Get-NetTCPConnection -LocalPort 11434 -State Listen -ErrorAction SilentlyContinue
 if (-not $ollamaPort) {
@@ -39,16 +43,24 @@ if (-not $ollamaPort) {
     Start-Sleep -Seconds 3
 }
 
-$tags = & ollama list
-if ($LASTEXITCODE -ne 0) {
-    throw "No se pudo consultar Ollama. Verifique que el servicio esté iniciado."
-}
-if ($tags -notmatch [regex]::Escape($Model)) {
+$ModelCheckScript = Join-Path $RepoRoot "scripts\check_ollama_model.py"
+$modelCheckRaw = & $Python $ModelCheckScript --model $Model --endpoint $OllamaEndpoint --timeout 10
+$modelCheck = $modelCheckRaw | ConvertFrom-Json
+Write-Host "Modelo requerido: $($modelCheck.required_model)"
+Write-Host "Modelos detectados: $($modelCheck.installed_model_names -join ', ')"
+Write-Host "Resultado de comparación exacta: $($modelCheck.model_available)"
+
+if (-not $modelCheck.model_available) {
     $answer = Read-Host "El modelo $Model no está instalado. ¿Desea descargarlo ahora con 'ollama pull'? (s/N)"
     if ($answer -match "^[sS]") {
         & ollama pull $Model
         if ($LASTEXITCODE -ne 0) {
             throw "No se pudo descargar el modelo $Model."
+        }
+        $modelCheckRaw = & $Python $ModelCheckScript --model $Model --endpoint $OllamaEndpoint --timeout 10 --no-cli-fallback
+        $modelCheck = $modelCheckRaw | ConvertFrom-Json
+        if (-not $modelCheck.model_available) {
+            throw "El modelo $Model no fue detectado por Ollama después de la descarga."
         }
     } else {
         throw "El modelo $Model es requerido para el modo normal de IA."

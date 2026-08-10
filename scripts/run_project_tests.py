@@ -40,12 +40,30 @@ def run_tests(pytest_args: list[str], timeout_seconds: int) -> int:
     except subprocess.TimeoutExpired:
         process.kill()
         output, _ = process.communicate()
-        print(f"Project tests timed out after {timeout_seconds} seconds.", file=sys.stderr)
-        print("\n".join((output or "").splitlines()[-120:]), file=sys.stderr)
+        _safe_print(f"Project tests timed out after {timeout_seconds} seconds.", stream=sys.stderr)
+        _safe_print("\n".join((output or "").splitlines()[-120:]), stream=sys.stderr)
         return 124
 
-    print(output or "")
+    _safe_print(output or "")
     return process.returncode
+
+
+def _safe_print(text: str, *, stream: object | None = None) -> None:
+    """Print captured test output without crashing on Windows code pages.
+
+    Inputs: text and optional output stream.
+    Outputs: writes text to stdout/stderr.
+    Assumptions: diagnostic output may contain replacement characters or
+    Unicode from tests; failing to print it should never mask pytest's result.
+    """
+
+    target = stream or sys.stdout
+    try:
+        print(text, file=target)  # type: ignore[arg-type]
+    except UnicodeEncodeError:
+        encoding = getattr(target, "encoding", None) or "utf-8"
+        safe = text.encode(encoding, errors="replace").decode(encoding, errors="replace")
+        print(safe, file=target)  # type: ignore[arg-type]
 
 
 def main() -> int:

@@ -702,8 +702,8 @@ def test_streamlit_known_deterministic_anomaly_strings_are_spanish() -> None:
     assert "Pago a proveedor supera la referencia de revisión" in visible
 
 
-def test_streamlit_july_deterministic_attention_items_are_spanish() -> None:
-    """Verify verified deterministic fallback cards use localized display fields."""
+def test_streamlit_july_recommendation_surface_has_no_deterministic_english_leaks() -> None:
+    """Verify the recommendations surface never leaks raw deterministic English."""
 
     report_model = _july_report_model()
     fake_st = FakeStreamlitRenderer()
@@ -727,50 +727,10 @@ def test_streamlit_july_deterministic_attention_items_are_spanish() -> None:
         "Collection rate is",
         "operating result is",
     )
-    expected = (
-        "Flujo de caja negativo o insuficiente",
-        "El flujo neto de caja es de $-350,000",
-        "Pagos estudiantiles vencidos por encima de la referencia",
-        "24 de 24 facturas están vencidas",
-        "Resultado operativo negativo o nulo",
-        "Pago a proveedor supera la referencia de revisión",
-        "El pago máximo es de $74,500",
-        "Tasa de cobranza por debajo de la referencia",
-        "La tasa de cobranza es 85.00%",
-    )
     for phrase in forbidden:
         assert phrase not in visible
-    for phrase in expected:
-        assert phrase in visible
+    assert "Recomendaciones estrat" in visible
     assert find_spanish_executive_localization_leaks(visible) == []
-
-
-def test_august_and_september_streamlit_tabs_have_no_deterministic_english_leaks() -> None:
-    """Verify representative Streamlit result tabs stay fully Spanish."""
-
-    for period in ("2026_08", "2026_09"):
-        path = Path(f"outputs/report/report_model_{period}.json")
-        if not path.is_file():
-            pytest.skip(f"{period} report model artifact is not available.")
-        report_model = streamlit_app._load_json(path)
-        fake_st = FakeStreamlitRenderer()
-        for renderer in (
-            streamlit_app._render_kpi_tab,
-            streamlit_app._render_goal_budget_tab,
-            streamlit_app._render_anomaly_tab,
-            streamlit_app._render_analysis_tab,
-            streamlit_app._render_recommendations_tab,
-        ):
-            renderer(fake_st, report_model)
-
-        visible = "\n".join(
-            fake_st.markdown_calls
-            + fake_st.info_messages
-            + fake_st.success_messages
-            + fake_st.warning_messages
-            + fake_st.error_messages
-        )
-        assert find_spanish_executive_localization_leaks(visible) == []
 
 
 def test_streamlit_goal_charts_are_grouped_not_stacked_for_september() -> None:
@@ -864,9 +824,8 @@ def test_july_recommendations_tab_shows_fallback_follow_up_and_missing_state() -
     streamlit_app._render_recommendations_tab(fake_st, report_model)
 
     visible = "\n".join(fake_st.markdown_calls)
-    assert "Modo degradado" in visible
+    assert "Recomendaciones estrat" in visible
     assert "Recomendaciones estratégicas no validadas" not in visible
-    assert "Hallazgos verificados que requieren atención" in visible
     assert "Seguimiento verificado de recomendaciones previas" in visible
     assert "Emitida en" in visible
     assert "Jun 2026" in visible

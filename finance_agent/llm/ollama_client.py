@@ -12,6 +12,11 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
+from finance_agent.llm.ollama_models import (
+    extract_ollama_model_names,
+    model_name_exists,
+)
+
 
 DEFAULT_OLLAMA_ENDPOINT = "http://localhost:11434"
 DEFAULT_OLLAMA_MODEL = "qwen3:30b-a3b"
@@ -192,17 +197,12 @@ class OllamaClient:
         """
 
         response = self._request("/api/tags", method="GET")
-        models = response.get("models", [])
-        if not isinstance(models, list):
+        if not isinstance(response.get("models", []), list):
             raise OllamaError(
                 "Ollama returned malformed model-list metadata.",
                 category="malformed_response",
             )
-        names: list[str] = []
-        for model in models:
-            if isinstance(model, dict) and isinstance(model.get("name"), str):
-                names.append(model["name"])
-        return names
+        return extract_ollama_model_names(response)
 
     def model_exists(self, model_name: str | None = None) -> bool:
         """Return whether a configured model is installed locally.
@@ -212,8 +212,7 @@ class OllamaClient:
         Assumptions: Ollama model names are case-sensitive operational IDs.
         """
 
-        target = str(model_name or self.model).strip()
-        return bool(target) and target in set(self.list_models())
+        return model_name_exists(str(model_name or self.model), self.list_models())
 
     def health_prompt(self) -> dict[str, Any]:
         """Run a tiny bounded generation request for AI readiness.
