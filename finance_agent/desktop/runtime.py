@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import logging.handlers
 import os
@@ -11,10 +12,12 @@ import signal
 import socket
 import subprocess
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
 import webbrowser
+import uuid
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -66,6 +69,34 @@ ProcessFactory = Callable[..., subprocess.Popen[bytes]]
 ClientFactory = Callable[..., OllamaClient]
 
 
+def _pid_is_alive(pid: int) -> bool:
+    """Return whether a process ID still exists without changing it."""
+
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+    except (OSError, ProcessLookupError):
+        return False
+    return True
+
+
+def _process_command(pid: int) -> str:
+    """Return a bounded process command used to validate stale ownership."""
+
+    try:
+        result = subprocess.run(
+            ["ps", "-p", str(pid), "-o", "command="],
+            capture_output=True,
+            text=True,
+            timeout=2,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return result.stdout.strip()
+
+
 def find_free_port(address: str, preferred_port: int) -> int:
     """Select the preferred local port or ask the OS for a free alternative.
 
@@ -110,7 +141,7 @@ def find_ollama_executable(
     return next((path for path in candidates if path.is_file()), None)
 
 
-def _streamlit_command(port: int, address: str) -> list[str]:
+def _streamlit_command(port: int, address: str, *, session_id: str = "", parent_pid: int | None = None) -> list[str]:
     """Build a source or frozen Streamlit child command with no system Python dependency."""
 
     app = resource_path("finance_agent", "ui", "streamlit_app.py")
@@ -126,7 +157,15 @@ def _streamlit_command(port: int, address: str) -> list[str]:
         "true",
     ]
     if getattr(sys, "frozen", False):
-        return [sys.executable, "--streamlit-child", *common]
+        helper = Path(sys.executable).with_name("Finance AI Agent Streamlit")
+        return [
+            str(helper),
+            "--desktop-session",
+            session_id,
+            "--parent-pid",
+            str(parent_pid or os.getpid()),
+            *common,
+        ]
     return [sys.executable, "-m", "streamlit", "run", *common]
 
 
@@ -227,14 +266,88 @@ class DesktopRuntime:
         self.ollama_process: subprocess.Popen[bytes] | None = None
         self.streamlit_process: subprocess.Popen[bytes] | None = None
         self.logger: logging.Logger | None = None
+        self.session_id = uuid.uuid4().hex
+        self.launcher_pid = os.getpid()
+        self.selected_port: int | None = None
+        self.current_url: str | None = None
+        self.ollama_started_by_session = False
+        self._shutdown_lock = threading.Lock()
+        self._shutdown_complete = False
+        self._stop_requested = threading.Event()
+
+    def _log(self, message: str, *args: object, level: int = logging.INFO) -> None:
+        """Write one session-correlated lifecycle record."""
+
+        if self.logger:
+            self.logger.log(
+                level,
+                "session=%s launcher_pid=%s " + message,
+                self.session_id,
+                self.launcher_pid,
+                *args,
+            )
+
+    def _write_session_state(self, phase: str, **extra: object) -> None:
+        """Atomically record transient ownership without touching user data."""
+
+        payload = {
+            "session_id": self.session_id,
+            "launcher_pid": self.launcher_pid,
+            "launcher_command": _process_command(self.launcher_pid),
+            "streamlit_pid": self.streamlit_process.pid if self.streamlit_process else None,
+            "port": self.selected_port,
+            "phase": phase,
+            "updated_at": time.time(),
+            **extra,
+        }
+        temporary = self.paths.active_session_file.with_suffix(".tmp")
+        temporary.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        temporary.replace(self.paths.active_session_file)
+
+    def _recover_stale_session(self) -> None:
+        """Clean only a verifiably owned helper from a dead launcher session."""
+
+        path = self.paths.active_session_file
+        if not path.is_file():
+            return
+        try:
+            state = json.loads(path.read_text(encoding="utf-8"))
+            old_session = str(state.get("session_id") or "")
+            launcher_pid = int(state.get("launcher_pid") or 0)
+            streamlit_pid = int(state.get("streamlit_pid") or 0)
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            path.unlink(missing_ok=True)
+            self._log("removed_invalid_session_state path=%s", path)
+            return
+        launcher_command = _process_command(launcher_pid) if _pid_is_alive(launcher_pid) else ""
+        if launcher_pid and "Finance AI Agent" in launcher_command:
+            raise DesktopStartupError(
+                StartupStatus(
+                    StartupState.INITIALIZING,
+                    "Finance AI Agent ya está abierto. Use la ventana de control existente.",
+                    f"active session {old_session} launcher PID {launcher_pid}",
+                )
+            )
+        command = _process_command(streamlit_pid) if _pid_is_alive(streamlit_pid) else ""
+        if old_session and "Finance AI Agent Streamlit" in command and old_session in command:
+            try:
+                os.kill(streamlit_pid, signal.SIGTERM)
+                deadline = time.monotonic() + 3
+                while _pid_is_alive(streamlit_pid) and time.monotonic() < deadline:
+                    time.sleep(0.05)
+                if _pid_is_alive(streamlit_pid):
+                    os.kill(streamlit_pid, signal.SIGKILL)
+                self._log("recovered_stale_streamlit session=%s streamlit_pid=%s", old_session, streamlit_pid)
+            except OSError as exc:
+                self._log("stale_streamlit_cleanup_error pid=%s error=%s", streamlit_pid, exc, level=logging.WARNING)
+        path.unlink(missing_ok=True)
 
     def emit(self, state: StartupState, message: str, technical_detail: str = "") -> StartupStatus:
         """Publish one readable status and log its technical detail."""
 
         status = StartupStatus(state, message, technical_detail)
         self.status_callback(status)
-        if self.logger:
-            self.logger.info("state=%s message=%s detail=%s", state.value, message, technical_detail)
+        self._log("state=%s message=%s detail=%s", state.value, message, technical_detail)
         return status
 
     def prepare(self) -> DesktopConfig:
@@ -242,6 +355,9 @@ class DesktopRuntime:
 
         self.paths.initialize()
         self.logger = _configure_logging(self.paths)
+        self._log("session_start resource_root=%s", resource_root())
+        self._recover_stale_session()
+        self._write_session_state("preparing")
         self.emit(StartupState.INITIALIZING, "Preparando Finance AI Agent…")
         try:
             active_config = self.config or DesktopConfig.load(self.paths.config_file)
@@ -281,6 +397,7 @@ class DesktopRuntime:
             read_timeout_seconds=config.health_read_timeout_seconds,
         )
         if not client.is_available():
+            self._log("ollama_detected executable=%s running=false", executable)
             self.emit(StartupState.OLLAMA_STOPPED, "Ollama está instalado pero detenido. Intentando iniciarlo…")
             creationflags = subprocess.CREATE_NO_WINDOW if sys.platform.startswith("win") else 0
             with self.paths.log_file.open("ab") as log_handle:
@@ -290,6 +407,8 @@ class DesktopRuntime:
                     stderr=subprocess.STDOUT,
                     creationflags=creationflags,
                 )
+            self.ollama_started_by_session = True
+            self._log("ollama_started pid=%s lifecycle=shared_leave_running", self.ollama_process.pid)
             if not wait_for_http(
                 f"{config.ollama_endpoint.rstrip('/')}/api/tags",
                 config.ollama_start_timeout_seconds,
@@ -297,6 +416,8 @@ class DesktopRuntime:
                 raise DesktopStartupError(
                     self.emit(StartupState.AI_HEALTH_FAILED, "Ollama no pudo iniciarse. Revise el registro técnico e intente nuevamente.")
                 )
+        else:
+            self._log("ollama_detected executable=%s running=true lifecycle=shared", executable)
         try:
             installed_models = client.list_models()
         except Exception as exc:
@@ -344,10 +465,19 @@ class DesktopRuntime:
     def start_streamlit(self) -> tuple[str, subprocess.Popen[bytes]]:
         """Start Streamlit on a free local port and wait for bounded readiness."""
 
+        if self._stop_requested.is_set():
+            raise DesktopStartupError(StartupStatus(StartupState.INITIALIZING, "Inicio cancelado."))
         config = self.config or self.prepare()
         port = find_free_port(config.address, config.preferred_port)
+        self.selected_port = port
         url = f"http://{config.address}:{port}"
-        command = _streamlit_command(port, config.address)
+        self.current_url = url
+        command = _streamlit_command(
+            port,
+            config.address,
+            session_id=self.session_id,
+            parent_pid=self.launcher_pid,
+        )
         creationflags = subprocess.CREATE_NO_WINDOW if sys.platform.startswith("win") else 0
         with self.paths.log_file.open("ab") as log_handle:
             self.streamlit_process = self.process_factory(
@@ -358,17 +488,20 @@ class DesktopRuntime:
                 stderr=subprocess.STDOUT,
                 creationflags=creationflags,
             )
+        self._write_session_state("streamlit_starting", command=command)
+        self._log("streamlit_started streamlit_pid=%s port=%s command=%s", self.streamlit_process.pid, port, command)
         if not wait_for_http(f"{url}/_stcore/health", config.startup_timeout_seconds):
             self.shutdown()
             raise DesktopStartupError(
                 self.emit(StartupState.INITIALIZING, "La interfaz no pudo iniciarse a tiempo. Revise el registro técnico.")
             )
         self.emit(StartupState.APPLICATION_READY, "Finance AI Agent está listo.")
+        self._write_session_state("ready", url=url)
         if config.open_browser:
             webbrowser.open(url, new=1)
         return url, self.streamlit_process
 
-    def shutdown(self) -> None:
+    def shutdown(self, *, reason: str = "requested") -> None:
         """Terminate only child processes started by this runtime.
 
         Inputs: tracked Streamlit and optional Ollama child processes.
@@ -376,32 +509,79 @@ class DesktopRuntime:
         Assumptions: an independently running Ollama service is never stopped.
         """
 
-        for process in (self.streamlit_process, self.ollama_process):
-            if process is None or process.poll() is not None:
-                continue
-            process.terminate()
+        with self._shutdown_lock:
+            if self._shutdown_complete:
+                return
+            self._stop_requested.set()
+            self._log("shutdown_start reason=%s", reason)
+            process = self.streamlit_process
+            if process is not None and process.poll() is None:
+                self._log("streamlit_terminate streamlit_pid=%s port=%s", process.pid, self.selected_port)
+                process.terminate()
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    self._log("streamlit_kill streamlit_pid=%s", process.pid, level=logging.WARNING)
+                    process.kill()
+                    process.wait(timeout=2)
+            if self.ollama_started_by_session and self.ollama_process is not None:
+                self._log("ollama_left_running pid=%s lifecycle=shared", self.ollama_process.pid)
             try:
-                process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait(timeout=2)
+                if self.paths.active_session_file.is_file():
+                    state = json.loads(self.paths.active_session_file.read_text(encoding="utf-8"))
+                    if state.get("session_id") == self.session_id:
+                        self.paths.active_session_file.unlink(missing_ok=True)
+            except (OSError, json.JSONDecodeError):
+                self._log("session_state_cleanup_failed", level=logging.WARNING)
+            self._shutdown_complete = True
+            self._log("shutdown_complete reason=%s port_released=%s", reason, self.selected_port)
+
+    def startup(self) -> tuple[str, subprocess.Popen[bytes]]:
+        """Run bounded initialization and return the owned Streamlit session."""
+
+        self.prepare()
+        if self._stop_requested.is_set():
+            raise DesktopStartupError(StartupStatus(StartupState.INITIALIZING, "Inicio cancelado."))
+        self.ensure_ollama_ready()
+        if self._stop_requested.is_set():
+            raise DesktopStartupError(StartupStatus(StartupState.INITIALIZING, "Inicio cancelado."))
+        return self.start_streamlit()
 
     def run(self) -> int:
         """Run the full desktop lifecycle until the UI exits or receives a signal."""
 
-        self.prepare()
-        self.ensure_ollama_ready()
-        _, process = self.start_streamlit()
+        _, process = self.startup()
 
         def stop_handler(_signum: int, _frame: object) -> None:
-            self.shutdown()
+            self.shutdown(reason=f"signal_{_signum}")
 
         for signal_name in (signal.SIGINT, signal.SIGTERM):
             signal.signal(signal_name, stop_handler)
         try:
             return int(process.wait())
         finally:
-            self.shutdown()
+            self.shutdown(reason="streamlit_exit")
+
+
+def _watch_parent(parent_pid: int) -> None:
+    """Exit an orphaned helper immediately when its desktop launcher dies."""
+
+    while True:
+        if os.getppid() != parent_pid or not _pid_is_alive(parent_pid):
+            os._exit(0)
+        time.sleep(0.5)
+
+
+def streamlit_helper_main(arguments: Sequence[str] | None = None) -> int:
+    """Run the dedicated bundled Streamlit helper with parent-death protection."""
+
+    values = list(sys.argv[1:] if arguments is None else arguments)
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--desktop-session", required=True)
+    parser.add_argument("--parent-pid", required=True, type=int)
+    internal, streamlit_arguments = parser.parse_known_args(values)
+    threading.Thread(target=_watch_parent, args=(internal.parent_pid,), daemon=True).start()
+    return _run_streamlit_child(streamlit_arguments)
 
 
 def _run_streamlit_child(arguments: Sequence[str]) -> int:
@@ -427,8 +607,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Run the packaged/source desktop entry point without exposing tracebacks."""
 
     arguments = list(sys.argv[1:] if argv is None else argv)
-    if arguments and arguments[0] == "--streamlit-child":
+    if arguments and arguments[0] == "--streamlit-child":  # backward compatibility for old bundles.
         return _run_streamlit_child(arguments[1:])
+    if getattr(sys, "frozen", False) and sys.platform == "darwin":
+        from finance_agent.desktop.macos_controller import run_macos_controller
+
+        return run_macos_controller()
     runtime = DesktopRuntime()
     try:
         return runtime.run()

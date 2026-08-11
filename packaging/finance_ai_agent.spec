@@ -42,6 +42,26 @@ analysis = Analysis(
 )
 pyz = PYZ(analysis.pure)
 
+helper_analysis = Analysis(
+    [str(ROOT / "packaging" / "streamlit_helper.py")],
+    pathex=[str(ROOT)],
+    binaries=streamlit_binaries,
+    datas=datas,
+    hiddenimports=streamlit_hiddenimports + finance_agent_hiddenimports + [
+        "openpyxl",
+        "pandas",
+        "pypdf",
+        "reportlab",
+        "streamlit.web.cli",
+    ],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=["pytest", "tests", "tkinter"],
+    noarchive=False,
+)
+helper_pyz = PYZ(helper_analysis.pure)
+
 exe = EXE(
     pyz,
     analysis.scripts,
@@ -55,10 +75,25 @@ exe = EXE(
     console=False,
     version=str(ROOT / "packaging" / "version_info.txt") if sys.platform.startswith("win") else None,
 )
+helper_exe = EXE(
+    helper_pyz,
+    helper_analysis.scripts,
+    [],
+    exclude_binaries=True,
+    name="Finance AI Agent Streamlit",
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    console=False,
+)
 collection = COLLECT(
     exe,
+    helper_exe,
     analysis.binaries,
     analysis.datas,
+    helper_analysis.binaries,
+    helper_analysis.datas,
     strip=False,
     upx=True,
     name="Finance AI Agent",

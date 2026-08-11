@@ -36,7 +36,11 @@ def restore_desktop_environment() -> object:
 class FakeProcess:
     """Minimal controllable subprocess double."""
 
+    next_pid = 41000
+
     def __init__(self, returncode: int | None = None) -> None:
+        FakeProcess.next_pid += 1
+        self.pid = FakeProcess.next_pid
         self.returncode = returncode
         self.terminated = False
         self.killed = False
@@ -228,7 +232,7 @@ def test_ollama_stopped_is_started_then_verified(tmp_path: Path, monkeypatch: py
     assert runtime.ensure_ollama_ready().state == StartupState.AI_READY
     assert StartupState.OLLAMA_STOPPED in {status.state for status in statuses}
     runtime.shutdown()
-    assert fake_process.terminated
+    assert not fake_process.terminated
 
 
 def test_model_missing_requires_explicit_consent(tmp_path: Path) -> None:
@@ -279,23 +283,25 @@ def test_startup_timeout_terminates_streamlit(tmp_path: Path, monkeypatch: pytes
     assert fake.terminated
 
 
-def test_graceful_shutdown_stops_only_owned_children(tmp_path: Path) -> None:
-    """Graceful shutdown terminates tracked live child processes."""
+def test_graceful_shutdown_stops_streamlit_but_leaves_ollama(tmp_path: Path) -> None:
+    """Shutdown stops the session helper and leaves shared Ollama available."""
 
     runtime = DesktopRuntime(paths=app_data_paths(environ={"FINANCE_AI_APP_DATA": str(tmp_path)}), config=DesktopConfig(open_browser=False))
     runtime.streamlit_process = FakeProcess()  # type: ignore[assignment]
     runtime.ollama_process = FakeProcess()  # type: ignore[assignment]
+    runtime.ollama_started_by_session = True
     runtime.shutdown()
     assert runtime.streamlit_process.terminated
-    assert runtime.ollama_process.terminated
+    assert not runtime.ollama_process.terminated
 
 
 def test_frozen_streamlit_command_uses_packaged_executable(monkeypatch: pytest.MonkeyPatch) -> None:
     """Packaged startup does not require a separately installed system Python."""
 
     monkeypatch.setattr("finance_agent.desktop.runtime.sys.frozen", True, raising=False)
-    command = _streamlit_command(8501, "127.0.0.1")
-    assert command[:2] == [str(Path(__import__("sys").executable)), "--streamlit-child"]
+    command = _streamlit_command(8501, "127.0.0.1", session_id="abc123", parent_pid=99)
+    assert Path(command[0]).name == "Finance AI Agent Streamlit"
+    assert command[1:5] == ["--desktop-session", "abc123", "--parent-pid", "99"]
     assert "-m" not in command
     assert command[command.index("--global.developmentMode") + 1] == "false"
 
@@ -311,3 +317,85 @@ def test_packaging_config_excludes_private_runtime_data() -> None:
     assert "schema.sql" in spec
     assert "streamlit_app.py" in spec
     assert 'collect_submodules("finance_agent")' in spec
+    assert 'packaging" / "streamlit_helper.py"' in spec
+    assert 'name="Finance AI Agent Streamlit"' in spec
+
+
+def test_repeated_launch_shutdown_creates_fresh_sessions_and_releases_state(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Three sessions select ports anew and remove their ownership state."""
+
+    ports = iter((49101, 49102, 49103))
+    processes: list[FakeProcess] = []
+    monkeypatch.setattr("finance_agent.desktop.runtime.find_free_port", lambda *_args: next(ports))
+    monkeypatch.setattr("finance_agent.desktop.runtime.wait_for_http", lambda *_args, **_kwargs: True)
+    monkeypatch.setattr("finance_agent.desktop.runtime.webbrowser.open", lambda *_args, **_kwargs: True)
+    paths = app_data_paths(environ={"FINANCE_AI_APP_DATA": str(tmp_path)})
+    sessions: list[str] = []
+    selected: list[int | None] = []
+    for _ in range(3):
+        process = FakeProcess()
+        processes.append(process)
+        runtime = DesktopRuntime(
+            paths=paths,
+            config=DesktopConfig(open_browser=False),
+            process_factory=lambda *_args, _process=process, **_kwargs: _process,
+        )
+        runtime.prepare()
+        runtime.start_streamlit()
+        sessions.append(runtime.session_id)
+        selected.append(runtime.selected_port)
+        assert paths.active_session_file.is_file()
+        runtime.shutdown(reason="test_cycle")
+        assert process.terminated
+        assert not paths.active_session_file.exists()
+    assert len(set(sessions)) == 3
+    assert selected == [49101, 49102, 49103]
+
+
+def test_stale_session_recovers_only_verified_streamlit_helper(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A dead launcher permits cleanup only for its matching named helper."""
+
+    paths = app_data_paths(environ={"FINANCE_AI_APP_DATA": str(tmp_path)})
+    paths.initialize()
+    paths.active_session_file.write_text(
+        json.dumps({"session_id": "old-session", "launcher_pid": 1200, "streamlit_pid": 1300}),
+        encoding="utf-8",
+    )
+    alive = {1300: True}
+    killed: list[tuple[int, object]] = []
+
+    def fake_kill(pid: int, signum: object) -> None:
+        killed.append((pid, signum))
+        alive[pid] = False
+
+    monkeypatch.setattr("finance_agent.desktop.runtime._pid_is_alive", lambda pid: alive.get(pid, False))
+    monkeypatch.setattr(
+        "finance_agent.desktop.runtime._process_command",
+        lambda pid: "Finance AI Agent Streamlit --desktop-session old-session" if pid == 1300 else "",
+    )
+    monkeypatch.setattr("finance_agent.desktop.runtime.os.kill", fake_kill)
+    runtime = DesktopRuntime(paths=paths, config=DesktopConfig(open_browser=False))
+    runtime.prepare()
+    assert killed and killed[0][0] == 1300
+    assert json.loads(paths.active_session_file.read_text(encoding="utf-8"))["session_id"] == runtime.session_id
+
+
+def test_stale_state_does_not_kill_unrelated_process(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """PID reuse cannot cause an unrelated process to be terminated."""
+
+    paths = app_data_paths(environ={"FINANCE_AI_APP_DATA": str(tmp_path)})
+    paths.initialize()
+    paths.active_session_file.write_text(
+        json.dumps({"session_id": "old-session", "launcher_pid": 1200, "streamlit_pid": 1300}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("finance_agent.desktop.runtime._pid_is_alive", lambda pid: pid == 1300)
+    monkeypatch.setattr("finance_agent.desktop.runtime._process_command", lambda _pid: "/usr/bin/unrelated")
+    monkeypatch.setattr("finance_agent.desktop.runtime.os.kill", lambda *_args: pytest.fail("must not kill unrelated PID"))
+    runtime = DesktopRuntime(paths=paths, config=DesktopConfig(open_browser=False))
+    runtime.prepare()
+    assert json.loads(paths.active_session_file.read_text(encoding="utf-8"))["session_id"] == runtime.session_id

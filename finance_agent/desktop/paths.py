@@ -78,6 +78,12 @@ class AppDataPaths:
 
         return self.logs / "finance-ai-agent.log"
 
+    @property
+    def active_session_file(self) -> Path:
+        """Return the replaceable runtime-session ownership record."""
+
+        return self.runtime / "active-session.json"
+
 
 def app_data_root(
     *,
