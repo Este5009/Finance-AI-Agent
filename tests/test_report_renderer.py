@@ -22,6 +22,7 @@ from finance_agent.reporting.presentation import (
     display_anomaly_text,
     display_metric_name,
     find_spanish_executive_localization_leaks,
+    normalize_executive_text,
 )
 import finance_agent.reporting.presentation as presentation
 from finance_agent.reporting.report_quality import (
@@ -1691,6 +1692,66 @@ def test_presentation_view_contains_recommendation_cards() -> None:
     assert cards[0]["action"] == "Revisar aprobaciones de gasto."
 
 
+def test_structured_recommendation_fields_are_not_merged_into_rationale(tmp_path: Path) -> None:
+    """Verify legacy compact AI text becomes separate UI, HTML, and PDF fields."""
+
+    from pypdf import PdfReader
+
+    model = _sample_report_model()
+    section = next(
+        item for item in model["sections"]
+        if item["section_id"] == "strategic_recommendations"
+    )
+    section["content"]["recommendations"] = [
+        {
+            "priority": "high",
+            "action": "Reducir el desvío presupuestario en suministros",
+            "rationale": (
+                "El gasto supera presupuesto.\n"
+                "Consideración operativa: Evaluar proveedores y ajustar pedidos.\n"
+                "Investigación requerida: Investigación requerida\n"
+                "Impacto esperado: Menor presión de caja. Menor presión de caja."
+            ),
+            "operational_consideration": "Coordinar con Compras.",
+            "investigation_required": "Validar pedidos pendientes.",
+        }
+    ]
+
+    view = build_presentation_view(model)
+    card = view["recommendations"]["cards"][0]
+    assert card["rationale"] == "El gasto supera presupuesto."
+    assert card["operational_consideration"] == "Coordinar con Compras."
+    assert card["investigation_required"] == "Validar pedidos pendientes."
+    assert card["expected_impact"] == "Menor presión de caja."
+    assert "Consideración operativa:" not in card["rationale"]
+    assert "Investigación requerida:" not in card["rationale"]
+
+    html = render_report_html(model)
+    pdf_path = render_report_pdf(model, tmp_path / "structured.pdf")
+    pdf_text = "\n".join(
+        page.extract_text() or ""
+        for page in PdfReader(str(pdf_path)).pages
+    )
+    for rendered in (html, pdf_text):
+        assert "Consideración operativa" in rendered
+        assert "Coordinar con Compras." in rendered
+        assert "Investigación requerida" in rendered
+        assert "Validar pedidos pendientes." in rendered
+        assert "Investigación requerida: Investigación requerida" not in rendered
+    assert "Responsable sugerido" not in html
+    assert "<strong>Estado</strong>" not in html
+
+
+def test_executive_text_normalization_omits_labels_and_duplicate_sentences() -> None:
+    """Verify missing, label-only, duplicate, and multiline values stay tidy."""
+
+    assert normalize_executive_text("") == ""
+    assert normalize_executive_text("Investigación requerida") == ""
+    assert normalize_executive_text("Primera línea.\nPrimera línea.\nSegunda línea.") == (
+        "Primera línea. Segunda línea."
+    )
+
+
 def test_presentation_layer_has_no_narrative_translation_dictionary() -> None:
     """Verify presentation does not contain report-specific translation mappings."""
 
@@ -1740,4 +1801,3 @@ def test_require_report_quality_detects_stale_artifact(tmp_path: Path) -> None:
         assert "older than report model" in str(exc)
     else:
         raise AssertionError("Expected ValueError for stale artifact")
-

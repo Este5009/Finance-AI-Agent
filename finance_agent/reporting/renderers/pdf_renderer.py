@@ -534,21 +534,31 @@ def _recommendation_cards(view: dict[str, Any], styles: dict[str, ParagraphStyle
     """
 
     flowables: list[Any] = []
-    for card in view["recommendations"]["cards"][:6]:
-        data = [
-            [_para(f"Prioridad: {card['priority']}", styles["h2"])],
-            [_para(card["action"], styles["body"])],
-            [_para(f"Racional: {card['rationale']}", styles["small"])],
-            [_para(f"Impacto esperado: {card['expected_impact']}", styles["small"])],
-            [_para(f"Responsable sugerido: {card.get('owner')}", styles["small"])],
-            [_para(f"Estado: {card.get('status')}", styles["small"])],
-        ]
-        table = Table(data, colWidths=[6.7 * inch], hAlign="LEFT")
+    for card in view["recommendations"]["cards"]:
+        fields = (
+            ("Justificación", card.get("rationale")),
+            ("Consideración operativa", card.get("operational_consideration")),
+            ("Investigación requerida", card.get("investigation_required")),
+            ("Impacto esperado", card.get("expected_impact")),
+            ("Responsable sugerido", card.get("owner")),
+            ("Prioridad", card.get("priority")),
+            ("Estado", card.get("status")),
+        )
+        data = [[_para(card["action"], styles["h2"]), _para("", styles["small"])]]
+        data.extend(
+            [_para(label, styles["small"]), _para(str(value), styles["small"])]
+            for label, value in fields
+            if str(value or "").strip()
+        )
+        table = Table(data, colWidths=[1.65 * inch, 5.05 * inch], hAlign="LEFT")
         table.setStyle(
             TableStyle(
                 [
+                    ("SPAN", (0, 0), (-1, 0)),
                     ("BOX", (0, 0), (-1, -1), 0.5, LINE),
+                    ("LINEABOVE", (0, 1), (-1, -1), 0.25, LINE),
                     ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#fbfdff")),
+                    ("TEXTCOLOR", (0, 1), (0, -1), colors.HexColor("#17324d")),
                     ("LEFTPADDING", (0, 0), (-1, -1), 8),
                     ("RIGHTPADDING", (0, 0), (-1, -1), 8),
                     ("TOPPADDING", (0, 0), (-1, -1), 6),
@@ -905,21 +915,8 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
                     force=True,
                 )
             )
-    elif len(view["recommendations"]["cards"]) <= 5:
-        story.extend(_recommendation_cards(view, styles))
     else:
-        story.append(
-            _table(
-                ["Prioridad", "Acción", "Impacto esperado", "Responsable", "Estado"],
-                [
-                    [card["priority"], card["action"], card["expected_impact"], card.get("owner"), card.get("status")]
-                    for card in view["recommendations"]["cards"]
-                ],
-                styles,
-                widths=[0.75 * inch, 2.3 * inch, 1.6 * inch, 1.2 * inch, 0.75 * inch],
-                force=True,
-            )
-        )
+        story.extend(_recommendation_cards(view, styles))
     _section_title(story, "missing_information", styles, view)
     _append_narrative(story, view, "missing_information", styles)
     if view["missing_information"]:

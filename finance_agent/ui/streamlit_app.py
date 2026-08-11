@@ -3125,8 +3125,14 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
                     "title": item.get("action") or "Recomendación",
                     "body": item.get("rationale"),
                     "variant": _card_variant_from_text(item.get("priority")),
-                    "badge": item.get("priority") or "Requiere atención",
-                    "rows": [("Impacto esperado", item.get("expected_impact")), ("Responsable sugerido", item.get("owner"))],
+                    "badge": item.get("priority"),
+                    "rows": [
+                        ("Consideración operativa", item.get("operational_consideration")),
+                        ("Investigación requerida", item.get("investigation_required")),
+                        ("Impacto esperado", item.get("expected_impact")),
+                        ("Responsable sugerido", item.get("owner")),
+                        ("Estado", item.get("status")),
+                    ],
                 }
                 for item in action_cards[:4]
                 if isinstance(item, dict)
@@ -3245,8 +3251,10 @@ def _render_recommendations_tab(st: Any, report_model: dict[str, Any]) -> None:
                     "title": item.get("action") or "Recomendación",
                     "body": item.get("rationale"),
                     "variant": _card_variant_from_text(item.get("priority")),
-                    "badge": item.get("priority") or "Requiere atención",
+                    "badge": item.get("priority"),
                     "rows": [
+                        ("Consideración operativa", item.get("operational_consideration")),
+                        ("Investigación requerida", item.get("investigation_required")),
                         ("Impacto esperado", item.get("expected_impact")),
                         ("Responsable sugerido", item.get("owner")),
                         ("Estado", item.get("status")),

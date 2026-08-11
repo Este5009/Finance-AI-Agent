@@ -667,6 +667,41 @@ def test_each_results_tab_renders_from_july_report_model() -> None:
         assert not fake_st.error_messages
 
 
+def test_streamlit_recommendation_card_keeps_structured_fields_separate() -> None:
+    """Verify the UI does not fold operational and investigation text into its body."""
+
+    report_model = _july_report_model()
+    section = next(
+        item for item in report_model["sections"]
+        if item["section_id"] == "strategic_recommendations"
+    )
+    section["content"]["recommendations"] = [
+        {
+            "priority": "high",
+            "action": "Reducir el desvío presupuestario",
+            "rationale": (
+                "El gasto supera presupuesto. "
+                "Consideración operativa: Evaluar proveedores. "
+                "Investigación requerida: Investigación requerida"
+            ),
+            "operational_consideration": "Coordinar con Compras.",
+            "investigation_required": "Validar pedidos pendientes.",
+        }
+    ]
+    fake_st = FakeStreamlitRenderer()
+
+    streamlit_app._render_recommendations_tab(fake_st, report_model)
+
+    visible = "\n".join(fake_st.markdown_calls)
+    assert "El gasto supera presupuesto." in visible
+    assert "Consideración operativa" in visible
+    assert "Coordinar con Compras." in visible
+    assert "Investigación requerida" in visible
+    assert "Validar pedidos pendientes." in visible
+    assert "Investigación requerida: Investigación requerida" not in visible
+    assert not fake_st.error_messages
+
+
 def test_july_anomaly_tab_renders_deterministic_detail_cards() -> None:
     """Verify severity counts with anomaly rows render concrete anomaly details."""
 

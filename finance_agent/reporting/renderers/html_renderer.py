@@ -935,26 +935,8 @@ def _render_recommendations(view: dict[str, Any]) -> str:
 
     recs = view["recommendations"]
     priorities = "".join(f"<li>{_escape(item)}</li>" for item in recs["priorities"])
-    cards = "".join(
-        "<article class='recommendation-card'>"
-        f"<div class='badge {card['priority'].lower()}'>{_escape(card['priority'])}</div>"
-        f"<h3>{_escape(card['action'])}</h3>"
-        f"<p><strong>Racional:</strong> {_escape(card['rationale'])}</p>"
-        f"<p><strong>Impacto esperado:</strong> {_escape(card['expected_impact'])}</p>"
-        f"<p><strong>Responsable sugerido:</strong> {_escape(card.get('owner'))}</p>"
-        f"<p><strong>Estado:</strong> {_escape(card.get('status'))}</p>"
-        "</article>"
-        for card in recs["cards"]
-    )
-    rows = [
-        [card["priority"], card["action"], card["expected_impact"], card.get("owner"), card.get("status")]
-        for card in recs["cards"]
-    ]
-    recommendation_display = (
-        f"<div class='recommendation-grid'>{cards}</div>"
-        if len(recs["cards"]) <= 5
-        else _table(["Prioridad", "Acción", "Impacto esperado", "Responsable", "Estado"], rows, force=True)
-    )
+    cards = "".join(_recommendation_card(card) for card in recs["cards"])
+    recommendation_display = f"<div class='recommendation-grid'>{cards}</div>"
     if not recs["cards"]:
         attention_cards = "".join(
             "<article class='risk-card'>"
@@ -984,6 +966,39 @@ def _render_recommendations(view: dict[str, Any]) -> str:
         + (f"<h3>Prioridades estratégicas</h3><ul>{priorities}</ul>" if priorities else "")
         + recommendation_display
         + "</section>"
+    )
+
+
+def _recommendation_card(card: dict[str, Any]) -> str:
+    """Render one structured recommendation without empty or merged fields.
+
+    Inputs: canonical presentation recommendation card.
+    Outputs: HTML article with separate labeled rows.
+    Assumptions: the presentation adapter already normalized Spanish text.
+    """
+
+    field_rows = (
+        ("Justificación", card.get("rationale")),
+        ("Consideración operativa", card.get("operational_consideration")),
+        ("Investigación requerida", card.get("investigation_required")),
+        ("Impacto esperado", card.get("expected_impact")),
+        ("Responsable sugerido", card.get("owner")),
+        ("Estado", card.get("status")),
+    )
+    details = "".join(
+        f"<div class='recommendation-field'><strong>{_escape(label)}</strong><p>{_escape(value)}</p></div>"
+        for label, value in field_rows
+        if str(value or "").strip()
+    )
+    priority = str(card.get("priority") or "")
+    badge = (
+        f"<div class='badge {priority.lower()}'>{_escape(priority)}</div>"
+        if priority else ""
+    )
+    return (
+        "<article class='recommendation-card'>"
+        f"{badge}<h3>{_escape(card.get('action'))}</h3>"
+        f"{details}</article>"
     )
 
 
@@ -1111,6 +1126,9 @@ def _styles() -> str:
     .line-chart .min-point { fill:var(--red); }
     .trend-grid, .recommendation-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:22px; margin:22px 0 30px; align-items:start; }
     .trend-card, .recommendation-card, .risk-card, .status-card { border:1px solid var(--line); border-radius:18px; padding:24px; background:var(--soft); box-shadow:0 6px 16px rgba(23,50,77,.05); break-inside: avoid; page-break-inside: avoid; }
+    .recommendation-field { border-top:1px solid var(--line); padding-top:10px; margin-top:10px; }
+    .recommendation-field strong { display:block; color:var(--navy); font-size:12px; margin-bottom:4px; }
+    .recommendation-field p { margin:0; color:#34465a; line-height:1.5; }
     .info-panel strong { display:block; color:var(--navy); margin-bottom:6px; }
     .info-panel p { margin:0; color:var(--muted); }
     .status-card.positive { border-left:5px solid var(--green); }
@@ -1188,4 +1206,3 @@ def save_report_html(report_model: dict[str, Any], output_path: str | Path, *, m
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(render_report_html(report_model, mode=mode), encoding="utf-8")
     return path
-

@@ -36,6 +36,7 @@ from finance_agent.reporting.presentation import (
     compact_source_label,
     format_value,
     number_value,
+    normalize_executive_text,
     sanitize_items,
     sanitize_text,
     validate_presentation_view,
@@ -1675,7 +1676,7 @@ def _add_presentation_payload(model: ReportModel) -> None:
         "priorities": sanitize_items(
             section_by_id["strategic_recommendations"].content.get("strategic_priorities", [])
         ),
-        "reasoning_summary": sanitize_text(
+        "reasoning_summary": normalize_executive_text(
             section_by_id["strategic_recommendations"].content.get("reasoning_summary", "")
         ),
     }

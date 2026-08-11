@@ -790,7 +790,7 @@ def section_narratives(report_model: dict[str, Any]) -> dict[str, str]:
                 if isinstance(value, list):
                     text = " ".join(sanitize_items(value, limit=4))
                 else:
-                    text = sanitize_text(value)
+                    text = normalize_executive_text(value)
                 if text:
                     narratives[template.section_id] = text
                     break
@@ -953,6 +953,81 @@ def sanitize_text(value: Any) -> str:
     for entity, label in ENTITY_LABELS_ES.items():
         sanitized = re.sub(rf"\b{re.escape(entity)}\b", label, sanitized)
     return replace_period_identifiers(sanitized)
+
+
+EXECUTIVE_FIELD_LABELS: dict[str, tuple[str, ...]] = {
+    "operational_consideration": ("Consideración operativa", "Consideracion operativa"),
+    "investigation_required": ("Investigación requerida", "Investigacion requerida"),
+    "expected_impact": ("Impacto esperado",),
+    "owner": ("Responsable sugerido", "Responsable"),
+    "priority": ("Prioridad",),
+    "status": ("Estado",),
+}
+
+
+def normalize_executive_text(value: Any) -> str:
+    """Clean one executive-facing field without inventing or translating text.
+
+    Inputs: validated AI or deterministic presentation text.
+    Outputs: sanitized text with duplicate label-only values and repeated
+    sentences removed.
+    Assumptions: this is display normalization only; financial meaning and AI
+    provenance remain unchanged.
+    """
+
+    text = sanitize_text(value)
+    if not text:
+        return ""
+    known_labels = {
+        label.casefold().rstrip(":").strip()
+        for labels in EXECUTIVE_FIELD_LABELS.values()
+        for label in labels
+    }
+    if text.casefold().rstrip(":").strip() in known_labels:
+        return ""
+    segments = re.split(r"(?<=[.!?])\s+|\n+", text)
+    unique: list[str] = []
+    seen: set[str] = set()
+    for segment in segments:
+        cleaned = re.sub(r"\s+", " ", segment).strip()
+        key = cleaned.casefold().rstrip(".!? ")
+        if cleaned and key not in seen:
+            unique.append(cleaned)
+            seen.add(key)
+    return " ".join(unique)
+
+
+def _structured_executive_fields(value: Any) -> tuple[str, dict[str, str]]:
+    """Split legacy inline executive labels into canonical presentation fields.
+
+    Inputs: one possibly concatenated recommendation string.
+    Outputs: unlabeled leading prose and extracted display fields.
+    Assumptions: only known Spanish labels are structural delimiters; unknown
+    prose is preserved verbatim after presentation sanitization.
+    """
+
+    text = sanitize_text(value)
+    if not text:
+        return "", {}
+    aliases = [
+        (field, label)
+        for field, labels in EXECUTIVE_FIELD_LABELS.items()
+        for label in labels
+    ]
+    label_pattern = "|".join(re.escape(label) for _field, label in sorted(aliases, key=lambda item: len(item[1]), reverse=True))
+    matches = list(re.finditer(rf"(?i)(?<!\w)({label_pattern})\s*:\s*", text))
+    if not matches:
+        return normalize_executive_text(text), {}
+    leading = normalize_executive_text(text[: matches[0].start()])
+    label_to_field = {label.casefold(): field for field, label in aliases}
+    extracted: dict[str, str] = {}
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        field = label_to_field[match.group(1).casefold()]
+        cleaned = normalize_executive_text(text[match.end():end])
+        if cleaned and field not in extracted:
+            extracted[field] = cleaned
+    return leading, extracted
 
 
 def display_entity_name(value: Any) -> str:
@@ -1453,7 +1528,8 @@ def sanitize_items(items: Any, *, limit: int = 8) -> list[str]:
     """
 
     raw_items = items if isinstance(items, list) else ([items] if items else [])
-    return [sanitize_text(item) for item in raw_items[:limit] if sanitize_text(item)]
+    cleaned = [normalize_executive_text(item) for item in raw_items[:limit]]
+    return list(dict.fromkeys(item for item in cleaned if item))
 
 
 def localize_evidence_summary(value: Any) -> str:
@@ -1759,7 +1835,10 @@ def build_anomaly_summary(report_model: dict[str, Any]) -> dict[str, Any]:
             finding_type = str(item.get("finding_type") or "system_review_rule")
             reference_origin = str(item.get("reference_origin") or "system-derived/default")
             reference_notice = sanitize_text(item.get("reference_notice_es") or "")
-            display_fields = localized_finding_display_fields(item)
+            display_fields = {
+                key: normalize_executive_text(value)
+                for key, value in localized_finding_display_fields(item).items()
+            }
             top_rows.append(
                 {
                     **display_fields,
@@ -1855,30 +1934,54 @@ def build_recommendation_cards(report_model: dict[str, Any]) -> list[dict[str, s
     cards: list[dict[str, str]] = []
     for item in content.get("recommendations", []) or []:
         if isinstance(item, dict):
+            # Newer artifacts may expose these values directly. Older compact
+            # responses embedded them in rationale/action text; split those
+            # labels here so every renderer receives the same card structure.
+            action, action_fields = _structured_executive_fields(
+                item.get("action") or item.get("recommendation") or ""
+            )
+            rationale, rationale_fields = _structured_executive_fields(
+                item.get("rationale") or item.get("supporting_evidence") or ""
+            )
+            legacy_fields = {**action_fields, **rationale_fields}
+
+            def canonical(field: str, *aliases: str) -> str:
+                """Prefer direct structured content, then parsed legacy text."""
+
+                direct = next((item.get(alias) for alias in aliases if item.get(alias)), None)
+                return normalize_executive_text(direct or legacy_fields.get(field) or "")
+
+            priority_raw = canonical("priority", "priority")
+            priority = PRIORITY_LABELS_ES.get(priority_raw.lower(), priority_raw)
             cards.append(
                 {
-                    "priority": PRIORITY_LABELS_ES.get(str(item.get("priority", "")).lower(), str(item.get("priority", ""))) or "Media",
-                    "action": sanitize_text(item.get("action") or item.get("recommendation") or ""),
-                    "rationale": sanitize_text(item.get("rationale") or item.get("supporting_evidence") or ""),
-                    "expected_impact": sanitize_text(item.get("expected_impact") or ""),
-                    "owner": sanitize_text(item.get("owner") or "Responsable por asignar"),
-                    "status": sanitize_text(item.get("status") or "Planificada"),
-                    "owner_status": sanitize_text(
-                        item.get("owner_status")
-                        or f"{item.get('owner') or 'Responsable por asignar'} / {item.get('status') or 'Planificada'}"
+                    "priority": priority,
+                    "action": action,
+                    "rationale": rationale,
+                    "operational_consideration": canonical(
+                        "operational_consideration", "operational_consideration", "operational_considerations", "operational"
                     ),
+                    "investigation_required": canonical(
+                        "investigation_required", "investigation_required", "investigation_needed", "investigation", "uncertainty"
+                    ),
+                    "expected_impact": canonical("expected_impact", "expected_impact"),
+                    "owner": canonical("owner", "owner", "suggested_owner", "responsible_party"),
+                    "status": canonical("status", "status"),
+                    "owner_status": normalize_executive_text(item.get("owner_status") or ""),
                 }
             )
         elif item:
             cards.append(
                 {
-                    "priority": "Media",
+                    "priority": "",
                     "action": sanitize_text(item),
                     "rationale": "",
                     "expected_impact": "",
-                    "owner": "Responsable por asignar",
-                    "status": "Planificada",
-                    "owner_status": "Responsable por asignar / Planificada",
+                    "operational_consideration": "",
+                    "investigation_required": "",
+                    "owner": "",
+                    "status": "",
+                    "owner_status": "",
                 }
             )
     return cards
@@ -1893,7 +1996,10 @@ def build_attention_item_display(item: dict[str, Any]) -> dict[str, Any]:
     should use `display_*_es` or the localized compatibility fields here.
     """
 
-    display_fields = localized_finding_display_fields(item)
+    display_fields = {
+        key: normalize_executive_text(value)
+        for key, value in localized_finding_display_fields(item).items()
+    }
     return {
         **display_fields,
         "title": display_fields["display_title_es"],
@@ -2034,7 +2140,9 @@ def build_presentation_view(report_model: dict[str, Any], *, mode: str = "execut
         "historical": build_historical_presentation(report_model),
         "recommendations": {
             "priorities": sanitize_items(recommendations.get("strategic_priorities"), limit=6),
-            "reasoning_summary": sanitize_text(recommendations.get("reasoning_summary") or ""),
+            "reasoning_summary": normalize_executive_text(
+                recommendations.get("reasoning_summary") or ""
+            ),
             "cards": build_recommendation_cards(report_model),
             "strategy_unavailable_note": sanitize_text(recommendations.get("strategy_unavailable_note") or ""),
             "attention_items": [
@@ -3451,4 +3559,3 @@ def _localize_direction(value: Any) -> str:
         "decreasing": "A la baja",
     }
     return mapping.get(str(value or "").lower(), "Estable")
-
