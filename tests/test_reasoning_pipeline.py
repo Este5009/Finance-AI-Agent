@@ -75,14 +75,23 @@ def test_single_call_executive_path_uses_one_compact_ai_request() -> None:
     """Normal executive mode uses one compact package and one accepted response."""
 
     compact = {
-        "executive_summary": "La situación financiera requiere atención por el gasto y la liquidez.",
-        "strategic_priorities": ["Controlar el gasto material del periodo."],
-        "strategic_recommendations": [{
-            "action": "Revisar semanalmente el gasto y la liquidez.",
-            "rationale": "La evidencia financiera requiere seguimiento directivo.",
-            "expected_impact": "Mejorar el control y reducir la exposición financiera.",
-            "confidence": 0.8,
-        }],
+        "e": "La situación financiera requiere atención por el gasto y la liquidez.",
+        "h": "El resultado y la liquidez requieren seguimiento directivo.",
+        "rev": "Los ingresos deben compararse con su presupuesto antes de actuar.",
+        "exp": "Las desviaciones materiales deben revisarse por categoría y departamento.",
+        "hist": "La dirección reciente debe confirmarse con la serie disponible.",
+        "p": ["Controlar el gasto material.", "Fortalecer la cobranza.", "Proteger la liquidez."],
+        "risks": ["Persistencia de la presión operativa.", "Deterioro de la liquidez."],
+        "recs": [{
+            "r": f"Revisar {topic} con seguimiento semanal.",
+            "w": "La evidencia financiera requiere seguimiento directivo.",
+            "e": "Los indicadores procesados muestran presión financiera.",
+            "d": "Mejorar el control financiero.",
+            "o": "Evitar cambios disruptivos antes de validar causas.",
+            "p": priority,
+            "u": "Confirmar responsables y causas antes de actuar.",
+            "c": 0.8,
+        } for topic, priority in (("gastos", "high"), ("cobranza", "high"), ("liquidez", "medium"))],
     }
     client = FakeReasoningClient((compact,))
     result = create_single_call_strategic_analysis(
@@ -104,12 +113,40 @@ def test_executive_evidence_package_excludes_raw_tables_and_is_bounded() -> None
         evidence_package=_evidence_package(), risk_summary=_risk_summary(),
         period_slug="2026_12",
     )
-    package = build_executive_evidence_package(ledger, period_slug="2026_12")
+    package = build_executive_evidence_package(
+        ledger, period_slug="2026_12", finance_summary=_finance_summary(),
+        anomaly_report=_anomaly_report(),
+    )
     encoded = json.dumps(package)
     assert package["package_type"] == "ExecutiveEvidencePackage"
-    assert len(package["verified_facts"]) <= 5
+    assert len(package["expense_drivers"]) <= 5
+    assert len(package["department_drivers"]) <= 3
+    assert len(package["top_verified_anomalies"]) <= 3
+    assert package["core_financial_position"]["revenue"]["actual"] == 1000
     assert "normalized_tables" not in encoded
     assert "workbook" not in encoded.casefold()
+
+
+def test_executive_evidence_package_ranks_material_drivers() -> None:
+    """Python selects the largest processed expense drivers by materiality."""
+
+    document = _finance_summary()
+    document["category_summary"] = [
+        {"category": f"Expense {index}", "category_type": "expense", "actual_amount": 100 + index,
+         "budget_amount": 100, "variance": variance, "variance_pct": variance / 100}
+        for index, variance in enumerate((5, 90, -70, 40, 30, 20, 10))
+    ]
+    ledger = build_evidence_ledger(
+        finance_summary=document, anomaly_report=_anomaly_report(),
+        evidence_package=_evidence_package(), risk_summary=_risk_summary(), period_slug="2026_12",
+    )
+
+    package = build_executive_evidence_package(
+        ledger, period_slug="2026_12", finance_summary=document,
+        anomaly_report=_anomaly_report(),
+    )
+
+    assert [item["gap"] for item in package["expense_drivers"]] == [90.0, -70.0, 40.0, 30.0, 20.0]
 
 
 def _finance_summary() -> dict[str, Any]:

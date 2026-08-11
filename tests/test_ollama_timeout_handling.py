@@ -165,7 +165,7 @@ def test_pipeline_config_routes_new_timeout_settings() -> None:
     assert client.connect_timeout_seconds == 7
     assert client.read_timeout_seconds == 321
     assert client.effective_read_timeout_seconds() == 180
-    assert client.num_predict == 384
-    assert client.context_size == 4096
+    assert client.num_predict == 850
+    assert client.context_size == 8192
     assert client.keep_alive == "20m"
     assert config.stage_timeout_seconds == 654

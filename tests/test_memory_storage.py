@@ -490,6 +490,28 @@ def test_successful_run_persistence_and_table_counts(tmp_path: Path) -> None:
     assert storage.table_counts["memory_facts"] >= 5
 
 
+def test_safely_sanitized_single_call_run_remains_history_eligible(tmp_path: Path) -> None:
+    """A validated sanitizer recovery must not silently empty historical memory."""
+
+    input_model = _input_model(tmp_path)
+    config = _config(tmp_path, input_model)
+    output_files = _write_artifacts(config)
+    analysis_path = config.output_directory / "analysis" / "strategic_analysis_2026_06.json"
+    analysis = json.loads(analysis_path.read_text(encoding="utf-8"))
+    analysis["validation_status"] = "sanitized"
+    analysis["analysis"]["_strategic_recovery"] = {"remaining_blocking_violations": []}
+    analysis_path.write_text(json.dumps(analysis), encoding="utf-8")
+
+    storage = persist_pipeline_run(
+        _pipeline_result(config, output_files),
+        period_slug="2026_06",
+        database_path=config.memory_database_path,
+    )
+
+    assert storage.stored is True
+    assert storage.table_counts["pipeline_runs"] == 1
+
+
 def test_artifact_references_include_checksums(tmp_path: Path) -> None:
     """Verify artifacts are referenced by path and checksum, not blobs."""
 

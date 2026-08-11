@@ -808,8 +808,8 @@ def _ollama_client_for_stage(config: PipelineConfig, stage_name: str) -> OllamaC
         read_timeout_seconds=config.read_timeout_seconds,
         keep_alive=config.ollama_keep_alive,
         reasoning_enabled=False,
-        num_predict=(384 if compact_balanced_model else 112) if stage_name in {"strategic_analysis", "analysis"} else 96,
-        context_size=4096 if compact_balanced_model else 2048,
+        num_predict=(850 if compact_balanced_model else 112) if stage_name in {"strategic_analysis", "analysis"} else 96,
+        context_size=8192 if compact_balanced_model else 2048,
     )
 
 

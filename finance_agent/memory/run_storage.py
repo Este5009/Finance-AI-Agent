@@ -469,7 +469,14 @@ def _quality_gate(
     if not result.success:
         return False, "pipeline result was not successful", paths, {}
     analysis = _load_json(paths["strategic_analysis"])
-    if analysis.get("validation_status") != "accepted":
+    validation_status = str(analysis.get("validation_status") or "")
+    recovery = analysis.get("analysis", {}).get("_strategic_recovery", {})
+    recovery = recovery if isinstance(recovery, dict) else {}
+    sanitized_and_safe = (
+        validation_status == "sanitized"
+        and not recovery.get("remaining_blocking_violations")
+    )
+    if validation_status != "accepted" and not sanitized_and_safe:
         return False, "strategic analysis was not accepted", paths, analysis
     quality = validate_report_artifacts(
         paths["report_model"],

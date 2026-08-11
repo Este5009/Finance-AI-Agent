@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import time
+from dataclasses import dataclass
 from typing import Any
 
 from finance_agent.analysis.analysis_models import StrategicAnalysisResult
@@ -85,8 +86,43 @@ FINAL_NARRATIVE_FIELDS: tuple[str, ...] = (
 )
 
 
+@dataclass(frozen=True)
+class ExecutiveEvidenceLimits:
+    """Configurable materiality limits for the compact executive package."""
+
+    expense_drivers: int = 5
+    department_drivers: int = 3
+    anomalies: int = 3
+    goals: int = 3
+    historical_patterns: int = 7
+    prior_recommendations: int = 3
+
+
+def _numeric(value: Any) -> float | None:
+    """Return a finite-looking numeric scalar without interpreting prose."""
+
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return float(value)
+    return None
+
+
+def _history_records(context: dict[str, Any] | None, tool_name: str) -> list[dict[str, Any]]:
+    """Return bounded processed records for one historical retrieval tool."""
+
+    retrievals = context.get("retrievals", []) if isinstance(context, dict) else []
+    records: list[dict[str, Any]] = []
+    for retrieval in retrievals if isinstance(retrievals, list) else []:
+        if isinstance(retrieval, dict) and retrieval.get("tool_name") == tool_name:
+            records.extend(item for item in retrieval.get("records", []) if isinstance(item, dict))
+    return records
+
+
 def build_executive_evidence_package(
-    evidence_ledger: dict[str, Any], *, period_slug: str, limit: int = 5
+    evidence_ledger: dict[str, Any], *, period_slug: str,
+    finance_summary: dict[str, Any] | None = None,
+    anomaly_report: dict[str, Any] | None = None,
+    historical_context: dict[str, Any] | None = None,
+    limits: ExecutiveEvidenceLimits | None = None,
 ) -> dict[str, Any]:
     """Build the single canonical fact surface used for executive reasoning.
 
@@ -95,30 +131,91 @@ def build_executive_evidence_package(
     Assumptions: raw tables, workbook cells, and verbose retrieval metadata are excluded.
     """
 
-    facts: list[dict[str, Any]] = []
-    for fact in evidence_ledger.get("facts", []):
-        if not isinstance(fact, dict) or not fact.get("evidence_id"):
-            continue
-        facts.append(
-            {
-                "evidence_id": fact.get("evidence_id"),
-                "metric": fact.get("metric") or fact.get("field"),
-                "value": str(fact.get("display_value", fact.get("raw_value")))[:280],
-                "period": fact.get("period"),
-                "entity": fact.get("entity"),
-                "category": fact.get("category"),
-                "meaning": str(fact.get("claim") or fact.get("metric") or fact.get("field"))[:180],
-            }
-        )
-        if len(facts) >= limit:
-            break
+    active_limits = limits or ExecutiveEvidenceLimits()
+    document = finance_summary or {}
+    finance = document.get("finance_summary", document)
+    finance = finance if isinstance(finance, dict) else {}
+    budget = finance.get("budget_vs_actual", {})
+    budget = budget if isinstance(budget, dict) else {}
+    payments = finance.get("student_payments", {})
+    payments = payments if isinstance(payments, dict) else {}
+    cash = finance.get("cash_flow", {})
+    cash = cash if isinstance(cash, dict) else {}
+    core_position = {
+        "revenue": {"actual": finance.get("total_revenue"), "budget": budget.get("revenue_budget"), "gap": budget.get("revenue_variance")},
+        "expenses": {"actual": finance.get("total_expenses"), "budget": budget.get("expense_budget"), "gap": budget.get("expense_variance")},
+        "operating_result": {"actual": finance.get("net_operating_result"), "target": budget.get("net_budget"), "gap": budget.get("net_variance")},
+        "net_cash_flow": cash.get("net_cash_flow"), "ending_cash": cash.get("ending_cash"),
+        "collection_rate": payments.get("collection_rate"),
+        "payroll_to_revenue": finance.get("payroll_percentage_of_revenue"),
+    }
+    total_expense = abs(_numeric(finance.get("total_expenses")) or 0.0)
+    total_overspend = max(_numeric(budget.get("expense_variance")) or 0.0, 0.0)
+    expense_rows = [row for row in document.get("category_summary", []) if isinstance(row, dict) and row.get("category_type") == "expense"]
+    expense_drivers = []
+    for row in sorted(expense_rows, key=lambda item: abs(_numeric(item.get("variance")) or 0.0), reverse=True)[: active_limits.expense_drivers]:
+        actual = _numeric(row.get("actual_amount"))
+        variance = _numeric(row.get("variance"))
+        expense_drivers.append({
+            "category": row.get("category"), "actual": actual, "budget": row.get("budget_amount"),
+            "gap": variance, "gap_pct": row.get("variance_pct"),
+            "share_of_total_expense": (actual / total_expense if actual is not None and total_expense else None),
+            "contribution_to_overspend": (max(variance, 0.0) / total_overspend if variance is not None and total_overspend else None),
+        })
+    department_rows = [row for row in document.get("department_summary", []) if isinstance(row, dict)]
+    department_drivers = []
+    for row in sorted(department_rows, key=lambda item: abs(_numeric(item.get("expense_variance")) or _numeric(item.get("variance")) or 0.0), reverse=True)[: active_limits.department_drivers]:
+        actual = _numeric(row.get("actual_expenses"))
+        department_drivers.append({
+            "department": row.get("department"), "actual_expense": actual,
+            "budget": row.get("budget_expenses"), "gap": row.get("expense_variance", row.get("variance")),
+            "gap_pct": row.get("expense_variance_pct"),
+            "materiality": (actual / total_expense if actual is not None and total_expense else None),
+        })
+    severity_rank = {"critical": 3, "high": 2, "medium": 1, "low": 0}
+    anomaly_rows = [row for row in (anomaly_report or {}).get("anomalies", []) if isinstance(row, dict)]
+    top_anomalies = sorted(
+        anomaly_rows,
+        key=lambda item: (severity_rank.get(str(item.get("severity", "")).casefold(), 0), abs(_numeric(item.get("variance")) or _numeric(item.get("observed_value")) or 0.0)),
+        reverse=True,
+    )[: active_limits.anomalies]
+    anomalies = [{
+        "evidence_id": item.get("anomaly_id"), "finding": item.get("title"), "severity": item.get("severity"),
+        "metric": item.get("metric"), "observed": item.get("observed_value"),
+        "reference": item.get("threshold_value", item.get("expected_value")),
+        "reference_origin": item.get("reference_origin"), "reason": item.get("reason_for_flagging"),
+    } for item in top_anomalies]
+    derived = historical_context.get("derived_context", {}) if isinstance(historical_context, dict) else {}
+    trends = derived.get("kpi_trends", {}) if isinstance(derived, dict) else {}
+    historical_patterns = []
+    for metric, trend in list(trends.items())[: active_limits.historical_patterns] if isinstance(trends, dict) else []:
+        if isinstance(trend, dict):
+            historical_patterns.append({
+                "metric": metric, "direction": trend.get("direction"), "periods": trend.get("periods", []),
+                "first": trend.get("first_value"), "latest": trend.get("latest_value"),
+                "change": ((_numeric(trend.get("latest_value")) or 0.0) - (_numeric(trend.get("first_value")) or 0.0)),
+            })
+    goals = sorted(
+        _history_records(historical_context, "get_goal_progress"),
+        key=lambda item: abs(
+            _numeric(item.get("gap"))
+            or _numeric(item.get("variance"))
+            or (100.0 - (_numeric(item.get("score")) or 100.0))
+        ),
+        reverse=True,
+    )[: active_limits.goals]
+    prior = _history_records(historical_context, "get_previous_recommendations")[: active_limits.prior_recommendations]
     return {
         "package_type": "ExecutiveEvidencePackage",
         "period": period_slug,
-        "verified_facts": facts,
-        "allowed_numeric_facts": [fact["value"] for fact in facts],
-        "allowed_periods": sorted({str(fact["period"]) for fact in facts if fact.get("period")}),
-        "allowed_entities": sorted({str(fact["entity"]) for fact in facts if fact.get("entity")}),
+        "core_financial_position": core_position,
+        "expense_drivers": expense_drivers,
+        "department_drivers": department_drivers,
+        "historical_patterns": historical_patterns,
+        "goal_performance": goals,
+        "top_verified_anomalies": anomalies,
+        "prior_recommendations": prior,
+        "selection_limits": active_limits.__dict__,
     }
 
 
@@ -133,17 +230,23 @@ def build_single_call_executive_prompt(package: dict[str, Any]) -> str:
     return _stage_prompt(
         stage_name="Executive Financial Reasoning",
         schema=(
-            "Return exactly: executive_summary, strategic_priorities, strategic_recommendations. "
-            "executive_summary is two concise Spanish sentences covering financial health, anomalies and history. "
-            "strategic_priorities has exactly one Spanish string. strategic_recommendations has exactly one concise "
-            "object with action, rationale, expected_impact and confidence."
+            "Return exactly the compact keys e,h,rev,exp,hist,p,recs,risks. e=executive analysis, h=financial health, "
+            "rev=revenue analysis, exp=expense analysis, hist=historical interpretation. p has exactly 3 strings; "
+            "risks exactly 2. recs has exactly 3 objects with r=recommendation, w=why it matters, e=evidence, "
+            "d=expected effect direction, o=operational consideration, p=priority, u=uncertainty/investigation, c=confidence."
         ),
         context={
-            "objective": "Producir una sola síntesis ejecutiva financiera, estratégica y accionable.",
+            "objective": "Producir un análisis financiero ejecutivo comparativo, estratégico y accionable.",
             "executive_evidence_package": package,
             "rules": (
-                "Usa exclusivamente hechos verificados del paquete; no recalcules ni inventes cifras. "
-                "Devuelve español profesional. Máximo 100 tokens; una prioridad y una recomendación."
+                "Usa exclusivamente hechos verificados del paquete; no recalcules ni inventes cifras o ahorros. "
+                "Identifica los impulsores raíz y distingue síntomas de posibles causas. Compara varias oportunidades "
+                "de costos, ingresos, caja y cobranza; no recomiendes recortes de nómina automáticamente porque sea "
+                "la partida más grande. Considera trade-offs operativos, prioriza acciones de alto impacto y menor "
+                "disrupción cuando la evidencia lo respalde, e indica qué debe investigarse antes de actuar. "
+                "Menciona únicamente categorías y departamentos presentes en el paquete. Textos e/h/rev/exp/hist: "
+                "máximo 25 palabras cada uno. Cada campo de recs: máximo 12 palabras. Español profesional. "
+                "Máximo aproximado de 650 tokens para toda la respuesta."
             ),
         },
     )
@@ -152,22 +255,29 @@ def build_single_call_executive_prompt(package: dict[str, Any]) -> str:
 def compact_executive_json_schema() -> dict[str, Any]:
     """Return the bounded provider schema for the one-call executive response."""
 
-    text = {"type": "string", "minLength": 1, "maxLength": 350}
-    fields = ("executive_summary",)
+    text = {"type": "string", "minLength": 1, "maxLength": 220}
+    recommendation_text = {"type": "string", "minLength": 1, "maxLength": 140}
+    fields = ("e", "h", "rev", "exp", "hist")
     return {
         "type": "object", "additionalProperties": False,
-        "required": [*fields, "strategic_priorities", "strategic_recommendations"],
+        "required": [*fields, "p", "recs", "risks"],
         "properties": {
             **{field: text for field in fields},
-            "strategic_priorities": {"type": "array", "minItems": 1, "maxItems": 1, "items": text},
-            "strategic_recommendations": {
-                "type": "array", "minItems": 1, "maxItems": 1,
+            "p": {"type": "array", "minItems": 3, "maxItems": 3, "items": text},
+            "risks": {"type": "array", "minItems": 2, "maxItems": 2, "items": text},
+            "recs": {
+                "type": "array", "minItems": 3, "maxItems": 3,
                 "items": {
                     "type": "object", "additionalProperties": False,
-                    "required": ["action", "rationale", "expected_impact", "confidence"],
+                    "required": [
+                        "r", "w", "e", "d", "o", "p", "u", "c",
+                    ],
                     "properties": {
-                        "action": text, "rationale": text, "expected_impact": text,
-                        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                        "r": recommendation_text, "w": recommendation_text, "e": recommendation_text,
+                        "d": recommendation_text, "o": recommendation_text,
+                        "p": {"type": "string", "enum": ["critical", "high", "medium", "low"]},
+                        "u": recommendation_text,
+                        "c": {"type": "number", "minimum": 0, "maximum": 1},
                     },
                 },
             },
@@ -189,40 +299,51 @@ def validate_compact_executive_response(
     required = set(compact_executive_json_schema()["required"])
     if not isinstance(compact, dict) or set(compact) != required:
         return ReasoningValidationResult(False, None, ("schema: compact executive fields are incomplete",))
-    priorities = compact.get("strategic_priorities")
-    recommendations = compact.get("strategic_recommendations")
-    if not isinstance(priorities, list) or not priorities or not isinstance(recommendations, list) or not recommendations:
-        return ReasoningValidationResult(False, None, ("schema: priorities and recommendations must be non-empty lists",))
-    default_ids = _default_evidence_ids(evidence_ledger)
+    priorities = compact.get("p")
+    recommendations = compact.get("recs")
+    if not isinstance(priorities, list) or len(priorities) < 3 or not isinstance(recommendations, list) or len(recommendations) < 3:
+        return ReasoningValidationResult(False, None, ("schema: priorities and recommendations require at least three items",))
+    default_ids = _section_evidence_ids(evidence_ledger, "strategic_recommendations") or _default_evidence_ids(evidence_ledger)
     full_recommendations = []
     for item in recommendations[:3]:
         if not isinstance(item, dict):
             return ReasoningValidationResult(False, None, ("schema: recommendation must be an object",))
         full_recommendations.append({
-            "priority": "high", "action": str(item.get("action") or ""),
-            "rationale": str(item.get("rationale") or ""),
-            "supporting_evidence": str(item.get("rationale") or ""),
-            "expected_impact": str(item.get("expected_impact") or ""),
-            "evidence_ids": default_ids[:4], "confidence": item.get("confidence"),
+            "priority": str(item.get("p") or "high"), "action": str(item.get("r") or ""),
+            "rationale": (
+                f"{str(item.get('w') or '')} "
+                f"Consideración operativa: {str(item.get('o') or '')} "
+                f"Investigación requerida: {str(item.get('u') or '')}"
+            ).strip(),
+            "supporting_evidence": str(item.get("e") or ""),
+            "expected_impact": str(item.get("d") or ""),
+            "evidence_ids": default_ids[:4], "confidence": item.get("c"),
         })
-    executive = str(compact.get("executive_summary") or "")
+    executive = str(compact.get("e") or "")
+    financial_health = str(compact.get("h") or executive)
+    revenue_analysis = str(compact.get("rev") or executive)
+    expense_analysis = str(compact.get("exp") or executive)
+    historical_analysis = str(compact.get("hist") or executive)
+    section_ids = {
+        field: _section_evidence_ids(evidence_ledger, field)
+        for field in (
+            "executive_summary", "financial_health_analysis", "kpi_analysis", "historical_summary",
+            "historical_trend_analysis", "department_analysis", "anomaly_analysis",
+            "recommendation_follow_up_analysis", "longitudinal_risk_analysis", "reasoning_summary",
+            "key_findings", "root_causes", "strategic_priorities", "missing_information",
+        )
+    }
     full = {
-        "executive_summary": executive, "key_findings": list(priorities[:3]), "root_causes": [],
-        "financial_health_analysis": executive, "kpi_analysis": executive,
-        "historical_summary": executive, "historical_trend_analysis": executive,
-        "department_analysis": executive, "anomaly_analysis": executive,
-        "recommendation_follow_up_analysis": executive, "longitudinal_risk_analysis": executive,
+        "executive_summary": executive, "key_findings": list(priorities[:3]), "root_causes": list(compact.get("risks", [])[:2]),
+        "financial_health_analysis": financial_health,
+        "kpi_analysis": f"{revenue_analysis} {expense_analysis}".strip(),
+        "historical_summary": historical_analysis, "historical_trend_analysis": historical_analysis,
+        "department_analysis": expense_analysis, "anomaly_analysis": financial_health,
+        "recommendation_follow_up_analysis": historical_analysis, "longitudinal_risk_analysis": historical_analysis,
         "strategic_recommendations": full_recommendations,
         "strategic_priorities": list(priorities[:3]), "missing_information": [],
-        "confidence": min(float(item.get("confidence", 0.5)) for item in recommendations if isinstance(item, dict)),
-        "reasoning_summary": executive, "narrative_evidence": {
-            field: default_ids[:4] for field in (
-                "executive_summary", "financial_health_analysis", "kpi_analysis", "historical_summary",
-                "historical_trend_analysis", "department_analysis", "anomaly_analysis",
-                "recommendation_follow_up_analysis", "longitudinal_risk_analysis", "reasoning_summary",
-                "key_findings", "root_causes", "strategic_priorities", "missing_information",
-            )
-        },
+        "confidence": min(float(item.get("c", 0.5)) for item in recommendations if isinstance(item, dict)),
+        "reasoning_summary": executive, "narrative_evidence": section_ids,
     }
     validation = validate_strategic_analysis_response(json.dumps(full, ensure_ascii=False))
     if not validation.is_valid or validation.analysis is None:
@@ -262,7 +383,12 @@ def create_single_call_strategic_analysis(
     )
     registry = FactRegistry.from_evidence_ledger(ledger)
     state = ReasoningState(period_slug=period_slug, evidence_ledger=ledger, fact_registry=registry.to_dict())
-    package = build_executive_evidence_package(ledger, period_slug=period_slug)
+    package_started = time.perf_counter()
+    package = build_executive_evidence_package(
+        ledger, period_slug=period_slug, finance_summary=finance_summary,
+        anomaly_report=anomaly_report, historical_context=historical_context,
+    )
+    package_build_seconds = time.perf_counter() - package_started
     prompt = build_single_call_executive_prompt(package)
     result = _run_structured_stage(
         client=client, stage_id="strategic_synthesis", stage_name="Executive Financial Reasoning",
@@ -287,7 +413,14 @@ def create_single_call_strategic_analysis(
         reasoning_state=state, model_name=str(getattr(client, "model", "unknown")),
     )
     document["executive_evidence_package_summary"] = {
-        "fact_count": len(package["verified_facts"]),
+        "core_metric_groups": len(package["core_financial_position"]),
+        "expense_driver_count": len(package["expense_drivers"]),
+        "department_driver_count": len(package["department_drivers"]),
+        "historical_pattern_count": len(package["historical_patterns"]),
+        "anomaly_count": len(package["top_verified_anomalies"]),
+        "goal_count": len(package["goal_performance"]),
+        "prior_recommendation_count": len(package["prior_recommendations"]),
+        "package_characters": len(json.dumps(package, ensure_ascii=False)),
         "prompt_characters": len(prompt),
     }
     document["strategic_recovery"] = {
@@ -301,7 +434,14 @@ def create_single_call_strategic_analysis(
         telemetry={
             "reasoning_pipeline": "single_call_executive",
             "primary_call_limit": 1, "repair_call_limit": 1,
-            "executive_evidence_fact_count": len(package["verified_facts"]),
+            "executive_evidence_item_count": sum(
+                len(package[key]) for key in (
+                    "expense_drivers", "department_drivers", "historical_patterns",
+                    "goal_performance", "top_verified_anomalies", "prior_recommendations",
+                )
+            ) + len(package["core_financial_position"]),
+            "evidence_package_build_seconds": package_build_seconds,
+            "evidence_package_characters": len(json.dumps(package, ensure_ascii=False)),
             "prompt_characters": len(prompt), "prompt_token_estimate": estimate_tokens_from_text(prompt),
             "total_stage_time_seconds": time.perf_counter() - started,
             "stage_telemetry": [result.telemetry],
