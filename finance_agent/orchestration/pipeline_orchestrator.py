@@ -2049,7 +2049,10 @@ def run_object_pipeline_for_report(
             strategic_analysis=analysis_result.analysis_document,
             memory_database_path=config.memory_database_path
             or config.project_root / "data" / "memory" / "finance_memory.db",
-            project_root=config.project_root,
+            # Historical chart augmentation reads deterministic artifacts from
+            # ``<root>/outputs``. In desktop builds that writable root lives in
+            # application data rather than beside the read-only bundle.
+            project_root=config.output_directory.parent,
         )
         report_inputs = ReportInputBundle(
             period_slug=period_slug,

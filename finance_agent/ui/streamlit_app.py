@@ -2394,7 +2394,7 @@ def _load_fresh_report_model_for_results(
     try:
         needs_refresh = report_model_needs_historical_refresh(
             report_model,
-            project_root=result.config.project_root,
+            project_root=result.config.output_directory.parent,
             period_slug=period_suffix,
         )
     except Exception:
@@ -2406,7 +2406,7 @@ def _load_fresh_report_model_for_results(
 
     try:
         refreshed_model, refreshed_paths = rebuild_report_artifacts_from_processed_outputs(
-            result.config.project_root,
+            result.config.output_directory.parent,
             period_suffix,
             memory_database_path=result.config.memory_database_path,
         )

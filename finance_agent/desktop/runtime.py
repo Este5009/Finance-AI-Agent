@@ -114,7 +114,17 @@ def _streamlit_command(port: int, address: str) -> list[str]:
     """Build a source or frozen Streamlit child command with no system Python dependency."""
 
     app = resource_path("finance_agent", "ui", "streamlit_app.py")
-    common = [str(app), "--server.port", str(port), "--server.address", address, "--server.headless", "true"]
+    common = [
+        str(app),
+        "--global.developmentMode",
+        "false",
+        "--server.port",
+        str(port),
+        "--server.address",
+        address,
+        "--server.headless",
+        "true",
+    ]
     if getattr(sys, "frozen", False):
         return [sys.executable, "--streamlit-child", *common]
     return [sys.executable, "-m", "streamlit", "run", *common]

@@ -297,6 +297,7 @@ def test_frozen_streamlit_command_uses_packaged_executable(monkeypatch: pytest.M
     command = _streamlit_command(8501, "127.0.0.1")
     assert command[:2] == [str(Path(__import__("sys").executable)), "--streamlit-child"]
     assert "-m" not in command
+    assert command[command.index("--global.developmentMode") + 1] == "false"
 
 
 def test_packaging_config_excludes_private_runtime_data() -> None:
@@ -309,3 +310,4 @@ def test_packaging_config_excludes_private_runtime_data() -> None:
     assert ".env" in spec
     assert "schema.sql" in spec
     assert "streamlit_app.py" in spec
+    assert 'collect_submodules("finance_agent")' in spec

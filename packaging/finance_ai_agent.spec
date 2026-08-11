@@ -4,12 +4,15 @@
 from pathlib import Path
 import sys
 
-from PyInstaller.utils.hooks import collect_all, collect_data_files
+from PyInstaller.utils.hooks import collect_all, collect_data_files, collect_submodules
 
 
-ROOT = Path(SPECPATH).parent.parent
+# PyInstaller exposes SPECPATH as the directory containing this specification,
+# not as the specification filename itself.
+ROOT = Path(SPECPATH).parent
 streamlit_datas, streamlit_binaries, streamlit_hiddenimports = collect_all("streamlit")
 reportlab_datas = collect_data_files("reportlab")
+finance_agent_hiddenimports = collect_submodules("finance_agent")
 
 # Only code-owned resources are bundled. Runtime DBs, uploads, reports, caches,
 # outputs, .env files, and university/synthetic data are intentionally absent.
@@ -23,7 +26,7 @@ analysis = Analysis(
     pathex=[str(ROOT)],
     binaries=streamlit_binaries,
     datas=datas,
-    hiddenimports=streamlit_hiddenimports + [
+    hiddenimports=streamlit_hiddenimports + finance_agent_hiddenimports + [
         "openpyxl",
         "pandas",
         "pypdf",
