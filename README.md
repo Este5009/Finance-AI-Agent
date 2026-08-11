@@ -1,38 +1,39 @@
-# Finance-AI-Agent
-AI-powered financial analyst and strategy agent that analyzes financial reports, compares performance against business goals, detects trends and anomalies, and generates actionable recommendations using structured data, Python analytics, and LLM-based reasoning.
+# Finance AI Agent
 
-## Local Streamlit UI
+Agente de análisis financiero universitario. Python conserva la autoridad sobre
+ingesta, normalización, cálculos, validación y reportes; Ollama interpreta la
+evidencia financiera verificada y redacta recomendaciones ejecutivas.
 
-Starting Streamlit is a manual developer/demo action, not part of automated
-Codex task completion.
+## Desarrollo local
 
-Windows:
+Instale las dependencias en el entorno virtual del proyecto:
+
+```bash
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+```
+
+Inicio completo (comprueba Ollama, modelo, puerto y abre la interfaz):
+
+```bash
+bash scripts/start_app_macos.sh
+```
+
+En Windows:
 
 ```powershell
-.\scripts\start_streamlit_windows.ps1
+.\scripts\start_app_windows.ps1
 ```
 
-macOS/Linux:
+Los launchers son envoltorios mínimos de `python -m finance_agent.desktop`.
+No descargan modelos grandes sin consentimiento explícito.
+
+Para validación acotada sin iniciar servicios:
 
 ```bash
-bash scripts/start_streamlit_macos.sh
+.venv/bin/python scripts/run_ui_tests.py
+.venv/bin/python scripts/run_project_tests.py
 ```
 
-Both launchers run Streamlit in the foreground and print:
-
-```text
-http://localhost:8501
-```
-
-For bounded diagnostics without starting services:
-
-```bash
-python scripts/check_local_services.py
-```
-
-For bounded validation without launching Streamlit:
-
-```bash
-python scripts/run_ui_tests.py
-python scripts/run_project_tests.py
-```
+Consulte [docs/desktop_distribution.md](docs/desktop_distribution.md) para la
+compilación del ejecutable, instalador, aplicación macOS y flujo de primera ejecución.

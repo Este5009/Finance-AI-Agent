@@ -88,30 +88,21 @@ def test_macos_launcher_is_foreground_and_parseable() -> None:
 
 
 def test_manual_app_launchers_include_ollama_readiness_and_parse() -> None:
-    """Manual app launchers should guide users through Ollama readiness."""
+    """Manual app launchers should delegate to the canonical desktop runtime."""
 
     windows_script = ROOT / "scripts" / "start_app_windows.ps1"
     macos_script = ROOT / "scripts" / "start_app_macos.sh"
     windows_text = windows_script.read_text(encoding="utf-8")
     macos_text = macos_script.read_text(encoding="utf-8")
 
-    assert "check_ollama_model.py" in windows_text
-    assert "ollama pull" in windows_text
-    assert "streamlit run" in windows_text
-    assert "check_ollama_model.py" in macos_text
-    assert "ollama pull" in macos_text
-    assert "streamlit run" in macos_text
-    assert "ollama list" not in windows_text
-    assert "ollama list" not in macos_text
+    assert "-m finance_agent.desktop" in windows_text
+    assert "-m finance_agent.desktop" in macos_text
+    assert "ollama" not in windows_text.casefold()
+    assert "ollama" not in macos_text.casefold()
+    assert "streamlit run" not in windows_text
+    assert "streamlit run" not in macos_text
     assert "$LASTEXITCODE" in windows_text
-    assert "detector_status" in windows_text
-    assert "checker_error" in windows_text
-    assert "ollama_unreachable" in windows_text
-    assert "model_check_code=$?" in macos_text
-    assert "detector_status" in macos_text
-    assert "checker_error" in macos_text
-    assert "ollama_unreachable" in macos_text
-    assert "|| true" not in macos_text
+    assert "exec" in macos_text
     assert "estÃ" not in windows_text + macos_text
     assert "Â¿" not in windows_text + macos_text
 

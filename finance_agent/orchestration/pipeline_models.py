@@ -273,6 +273,8 @@ class PipelineConfig:
         deduplicate_context: bool = True,
         enable_memory_storage: bool = True,
         memory_database_path: str | Path | None = None,
+        data_directory: str | Path | None = None,
+        output_directory: str | Path | None = None,
     ) -> "PipelineConfig":
         """Build a default configuration from the repository root.
 
@@ -282,14 +284,23 @@ class PipelineConfig:
         """
 
         root = Path(project_root).resolve()
-        data_directory = root / "data" / "synthetic"
+        resolved_data_directory = (
+            Path(data_directory).expanduser().resolve()
+            if data_directory is not None
+            else root / "data" / "synthetic"
+        )
+        resolved_output_directory = (
+            Path(output_directory).expanduser().resolve()
+            if output_directory is not None
+            else root / "outputs"
+        )
         return cls(
             project_root=root,
             python_executable=python_executable,
-            data_directory=data_directory,
-            output_directory=root / "outputs",
-            monthly_workbook=data_directory / "monthly_financial_report_june_2026.xlsx",
-            annual_workbook=data_directory / "annual_financial_report_2026.xlsx",
+            data_directory=resolved_data_directory,
+            output_directory=resolved_output_directory,
+            monthly_workbook=resolved_data_directory / "monthly_financial_report_june_2026.xlsx",
+            annual_workbook=resolved_data_directory / "annual_financial_report_2026.xlsx",
             ollama_endpoint=ollama_endpoint,
             ollama_model=ollama_model,
             structure_ollama_model=structure_ollama_model,

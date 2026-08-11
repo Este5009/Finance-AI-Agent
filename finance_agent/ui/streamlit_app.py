@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import time
@@ -13,6 +14,7 @@ from inspect import Parameter, signature
 from pathlib import Path
 from typing import Any, Callable, Protocol
 
+from finance_agent.desktop.paths import resource_root
 from finance_agent.llm.ollama_client import DEFAULT_OLLAMA_ENDPOINT
 from finance_agent.memory.repository import MemoryRepository
 from finance_agent.orchestration import (
@@ -39,8 +41,12 @@ from finance_agent.reporting.report_engine import (
 )
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-UPLOAD_ROOT = PROJECT_ROOT / "outputs" / "ui_uploads"
+PROJECT_ROOT = resource_root()
+OUTPUT_ROOT = Path(os.environ.get("FINANCE_AI_OUTPUT_DIR", PROJECT_ROOT / "outputs")).expanduser().resolve()
+UPLOAD_ROOT = Path(os.environ.get("FINANCE_AI_UPLOAD_DIR", OUTPUT_ROOT / "ui_uploads")).expanduser().resolve()
+DEFAULT_MEMORY_DATABASE = Path(
+    os.environ.get("FINANCE_AI_MEMORY_DB", PROJECT_ROOT / "data" / "memory" / "finance_memory.db")
+).expanduser().resolve()
 INTEGRATED_WORKBOOK_UPLOAD_TYPES = ("xlsx", "xls")
 FINANCIAL_REPORT_UPLOAD_TYPES = INTEGRATED_WORKBOOK_UPLOAD_TYPES
 SUPPORTED_UI_PERIOD_OPTIONS = ("Detectar automáticamente", "Mensual")
@@ -328,6 +334,7 @@ def build_pipeline_config(
         enable_cache=settings.enable_cache,
         enable_memory_storage=settings.enable_memory_storage,
         memory_database_path=settings.memory_database_path,
+        output_directory=OUTPUT_ROOT,
         strategic_ai_mode=settings.strategic_ai_mode,
         input_model=input_model,
     )
@@ -3516,7 +3523,7 @@ def _render_streamlit_app(st: Any) -> None:
             )
             memory_database = st.text_input(
                 "Base de memoria histórica",
-                value=str(PROJECT_ROOT / "data" / "memory" / "finance_memory.db"),
+                value=str(DEFAULT_MEMORY_DATABASE),
             )
             st.markdown("**Formatos de salida**")
             st.checkbox("PDF ejecutivo", value=True, disabled=True)
