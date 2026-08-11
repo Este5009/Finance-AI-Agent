@@ -14,6 +14,7 @@ from finance_agent.ingestion.ingestion import load_raw_excel_workbook
 from finance_agent.understanding.models import (
     FinancialDocumentModel,
     IntermediateFinancialTable,
+    RawWorkbookData,
 )
 from finance_agent.understanding.normalization import normalize_detected_table
 from finance_agent.ingestion.schema import clean_column_name
@@ -64,12 +65,25 @@ def build_financial_document_model(
     Assumptions: finance calculations and anomaly detection consume this later.
     """
 
+    raw_workbooks = [load_raw_excel_workbook(path) for path in workbook_paths]
+    return build_financial_document_model_from_raw(raw_workbooks)
+
+
+def build_financial_document_model_from_raw(
+    raw_workbooks: Iterable[RawWorkbookData],
+) -> FinancialDocumentModel:
+    """Build the canonical model from workbooks already parsed in memory.
+
+    Inputs: ordered raw workbook objects.
+    Outputs: the same financial document model as the path-based compatibility API.
+    Assumptions: each raw workbook was produced by the trusted ingestion loader.
+    """
+
     source_workbooks: list[str] = []
     sheet_analyses: list[dict[str, Any]] = []
     intermediate_tables: list[IntermediateFinancialTable] = []
 
-    for workbook_path in workbook_paths:
-        raw_workbook = load_raw_excel_workbook(workbook_path)
+    for raw_workbook in raw_workbooks:
         source_workbooks.append(raw_workbook.workbook_path)
         understood_sheets = understand_workbook(raw_workbook)
 

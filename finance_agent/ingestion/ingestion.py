@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -245,3 +246,46 @@ def inspect_workbook(
     }
 
 
+def inspect_raw_workbook(
+    workbook: RawWorkbookData,
+    *,
+    sample_size: int = 5,
+) -> dict[str, Any]:
+    """Inspect an already parsed raw workbook without reopening its source file.
+
+    Inputs: canonical raw workbook cells and maximum sample rows.
+    Outputs: the inspection shape consumed by preflight and persisted diagnostics.
+    Assumptions: raw rows retain workbook order and may contain ragged/blank cells.
+    """
+
+    sheets: list[dict[str, Any]] = []
+    for name in workbook.sheet_names:
+        sheet = workbook.sheets[name]
+        rows = list(sheet.values)
+        header_index = min(4, max(0, len(rows) - 1)) if rows else 0
+        header = rows[header_index] if rows else ()
+        columns = [str(value) for value in header if value is not None]
+        def json_cell(value: Any) -> Any:
+            if isinstance(value, (date, datetime)):
+                return value.isoformat()
+            return value
+
+        sheets.append(
+            {
+                "sheet_name": name,
+                "row_count": max(0, len(rows) - header_index - 1),
+                "column_count": sheet.max_column,
+                "column_names": columns,
+                "columns": columns,
+                "sample_rows": [
+                    [json_cell(value) for value in row]
+                    for row in rows[header_index + 1 : header_index + 1 + sample_size]
+                ],
+            }
+        )
+    return {
+        "workbook_path": workbook.workbook_path,
+        "sheet_count": len(workbook.sheet_names),
+        "sheet_names": list(workbook.sheet_names),
+        "sheets": sheets,
+    }

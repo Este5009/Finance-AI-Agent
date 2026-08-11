@@ -13,6 +13,8 @@ from typing import Any
 
 import pandas as pd
 
+from finance_agent.understanding.models import FinancialDocumentModel
+
 
 class IntermediateModelLoadError(RuntimeError):
     """Raised when an intermediate model or referenced CSV is invalid."""
@@ -183,6 +185,49 @@ def load_intermediate_model(
         model_path=str(resolved_model_path),
         model_version=str(manifest.get("model_version") or ""),
         source_workbooks=[str(source) for source in source_workbooks],
+        tables=tables,
+        manifest=manifest,
+    )
+
+
+def adapt_intermediate_model_in_memory(
+    model: FinancialDocumentModel,
+    model_path: str | Path,
+) -> LoadedIntermediateModel:
+    """Adapt the canonical in-run model for calculations without CSV reparsing.
+
+    Inputs: in-memory financial model and its persisted manifest path.
+    Outputs: the established calculation loader contract backed by existing DataFrames.
+    Assumptions: persistence already succeeded and table order/IDs remain unchanged.
+    """
+
+    resolved_model_path = Path(model_path).expanduser().resolve()
+    manifest = _read_manifest(resolved_model_path)
+    metadata_by_id = {
+        str(item.get("table_id")): item
+        for item in manifest["tables"]
+        if isinstance(item, dict)
+    }
+    tables = tuple(
+        LoadedIntermediateTable(
+            table_id=table.table_id,
+            detected_type=table.detected_type,
+            source_workbook=table.source_workbook,
+            sheet=table.sheet,
+            confidence=table.confidence,
+            csv_path=str(
+                resolved_model_path.parent
+                / str(metadata_by_id.get(table.table_id, {}).get("normalized_table_file") or "")
+            ),
+            dataframe=table.cleaned_dataframe,
+            metadata=metadata_by_id.get(table.table_id, table.to_dict()),
+        )
+        for table in model.tables
+    )
+    return LoadedIntermediateModel(
+        model_path=str(resolved_model_path),
+        model_version=model.model_version,
+        source_workbooks=list(model.source_workbooks),
         tables=tables,
         manifest=manifest,
     )

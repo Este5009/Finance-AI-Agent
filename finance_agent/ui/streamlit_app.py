@@ -2149,20 +2149,27 @@ def _render_progress_panel(st: Any, placeholder: Any | None = None) -> None:
     total_steps = int(current.get("total_steps") or len(PROGRESS_UI_STAGES))
     completed_steps = int(current.get("completed_steps") or 0)
     percent = int((completed_steps / max(total_steps, 1)) * 100)
-    started_at = st.session_state.get("finance_ai_progress_started_at")
+    started_at = st.session_state.get("finance_ai_progress_started_monotonic")
     completed_at = st.session_state.get("finance_ai_progress_completed_at")
     if completed_at and started_at:
         elapsed = float(completed_at) - float(started_at)
     elif started_at:
-        elapsed = time.time() - float(started_at)
+        elapsed = time.monotonic() - float(started_at)
     else:
         elapsed = float(current.get("elapsed_seconds") or 0.0)
 
     target = placeholder.container() if placeholder is not None else st.container()
     with target:
         st.markdown("### Progreso del análisis")
-        st.progress(percent, text=f"{current.get('label', 'Preparando análisis')} — {percent}%")
         status = str(current.get("status") or "running")
+        opaque_ai_call = (
+            current.get("stage_id") == "generate_strategic_recommendations"
+            and status == "running"
+        )
+        if opaque_ai_call:
+            st.markdown(f"**{current.get('label', 'Analizando con IA')}**")
+        else:
+            st.progress(percent, text=f"{current.get('label', 'Preparando análisis')} — {percent}%")
         if status == "failed":
             st.error(f"{current.get('label')}: {current.get('detail')}")
         elif status == "cache_hit":
@@ -2171,7 +2178,12 @@ def _render_progress_panel(st: Any, placeholder: Any | None = None) -> None:
             st.success(f"Análisis completado en {_format_elapsed_seconds(elapsed)}.")
         else:
             st.info(f"{current.get('label')}: {current.get('detail')}")
-        st.caption(f"Tiempo transcurrido: {_format_elapsed_seconds(elapsed)}")
+        stage_started = (st.session_state.get("finance_ai_stage_started_monotonic") or {}).get(current.get("stage_id"))
+        stage_elapsed = max(0.0, time.monotonic() - float(stage_started)) if stage_started else 0.0
+        st.caption(
+            f"Tiempo en esta etapa: {_format_elapsed_seconds(stage_elapsed)} · "
+            f"Tiempo total: {_format_elapsed_seconds(elapsed)}"
+        )
         rows = []
         for event in events:
             rows.append(
@@ -3705,7 +3717,9 @@ def _render_streamlit_app(st: Any) -> None:
         st.session_state["finance_ai_running"] = True
         st.session_state["finance_ai_error"] = ""
         st.session_state["finance_ai_progress_events"] = _initial_progress_events()
+        st.session_state["finance_ai_progress_started_monotonic"] = time.monotonic()
         st.session_state["finance_ai_progress_started_at"] = time.time()
+        st.session_state["finance_ai_stage_started_monotonic"] = {}
         st.session_state["finance_ai_progress_completed_at"] = None
         progress_placeholder = st.empty()
         _render_progress_panel(st, progress_placeholder)
@@ -3722,8 +3736,12 @@ def _render_streamlit_app(st: Any) -> None:
                 st.session_state.get("finance_ai_progress_events") or _initial_progress_events(),
                 event,
             )
+            stage_starts = st.session_state.get("finance_ai_stage_started_monotonic") or {}
+            if event.status == "running" and event.stage_id not in stage_starts:
+                stage_starts[event.stage_id] = time.monotonic()
+                st.session_state["finance_ai_stage_started_monotonic"] = stage_starts
             if event.stage_id == "analysis_completed" and event.status in {"completed", "failed"}:
-                st.session_state["finance_ai_progress_completed_at"] = time.time()
+                st.session_state["finance_ai_progress_completed_at"] = time.monotonic()
             _render_progress_panel(st, progress_placeholder)
 
         result = run_analysis_from_files(
@@ -3735,7 +3753,7 @@ def _render_streamlit_app(st: Any) -> None:
         st.session_state["finance_ai_error"] = ""
     except Exception as exc:  # noqa: BLE001 - UI must display graceful failures.
         st.session_state["finance_ai_error"] = f"No se pudo iniciar el análisis: {exc}"
-        st.session_state["finance_ai_progress_completed_at"] = time.time()
+        st.session_state["finance_ai_progress_completed_at"] = time.monotonic()
         failed_event = PipelineProgressEvent(
             stage_id="analysis_completed",
             label="Análisis completado",

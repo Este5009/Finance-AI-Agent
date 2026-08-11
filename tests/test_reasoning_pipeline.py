@@ -6,9 +6,11 @@ import json
 from typing import Any
 
 from finance_agent.reasoning.reasoning_pipeline import (
+    build_executive_evidence_package,
     build_financial_performance_prompt,
     build_strategic_synthesis_prompt,
     create_modular_strategic_analysis,
+    create_single_call_strategic_analysis,
     normalize_reasoning_stage_payload,
     reasoning_stage_json_schema,
     validate_reasoning_stage_response,
@@ -67,6 +69,47 @@ class FakeReasoningClient:
                 "generation_time_seconds": 0.001,
             },
         }
+
+
+def test_single_call_executive_path_uses_one_compact_ai_request() -> None:
+    """Normal executive mode uses one compact package and one accepted response."""
+
+    compact = {
+        "executive_summary": "La situación financiera requiere atención por el gasto y la liquidez.",
+        "strategic_priorities": ["Controlar el gasto material del periodo."],
+        "strategic_recommendations": [{
+            "action": "Revisar semanalmente el gasto y la liquidez.",
+            "rationale": "La evidencia financiera requiere seguimiento directivo.",
+            "expected_impact": "Mejorar el control y reducir la exposición financiera.",
+            "confidence": 0.8,
+        }],
+    }
+    client = FakeReasoningClient((compact,))
+    result = create_single_call_strategic_analysis(
+        client=client, evidence_package=_evidence_package(),
+        finance_summary=_finance_summary(), anomaly_report=_anomaly_report(),
+        risk_summary=_risk_summary(), period_slug="2026_12",
+    )
+    assert result.accepted
+    assert len(client.prompts) == 1
+    assert result.telemetry["reasoning_pipeline"] == "single_call_executive"
+    assert result.analysis_document["ai_usage"]["accepted_responses"] == 1
+
+
+def test_executive_evidence_package_excludes_raw_tables_and_is_bounded() -> None:
+    """Canonical AI evidence contains bounded verified facts, never raw tables."""
+
+    ledger = build_evidence_ledger(
+        finance_summary=_finance_summary(), anomaly_report=_anomaly_report(),
+        evidence_package=_evidence_package(), risk_summary=_risk_summary(),
+        period_slug="2026_12",
+    )
+    package = build_executive_evidence_package(ledger, period_slug="2026_12")
+    encoded = json.dumps(package)
+    assert package["package_type"] == "ExecutiveEvidencePackage"
+    assert len(package["verified_facts"]) <= 5
+    assert "normalized_tables" not in encoded
+    assert "workbook" not in encoded.casefold()
 
 
 def _finance_summary() -> dict[str, Any]:

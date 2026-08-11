@@ -21,6 +21,7 @@ class DesktopConfig:
 
     ollama_endpoint: str = DEFAULT_OLLAMA_ENDPOINT
     model: str = DEFAULT_OLLAMA_MODEL
+    model_tier: str = "BALANCED"
     address: str = "127.0.0.1"
     preferred_port: int = 8501
     startup_timeout_seconds: float = 45.0
@@ -47,9 +48,18 @@ class DesktopConfig:
         raw = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(raw, dict):
             raise ValueError("La configuración debe ser un objeto JSON.")
+        # Configurations created by the earlier desktop build contain the old
+        # 30B default but no tier. Migrate only that unambiguous legacy shape;
+        # an explicit QUALITY tier continues to preserve the 30B choice.
+        migrated_legacy_default = "model_tier" not in raw and raw.get("model") == "qwen3:30b-a3b"
+        if migrated_legacy_default:
+            raw["model"] = DEFAULT_OLLAMA_MODEL
+            raw["model_tier"] = "BALANCED"
         allowed = cls.__dataclass_fields__.keys()
         config = cls(**{key: value for key, value in raw.items() if key in allowed})
         config.validate()
+        if migrated_legacy_default:
+            config.save(path)
         return config
 
     def save(self, path: Path) -> Path:
@@ -65,6 +75,8 @@ class DesktopConfig:
 
         if not self.model.strip():
             raise ValueError("No hay un modelo de Ollama configurado.")
+        if self.model_tier not in {"BALANCED", "QUALITY", "FAST"}:
+            raise ValueError("model_tier debe ser BALANCED, QUALITY o FAST.")
         if not self.ollama_endpoint.startswith(("http://", "https://")):
             raise ValueError("El servidor de Ollama debe usar http:// o https://.")
         if not 1 <= int(self.preferred_port) <= 65535:

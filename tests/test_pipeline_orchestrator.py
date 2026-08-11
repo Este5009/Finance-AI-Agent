@@ -685,12 +685,12 @@ def test_stage_specific_model_routing_uses_expected_models(tmp_path: Path) -> No
     assert _ollama_client_for_stage(config, "ollama_investigation_planner").model == "small-planner"
     assert _ollama_client_for_stage(config, "strategic_analysis").model == "large-analysis"
     assert _ollama_client_for_stage(config, "ollama_structure_fallback").reasoning_enabled is False
-    assert _ollama_client_for_stage(config, "ollama_investigation_planner").reasoning_enabled is True
-    assert _ollama_client_for_stage(config, "strategic_analysis").reasoning_enabled is True
+    assert _ollama_client_for_stage(config, "ollama_investigation_planner").reasoning_enabled is False
+    assert _ollama_client_for_stage(config, "strategic_analysis").reasoning_enabled is False
 
 
-def test_default_model_routing_uses_single_large_model(tmp_path: Path) -> None:
-    """Verify the supported default uses one model for every Ollama stage."""
+def test_default_model_routing_uses_balanced_model(tmp_path: Path) -> None:
+    """Verify the supported default uses the SLA-qualified balanced model."""
 
     config = PipelineConfig.from_project_root(
         tmp_path,
@@ -698,9 +698,9 @@ def test_default_model_routing_uses_single_large_model(tmp_path: Path) -> None:
     )
 
     assert config.effective_ollama_models() == {
-        "structure_fallback": "qwen3:30b-a3b",
-        "investigation_planner": "qwen3:30b-a3b",
-        "strategic_analysis": "qwen3:30b-a3b",
+        "structure_fallback": "qwen3:8b",
+        "investigation_planner": "qwen3:8b",
+        "strategic_analysis": "qwen3:8b",
     }
 
 

@@ -71,7 +71,7 @@ class FakeProcess:
 class FakeClient:
     """Ollama client double supporting the shared readiness contract."""
 
-    def __init__(self, *, available: bool = True, models: tuple[str, ...] = ("qwen3:30b-a3b",), health_ok: bool = True, **_: object) -> None:
+    def __init__(self, *, available: bool = True, models: tuple[str, ...] = ("qwen3:8b",), health_ok: bool = True, **_: object) -> None:
         self.available = available
         self.models = models
         self.health_ok = health_ok
@@ -143,6 +143,19 @@ def test_initialize_preserves_existing_user_data(tmp_path: Path) -> None:
     paths.initialize()
     assert paths.memory_database.read_bytes() == b"existing-db"
     assert json.loads(paths.config_file.read_text(encoding="utf-8"))["model"] == "custom"
+
+
+def test_legacy_desktop_default_migrates_to_balanced_model(tmp_path: Path) -> None:
+    """The auto-generated legacy 30B config migrates without overriding QUALITY."""
+
+    path = tmp_path / "config.json"
+    path.write_text('{"model":"qwen3:30b-a3b","open_browser":false}', encoding="utf-8")
+
+    config = DesktopConfig.load(path)
+
+    assert config.model == "qwen3:8b"
+    assert config.model_tier == "BALANCED"
+    assert json.loads(path.read_text(encoding="utf-8"))["model"] == "qwen3:8b"
 
 
 def test_port_collision_selects_free_alternative(monkeypatch: pytest.MonkeyPatch) -> None:

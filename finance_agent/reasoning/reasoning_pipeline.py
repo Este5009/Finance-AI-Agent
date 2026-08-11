@@ -85,6 +85,230 @@ FINAL_NARRATIVE_FIELDS: tuple[str, ...] = (
 )
 
 
+def build_executive_evidence_package(
+    evidence_ledger: dict[str, Any], *, period_slug: str, limit: int = 5
+) -> dict[str, Any]:
+    """Build the single canonical fact surface used for executive reasoning.
+
+    Inputs: validated evidence ledger, period, and maximum fact count.
+    Outputs: compact package containing only verified display facts and allowlists.
+    Assumptions: raw tables, workbook cells, and verbose retrieval metadata are excluded.
+    """
+
+    facts: list[dict[str, Any]] = []
+    for fact in evidence_ledger.get("facts", []):
+        if not isinstance(fact, dict) or not fact.get("evidence_id"):
+            continue
+        facts.append(
+            {
+                "evidence_id": fact.get("evidence_id"),
+                "metric": fact.get("metric") or fact.get("field"),
+                "value": str(fact.get("display_value", fact.get("raw_value")))[:280],
+                "period": fact.get("period"),
+                "entity": fact.get("entity"),
+                "category": fact.get("category"),
+                "meaning": str(fact.get("claim") or fact.get("metric") or fact.get("field"))[:180],
+            }
+        )
+        if len(facts) >= limit:
+            break
+    return {
+        "package_type": "ExecutiveEvidencePackage",
+        "period": period_slug,
+        "verified_facts": facts,
+        "allowed_numeric_facts": [fact["value"] for fact in facts],
+        "allowed_periods": sorted({str(fact["period"]) for fact in facts if fact.get("period")}),
+        "allowed_entities": sorted({str(fact["entity"]) for fact in facts if fact.get("entity")}),
+    }
+
+
+def build_single_call_executive_prompt(package: dict[str, Any]) -> str:
+    """Build one bounded Spanish executive-reasoning request.
+
+    Inputs: canonical ExecutiveEvidencePackage.
+    Outputs: strict-JSON prompt compatible with existing report validation.
+    Assumptions: Qwen thinking is disabled at the client; concise analysis is preferred.
+    """
+
+    return _stage_prompt(
+        stage_name="Executive Financial Reasoning",
+        schema=(
+            "Return exactly: executive_summary, strategic_priorities, strategic_recommendations. "
+            "executive_summary is two concise Spanish sentences covering financial health, anomalies and history. "
+            "strategic_priorities has exactly one Spanish string. strategic_recommendations has exactly one concise "
+            "object with action, rationale, expected_impact and confidence."
+        ),
+        context={
+            "objective": "Producir una sola síntesis ejecutiva financiera, estratégica y accionable.",
+            "executive_evidence_package": package,
+            "rules": (
+                "Usa exclusivamente hechos verificados del paquete; no recalcules ni inventes cifras. "
+                "Devuelve español profesional. Máximo 100 tokens; una prioridad y una recomendación."
+            ),
+        },
+    )
+
+
+def compact_executive_json_schema() -> dict[str, Any]:
+    """Return the bounded provider schema for the one-call executive response."""
+
+    text = {"type": "string", "minLength": 1, "maxLength": 350}
+    fields = ("executive_summary",)
+    return {
+        "type": "object", "additionalProperties": False,
+        "required": [*fields, "strategic_priorities", "strategic_recommendations"],
+        "properties": {
+            **{field: text for field in fields},
+            "strategic_priorities": {"type": "array", "minItems": 1, "maxItems": 1, "items": text},
+            "strategic_recommendations": {
+                "type": "array", "minItems": 1, "maxItems": 1,
+                "items": {
+                    "type": "object", "additionalProperties": False,
+                    "required": ["action", "rationale", "expected_impact", "confidence"],
+                    "properties": {
+                        "action": text, "rationale": text, "expected_impact": text,
+                        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                    },
+                },
+            },
+        },
+    }
+
+
+def validate_compact_executive_response(
+    response_text: str, *, evidence_ledger: dict[str, Any], finance_summary: dict[str, Any],
+    anomaly_report: dict[str, Any], evidence_package: dict[str, Any], risk_summary: dict[str, Any],
+    historical_context: dict[str, Any] | None,
+) -> ReasoningValidationResult:
+    """Expand and validate the compact AI response against existing evidence guards."""
+
+    try:
+        compact = json.loads(response_text)
+    except (TypeError, json.JSONDecodeError):
+        return ReasoningValidationResult(False, None, ("response is not strict JSON",))
+    required = set(compact_executive_json_schema()["required"])
+    if not isinstance(compact, dict) or set(compact) != required:
+        return ReasoningValidationResult(False, None, ("schema: compact executive fields are incomplete",))
+    priorities = compact.get("strategic_priorities")
+    recommendations = compact.get("strategic_recommendations")
+    if not isinstance(priorities, list) or not priorities or not isinstance(recommendations, list) or not recommendations:
+        return ReasoningValidationResult(False, None, ("schema: priorities and recommendations must be non-empty lists",))
+    default_ids = _default_evidence_ids(evidence_ledger)
+    full_recommendations = []
+    for item in recommendations[:3]:
+        if not isinstance(item, dict):
+            return ReasoningValidationResult(False, None, ("schema: recommendation must be an object",))
+        full_recommendations.append({
+            "priority": "high", "action": str(item.get("action") or ""),
+            "rationale": str(item.get("rationale") or ""),
+            "supporting_evidence": str(item.get("rationale") or ""),
+            "expected_impact": str(item.get("expected_impact") or ""),
+            "evidence_ids": default_ids[:4], "confidence": item.get("confidence"),
+        })
+    executive = str(compact.get("executive_summary") or "")
+    full = {
+        "executive_summary": executive, "key_findings": list(priorities[:3]), "root_causes": [],
+        "financial_health_analysis": executive, "kpi_analysis": executive,
+        "historical_summary": executive, "historical_trend_analysis": executive,
+        "department_analysis": executive, "anomaly_analysis": executive,
+        "recommendation_follow_up_analysis": executive, "longitudinal_risk_analysis": executive,
+        "strategic_recommendations": full_recommendations,
+        "strategic_priorities": list(priorities[:3]), "missing_information": [],
+        "confidence": min(float(item.get("confidence", 0.5)) for item in recommendations if isinstance(item, dict)),
+        "reasoning_summary": executive, "narrative_evidence": {
+            field: default_ids[:4] for field in (
+                "executive_summary", "financial_health_analysis", "kpi_analysis", "historical_summary",
+                "historical_trend_analysis", "department_analysis", "anomaly_analysis",
+                "recommendation_follow_up_analysis", "longitudinal_risk_analysis", "reasoning_summary",
+                "key_findings", "root_causes", "strategic_priorities", "missing_information",
+            )
+        },
+    }
+    validation = validate_strategic_analysis_response(json.dumps(full, ensure_ascii=False))
+    if not validation.is_valid or validation.analysis is None:
+        return ReasoningValidationResult(False, None, validation.errors)
+    claim_errors = validate_evidence_bound_claims(
+        validation.analysis, finance_summary=finance_summary, anomaly_report=anomaly_report,
+        evidence_package=evidence_package, risk_summary=risk_summary,
+        historical_context=historical_context, evidence_ledger=evidence_ledger,
+    )
+    if claim_errors:
+        sanitized, recovery = sanitize_strategic_analysis_claims(
+            validation.analysis, claim_errors, evidence_ledger=evidence_ledger,
+        )
+        sanitized["_strategic_recovery"] = recovery
+        return ReasoningValidationResult(True, sanitized, ())
+    validation.analysis["_python_attached_evidence"] = True
+    return ReasoningValidationResult(True, validation.analysis, ())
+
+
+def create_single_call_strategic_analysis(
+    *, client: Any, evidence_package: dict[str, Any], finance_summary: dict[str, Any],
+    anomaly_report: dict[str, Any], risk_summary: dict[str, Any], period_slug: str,
+    historical_context: dict[str, Any] | None = None, stage_timeout_seconds: float | None = None,
+) -> StrategicAnalysisResult:
+    """Generate executive analysis with one primary call and at most one repair.
+
+    Inputs: Ollama client and deterministic processed evidence for one period.
+    Outputs: existing StrategicAnalysisResult/report contract plus detailed call telemetry.
+    Assumptions: normal AI mode never falls back silently to deterministic strategy.
+    """
+
+    started = time.perf_counter()
+    ledger = build_evidence_ledger(
+        finance_summary=finance_summary, anomaly_report=anomaly_report,
+        evidence_package=evidence_package, risk_summary=risk_summary,
+        period_slug=period_slug, historical_context=historical_context,
+    )
+    registry = FactRegistry.from_evidence_ledger(ledger)
+    state = ReasoningState(period_slug=period_slug, evidence_ledger=ledger, fact_registry=registry.to_dict())
+    package = build_executive_evidence_package(ledger, period_slug=period_slug)
+    prompt = build_single_call_executive_prompt(package)
+    result = _run_structured_stage(
+        client=client, stage_id="strategic_synthesis", stage_name="Executive Financial Reasoning",
+        prompt=prompt,
+        validator=lambda text: validate_compact_executive_response(
+            text, finance_summary=finance_summary, anomaly_report=anomaly_report,
+            evidence_package=evidence_package, risk_summary=risk_summary,
+            historical_context=historical_context, evidence_ledger=ledger,
+        ),
+        response_format=compact_executive_json_schema(),
+        stage_timeout_seconds=stage_timeout_seconds, fact_registry=registry,
+        allow_model_retry=False, max_repair_calls=1,
+    )
+    state.add_stage_result(result)
+    analysis = result.payload if result.accepted else _empty_analysis()
+    validation_status = "sanitized" if result.accepted and analysis.get("_strategic_recovery") else ("accepted" if result.accepted else "rejected")
+    errors = () if result.accepted else result.validation_errors
+    document = _analysis_document(
+        period_slug=period_slug, report_period=str(finance_summary.get("report_period", period_slug)),
+        ollama_available=True, validation_status=validation_status, validation_errors=errors,
+        analysis=analysis, historical_context=historical_context, evidence_ledger=ledger,
+        reasoning_state=state, model_name=str(getattr(client, "model", "unknown")),
+    )
+    document["executive_evidence_package_summary"] = {
+        "fact_count": len(package["verified_facts"]),
+        "prompt_characters": len(prompt),
+    }
+    document["strategic_recovery"] = {
+        "outcome": "ollama_validated" if result.accepted else "rejected",
+        "source_label": "Análisis estratégico validado por IA" if result.accepted else "Análisis de IA rechazado",
+        "ai_mode_enabled": True, "degraded_mode": False,
+        "attempts": [result.stage_name],
+    }
+    return StrategicAnalysisResult(
+        analysis_document=document, accepted=result.accepted, validation_errors=errors,
+        telemetry={
+            "reasoning_pipeline": "single_call_executive",
+            "primary_call_limit": 1, "repair_call_limit": 1,
+            "executive_evidence_fact_count": len(package["verified_facts"]),
+            "prompt_characters": len(prompt), "prompt_token_estimate": estimate_tokens_from_text(prompt),
+            "total_stage_time_seconds": time.perf_counter() - started,
+            "stage_telemetry": [result.telemetry],
+        },
+    )
+
+
 def create_modular_strategic_analysis(
     *,
     client: Any,
@@ -1425,6 +1649,8 @@ def _run_structured_stage(
     response_format: dict[str, Any] | str = "json",
     stage_timeout_seconds: float | None = None,
     fact_registry: FactRegistry | None = None,
+    allow_model_retry: bool = True,
+    max_repair_calls: int = 2,
 ) -> ReasoningStageResult:
     """Call Ollama once and validate one reasoning stage.
 
@@ -1450,6 +1676,8 @@ def _run_structured_stage(
         except OllamaError:
             # A single bounded retry handles transient local-model hiccups while
             # preserving the hard no-infinite-loop runtime contract.
+            if not allow_model_retry:
+                raise
             model_retry_attempted = True
             if hasattr(client, "generate_with_metadata"):
                 generation = client.generate_with_metadata(prompt)
@@ -1503,8 +1731,14 @@ def _run_structured_stage(
     validation_time = time.perf_counter() - validation_started
     schema_retry_attempted = False
     validation_repair_attempted = False
-    if not validation.is_valid and _is_schema_only_error(validation.errors):
+    repair_calls = 0
+    repair_budget_available = (
+        stage_timeout_seconds is None
+        or time.perf_counter() - started < max(0.0, stage_timeout_seconds - 45.0)
+    )
+    if not validation.is_valid and _is_schema_only_error(validation.errors) and repair_calls < max_repair_calls and repair_budget_available:
         schema_retry_attempted = True
+        repair_calls += 1
         retry_prompt = build_schema_repair_prompt(
             stage_name=stage_name,
             schema=_stage_schema_text_for_id(stage_id),
@@ -1512,8 +1746,11 @@ def _run_structured_stage(
             original_response=response,
         )
         previous_response_format = getattr(client, "response_format", None)
+        previous_timeout = getattr(client, "timeout_seconds", None)
         if previous_response_format is not None:
             setattr(client, "response_format", response_format)
+        if stage_timeout_seconds is not None and hasattr(client, "timeout_seconds"):
+            setattr(client, "timeout_seconds", min(45.0, max(1.0, stage_timeout_seconds - (time.perf_counter() - started))))
         try:
             if hasattr(client, "generate_with_metadata"):
                 generation = client.generate_with_metadata(retry_prompt)
@@ -1531,11 +1768,18 @@ def _run_structured_stage(
         finally:
             if previous_response_format is not None:
                 setattr(client, "response_format", previous_response_format)
+            if hasattr(client, "timeout_seconds"):
+                setattr(client, "timeout_seconds", previous_timeout)
         validation_started = time.perf_counter()
         validation = validator(response)
         validation_time += time.perf_counter() - validation_started
-    if not validation.is_valid and not _is_schema_only_error(validation.errors):
+    repair_budget_available = (
+        stage_timeout_seconds is None
+        or time.perf_counter() - started < max(0.0, stage_timeout_seconds - 45.0)
+    )
+    if not validation.is_valid and not _is_schema_only_error(validation.errors) and repair_calls < max_repair_calls and repair_budget_available:
         validation_repair_attempted = True
+        repair_calls += 1
         repair_prompt = build_reasoning_validation_repair_prompt(
             stage_name=stage_name,
             validation_errors=validation.errors,
@@ -1543,8 +1787,11 @@ def _run_structured_stage(
             fact_registry=fact_registry,
         )
         previous_response_format = getattr(client, "response_format", None)
+        previous_timeout = getattr(client, "timeout_seconds", None)
         if previous_response_format is not None:
             setattr(client, "response_format", response_format)
+        if stage_timeout_seconds is not None and hasattr(client, "timeout_seconds"):
+            setattr(client, "timeout_seconds", min(45.0, max(1.0, stage_timeout_seconds - (time.perf_counter() - started))))
         try:
             if hasattr(client, "generate_with_metadata"):
                 generation = client.generate_with_metadata(repair_prompt)
@@ -1562,6 +1809,8 @@ def _run_structured_stage(
         finally:
             if previous_response_format is not None:
                 setattr(client, "response_format", previous_response_format)
+            if hasattr(client, "timeout_seconds"):
+                setattr(client, "timeout_seconds", previous_timeout)
         validation_started = time.perf_counter()
         validation = validator(response)
         validation_time += time.perf_counter() - validation_started
@@ -1577,6 +1826,7 @@ def _run_structured_stage(
         "schema_retry_attempted": schema_retry_attempted,
         "validation_repair_attempted": validation_repair_attempted,
         "model_retry_attempted": model_retry_attempted,
+        "ollama_call_count": 1 + repair_calls + int(model_retry_attempted),
         "placeholder_retry_attempted": False,
         **ollama_telemetry,
     }

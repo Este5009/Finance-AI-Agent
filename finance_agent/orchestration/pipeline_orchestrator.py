@@ -9,10 +9,11 @@ import time
 import traceback
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from finance_agent.calculations.calculation_loader import adapt_intermediate_model_in_memory
 from finance_agent.agent.investigation_planner import build_investigation_plan, save_investigation_plan
 from finance_agent.agent.ollama_planner import (
     create_ollama_investigation_plan,
@@ -27,14 +28,13 @@ from finance_agent.anomalies.anomaly_engine import (
     save_risk_summary,
 )
 from finance_agent.anomalies.anomaly_loader import CalculationOutputBundle
-from finance_agent.calculations.calculation_loader import load_intermediate_model
 from finance_agent.calculations.finance_engine import (
     FinanceCalculationResult,
     run_finance_calculations,
     save_finance_calculation_outputs,
 )
 from finance_agent.calculations.periods import PeriodScope
-from finance_agent.ingestion.ingestion import inspect_workbook, load_excel_workbook
+from finance_agent.ingestion.ingestion import inspect_raw_workbook, load_raw_excel_workbook
 from finance_agent.ingestion.schema import clean_column_name
 from finance_agent.llm.ollama_client import OllamaClient
 from finance_agent.llm.ollama_readiness import check_ollama_readiness
@@ -62,14 +62,17 @@ from finance_agent.reporting.report_engine import (
 )
 from finance_agent.reporting.report_quality import validate_report_artifacts
 from finance_agent.reporting.renderers import render_report_pdf, save_report_html
-from finance_agent.reasoning.reasoning_pipeline import create_modular_strategic_analysis
+from finance_agent.reasoning.reasoning_pipeline import (
+    create_modular_strategic_analysis,
+    create_single_call_strategic_analysis,
+)
 from finance_agent.retrieval.retrieval_engine import (
     RetrievalContext,
     build_retrieval_summary,
     execute_retrieval_queue,
     save_json_artifact as save_retrieval_json_artifact,
 )
-from finance_agent.understanding.intermediate import build_financial_document_model, save_intermediate_outputs
+from finance_agent.understanding.intermediate import build_financial_document_model_from_raw, save_intermediate_outputs
 from finance_agent.understanding.structure_fallback import (
     detect_low_confidence_items,
     enrich_intermediate_model,
@@ -795,15 +798,18 @@ def _ollama_client_for_stage(config: PipelineConfig, stage_name: str) -> OllamaC
     Assumptions: all Ollama logic remains inside existing stage modules.
     """
 
+    selected_model = config.model_for_stage(stage_name)
+    compact_balanced_model = selected_model == "qwen3:8b"
     return OllamaClient(
         endpoint=config.ollama_endpoint,
-        model=config.model_for_stage(stage_name),
-        timeout_seconds=config.read_timeout_seconds,
+        model=selected_model,
+        timeout_seconds=min(config.read_timeout_seconds, 180.0) if stage_name in {"strategic_analysis", "analysis"} else config.read_timeout_seconds,
         connect_timeout_seconds=config.connect_timeout_seconds,
         read_timeout_seconds=config.read_timeout_seconds,
         keep_alive=config.ollama_keep_alive,
-        reasoning_enabled=stage_name
-        in {"ollama_investigation_planner", "planner", "strategic_analysis", "analysis"},
+        reasoning_enabled=False,
+        num_predict=(384 if compact_balanced_model else 112) if stage_name in {"strategic_analysis", "analysis"} else 96,
+        context_size=4096 if compact_balanced_model else 2048,
     )
 
 
@@ -1345,6 +1351,7 @@ def run_pipeline_for_report(
         deduplicate_context=config.deduplicate_context,
         enable_memory_storage=config.enable_memory_storage,
         memory_database_path=config.memory_database_path,
+        strategic_ai_mode=config.strategic_ai_mode,
     )
     if stages is not None or stage_executor is not run_stage_subprocess:
         # Tests and legacy callers can still exercise the script-backed path with
@@ -1380,6 +1387,7 @@ def run_object_pipeline_for_report(
 
     input_model.validate_for_execution()
     pipeline_started = time.perf_counter()
+    run_started_at = datetime.now(timezone.utc)
     stages: list[PipelineStageResult] = []
     outputs = config.output_directory
     period_slug = _safe_period_slug(input_model)
@@ -1459,14 +1467,20 @@ def run_object_pipeline_for_report(
         current_stage_display = "Document ingestion"
         started = time.perf_counter()
         current_stage_started = started
-        workbook = load_excel_workbook(input_model.workbook_path, header_row=4)
-        inspection = inspect_workbook(workbook)
+        workbook_read_started = time.perf_counter()
+        raw_workbook = load_raw_excel_workbook(input_model.workbook_path)
+        workbook_read_seconds = time.perf_counter() - workbook_read_started
+        inspection_started = time.perf_counter()
+        inspection = inspect_raw_workbook(raw_workbook)
+        inspection_seconds = time.perf_counter() - inspection_started
         inspection_dir = outputs / "inspection"
+        preflight_started = time.perf_counter()
         inspection_path = _json_write(inspection, inspection_dir / f"workbook_inspection_{period_slug}.json")
         preflight_path = _json_write(
             _integrated_workbook_preflight(input_model.workbook_path, inspection, period_slug),
             inspection_dir / f"integrated_workbook_preflight_{period_slug}.json",
         )
+        preflight_seconds = time.perf_counter() - preflight_started
         stages.append(
             _stage_result(
                 name="ingestion",
@@ -1474,6 +1488,13 @@ def run_object_pipeline_for_report(
                 critical=True,
                 started=started,
                 outputs=(inspection_path, preflight_path),
+                telemetry={
+                    "workbook_read_count": 1,
+                    "workbook_read_seconds": workbook_read_seconds,
+                    "workbook_inspection_seconds": inspection_seconds,
+                    "preflight_and_file_write_seconds": preflight_seconds,
+                    "file_write_count": 2,
+                },
             )
         )
 
@@ -1482,10 +1503,14 @@ def run_object_pipeline_for_report(
         started = time.perf_counter()
         current_stage_started = started
         intermediate_dir = outputs / "intermediate" / period_slug
-        model = build_financial_document_model([input_model.workbook_path])
+        normalization_started = time.perf_counter()
+        model = build_financial_document_model_from_raw([raw_workbook])
+        normalization_seconds = time.perf_counter() - normalization_started
+        intermediate_write_started = time.perf_counter()
         intermediate_paths = save_intermediate_outputs(model, intermediate_dir)
+        intermediate_write_seconds = time.perf_counter() - intermediate_write_started
         model_path = intermediate_paths["financial_document_model"]
-        loaded_model = load_intermediate_model(model_path)
+        loaded_model = adapt_intermediate_model_in_memory(model, model_path)
         stages.append(
             _stage_result(
                 name="document_understanding",
@@ -1496,6 +1521,12 @@ def run_object_pipeline_for_report(
                     intermediate_paths["financial_document_model"],
                     intermediate_paths["feature_summary"],
                 ),
+                telemetry={
+                    "workbook_read_count": 0,
+                    "normalization_classification_seconds": normalization_seconds,
+                    "intermediate_file_write_seconds": intermediate_write_seconds,
+                    "canonical_model_reloads": 0,
+                },
             )
         )
 
@@ -1503,22 +1534,13 @@ def run_object_pipeline_for_report(
         current_stage_display = "Ollama structure fallback"
         started = time.perf_counter()
         current_stage_started = started
-        if _structure_fallback_needed(model.to_dict(), config):
-            structure_client = _ollama_client_for_stage(
-                config,
-                "ollama_structure_fallback",
-            )
-            enriched_model, fallback_summary = enrich_intermediate_model(
-                model.to_dict(),
-                structure_client,
-                table_threshold=config.structure_fallback_table_threshold,
-                column_threshold=config.structure_fallback_column_threshold,
-            )
-            skipped_structure_fallback = False
-        else:
-            enriched_model = preserve_deterministic_enrichment(model.to_dict())
-            fallback_summary = None
-            skipped_structure_fallback = True
+        # The executive SLA permits one financial-reasoning request. Unknown or
+        # low-confidence supporting tables remain preserved for human review;
+        # they must not trigger a 30B model call before deterministic calculations.
+        structure_review_needed = _structure_fallback_needed(model.to_dict(), config)
+        enriched_model = preserve_deterministic_enrichment(model.to_dict())
+        fallback_summary = None
+        skipped_structure_fallback = True
         enriched_path = save_enriched_model(
             enriched_model,
             intermediate_dir / "financial_document_model_enriched.json",
@@ -1531,10 +1553,14 @@ def run_object_pipeline_for_report(
                     critical=False,
                     started=started,
                     outputs=(enriched_path,),
-                    warnings=("Skipped; deterministic structure was high-confidence.",),
+                    warnings=((
+                        "Skipped for the five-minute SLA; unresolved structure remains marked for review."
+                        if structure_review_needed
+                        else "Skipped; deterministic structure was high-confidence."
+                    ),),
                     telemetry={
                         "python_preprocessing_time_seconds": time.perf_counter() - started,
-                        "skipped_reason": "high_confidence_deterministic_structure",
+                        "skipped_reason": "executive_sla_deterministic_preservation" if structure_review_needed else "high_confidence_deterministic_structure",
                     },
                 )
             )
@@ -1695,12 +1721,16 @@ def run_object_pipeline_for_report(
             baseline_plan,
             plan_dir / f"investigation_plan_{period_slug}.json",
         )
-        planner_client = _ollama_client_for_stage(
-            config,
-            "ollama_investigation_planner",
-        )
+        class _DeterministicPlannerClient:
+            """Select the validated Python baseline without an extra model call."""
+
+            def is_available(self) -> bool:
+                """Return false so the existing safe fallback builds the queue."""
+
+                return False
+
         planner_result = create_ollama_investigation_plan(
-            client=planner_client,
+            client=_DeterministicPlannerClient(),
             finance_document=finance_document,
             anomaly_report=anomaly_document,
             risk_summary=risk_summary,
@@ -1807,6 +1837,16 @@ def run_object_pipeline_for_report(
             config,
             "strategic_analysis",
         )
+        analysis_client.progress_callback = lambda update: _emit_progress(
+            progress_callback,
+            stage_id="generate_strategic_recommendations",
+            status="running",
+            detail=(
+                f"Analizando con IA — {analysis_client.model}. "
+                f"Tiempo en esta etapa: {int(float(update.get('elapsed_seconds', 0)))} s."
+            ),
+            started=pipeline_started,
+        )
         readiness = None
         if config.strategic_ai_mode == "ai":
             readiness = check_ollama_readiness(
@@ -1869,22 +1909,23 @@ def run_object_pipeline_for_report(
             strategic_history.context,
             history_dir / "strategic_context.json",
         )
-        analysis_result = create_modular_strategic_analysis(
-            client=analysis_client,
-            evidence_package=evidence_package,
-            finance_summary=finance_document,
-            anomaly_report=anomaly_document,
-            risk_summary=risk_summary,
-            period_slug=period_slug,
-            compact_context=config.compact_context,
-            deduplicate_context=config.deduplicate_context,
-            historical_context=strategic_history.context,
-            stage_timeout_seconds=config.stage_timeout_seconds,
-            force_degraded_deterministic=config.strategic_ai_mode == "degraded",
-            degraded_reason=("Modo degradado determinístico seleccionado explícitamente.",)
-            if config.strategic_ai_mode == "degraded"
-            else (),
-        )
+        if config.strategic_ai_mode == "degraded":
+            analysis_result = create_modular_strategic_analysis(
+                client=analysis_client, evidence_package=evidence_package,
+                finance_summary=finance_document, anomaly_report=anomaly_document,
+                risk_summary=risk_summary, period_slug=period_slug,
+                historical_context=strategic_history.context,
+                force_degraded_deterministic=True,
+                degraded_reason=("Modo degradado determinístico seleccionado explícitamente.",),
+            )
+        else:
+            analysis_result = create_single_call_strategic_analysis(
+                client=analysis_client, evidence_package=evidence_package,
+                finance_summary=finance_document, anomaly_report=anomaly_document,
+                risk_summary=risk_summary, period_slug=period_slug,
+                historical_context=strategic_history.context,
+                stage_timeout_seconds=min(config.stage_timeout_seconds, 180.0),
+            )
         analysis_dir = outputs / "analysis"
         analysis_path = save_analysis_json_artifact(
             analysis_result.analysis_document,
@@ -2195,6 +2236,57 @@ def run_object_pipeline_for_report(
             detail="Resultados finales disponibles; almacenamiento histórico desactivado.",
             started=pipeline_started,
         )
+    performance_dir = outputs / "performance"
+    performance_dir.mkdir(parents=True, exist_ok=True)
+    completed_at = datetime.now(timezone.utc)
+    historical_stage = next((stage for stage in result.stages if stage.stage_name == "historical_context"), None)
+    strategic_stage = next((stage for stage in result.stages if stage.stage_name == "strategic_analysis"), None)
+    strategic_telemetry = strategic_stage.telemetry if strategic_stage else {}
+    strategic_calls = sum(
+        int(item.get("call_count", item.get("ollama_call_count", 0)) or 0)
+        for item in strategic_telemetry.get("stage_telemetry", [])
+        if isinstance(item, dict)
+    )
+    performance_trace = {
+        "trace_version": "1.0",
+        "period_slug": period_slug,
+        "started_at": run_started_at.isoformat(),
+        "completed_at": completed_at.isoformat(),
+        "total_duration_seconds": time.perf_counter() - pipeline_started,
+        "runtime_budget_seconds": 300.0,
+        "budgets_seconds": {
+            "deterministic_processing": 30.0,
+            "ai_reasoning": 180.0,
+            "validation_reporting_persistence": 60.0,
+        },
+        "operation_counts": {
+            "workbook_reads": 1,
+            "canonical_model_reloads": 0,
+            "sqlite_history_queries": int(
+                (historical_stage.telemetry if historical_stage else {}).get("database_queries", 0) or 0
+            ),
+            "ollama_primary_and_repair_calls": strategic_calls,
+            "persisted_output_files": len(result.output_files),
+        },
+        "file_operations": [
+            {"operation": "write", "path": str(path)} for path in result.output_files
+        ],
+        "stages": [
+            {
+                "stage_name": stage.stage_name,
+                "duration_seconds": stage.runtime_seconds,
+                "success": stage.success,
+                "skipped": stage.skipped,
+                "telemetry": stage.telemetry,
+            }
+            for stage in result.stages
+        ],
+        "privacy": "No raw workbook cells or financial narrative are stored in this trace.",
+    }
+    _json_write(
+        performance_trace,
+        performance_dir / f"performance_trace_{period_slug}.json",
+    )
     _emit_progress(
         progress_callback,
         stage_id="analysis_completed",

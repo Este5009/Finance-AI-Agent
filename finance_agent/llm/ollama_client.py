@@ -7,7 +7,7 @@ import socket
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Callable
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
@@ -19,7 +19,8 @@ from finance_agent.llm.ollama_models import (
 
 
 DEFAULT_OLLAMA_ENDPOINT = "http://localhost:11434"
-DEFAULT_OLLAMA_MODEL = "qwen3:30b-a3b"
+DEFAULT_OLLAMA_MODEL = "qwen3:8b"
+QUALITY_OLLAMA_MODEL = "qwen3:30b-a3b"
 DEFAULT_CONNECT_TIMEOUT_SECONDS = 10.0
 DEFAULT_READ_TIMEOUT_SECONDS = 600.0
 DEFAULT_KEEP_ALIVE = "15m"
@@ -52,6 +53,9 @@ class OllamaClient:
     reasoning_enabled: bool = False
     response_format: str | dict[str, Any] = "json"
     keep_alive: str = DEFAULT_KEEP_ALIVE
+    num_predict: int = 1400
+    context_size: int = 8192
+    progress_callback: Callable[[dict[str, Any]], None] | None = None
 
     def effective_read_timeout_seconds(self) -> float:
         """Return the read/inference timeout used for HTTP responses.
@@ -82,7 +86,9 @@ class OllamaClient:
         Assumptions: Ollama is local and its API uses UTF-8 JSON.
         """
 
-        body = None if payload is None else json.dumps(payload).encode("utf-8")
+        streaming_generation = path == "/api/generate" and payload is not None
+        request_payload = ({**payload, "stream": True} if streaming_generation else payload)
+        body = None if request_payload is None else json.dumps(request_payload).encode("utf-8")
         started = time.perf_counter()
         request = Request(
             f"{self.endpoint.rstrip('/')}{path}",
@@ -97,6 +103,36 @@ class OllamaClient:
             # the longer read timeout for model loading/generation.
             self._check_tcp_connect(path)
             with urlopen(request, timeout=self.effective_read_timeout_seconds()) as response:
+                if streaming_generation and hasattr(response, "__iter__"):
+                    chunks: list[str] = []
+                    thinking_chunks: list[str] = []
+                    decoded: dict[str, Any] = {}
+                    deadline = started + self.effective_read_timeout_seconds()
+                    first_token_seconds: float | None = None
+                    last_progress_at = 0.0
+                    for raw_line in response:
+                        if time.perf_counter() > deadline:
+                            raise TimeoutError("generation exceeded total request budget")
+                        event = json.loads(raw_line.decode("utf-8"))
+                        if event.get("response"):
+                            chunks.append(str(event["response"]))
+                            first_token_seconds = first_token_seconds or (time.perf_counter() - started)
+                        if event.get("thinking"):
+                            thinking_chunks.append(str(event["thinking"]))
+                            first_token_seconds = first_token_seconds or (time.perf_counter() - started)
+                        decoded.update(event)
+                        now = time.perf_counter()
+                        if self.progress_callback and (now - last_progress_at >= 1.0 or event.get("done")):
+                            last_progress_at = now
+                            self.progress_callback({
+                                "elapsed_seconds": now - started,
+                                "output_characters": sum(map(len, chunks)),
+                                "thinking_characters": sum(map(len, thinking_chunks)),
+                            })
+                    decoded["response"] = "".join(chunks)
+                    decoded["thinking"] = "".join(thinking_chunks)
+                    decoded["time_to_first_token_seconds"] = first_token_seconds
+                    return decoded
                 raw_response = response.read().decode("utf-8")
         except HTTPError as exc:
             raise OllamaError(
@@ -299,7 +335,11 @@ class OllamaClient:
                 # while planner/analysis clients can explicitly enable reasoning.
                 "think": self.reasoning_enabled,
                 # Structure classification should be stable rather than creative.
-                "options": {"temperature": 0},
+                "options": {
+                    "temperature": 0,
+                    "num_predict": int(self.num_predict),
+                    "num_ctx": int(self.context_size),
+                },
             },
         )
             error_category = None
@@ -315,6 +355,8 @@ class OllamaClient:
                 "connect_timeout_seconds": self.connect_timeout_seconds,
                 "read_timeout_seconds": self.effective_read_timeout_seconds(),
                 "keep_alive": self.keep_alive,
+                "num_predict": self.num_predict,
+                "context_size": self.context_size,
                 "timeout_error_category": exc.category,
             }
             exc.telemetry = telemetry  # type: ignore[attr-defined]
@@ -360,10 +402,20 @@ class OllamaClient:
             "total_ollama_time_seconds": seconds_from_nanoseconds("total_duration"),
             "prompt_eval_count": response.get("prompt_eval_count"),
             "generation_eval_count": response.get("eval_count"),
+            "output_tokens": response.get("eval_count"),
+            "tokens_per_second": (
+                float(response.get("eval_count")) / seconds_from_nanoseconds("eval_duration")
+                if isinstance(response.get("eval_count"), (int, float))
+                and seconds_from_nanoseconds("eval_duration") > 0
+                else None
+            ),
             "thinking_characters": len(str(response.get("thinking", ""))),
+            "time_to_first_token_seconds": response.get("time_to_first_token_seconds"),
             "connect_timeout_seconds": self.connect_timeout_seconds,
             "read_timeout_seconds": self.effective_read_timeout_seconds(),
             "keep_alive": self.keep_alive,
+            "num_predict": self.num_predict,
+            "context_size": self.context_size,
             "timeout_error_category": error_category,
         }
         return {"response": generated_text, "telemetry": telemetry}
