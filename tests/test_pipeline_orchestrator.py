@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 import json
+import sqlite3
 from pathlib import Path
 from typing import Any
 
@@ -740,6 +741,31 @@ def test_monthly_cache_key_stable_for_same_inputs(tmp_path: Path) -> None:
     config = _config(tmp_path)
 
     assert _pipeline_cache_key(input_model, config) == _pipeline_cache_key(input_model, config)
+
+
+def test_monthly_cache_key_changes_when_prior_accepted_history_changes(tmp_path: Path) -> None:
+    """Adding a real prior month invalidates an endpoint-only report cache."""
+
+    from finance_agent.memory.database import initialize_database
+
+    input_model = _input_model(tmp_path)
+    database = tmp_path / "history.db"
+    initialize_database(database)
+    config = PipelineConfig.from_project_root(
+        tmp_path, python_executable=sys.executable, memory_database_path=database,
+    )
+    original = _pipeline_cache_key(input_model, config)
+    with sqlite3.connect(database) as connection:
+        connection.execute(
+            """INSERT INTO pipeline_runs (
+                run_id,idempotency_key,period,period_type,completed_at_utc,report_hash,goals_hash,
+                report_path,goals_path,language,model,status,artifact_directory,configuration_json,updated_at_utc
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            ("prior-run", "prior-key", "2026_05", "monthly", "2026-06-01T00:00:00Z", "r", "g",
+             "synthetic.xlsx", "", "es", "qwen3:8b", "completed", "outputs", "{}", "2026-06-01T00:00:00Z"),
+        )
+
+    assert _pipeline_cache_key(input_model, config) != original
 
 
 def test_pipeline_version_changes_cache_key(tmp_path: Path, monkeypatch: Any) -> None:

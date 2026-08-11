@@ -33,7 +33,10 @@ from finance_agent.reporting.renderers import render_report_pdf  # noqa: E402
 from finance_agent.ui import streamlit_app  # noqa: E402
 
 
-DEFAULT_METRICS = ("total_revenue", "total_expenses")
+DEFAULT_METRICS = (
+    "total_revenue", "total_expenses", "net_operating_result",
+    "payroll_percentage_of_revenue", "collection_rate", "net_cash_flow", "ending_cash",
+)
 
 
 class CaptureStreamlit:
@@ -177,16 +180,24 @@ def _db_metric_history(database_path: Path, metric: str, *, before_period: str) 
 
     if not database_path.is_file():
         return []
+    aliases = (metric, "student_payment_collection_rate") if metric == "collection_rate" else (metric,)
     with sqlite3.connect(database_path) as connection:
         rows = connection.execute(
-            """
+            f"""
+            WITH latest_runs AS (
+                SELECT *, ROW_NUMBER() OVER (
+                    PARTITION BY period ORDER BY updated_at_utc DESC, completed_at_utc DESC, run_id DESC
+                ) AS revision_rank
+                FROM pipeline_runs
+                WHERE status = 'completed' AND period < ?
+            )
             SELECT pr.period, k.metric, k.value
             FROM kpis k
-            JOIN pipeline_runs pr ON pr.run_id = k.run_id
-            WHERE k.metric = ? AND pr.period < ?
+            JOIN latest_runs pr ON pr.run_id = k.run_id AND pr.revision_rank = 1
+            WHERE k.metric IN ({','.join('?' for _ in aliases)})
             ORDER BY pr.period
             """,
-            (metric, before_period),
+            (before_period, *aliases),
         ).fetchall()
     return [{"period": period, "metric": found_metric, "value": value} for period, found_metric, value in rows]
 
@@ -299,17 +310,24 @@ def _streamlit_chart_payload(report_model: dict[str, Any], metric: str) -> dict[
     return {"rows": [], "vega_data": []}
 
 
-def _first_divergence(stages: dict[str, list[dict[str, Any]]], expected: list[dict[str, Any]]) -> str:
-    """Find the first stage whose period/value pairs differ from expected.
+def _first_divergence(
+    stages: dict[str, list[dict[str, Any]]],
+    *,
+    expected_prior: list[dict[str, Any]],
+    expected_full: list[dict[str, Any]],
+) -> str:
+    """Find the first canonical stage whose period/value pairs differ.
 
     Inputs: stage mapping and expected rows.
     Outputs: stage name or empty string when all match.
     Assumptions: expected rows represent the required rolling-window contract.
     """
 
-    expected_pairs = [(row["period"], float(row["value"])) for row in expected]
+    prior_pairs = [(row["period"], round(float(row["value"]), 6)) for row in expected_prior]
+    full_pairs = [(row["period"], round(float(row["value"]), 6)) for row in expected_full]
     for stage, rows in stages.items():
-        pairs = [(row["period"], float(row["value"])) for row in rows]
+        pairs = [(row["period"], round(float(row["value"]), 6)) for row in rows]
+        expected_pairs = prior_pairs if stage in {"sqlite_memory", "history_query", "historical_context_raw", "report_engine_input"} else full_pairs
         if pairs != expected_pairs:
             return stage
     return ""
@@ -342,19 +360,20 @@ def build_audit(period: str, *, project_root: Path, memory_db: Path) -> dict[str
     report_inputs = load_report_inputs(project_root, period, memory_database_path=memory_db)
     fresh_model = build_report_model(report_inputs).to_dict()
     model_path = project_root / "outputs" / "report" / f"report_model_{period}.json"
-    disk_model = _read_json(model_path)
     capture = CaptureStreamlit()
     streamlit_app._render_results(capture, _fake_result_for_period(config, period))
+    # The real results path may refresh and replace a stale historical artifact.
+    # Read it afterwards so the audit reflects what the packaged UI selected.
+    disk_model = _read_json(model_path)
     actual_model_path = streamlit_app._artifact_paths(_fake_result_for_period(config, period)).get("Report model JSON")
     metrics: dict[str, Any] = {}
     for metric in DEFAULT_METRICS:
-        expected = _processed_metric_history(project_root, metric, current_period=period)[-5:]
+        expected_prior = _metric_pairs(_db_metric_history(memory_db, metric, before_period=period))[-5:]
         current = _report_model_metric_history(fresh_model, metric)[-1:]
-        if current:
-            expected = [*expected, *current]
+        expected_full = [*expected_prior, *current] if current else list(expected_prior)
         stages = {
-            "sqlite_memory": _metric_pairs(_db_metric_history(memory_db, metric, before_period=period)),
-            "processed_artifacts": _metric_pairs(_processed_metric_history(project_root, metric, current_period=period)),
+            "sqlite_memory": expected_prior,
+            "history_query": _context_metric_history(history, metric),
             "historical_context_raw": _context_metric_history(history, metric),
             "report_engine_input": _context_metric_history(report_inputs.strategic_analysis.get("historical_context", {}), metric),
             "report_model_disk": _report_model_metric_history(disk_model, metric),
@@ -364,9 +383,13 @@ def build_audit(period: str, *, project_root: Path, memory_db: Path) -> dict[str
             "vega_data": _streamlit_chart_payload(fresh_model, metric).get("vega_data", []),
         }
         metrics[metric] = {
-            "expected": expected,
+            "expected_prior": expected_prior,
+            "expected_full": expected_full,
+            "processed_artifacts_supplement": _metric_pairs(_processed_metric_history(project_root, metric, current_period=period)),
             "stages": stages,
-            "first_divergence_from_expected": _first_divergence(stages, expected),
+            "first_divergence_from_expected": _first_divergence(
+                stages, expected_prior=expected_prior, expected_full=expected_full,
+            ),
             "streamlit_spec": _streamlit_chart_payload(fresh_model, metric),
         }
     return {
@@ -417,11 +440,12 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="Audit historical trend chart data path.")
     parser.add_argument("--period", default="2026_09")
+    parser.add_argument("--project-root", type=Path, default=PROJECT_ROOT)
     parser.add_argument("--memory-db", type=Path, default=PROJECT_ROOT / "data" / "memory" / "finance_memory.db")
     args = parser.parse_args()
 
-    audit = build_audit(args.period, project_root=PROJECT_ROOT, memory_db=args.memory_db)
-    output_path = PROJECT_ROOT / "outputs" / "debug" / f"historical_trend_audit_{args.period}.json"
+    audit = build_audit(args.period, project_root=args.project_root, memory_db=args.memory_db)
+    output_path = args.project_root / "outputs" / "debug" / f"historical_trend_audit_{args.period}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(audit, indent=2, ensure_ascii=False), encoding="utf-8")
     print(json.dumps({"audit_path": str(output_path), "period": args.period}, indent=2, ensure_ascii=False))

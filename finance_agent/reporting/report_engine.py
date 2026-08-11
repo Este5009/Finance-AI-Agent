@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import json
 import re
+import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -14,6 +15,7 @@ from finance_agent.common.evidence_availability import (
     remove_contradicted_department_absence_text,
 )
 from finance_agent.memory.context_builder import build_historical_context
+from finance_agent.memory.retrieval import get_metric_history
 from finance_agent.reporting.goal_performance import build_goal_performance
 from finance_agent.reporting.report_models import (
     REQUIRED_SECTION_IDS,
@@ -141,21 +143,41 @@ def report_model_needs_historical_refresh(
     *,
     project_root: str | Path,
     period_slug: str,
+    memory_database_path: str | Path | None = None,
 ) -> bool:
     """Return whether a report model has stale/collapsed historical chart data.
 
     Inputs: report model, project root, and period slug.
-    Outputs: True when processed monthly artifacts contain more comparable
-    points than the model exposes.
-    Assumptions: processed finance summaries are deterministic and take
-    precedence over stale memory/cache/session artifacts for chart display.
+    Outputs: True when accepted memory or processed artifacts contain a
+    different canonical monthly window than the model exposes.
+    Assumptions: SQLite is the primary runtime history source; processed
+    summaries may supplement it and take precedence for an identical period.
     """
 
     project = Path(project_root)
     processed = _processed_monthly_metric_history(project, current_period=period_slug)
     current_values = _report_model_current_metric_values(report_model)
     for metric in HISTORICAL_CHART_METRICS:
-        expected_periods = [str(row.get("period") or "") for row in processed.get(metric, [])[-5:]]
+        prior_by_period: dict[str, dict[str, Any]] = {}
+        if memory_database_path is not None:
+            try:
+                result = get_metric_history(
+                    metric, 5, before_period=period_slug, database_path=memory_database_path,
+                )
+                if result.success:
+                    prior_by_period.update({
+                        str(row.get("period") or ""): row
+                        for row in result.data.get("records", [])
+                        if isinstance(row, dict) and row.get("period")
+                    })
+            except (OSError, ValueError, sqlite3.Error):
+                pass
+        prior_by_period.update({
+            str(row.get("period") or ""): row
+            for row in processed.get(metric, [])
+            if isinstance(row, dict) and row.get("period")
+        })
+        expected_periods = sorted(prior_by_period, key=_monthly_period_sort_key)[-5:]
         if metric in current_values:
             expected_periods.append(period_slug)
         expected_periods = [period for period in expected_periods if period]

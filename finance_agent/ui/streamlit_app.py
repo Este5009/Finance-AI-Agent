@@ -2408,6 +2408,7 @@ def _load_fresh_report_model_for_results(
             report_model,
             project_root=result.config.output_directory.parent,
             period_slug=period_suffix,
+            memory_database_path=result.config.memory_database_path,
         )
     except Exception:
         # A failed freshness check should not hide an otherwise readable report.

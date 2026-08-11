@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import sqlite3
 import subprocess
 import time
 import traceback
@@ -613,6 +614,10 @@ def _pipeline_cache_key(input_model: PipelineInputModel, config: PipelineConfig)
         "pipeline_schema_version": PIPELINE_SCHEMA_VERSION,
         "period_override": input_model.period_override,
         "effective_period_label": input_model.effective_period_label,
+        "accepted_history_fingerprint": _accepted_history_fingerprint(
+            config.memory_database_path,
+            before_period=input_model.effective_period_label,
+        ),
         "report_language": input_model.report_language,
         "ollama_endpoint": config.ollama_endpoint,
         "ollama_model": config.ollama_model,
@@ -636,6 +641,36 @@ def _pipeline_cache_key(input_model: PipelineInputModel, config: PipelineConfig)
     return hashlib.sha256(
         json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
+
+
+def _accepted_history_fingerprint(database_path: Path, *, before_period: str | None) -> str:
+    """Hash accepted prior-run identity for history-sensitive cache invalidation.
+
+    Inputs: runtime memory database and exclusive current reporting period.
+    Outputs: stable SHA-256 digest, or a fixed unavailable marker.
+    Assumptions: the compact pipeline-run index is cheap to read and contains no
+    financial values; current/future periods cannot invalidate prior history.
+    """
+
+    path = Path(database_path)
+    if not path.is_file():
+        return "history-unavailable"
+    normalized_before = str(before_period or "").replace("-", "_")
+    try:
+        with sqlite3.connect(f"file:{path}?mode=ro", uri=True, timeout=1.0) as connection:
+            rows = connection.execute(
+                """
+                SELECT period, run_id, status, completed_at_utc, updated_at_utc
+                FROM pipeline_runs
+                WHERE status = 'completed' AND (? = '' OR period < ?)
+                ORDER BY period, updated_at_utc, run_id
+                """,
+                (normalized_before, normalized_before),
+            ).fetchall()
+    except (OSError, sqlite3.Error):
+        return "history-unavailable"
+    serialized = json.dumps(rows, ensure_ascii=True, separators=(",", ":"))
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
 def _cache_manifest_path(config: PipelineConfig, cache_key: str) -> Path:
