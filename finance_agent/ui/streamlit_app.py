@@ -31,6 +31,7 @@ from finance_agent.orchestration import (
 from finance_agent.reporting.presentation import (
     adaptive_axis_domain,
     build_presentation_view,
+    format_period_label,
     format_value,
     historical_chart_series,
     validate_historical_chart_rendering,
@@ -1035,13 +1036,18 @@ def _goal_comparison_chart_spec(group: dict[str, Any]) -> dict[str, Any]:
     ]
     if not rows:
         return {}
+    description = (
+        "Comparación agrupada por unidad organizacional."
+        if str(group.get("scope") or "") == "organizational_unit"
+        else "Comparación agrupada de valores reales frente a referencias."
+    )
     labels = list(dict.fromkeys(str(row["metric"]) for row in rows))
     series_labels = list(dict.fromkeys(str(row["series"]) for row in rows))
     unit = str(group.get("unit") or "")
     y_title = "Porcentaje" if unit == "ratio" else ("Monto" if unit == "USD" else "Valor")
     return {
         "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-        "description": "Comparación agrupada de valores reales frente a referencias.",
+        "description": description,
         "data": {"values": rows},
         "mark": {"type": "bar", "cornerRadiusTopLeft": 4, "cornerRadiusTopRight": 4},
         "encoding": {
@@ -1141,6 +1147,30 @@ def _analysis_mode_label(report_model: dict[str, Any]) -> tuple[str, str]:
     if status == "sanitized" or warnings:
         return "Análisis estratégico ajustado", "warning"
     return "Reporte verificado", "info"
+
+
+def _previous_month_display_label(report_model: dict[str, Any]) -> str:
+    """Return the prior monthly period label for UI follow-up context.
+
+    Inputs: renderer-agnostic report model.
+    Outputs: Spanish month/year label or ``No disponible``.
+    Assumptions: the active Streamlit product path is monthly-only.
+    """
+
+    slug = str(report_model.get("period_slug") or report_model.get("report_period") or "")
+    match = re.search(r"(20\d{2})[_-]([01]\d)", slug)
+    if not match:
+        return "No disponible"
+    year = int(match.group(1))
+    month = int(match.group(2))
+    if not 1 <= month <= 12:
+        return "No disponible"
+    if month == 1:
+        year -= 1
+        month = 12
+    else:
+        month -= 1
+    return format_period_label(f"{year}_{month:02d}")
 
 
 def _report_status_label(result: PipelineRunResult, artifacts: dict[str, Path | None]) -> tuple[str, str]:
@@ -2835,7 +2865,19 @@ def _render_goal_budget_tab(st: Any, report_model: dict[str, Any]) -> None:
         if unit_rows:
             st.dataframe(unit_rows, use_container_width=True, hide_index=True)
     with st.expander("Detalles técnicos de cálculo y proveniencia", expanded=False):
-        st.write(goals.get("technical_details_display", {}))
+        technical_details = goals.get("technical_details_display", {})
+        if isinstance(technical_details, dict) and technical_details:
+            st.dataframe(
+                [
+                    {
+                        "Detalle": key,
+                        "Descripción": ", ".join(value) if isinstance(value, list) else value,
+                    }
+                    for key, value in technical_details.items()
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
         st.dataframe(
             [
                 {
@@ -3038,7 +3080,7 @@ def _render_analysis_tab(st: Any, report_model: dict[str, Any]) -> None:
             st,
             [
                 {
-                    "title": item.get("title") or "Anomalía detectada",
+                    "title": item.get("display_title_es") or item.get("title") or "Anomalía detectada",
                     "body": item.get("display_evidence_es") or item.get("evidence") or item.get("description"),
                     "variant": _card_variant_from_text(item.get("severity"), item.get("severity_class")),
                     "badge": item.get("severity") or "Riesgo",
@@ -3375,8 +3417,8 @@ def _render_recommendations_tab(st: Any, report_model: dict[str, Any]) -> None:
             )
 
     follow_up = historical.get("recommendation_follow_up", []) if isinstance(historical, dict) else []
+    _render_generated_section_heading(st, view, "recommendation_follow_up", "Seguimiento verificado de recomendaciones previas")
     if follow_up:
-        _render_generated_section_heading(st, view, "recommendation_follow_up", "Seguimiento verificado de recomendaciones previas")
         if historical.get("recommendation_summary"):
             _render_section_card(
                 st,
@@ -3414,6 +3456,7 @@ def _render_recommendations_tab(st: Any, report_model: dict[str, Any]) -> None:
             ),
             variant="info",
             badge="Informativo",
+            rows=[("Emitida en", _previous_month_display_label(report_model))],
         )
 
     if missing_items:

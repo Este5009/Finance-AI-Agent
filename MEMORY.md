@@ -2,6 +2,25 @@
 
 ## Architecture Decisions
 
+- Windows builds are allowed to clean their own stale packaged desktop
+  processes before PyInstaller runs. The cleanup scope is intentionally narrow:
+  only exact packaged executable names under this repository's `build/` or
+  `dist/` roots may be terminated, never Ollama or unrelated Python/Streamlit
+  processes. Build artifact cleanup must fail with a precise locked-file
+  diagnostic rather than asking the user to use Task Manager.
+- Financial-health ratios use one canonical deterministic definition module,
+  `finance_agent.calculations.financial_health_ratios`. Current ratio,
+  cash ratio, total debt ratio, EBITDA margin, net margin, and ROA are
+  calculated only from processed source fields and classified against
+  configurable internal management thresholds. Those thresholds must be shown
+  as analytical management references, not regulatory limits, and presentation
+  layers consume the same calculation metadata rather than duplicating bands.
+- School/department/organizational-unit budget analysis is derived from the
+  existing deterministic `department_summary` output. Presentation adapters
+  build grouped actual-vs-budget revenue and expense views plus variance
+  rankings from that canonical summary; renderers and Streamlit must not
+  recalculate or read raw workbooks for this view.
+
 - Packaged historical chart freshness is runtime-DB-sensitive. Pipeline cache
   identity includes a compact fingerprint of completed prior-period runs, and
   Streamlit report-artifact freshness compares its canonical series against
@@ -35,6 +54,12 @@
   a dynamically selected server port. Historical/report refresh callers must
   read processed artifacts from `PipelineConfig.output_directory` in writable
   platform application data, never from the read-only bundle root.
+- Windows PyInstaller Streamlit helpers must be invoked with the explicit
+  `.exe` sibling path and must not treat `os.getppid()` mismatch as orphaning;
+  the windowed bootloader can report a different parent even while the launcher
+  PID is alive. Windows helper ownership uses the explicit launcher PID
+  liveness check, while Streamlit stdout/stderr are written to a separate child
+  log so lifecycle records remain parseable.
 
 - Anomaly/finding records must preserve canonical provenance for every
   observed-vs-reference comparison. Executive-facing output distinguishes

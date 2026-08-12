@@ -1002,7 +1002,40 @@ def normalize_executive_text(value: Any) -> str:
         if cleaned and key not in seen:
             unique.append(cleaned)
             seen.add(key)
-    return " ".join(unique)
+    return _localize_common_executive_terms(" ".join(unique))
+
+
+def _localize_common_executive_terms(text: str) -> str:
+    """Localize stable executive business terms without changing numbers.
+
+    Inputs: sanitized executive text that may come from older artifacts.
+    Outputs: same text with common deterministic finance terms localized.
+    Assumptions: this is a presentation boundary for stale validated artifacts;
+    it never adds facts, thresholds, departments, or recommendations.
+    """
+
+    common_terms = (
+        (r"\bwithin budget\b", "dentro del presupuesto"),
+        (r"\bbudget\b", "presupuesto"),
+        (r"\bbudgets\b", "presupuestos"),
+        (r"\btargets\b", "metas"),
+        (r"\btarget\b", "meta"),
+        (r"\bvendor payments\b", "pagos a proveedores"),
+        (r"\bvendor payment\b", "pago a proveedor"),
+        (r"\bstudent collection rates\b", "tasas de cobranza estudiantil"),
+        (r"\bstudent collection\b", "cobranza estudiantil"),
+        (r"\btransaction failures\b", "fallas de transacciones"),
+        (r"\bSpecific transaction details causing\b", "Detalles específicos de transacciones que explican"),
+        (r"\bContract details for\b", "Detalles contractuales de"),
+        (r"\bvendors\b", "proveedores"),
+        (r"\bfor cobranza estudiantil failures\b", "sobre fallas de cobranza estudiantil"),
+        (r"\bSystem logs\b", "Registros del sistema"),
+        (r"\bsystem logs\b", "registros del sistema"),
+    )
+    localized = text
+    for pattern, replacement in common_terms:
+        localized = re.sub(pattern, replacement, localized, flags=re.IGNORECASE)
+    return localized
 
 
 def _structured_executive_fields(value: Any) -> tuple[str, dict[str, str]]:
@@ -1225,7 +1258,7 @@ def _localize_dynamic_anomaly_sentence(text: str) -> str:
         (
             r"^Maximum payment is (\$[\d,.-]+) versus a (\$[\d,.-]+) threshold\.?$",
             lambda match: (
-                f"El pago máximo es {match.group(1)} frente a una referencia "
+                f"El pago máximo es de {match.group(1)} frente a una referencia "
                 f"de revisión de {match.group(2)}."
             ),
         ),
@@ -1313,7 +1346,7 @@ def display_anomaly_text(value: Any) -> str:
     text = text.replace("variance", "variación")
     text = text.replace("expense variación is", "variación de gastos es")
     text = text.replace("configured system review reference", "referencia analítica del sistema")
-    return text
+    return _localize_common_executive_terms(text)
 
 
 def localized_finding_display_fields(item: dict[str, Any]) -> dict[str, str]:
@@ -1946,6 +1979,7 @@ def build_organizational_unit_budget_view(report_model: dict[str, Any], *, limit
                 {
                     "unit": "USD",
                     "title": title,
+                    "scope": "organizational_unit",
                     "items": [],
                     "rows": chart_rows,
                     "encoding": "grouped_actual_reference",
@@ -2229,7 +2263,26 @@ def build_missing_information(report_model: dict[str, Any]) -> list[str]:
 
     content = get_section(report_model, "missing_information").get("content", {})
     items = sanitize_items(content.get("missing_information"), limit=8)
-    return items
+    return [item for item in items if not _is_low_value_missing_information(item)]
+
+
+def _is_low_value_missing_information(text: str) -> bool:
+    """Return whether one missing-information item is generic filler.
+
+    Inputs: localized missing-information sentence.
+    Outputs: True for stale placeholders that do not identify a specific
+    deterministic field needed by executives.
+    Assumptions: precise missing inputs remain visible; generic old artifacts
+    should not crowd reports or UI.
+    """
+
+    normalized = sanitize_text(text).casefold()
+    generic_phrases = (
+        "detalles específicos de transacciones",
+        "detalles contractuales",
+        "registros del sistema",
+    )
+    return any(phrase in normalized for phrase in generic_phrases)
 
 
 def build_appendix(report_model: dict[str, Any]) -> dict[str, Any]:
@@ -2278,7 +2331,7 @@ def build_presentation_view(report_model: dict[str, Any], *, mode: str = "execut
         "generation_sources": section_generation_sources(report_model),
         "ai_usage": ai_usage_summary(report_model),
         "executive_summary": {
-            "summary": sanitize_text(executive.get("summary") or ""),
+            "summary": normalize_executive_text(executive.get("summary") or ""),
             "key_findings": sanitize_items(executive.get("key_findings"), limit=6),
             "root_causes": sanitize_items(executive.get("root_causes"), limit=6),
             "confidence": format_value(executive.get("confidence"), "ratio"),
