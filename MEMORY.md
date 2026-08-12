@@ -2,6 +2,40 @@
 
 ## Architecture Decisions
 
+- Packaged historical chart freshness is runtime-DB-sensitive. Pipeline cache
+  identity includes a compact fingerprint of completed prior-period runs, and
+  Streamlit report-artifact freshness compares its canonical series against
+  both the packaged application-data SQLite database and processed summaries.
+  Synthetic history never ships or enters production implicitly; demo history
+  is merged only through the explicit, period-scoped, idempotent
+  `scripts/import_synthetic_history.py` utility.
+
+- Normal desktop executive analysis is governed by a five-minute runtime SLA:
+  deterministic structure preservation and the validated Python investigation
+  queue must not trigger preliminary 30B model calls; Python builds one bounded
+  `ExecutiveEvidencePackage`, normal AI mode permits one non-thinking structured
+  reasoning call plus at most one targeted repair, and inference is terminated
+  at its explicit budget rather than entering full regeneration cascades.
+  Performance traces contain timings/token metadata but no raw financial
+  contents. Model selection uses configurable QUALITY/BALANCED/FAST tiers and
+  may select only exact installed Ollama model names; it never downloads or
+  invents a model.
+
+- The packaged macOS desktop lifecycle uses a persistent native controller as
+  the application process and a distinctly named, session-owned PyInstaller
+  helper for Streamlit. Each launch creates a fresh session ID and dynamically
+  selects a port; closing the controller terminates only its verified Streamlit
+  child and removes replaceable session state. Ollama is always treated as a
+  shared external service and remains running on application exit, including
+  when the application initially starts it.
+
+- PyInstaller desktop builds must collect the complete `finance_agent` module
+  graph because Streamlit executes its bundled UI script dynamically. Frozen
+  Streamlit child startup must set `global.developmentMode=false` before using
+  a dynamically selected server port. Historical/report refresh callers must
+  read processed artifacts from `PipelineConfig.output_directory` in writable
+  platform application data, never from the read-only bundle root.
+
 - Anomaly/finding records must preserve canonical provenance for every
   observed-vs-reference comparison. Executive-facing output distinguishes
   `institutional_violation`, `statistical_anomaly`, `system_review_rule`,
@@ -294,6 +328,14 @@
 - Allow retrieval of detailed/full historical data through tools.
 
 ## Coding Preferences
+
+- Executive-facing recommendation presentation is canonicalized in
+  `finance_agent.reporting.presentation`: Streamlit, HTML, and PDF consume
+  separate title, rationale, operational consideration, investigation,
+  expected-impact, owner, priority, and status fields. Legacy inline Spanish
+  labels may be split only at presentation time; direct structured values take
+  precedence, empty/label-only values are omitted, exact repeated sentences
+  are removed, and AI provenance plus underlying reasoning remain unchanged.
 
 - Step 9 strategic analysis now uses an evidence ledger as the only approved
   fact surface for Ollama narrative generation. The ledger records stable
