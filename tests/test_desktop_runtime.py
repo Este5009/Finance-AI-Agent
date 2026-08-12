@@ -14,6 +14,8 @@ from finance_agent.desktop.runtime import (
     DesktopRuntime,
     DesktopStartupError,
     StartupState,
+    _streamlit_environment,
+    _streamlit_helper_executable,
     _streamlit_command,
     find_free_port,
 )
@@ -129,6 +131,7 @@ def test_runtime_prepares_outside_repository_directory(tmp_path: Path, monkeypat
     runtime = DesktopRuntime(paths=paths, config=DesktopConfig(open_browser=False))
     runtime.prepare()
     assert paths.memory_database.is_file()
+    runtime.shutdown(reason="test_cleanup")
     assert Path(os.environ["FINANCE_AI_OUTPUT_DIR"]) == paths.outputs
     assert not str(paths.root).startswith(str(Path(__file__).resolve().parents[1]))
 
@@ -199,6 +202,7 @@ def test_ollama_missing_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -
     with pytest.raises(DesktopStartupError) as caught:
         runtime.ensure_ollama_ready()
     assert caught.value.status.state == StartupState.OLLAMA_MISSING
+    runtime.shutdown(reason="test_cleanup")
 
 
 def test_model_installed_and_ai_ready(tmp_path: Path) -> None:
@@ -262,6 +266,7 @@ def test_model_missing_requires_explicit_consent(tmp_path: Path) -> None:
     with pytest.raises(DesktopStartupError) as caught:
         runtime.ensure_ollama_ready()
     assert caught.value.status.state == StartupState.MODEL_DOWNLOAD_REQUIRED
+    runtime.shutdown(reason="test_cleanup")
 
 
 def test_ai_health_failure_is_readable(tmp_path: Path) -> None:
@@ -277,13 +282,14 @@ def test_ai_health_failure_is_readable(tmp_path: Path) -> None:
     with pytest.raises(DesktopStartupError) as caught:
         runtime.ensure_ollama_ready()
     assert caught.value.status.state == StartupState.AI_HEALTH_FAILED
+    runtime.shutdown(reason="test_cleanup")
 
 
 def test_startup_timeout_terminates_streamlit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Streamlit readiness timeout stops the owned child process."""
 
     fake = FakeProcess()
-    monkeypatch.setattr("finance_agent.desktop.runtime.wait_for_http", lambda *_args, **_kwargs: False)
+    monkeypatch.setattr("finance_agent.desktop.runtime._is_http_ready", lambda *_args, **_kwargs: False)
     monkeypatch.setattr("finance_agent.desktop.runtime.find_free_port", lambda *_args, **_kwargs: 8501)
     runtime = DesktopRuntime(
         paths=app_data_paths(environ={"FINANCE_AI_APP_DATA": str(tmp_path)}),
@@ -294,6 +300,27 @@ def test_startup_timeout_terminates_streamlit(tmp_path: Path, monkeypatch: pytes
     with pytest.raises(DesktopStartupError):
         runtime.start_streamlit()
     assert fake.terminated
+
+
+def test_streamlit_child_exit_is_reported_immediately(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A crashed packaged helper is not misreported as a generic startup timeout."""
+
+    fake = FakeProcess(returncode=3)
+    monkeypatch.setattr("finance_agent.desktop.runtime._is_http_ready", lambda *_args, **_kwargs: False)
+    monkeypatch.setattr("finance_agent.desktop.runtime.find_free_port", lambda *_args, **_kwargs: 8501)
+    runtime = DesktopRuntime(
+        paths=app_data_paths(environ={"FINANCE_AI_APP_DATA": str(tmp_path)}),
+        config=DesktopConfig(open_browser=False, startup_timeout_seconds=3),
+        process_factory=lambda *_args, **_kwargs: fake,
+    )
+    runtime.prepare()
+    runtime.paths.log_file.write_text("Traceback: helper failed to import streamlit\n", encoding="utf-8")
+
+    with pytest.raises(DesktopStartupError) as caught:
+        runtime.start_streamlit()
+
+    assert "exit_code=3" in caught.value.status.technical_detail
+    assert "helper failed" in caught.value.status.technical_detail
 
 
 def test_graceful_shutdown_stops_streamlit_but_leaves_ollama(tmp_path: Path) -> None:
@@ -313,10 +340,101 @@ def test_frozen_streamlit_command_uses_packaged_executable(monkeypatch: pytest.M
 
     monkeypatch.setattr("finance_agent.desktop.runtime.sys.frozen", True, raising=False)
     command = _streamlit_command(8501, "127.0.0.1", session_id="abc123", parent_pid=99)
-    assert Path(command[0]).name == "Finance AI Agent Streamlit"
+    expected_name = "Finance AI Agent Streamlit.exe" if os.name == "nt" else "Finance AI Agent Streamlit"
+    assert Path(command[0]).name == expected_name
     assert command[1:5] == ["--desktop-session", "abc123", "--parent-pid", "99"]
     assert "-m" not in command
     assert command[command.index("--global.developmentMode") + 1] == "false"
+
+
+def test_windows_frozen_helper_path_uses_exe_suffix(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Windows PyInstaller helpers must be invoked through the concrete .exe file."""
+
+    monkeypatch.setattr("finance_agent.desktop.runtime.sys.platform", "win32")
+    monkeypatch.setattr("finance_agent.desktop.runtime.sys.executable", r"C:\App\Finance AI Agent.exe")
+
+    assert str(_streamlit_helper_executable()).endswith(r"Finance AI Agent Streamlit.exe")
+
+
+def test_frozen_startup_fails_before_timeout_when_helper_missing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A bad packaged helper path is reported directly instead of as readiness timeout."""
+
+    bundle = tmp_path / "bundle"
+    app = bundle / "finance_agent" / "ui" / "streamlit_app.py"
+    app.parent.mkdir(parents=True)
+    app.write_text("# bundled app", encoding="utf-8")
+    executable = tmp_path / "Finance AI Agent.exe"
+    executable.write_text("stub", encoding="utf-8")
+    monkeypatch.setenv("FINANCE_AI_RESOURCE_ROOT", str(bundle))
+    monkeypatch.setattr("finance_agent.desktop.runtime.sys.frozen", True, raising=False)
+    monkeypatch.setattr("finance_agent.desktop.runtime.sys.platform", "win32")
+    monkeypatch.setattr("finance_agent.desktop.runtime.sys.executable", str(executable))
+    monkeypatch.setattr("finance_agent.desktop.runtime.find_free_port", lambda *_args, **_kwargs: 8501)
+
+    runtime = DesktopRuntime(
+        paths=app_data_paths(environ={"FINANCE_AI_APP_DATA": str(tmp_path / "app-data")}),
+        config=DesktopConfig(open_browser=False),
+    )
+    runtime.prepare()
+
+    with pytest.raises(DesktopStartupError) as caught:
+        runtime.start_streamlit()
+
+    assert "missing_streamlit_helper" in caught.value.status.technical_detail
+    runtime.shutdown(reason="test_cleanup")
+
+
+def test_streamlit_child_environment_forces_utf8(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Packaged child logs keep Spanish text readable on Windows consoles."""
+
+    monkeypatch.delenv("PYTHONUTF8", raising=False)
+    monkeypatch.delenv("PYTHONIOENCODING", raising=False)
+
+    environment = _streamlit_environment()
+
+    assert environment["PYTHONUTF8"] == "1"
+    assert environment["PYTHONIOENCODING"] == "utf-8"
+
+
+def test_duplicate_launcher_is_blocked_before_streamlit_ready(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A second double-click during slow startup does not create a competing session."""
+
+    paths = app_data_paths(environ={"FINANCE_AI_APP_DATA": str(tmp_path)})
+    paths.initialize()
+    paths.launcher_lock_file.write_text(
+        json.dumps({"session_id": "first", "launcher_pid": 1200, "created_at": 1}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("finance_agent.desktop.runtime._pid_is_alive", lambda pid: pid == 1200)
+    monkeypatch.setattr("finance_agent.desktop.runtime._process_command", lambda _pid: "Finance AI Agent.exe")
+
+    runtime = DesktopRuntime(paths=paths, config=DesktopConfig(open_browser=False))
+
+    with pytest.raises(DesktopStartupError) as caught:
+        runtime.prepare()
+
+    assert "ya se está iniciando" in caught.value.status.message_es
+
+
+def test_stale_launcher_lock_is_replaced(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A crashed launcher leaves a lock that the next startup can safely replace."""
+
+    paths = app_data_paths(environ={"FINANCE_AI_APP_DATA": str(tmp_path)})
+    paths.initialize()
+    paths.launcher_lock_file.write_text(
+        json.dumps({"session_id": "dead", "launcher_pid": 1200, "created_at": 1}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("finance_agent.desktop.runtime._pid_is_alive", lambda _pid: False)
+
+    runtime = DesktopRuntime(paths=paths, config=DesktopConfig(open_browser=False))
+    runtime.prepare()
+
+    lock = json.loads(paths.launcher_lock_file.read_text(encoding="utf-8"))
+    assert lock["session_id"] == runtime.session_id
+    runtime.shutdown(reason="test_cleanup")
 
 
 def test_packaging_config_excludes_private_runtime_data() -> None:
@@ -342,7 +460,7 @@ def test_repeated_launch_shutdown_creates_fresh_sessions_and_releases_state(
     ports = iter((49101, 49102, 49103))
     processes: list[FakeProcess] = []
     monkeypatch.setattr("finance_agent.desktop.runtime.find_free_port", lambda *_args: next(ports))
-    monkeypatch.setattr("finance_agent.desktop.runtime.wait_for_http", lambda *_args, **_kwargs: True)
+    monkeypatch.setattr("finance_agent.desktop.runtime._is_http_ready", lambda *_args, **_kwargs: True)
     monkeypatch.setattr("finance_agent.desktop.runtime.webbrowser.open", lambda *_args, **_kwargs: True)
     paths = app_data_paths(environ={"FINANCE_AI_APP_DATA": str(tmp_path)})
     sessions: list[str] = []

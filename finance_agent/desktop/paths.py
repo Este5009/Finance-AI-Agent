@@ -84,6 +84,12 @@ class AppDataPaths:
 
         return self.runtime / "active-session.json"
 
+    @property
+    def launcher_lock_file(self) -> Path:
+        """Return the single-launcher ownership record used during startup."""
+
+        return self.runtime / "launcher.lock"
+
 
 def app_data_root(
     *,

@@ -84,6 +84,29 @@ def _pid_is_alive(pid: int) -> bool:
 def _process_command(pid: int) -> str:
     """Return a bounded process command used to validate stale ownership."""
 
+    if sys.platform.startswith("win"):
+        try:
+            result = subprocess.run(
+                [
+                    "powershell",
+                    "-NoProfile",
+                    "-Command",
+                    (
+                        "try { "
+                        f"(Get-CimInstance Win32_Process -Filter \"ProcessId={int(pid)}\").CommandLine "
+                        "} catch { '' }"
+                    ),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=2,
+                check=False,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return ""
+        return result.stdout.strip()
     try:
         result = subprocess.run(
             ["ps", "-p", str(pid), "-o", "command="],
@@ -141,10 +164,40 @@ def find_ollama_executable(
     return next((path for path in candidates if path.is_file()), None)
 
 
+def _streamlit_app_path() -> Path:
+    """Return the bundled Streamlit app script path used by both launch modes."""
+
+    return resource_path("finance_agent", "ui", "streamlit_app.py")
+
+
+def _streamlit_helper_executable() -> Path:
+    """Return the frozen helper executable path for the active platform.
+
+    Inputs: the current PyInstaller executable path from ``sys.executable``.
+    Outputs: sibling helper executable path.
+    Assumptions: Windows frozen helpers require the explicit ``.exe`` suffix;
+    macOS/Linux helpers are extensionless files inside the collected bundle.
+    """
+
+    helper_name = "Finance AI Agent Streamlit.exe" if sys.platform.startswith("win") else "Finance AI Agent Streamlit"
+    return Path(sys.executable).with_name(helper_name)
+
+
+def _streamlit_environment() -> dict[str, str]:
+    """Build a UTF-8-safe child environment for packaged Streamlit startup."""
+
+    environment = os.environ.copy()
+    # PyInstaller/Windows child output is written to the technical log. These
+    # variables prevent Spanish status text from becoming mojibake in that log.
+    environment.setdefault("PYTHONUTF8", "1")
+    environment.setdefault("PYTHONIOENCODING", "utf-8")
+    return environment
+
+
 def _streamlit_command(port: int, address: str, *, session_id: str = "", parent_pid: int | None = None) -> list[str]:
     """Build a source or frozen Streamlit child command with no system Python dependency."""
 
-    app = resource_path("finance_agent", "ui", "streamlit_app.py")
+    app = _streamlit_app_path()
     common = [
         str(app),
         "--global.developmentMode",
@@ -157,7 +210,7 @@ def _streamlit_command(port: int, address: str, *, session_id: str = "", parent_
         "true",
     ]
     if getattr(sys, "frozen", False):
-        helper = Path(sys.executable).with_name("Finance AI Agent Streamlit")
+        helper = _streamlit_helper_executable()
         return [
             str(helper),
             "--desktop-session",
@@ -193,6 +246,60 @@ def wait_for_http(url: str, timeout_seconds: float, *, poll_interval: float = 0.
             return True
         time.sleep(min(poll_interval, max(0.0, deadline - time.monotonic())))
     return False
+
+
+def _tail_text(path: Path, *, max_characters: int = 5000) -> str:
+    """Return the end of a technical log for startup diagnostics."""
+
+    try:
+        data = path.read_bytes()
+    except OSError:
+        return ""
+    return data[-max_characters:].decode("utf-8", errors="replace")
+
+
+def _wait_for_streamlit_ready(
+    *,
+    process: subprocess.Popen[bytes],
+    health_url: str,
+    timeout_seconds: float,
+    log_path: Path,
+    logger: logging.Logger | None = None,
+    poll_interval: float = 0.2,
+) -> tuple[bool, str]:
+    """Wait for Streamlit readiness while detecting early child crashes.
+
+    Inputs: owned helper process, health URL, timeout, and technical log path.
+    Outputs: ``(ready, detail)`` where detail distinguishes timeout from crash.
+    Assumptions: Streamlit is considered ready when ``/_stcore/health`` answers.
+    """
+
+    started = time.monotonic()
+    deadline = started + float(timeout_seconds)
+    while time.monotonic() < deadline:
+        exit_code = process.poll()
+        if exit_code is not None:
+            elapsed = time.monotonic() - started
+            detail = (
+                f"streamlit_child_exit exit_code={exit_code} elapsed_seconds={elapsed:.2f} "
+                f"log_tail={_tail_text(log_path)!r}"
+            )
+            if logger:
+                logger.error(detail)
+            return False, detail
+        if _is_http_ready(health_url):
+            elapsed = time.monotonic() - started
+            if logger:
+                logger.info("streamlit_ready elapsed_seconds=%.2f health_url=%s", elapsed, health_url)
+            return True, f"streamlit_ready elapsed_seconds={elapsed:.2f}"
+        time.sleep(min(poll_interval, max(0.0, deadline - time.monotonic())))
+    detail = (
+        f"streamlit_readiness_timeout timeout_seconds={timeout_seconds} "
+        f"alive={process.poll() is None} health_url={health_url} log_tail={_tail_text(log_path)!r}"
+    )
+    if logger:
+        logger.error(detail)
+    return False, detail
 
 
 def _configure_logging(paths: AppDataPaths) -> logging.Logger:
@@ -271,6 +378,7 @@ class DesktopRuntime:
         self.selected_port: int | None = None
         self.current_url: str | None = None
         self.ollama_started_by_session = False
+        self._launcher_lock_acquired = False
         self._shutdown_lock = threading.Lock()
         self._shutdown_complete = False
         self._stop_requested = threading.Event()
@@ -303,6 +411,68 @@ class DesktopRuntime:
         temporary = self.paths.active_session_file.with_suffix(".tmp")
         temporary.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         temporary.replace(self.paths.active_session_file)
+
+    def _acquire_launcher_lock(self) -> None:
+        """Acquire a stale-safe single-launcher lock before slow startup work.
+
+        Inputs: current launcher PID and writable runtime directory.
+        Outputs: a lock file owned by this process.
+        Assumptions: this guards only Finance AI Agent launchers, not the
+        shared Ollama service or unrelated user processes.
+        """
+
+        if self._launcher_lock_acquired:
+            return
+        lock_path = self.paths.launcher_lock_file
+        lock_payload = {
+            "session_id": self.session_id,
+            "launcher_pid": self.launcher_pid,
+            "created_at": time.time(),
+        }
+        while True:
+            try:
+                descriptor = os.open(str(lock_path), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            except FileExistsError:
+                try:
+                    existing = json.loads(lock_path.read_text(encoding="utf-8"))
+                    existing_pid = int(existing.get("launcher_pid") or 0)
+                except (OSError, ValueError, TypeError, json.JSONDecodeError):
+                    existing_pid = 0
+                command = _process_command(existing_pid) if existing_pid and _pid_is_alive(existing_pid) else ""
+                if existing_pid and "Finance AI Agent" in command:
+                    active_url = ""
+                    try:
+                        active_state = json.loads(self.paths.active_session_file.read_text(encoding="utf-8"))
+                        active_url = str(active_state.get("url") or "")
+                    except (OSError, json.JSONDecodeError):
+                        active_url = ""
+                    if active_url and _is_http_ready(f"{active_url.rstrip('/')}/_stcore/health"):
+                        try:
+                            webbrowser.open(active_url, new=1)
+                        except Exception:
+                            pass
+                        raise DesktopStartupError(
+                            StartupStatus(
+                                StartupState.APPLICATION_READY,
+                                "Finance AI Agent ya está abierto. Se abrirá la sesión existente.",
+                                f"existing_launcher_pid={existing_pid} url={active_url}",
+                            )
+                        )
+                    raise DesktopStartupError(
+                        StartupStatus(
+                            StartupState.INITIALIZING,
+                            "Finance AI Agent ya se está iniciando. Espere a que termine la apertura actual.",
+                            f"existing_launcher_pid={existing_pid}",
+                        )
+                    )
+                lock_path.unlink(missing_ok=True)
+                continue
+            else:
+                with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+                    json.dump(lock_payload, handle)
+                self._launcher_lock_acquired = True
+                self._log("launcher_lock_acquired path=%s", lock_path)
+                return
 
     def _recover_stale_session(self) -> None:
         """Clean only a verifiably owned helper from a dead launcher session."""
@@ -356,6 +526,7 @@ class DesktopRuntime:
         self.paths.initialize()
         self.logger = _configure_logging(self.paths)
         self._log("session_start resource_root=%s", resource_root())
+        self._acquire_launcher_lock()
         self._recover_stale_session()
         self._write_session_state("preparing")
         self.emit(StartupState.INITIALIZING, "Preparando Finance AI Agent…")
@@ -478,22 +649,48 @@ class DesktopRuntime:
             session_id=self.session_id,
             parent_pid=self.launcher_pid,
         )
+        app_path = _streamlit_app_path()
+        if not app_path.is_file():
+            raise DesktopStartupError(
+                self.emit(
+                    StartupState.INITIALIZING,
+                    "No se encontró la interfaz empaquetada de Finance AI Agent.",
+                    f"missing_streamlit_app path={app_path}",
+                )
+            )
+        if getattr(sys, "frozen", False):
+            helper_path = Path(command[0])
+            if not helper_path.is_file():
+                raise DesktopStartupError(
+                    self.emit(
+                        StartupState.INITIALIZING,
+                        "No se encontró el ejecutable empaquetado de la interfaz.",
+                        f"missing_streamlit_helper path={helper_path}",
+                    )
+                )
         creationflags = subprocess.CREATE_NO_WINDOW if sys.platform.startswith("win") else 0
         with self.paths.log_file.open("ab") as log_handle:
             self.streamlit_process = self.process_factory(
                 command,
                 cwd=str(resource_root()),
-                env=os.environ.copy(),
+                env=_streamlit_environment(),
                 stdout=log_handle,
                 stderr=subprocess.STDOUT,
                 creationflags=creationflags,
             )
         self._write_session_state("streamlit_starting", command=command)
         self._log("streamlit_started streamlit_pid=%s port=%s command=%s", self.streamlit_process.pid, port, command)
-        if not wait_for_http(f"{url}/_stcore/health", config.startup_timeout_seconds):
+        ready, detail = _wait_for_streamlit_ready(
+            process=self.streamlit_process,
+            health_url=f"{url}/_stcore/health",
+            timeout_seconds=config.startup_timeout_seconds,
+            log_path=self.paths.log_file,
+            logger=self.logger,
+        )
+        if not ready:
             self.shutdown()
             raise DesktopStartupError(
-                self.emit(StartupState.INITIALIZING, "La interfaz no pudo iniciarse a tiempo. Revise el registro técnico.")
+                self.emit(StartupState.INITIALIZING, "La interfaz no pudo iniciarse. Revise el registro técnico.", detail)
             )
         self.emit(StartupState.APPLICATION_READY, "Finance AI Agent está listo.")
         self._write_session_state("ready", url=url)
@@ -531,6 +728,10 @@ class DesktopRuntime:
                     state = json.loads(self.paths.active_session_file.read_text(encoding="utf-8"))
                     if state.get("session_id") == self.session_id:
                         self.paths.active_session_file.unlink(missing_ok=True)
+                if self._launcher_lock_acquired and self.paths.launcher_lock_file.is_file():
+                    state = json.loads(self.paths.launcher_lock_file.read_text(encoding="utf-8"))
+                    if state.get("session_id") == self.session_id:
+                        self.paths.launcher_lock_file.unlink(missing_ok=True)
             except (OSError, json.JSONDecodeError):
                 self._log("session_state_cleanup_failed", level=logging.WARNING)
             self._shutdown_complete = True
@@ -620,11 +821,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         if runtime.logger and exc.status.technical_detail:
             runtime.logger.error(exc.status.technical_detail)
         _show_error(exc.status.message_es)
+        runtime.shutdown(reason="startup_error")
         return 1
     except Exception as exc:  # noqa: BLE001 - desktop users must not see tracebacks.
         if runtime.logger:
             runtime.logger.exception("Unexpected desktop startup error")
         _show_error("Finance AI Agent no pudo iniciarse. Revise el registro técnico e intente nuevamente.")
+        runtime.shutdown(reason="unexpected_startup_error")
         return 1
 
 
