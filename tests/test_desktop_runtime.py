@@ -14,6 +14,7 @@ from finance_agent.desktop.runtime import (
     DesktopRuntime,
     DesktopStartupError,
     StartupState,
+    _parent_watch_should_exit,
     _streamlit_environment,
     _streamlit_helper_executable,
     _streamlit_command,
@@ -314,13 +315,38 @@ def test_streamlit_child_exit_is_reported_immediately(tmp_path: Path, monkeypatc
         process_factory=lambda *_args, **_kwargs: fake,
     )
     runtime.prepare()
-    runtime.paths.log_file.write_text("Traceback: helper failed to import streamlit\n", encoding="utf-8")
+    runtime.paths.streamlit_log_file.write_text("Traceback: helper failed to import streamlit\n", encoding="utf-8")
 
     with pytest.raises(DesktopStartupError) as caught:
         runtime.start_streamlit()
 
     assert "exit_code=3" in caught.value.status.technical_detail
     assert "helper failed" in caught.value.status.technical_detail
+
+
+def test_streamlit_child_output_uses_separate_log_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Streamlit stdout must not corrupt structured launcher lifecycle records."""
+
+    fake = FakeProcess()
+    captured: dict[str, object] = {}
+
+    def fake_factory(*_args: object, **kwargs: object) -> FakeProcess:
+        captured.update(kwargs)
+        return fake
+
+    monkeypatch.setattr("finance_agent.desktop.runtime._is_http_ready", lambda *_args, **_kwargs: True)
+    monkeypatch.setattr("finance_agent.desktop.runtime.find_free_port", lambda *_args, **_kwargs: 8501)
+    runtime = DesktopRuntime(
+        paths=app_data_paths(environ={"FINANCE_AI_APP_DATA": str(tmp_path)}),
+        config=DesktopConfig(open_browser=False),
+        process_factory=fake_factory,
+    )
+    runtime.prepare()
+    runtime.start_streamlit()
+
+    stream = captured["stdout"]
+    assert getattr(stream, "name", "") == str(runtime.paths.streamlit_log_file)
+    runtime.shutdown(reason="test_cleanup")
 
 
 def test_graceful_shutdown_stops_streamlit_but_leaves_ollama(tmp_path: Path) -> None:
@@ -354,6 +380,17 @@ def test_windows_frozen_helper_path_uses_exe_suffix(monkeypatch: pytest.MonkeyPa
     monkeypatch.setattr("finance_agent.desktop.runtime.sys.executable", r"C:\App\Finance AI Agent.exe")
 
     assert str(_streamlit_helper_executable()).endswith(r"Finance AI Agent Streamlit.exe")
+
+
+def test_windows_parent_watch_ignores_pyinstaller_ppid_mismatch(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Frozen Windows helper must not exit solely because bootloader parentage differs."""
+
+    monkeypatch.setattr("finance_agent.desktop.runtime.sys.platform", "win32")
+    monkeypatch.setattr("finance_agent.desktop.runtime.os.getppid", lambda: 111)
+    monkeypatch.setattr("finance_agent.desktop.runtime._pid_is_alive", lambda pid: pid == 222)
+
+    assert _parent_watch_should_exit(222) is False
+    assert _parent_watch_should_exit(333) is True
 
 
 def test_frozen_startup_fails_before_timeout_when_helper_missing(

@@ -79,6 +79,12 @@ class AppDataPaths:
         return self.logs / "finance-ai-agent.log"
 
     @property
+    def streamlit_log_file(self) -> Path:
+        """Return the owned Streamlit helper stdout/stderr log path."""
+
+        return self.logs / "finance-ai-agent-streamlit.log"
+
+    @property
     def active_session_file(self) -> Path:
         """Return the replaceable runtime-session ownership record."""
 

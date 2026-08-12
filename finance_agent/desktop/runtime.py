@@ -74,6 +74,21 @@ def _pid_is_alive(pid: int) -> bool:
 
     if pid <= 0:
         return False
+    if sys.platform.startswith("win"):
+        try:
+            import ctypes
+
+            synchronize = 0x00100000
+            wait_timeout = 0x00000102
+            handle = ctypes.windll.kernel32.OpenProcess(synchronize, False, int(pid))
+            if not handle:
+                return False
+            try:
+                return ctypes.windll.kernel32.WaitForSingleObject(handle, 0) == wait_timeout
+            finally:
+                ctypes.windll.kernel32.CloseHandle(handle)
+        except Exception:
+            return False
     try:
         os.kill(pid, 0)
     except (OSError, ProcessLookupError):
@@ -669,12 +684,12 @@ class DesktopRuntime:
                     )
                 )
         creationflags = subprocess.CREATE_NO_WINDOW if sys.platform.startswith("win") else 0
-        with self.paths.log_file.open("ab") as log_handle:
+        with self.paths.streamlit_log_file.open("ab") as child_log:
             self.streamlit_process = self.process_factory(
                 command,
                 cwd=str(resource_root()),
                 env=_streamlit_environment(),
-                stdout=log_handle,
+                stdout=child_log,
                 stderr=subprocess.STDOUT,
                 creationflags=creationflags,
             )
@@ -684,7 +699,7 @@ class DesktopRuntime:
             process=self.streamlit_process,
             health_url=f"{url}/_stcore/health",
             timeout_seconds=config.startup_timeout_seconds,
-            log_path=self.paths.log_file,
+            log_path=self.paths.streamlit_log_file,
             logger=self.logger,
         )
         if not ready:
@@ -768,9 +783,23 @@ def _watch_parent(parent_pid: int) -> None:
     """Exit an orphaned helper immediately when its desktop launcher dies."""
 
     while True:
-        if os.getppid() != parent_pid or not _pid_is_alive(parent_pid):
+        if _parent_watch_should_exit(parent_pid):
             os._exit(0)
         time.sleep(0.5)
+
+
+def _parent_watch_should_exit(parent_pid: int) -> bool:
+    """Return whether the Streamlit helper should self-terminate.
+
+    Inputs: explicit launcher PID provided in helper arguments.
+    Outputs: True when the launcher is gone or, on POSIX, the helper was
+    re-parented away from that launcher.
+    Assumptions: Windows PyInstaller bootloader parentage can be unreliable, so
+    Windows relies on the explicit parent PID's liveness instead.
+    """
+
+    parent_mismatch = not sys.platform.startswith("win") and os.getppid() != parent_pid
+    return parent_mismatch or not _pid_is_alive(parent_pid)
 
 
 def streamlit_helper_main(arguments: Sequence[str] | None = None) -> int:
