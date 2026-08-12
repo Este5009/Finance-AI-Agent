@@ -23,6 +23,7 @@ SHEET_ORDER = [
     "Expenses",
     "Budget_vs_Actual",
     "Department_Summary",
+    "Financial_Position",
     "Payroll",
     "Student_Payments",
     "Cash_Flow",
@@ -172,6 +173,14 @@ def _build_monthly_financial_data(
             "Ending_Cash_Variance": round(ending_cash - (beginning_cash + 80_000.0 + 15_000.0 * min(point.month, 6)), 2),
         }
     ]
+    financial_position_rows = _build_financial_position_rows(
+        period_date,
+        month_name,
+        actual_revenue_total,
+        expense_total,
+        ending_cash,
+        point.month,
+    )
     anomalies_rows = _build_anomaly_rows(period_slug, point, department_rows, payroll_rows, vendor_rows, point.net_cash_flow)
     executive_rows = _build_executive_summary_rows(
         actual_revenue_total,
@@ -202,6 +211,7 @@ def _build_monthly_financial_data(
         "Expenses": expense_rows,
         "Budget_vs_Actual": budget_rows,
         "Department_Summary": department_rows,
+        "Financial_Position": financial_position_rows,
         "Payroll": payroll_rows,
         "Student_Payments": payments_rows,
         "Cash_Flow": cash_rows,
@@ -211,6 +221,43 @@ def _build_monthly_financial_data(
         "Goals_Targets": goals_rows,
     }
     return MonthlyFinancialData(period_slug, month_name, rows_by_sheet, totals, [row["Anomaly_ID"] for row in anomalies_rows])
+
+
+def _build_financial_position_rows(
+    period_date: date,
+    month_name: str,
+    actual_revenue_total: float,
+    expense_total: float,
+    ending_cash: float,
+    month: int,
+) -> list[dict[str, Any]]:
+    """Build deterministic balance-sheet and profitability inputs.
+
+    Inputs: period, revenue, expenses, cash, and month number.
+    Outputs: one wide financial-position row with ratio source fields.
+    Assumptions: values are synthetic but internally coherent enough for
+        deterministic financial-health ratio demonstrations.
+    """
+
+    current_assets = ending_cash + 1_250_000.0 + 22_000.0 * month
+    current_liabilities = 1_750_000.0 + 12_500.0 * month
+    total_assets = current_assets + 6_400_000.0 + 35_000.0 * month
+    total_liabilities = current_liabilities + 3_000_000.0 + 8_000.0 * month
+    ebitda = actual_revenue_total - (expense_total * 0.72)
+    net_income = actual_revenue_total - expense_total - 45_000.0
+    return [
+        {
+            "Period": period_date,
+            "Month": month_name,
+            "Current_Assets": round(current_assets, 2),
+            "Current_Liabilities": round(current_liabilities, 2),
+            "Cash_and_Equivalents": round(ending_cash, 2),
+            "Total_Assets": round(total_assets, 2),
+            "Total_Liabilities": round(total_liabilities, 2),
+            "EBITDA": round(ebitda, 2),
+            "Net_Income": round(net_income, 2),
+        }
+    ]
 
 
 def _department_weights(departments: list[str]) -> dict[str, float]:

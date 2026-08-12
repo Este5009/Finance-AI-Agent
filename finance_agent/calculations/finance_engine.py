@@ -29,6 +29,9 @@ from finance_agent.calculations.finance_calculations import (
     calculate_total_revenue,
     calculate_vendor_payment_totals,
 )
+from finance_agent.calculations.financial_health_ratios import (
+    calculate_financial_health_ratios,
+)
 from finance_agent.calculations.periods import PeriodScope, filter_selected_tables_for_period
 from finance_agent.calculations.table_selection import select_financial_tables
 
@@ -297,6 +300,31 @@ def _build_kpi_summary(
             "Cash_Flow",
         ),
     ]
+    for ratio in finance_summary.get("financial_health_ratios", []) or []:
+        if not isinstance(ratio, dict):
+            continue
+        row = _kpi_row(
+            str(ratio.get("metric") or ""),
+            ratio.get("value"),
+            str(ratio.get("unit") or "ratio"),
+            "Financial_Position / Profitability",
+        )
+        # Preserve the management-threshold metadata beside the stable KPI
+        # columns so presentation layers do not duplicate classification logic.
+        row.update(
+            {
+                "display_label": ratio.get("display_label"),
+                "classification": ratio.get("classification"),
+                "reference_range": ratio.get("reference_range"),
+                "reference_origin": ratio.get("reference_origin"),
+                "reference_origin_es": ratio.get("reference_origin_es"),
+                "is_regulatory_limit": ratio.get("is_regulatory_limit"),
+                "formula": ratio.get("formula"),
+                "interpretation": ratio.get("interpretation"),
+                "missing_inputs": ratio.get("missing_inputs", []),
+            }
+        )
+        rows.append(row)
     return pd.DataFrame(rows)
 
 
@@ -385,6 +413,16 @@ def run_finance_calculations(
         selected["Cash_Flow"],
         warnings,
     )
+    financial_health_ratios = calculate_financial_health_ratios(
+        [
+            *selected.get("Financial_Position", []),
+            *selected.get("Profitability", []),
+            *selected.get("Executive_Summary", []),
+        ],
+        {
+            "total_revenue": total_revenue,
+        },
+    )
     monthly_trends = (
         calculate_monthly_trends(
             selected,
@@ -406,6 +444,7 @@ def run_finance_calculations(
         "vendor_payments": vendor_payments,
         "scholarships": scholarships,
         "cash_flow": cash_flow,
+        "financial_health_ratios": financial_health_ratios,
     }
     return FinanceCalculationResult(
         report_period=report_period,

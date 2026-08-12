@@ -22,6 +22,8 @@ SUPPORTED_FINANCIAL_TABLE_TYPES = (
     "Vendor_Payments",
     "Scholarships",
     "Department_Summary",
+    "Financial_Position",
+    "Profitability",
 )
 
 

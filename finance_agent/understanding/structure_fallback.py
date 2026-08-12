@@ -50,6 +50,13 @@ ALLOWED_CANONICAL_FIELDS = frozenset(
         "source_sheet",
         "threshold",
         "utilization_pct",
+        "current_assets",
+        "current_liabilities",
+        "cash_and_equivalents",
+        "total_assets",
+        "total_liabilities",
+        "ebitda",
+        "net_income",
     }
 )
 
@@ -90,6 +97,14 @@ IMPORTANT_FIELD_GROUPS: dict[str, tuple[frozenset[str], ...]] = {
     "Executive_Summary": (
         frozenset({"metric"}),
         frozenset({"actual", "amount"}),
+    ),
+    "Financial_Position": (
+        frozenset({"current_assets", "total_assets", "cash_and_equivalents"}),
+        frozenset({"current_liabilities", "total_liabilities"}),
+    ),
+    "Profitability": (
+        frozenset({"ebitda", "net_income"}),
+        frozenset({"revenue", "actual_revenue"}),
     ),
 }
 

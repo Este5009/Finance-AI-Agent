@@ -93,6 +93,7 @@ def _validate_workbook(path: Path) -> dict[str, Any]:
         "Expenses",
         "Budget_vs_Actual",
         "Department_Summary",
+        "Financial_Position",
         "Payroll",
         "Student_Payments",
         "Cash_Flow",
@@ -108,6 +109,7 @@ def _validate_workbook(path: Path) -> dict[str, Any]:
     payroll_rows = _read_sheet_rows(wb, "Payroll")
     budget_rows = _read_sheet_rows(wb, "Budget_vs_Actual")
     cash_rows = _read_sheet_rows(wb, "Cash_Flow")
+    position_rows = _read_sheet_rows(wb, "Financial_Position")
     period = _period_from_path(path)
 
     actual_revenue = round(sum(float(row.get("Actual_Revenue") or 0.0) for row in revenue_rows), 2)
@@ -130,6 +132,21 @@ def _validate_workbook(path: Path) -> dict[str, Any]:
         ending = float(cash_rows[0].get("Actual_Ending_Cash") or 0.0)
         if round(beginning + cash_flow, 2) != round(ending, 2):
             errors.append(f"{path.name} cash flow does not reconcile to ending cash")
+    if not position_rows:
+        errors.append(f"{path.name} missing financial-position rows")
+    else:
+        required_position_fields = {
+            "Current_Assets",
+            "Current_Liabilities",
+            "Cash_and_Equivalents",
+            "Total_Assets",
+            "Total_Liabilities",
+            "EBITDA",
+            "Net_Income",
+        }
+        missing_fields = sorted(field for field in required_position_fields if field not in position_rows[0])
+        if missing_fields:
+            errors.append(f"{path.name} financial-position sheet missing fields: {missing_fields}")
 
     return {
         "errors": errors,

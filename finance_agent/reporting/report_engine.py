@@ -1915,6 +1915,7 @@ def build_report_model(inputs: ReportInputBundle) -> ReportModel:
                 "ending_cash": cash_flow.get("ending_cash"),
                 "payroll_percentage_of_revenue": finance.get("payroll_percentage_of_revenue"),
                 "collection_rate": payments.get("collection_rate"),
+                "financial_health_ratios": finance.get("financial_health_ratios", []),
                 "kpi_comparisons": kpi_comparisons,
                 "analysis": financial_health_text,
                 "generation_source": financial_health_source,

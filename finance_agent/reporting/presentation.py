@@ -277,6 +277,12 @@ METRIC_LABELS_ES: dict[str, tuple[str, str, str]] = {
     "department_expense_variance_pct": ("Variación porcentual del gasto departamental", "ratio", "Diferencia porcentual entre gasto real y presupuesto departamental."),
     "category_expense_variance_pct": ("Variación porcentual del gasto por categoría", "ratio", "Diferencia porcentual entre gasto real y presupuesto por categoría."),
     "maximum_vendor_payment": ("Pago máximo a proveedor", "USD", "Mayor pago individual registrado a proveedor."),
+    "current_ratio": ("Razón corriente", "ratio_number", "Activo corriente dividido por pasivo corriente."),
+    "cash_ratio": ("Razón de efectivo", "ratio_number", "Efectivo y equivalentes dividido por pasivo corriente."),
+    "total_debt_ratio": ("Endeudamiento total", "ratio", "Pasivo total dividido por activo total."),
+    "ebitda_margin": ("Margen EBITDA", "ratio", "EBITDA dividido por ingresos."),
+    "net_margin": ("Margen neto", "ratio", "Utilidad neta dividida por ingresos."),
+    "return_on_assets": ("ROA", "ratio", "Utilidad neta dividida por activo total."),
 }
 
 SEVERITY_LABELS_ES: dict[str, str] = {
@@ -540,6 +546,8 @@ def format_value(value: Any, unit: str | None = None) -> str:
         return "N/D" if value in (None, "") else sanitize_text(value)
     if unit == "ratio":
         return f"{number:.1%}"
+    if unit == "ratio_number":
+        return f"{number:.2f}"
     if unit == "USD":
         sign = "-" if number < 0 else ""
         return f"{sign}${abs(number):,.0f}"
@@ -1709,6 +1717,60 @@ def build_kpi_rows(report_model: dict[str, Any]) -> list[dict[str, str]]:
     return rows
 
 
+def build_financial_health_ratio_cards(report_model: dict[str, Any]) -> list[dict[str, Any]]:
+    """Build dedicated financial-health ratio cards for the KPI dashboard.
+
+    Inputs: renderer-agnostic report model.
+    Outputs: display-ready ratio cards with management threshold references.
+    Assumptions: ratio calculations and classifications were produced
+        deterministically by the finance calculation layer.
+    """
+
+    content = get_section(report_model, "financial_health_overview").get("content", {})
+    ratios = content.get("financial_health_ratios", []) if isinstance(content, dict) else []
+    cards: list[dict[str, Any]] = []
+    status_map = {
+        "Bueno": "good",
+        "Aceptable": "amber",
+        "Crítico": "risk",
+        "No disponible": "neutral",
+    }
+    for item in ratios if isinstance(ratios, list) else []:
+        if not isinstance(item, dict):
+            continue
+        metric = str(item.get("metric") or "")
+        label, unit, description = METRIC_LABELS_ES.get(
+            metric,
+            (sanitize_text(item.get("display_label") or display_metric_name(metric)), str(item.get("unit") or ""), ""),
+        )
+        classification = sanitize_text(item.get("classification") or "No disponible")
+        status = status_map.get(classification, "neutral")
+        missing = item.get("missing_inputs", [])
+        missing_text = ", ".join(display_metric_name(value) for value in missing) if isinstance(missing, list) and missing else ""
+        cards.append(
+            {
+                "id": metric,
+                "label": label,
+                "value": display_or_unavailable(format_value(item.get("value"), str(item.get("unit") or unit))),
+                "numeric_value": number_value(item.get("value")),
+                "unit": item.get("unit") or unit,
+                "classification": classification,
+                "status": status,
+                "badge": status_badge(status),
+                "reference_range": sanitize_text(item.get("reference_range") or ""),
+                "reference_origin": sanitize_text(
+                    item.get("reference_origin_es")
+                    or "Referencia interna configurable de gestión"
+                ),
+                "formula": sanitize_text(item.get("formula") or ""),
+                "description": sanitize_text(item.get("interpretation") or description),
+                "missing_inputs": missing_text,
+                "is_regulatory_limit": bool(item.get("is_regulatory_limit")),
+            }
+        )
+    return cards
+
+
 def build_revenue_expense_summary(report_model: dict[str, Any]) -> dict[str, Any]:
     """Build revenue/expense display rows and chart values.
 
@@ -1802,6 +1864,101 @@ def build_department_rows(report_model: dict[str, Any], *, limit: int = 8) -> li
             row["rank_badge"] = "Mejor" if row is best else ("Mayor presión" if row is worst else "")
             row["variance_class"] = "risk" if (row.get("numeric_variance") or 0.0) > 0 else "good"
     return ranked
+
+
+def build_organizational_unit_budget_view(report_model: dict[str, Any], *, limit: int = 8) -> dict[str, Any]:
+    """Build school/department actual-vs-budget comparisons for goal reporting.
+
+    Inputs: report model and maximum row count.
+    Outputs: ranked unit rows and grouped chart payloads.
+    Assumptions: organizational unit data comes from deterministic
+        ``department_summary`` rows already calculated upstream.
+    """
+
+    items = get_section(report_model, "department_analysis").get("content", {}).get("department_summary", [])
+    rows: list[dict[str, Any]] = []
+    for item in items if isinstance(items, list) else []:
+        if not isinstance(item, dict):
+            continue
+        department = display_entity_name(item.get("department") or "Sin unidad")
+        budget_revenue = number_value(item.get("budget_revenue"))
+        actual_revenue = number_value(item.get("actual_revenue"))
+        budget_expenses = number_value(item.get("budget_expenses"))
+        actual_expenses = number_value(item.get("actual_expenses"))
+        expense_variance = number_value(item.get("expense_variance"))
+        expense_variance_pct = number_value(item.get("expense_variance_pct"))
+        net_contribution = number_value(item.get("net_operating_result"))
+        if all(value is None for value in (budget_revenue, actual_revenue, budget_expenses, actual_expenses, net_contribution)):
+            continue
+        rows.append(
+            {
+                "unit": department,
+                "budget_revenue": budget_revenue,
+                "actual_revenue": actual_revenue,
+                "budget_expenses": budget_expenses,
+                "actual_expenses": actual_expenses,
+                "expense_variance": expense_variance,
+                "expense_variance_pct": expense_variance_pct,
+                "net_contribution": net_contribution,
+                "budget_revenue_display": display_or_unavailable(format_value(budget_revenue, "USD")),
+                "actual_revenue_display": display_or_unavailable(format_value(actual_revenue, "USD")),
+                "budget_expenses_display": display_or_unavailable(format_value(budget_expenses, "USD")),
+                "actual_expenses_display": display_or_unavailable(format_value(actual_expenses, "USD")),
+                "expense_variance_display": display_or_unavailable(format_value(expense_variance, "USD")),
+                "expense_variance_pct_display": display_or_unavailable(format_value(expense_variance_pct, "ratio")),
+                "net_contribution_display": display_or_unavailable(format_value(net_contribution, "USD")),
+            }
+        )
+    ranked = sorted(rows, key=lambda row: abs(row.get("expense_variance") or 0.0), reverse=True)[:limit]
+    chart_groups: list[dict[str, Any]] = []
+    for metric_key, title, actual_key, budget_key in (
+        ("revenue", "Ingresos por unidad: real vs presupuesto", "actual_revenue", "budget_revenue"),
+        ("expenses", "Gastos por unidad: real vs presupuesto", "actual_expenses", "budget_expenses"),
+    ):
+        chart_rows: list[dict[str, Any]] = []
+        for row in ranked:
+            actual = row.get(actual_key)
+            budget = row.get(budget_key)
+            if actual is None or budget is None:
+                continue
+            chart_rows.extend(
+                [
+                    {
+                        "metric": row["unit"],
+                        "series": "Real",
+                        "value": actual,
+                        "display_value": format_value(actual, "USD"),
+                        "gap": format_value(actual - budget, "USD"),
+                        "status": "Verificado",
+                    },
+                    {
+                        "metric": row["unit"],
+                        "series": "Presupuesto",
+                        "value": budget,
+                        "display_value": format_value(budget, "USD"),
+                        "gap": format_value(actual - budget, "USD"),
+                        "status": "Verificado",
+                    },
+                ]
+            )
+        if chart_rows:
+            chart_groups.append(
+                {
+                    "unit": "USD",
+                    "title": title,
+                    "items": [],
+                    "rows": chart_rows,
+                    "encoding": "grouped_actual_reference",
+                    "metric_key": metric_key,
+                }
+            )
+    return {
+        "available": bool(ranked),
+        "rows": ranked,
+        "chart_groups": chart_groups,
+        "variance_ranking": ranked,
+        "source": "department_summary",
+    }
 
 
 def build_anomaly_summary(report_model: dict[str, Any]) -> dict[str, Any]:
@@ -2131,6 +2288,7 @@ def build_presentation_view(report_model: dict[str, Any], *, mode: str = "execut
             "cards": build_metric_cards(report_model),
             "sources": source_labels(get_section(report_model, "financial_health_overview")),
         },
+        "financial_health_ratios": build_financial_health_ratio_cards(report_model),
         "kpis": build_kpi_rows(report_model),
         "goal_budget": build_goal_budget_view(report_model),
         "revenue_expense": build_revenue_expense_summary(report_model),
@@ -2255,6 +2413,7 @@ def build_goal_budget_view(report_model: dict[str, Any]) -> dict[str, Any]:
         "technical_details": content.get("technical_details", {}),
         "technical_details_display": _localize_goal_technical_details(content.get("technical_details", {})),
         "sources": source_labels(section),
+        "organizational_units": build_organizational_unit_budget_view(report_model),
     }
 
 

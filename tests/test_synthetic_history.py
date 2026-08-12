@@ -61,6 +61,7 @@ def test_generates_12_periods_with_valid_artifacts(tmp_path: Path) -> None:
     for report in generated.report_paths:
         wb = load_workbook(report, read_only=True, data_only=True)
         assert "Payroll" in wb.sheetnames
+        assert "Financial_Position" in wb.sheetnames
         assert "Vendor_Payments" in wb.sheetnames
         assert "Anomalies_Embedded" in wb.sheetnames
         assert "Goals_Targets" in wb.sheetnames
@@ -143,3 +144,19 @@ def test_manifest_matches_generated_data(tmp_path: Path) -> None:
 
     assert round(june_payroll / june_revenue, 4) == manifest["monthly_payroll_ratio_trend"]["2026_06"]
     assert manifest["recommendation_milestone"]["period"] == "2026_05"
+
+
+def test_financial_position_sheet_supports_health_ratios(tmp_path: Path) -> None:
+    """Verify generated public fixtures contain deterministic ratio inputs."""
+
+    generated = _generate(tmp_path)
+    rows = _sheet_rows(generated.report_paths[8], "Financial_Position")
+
+    assert rows
+    row = rows[0]
+    assert float(row["Current_Assets"]) > 0
+    assert float(row["Current_Liabilities"]) > 0
+    assert float(row["Cash_and_Equivalents"]) > 0
+    assert float(row["Total_Assets"]) > float(row["Current_Assets"])
+    assert "EBITDA" in row
+    assert "Net_Income" in row

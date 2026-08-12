@@ -24,6 +24,7 @@ COMPOSITE_SEMANTIC_TOKENS = {
     "budget",
     "capital",
     "cash",
+    "assets",
     "category",
     "count",
     "date",
@@ -33,6 +34,7 @@ COMPOSITE_SEMANTIC_TOKENS = {
     "expense",
     "expenses",
     "flow",
+    "liabilities",
     "headcount",
     "inflows",
     "invoice",
@@ -56,6 +58,10 @@ COMPOSITE_SEMANTIC_TOKENS = {
     "total",
     "variance",
     "vendor",
+    "ebitda",
+    "income",
+    "equivalents",
+    "current",
 }
 
 

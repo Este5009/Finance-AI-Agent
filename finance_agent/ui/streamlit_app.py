@@ -251,6 +251,15 @@ KPI_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Eficiencia operativa", ("payroll_percentage_of_revenue", "collection_rate")),
 )
 
+FINANCIAL_HEALTH_RATIO_GROUP_IDS: tuple[str, ...] = (
+    "current_ratio",
+    "cash_ratio",
+    "total_debt_ratio",
+    "ebitda_margin",
+    "net_margin",
+    "return_on_assets",
+)
+
 STATUS_LABELS_ES: dict[str, str] = {
     "ok": "Completado",
     "skipped": "Omitido",
@@ -681,9 +690,9 @@ def _card_variant_from_text(*values: Any) -> str:
     text = " ".join(_safe_display_text(value).casefold() for value in values)
     if any(word in text for word in ("crítica", "critica", "alta", "riesgo", "negativo")):
         return "negative"
-    if any(word in text for word in ("media", "advertencia", "pendiente", "seguimiento", "parcial")):
+    if any(word in text for word in ("media", "advertencia", "pendiente", "seguimiento", "parcial", "aceptable")):
         return "warning"
-    if any(word in text for word in ("favorable", "resuelto", "alcanzado", "positivo")):
+    if any(word in text for word in ("favorable", "resuelto", "alcanzado", "positivo", "bueno")):
         return "positive"
     return "neutral"
 
@@ -2652,9 +2661,41 @@ def _render_kpi_tab(st: Any, report_model: dict[str, Any]) -> None:
 
     view = build_presentation_view(report_model) if report_model else {}
     cards = view.get("financial_health", {}).get("cards", []) if isinstance(view, dict) else []
+    ratio_cards = view.get("financial_health_ratios", []) if isinstance(view, dict) else []
     if cards:
         _render_generated_section_heading(st, view, "kpi_overview", "Indicadores principales")
+        st.markdown("#### Indicadores operativos principales")
         _render_grouped_kpi_cards(st, cards[:8])
+    if ratio_cards:
+        st.markdown("#### Ratios de salud financiera")
+        _render_responsive_card_grid(
+            st,
+            [
+                {
+                    "title": card.get("label"),
+                    "body": card.get("value"),
+                    "variant": _card_variant_from_text(card.get("classification"), card.get("status")),
+                    "badge": card.get("classification"),
+                    "rows": [
+                        ("Rango de referencia", card.get("reference_range")),
+                        ("Origen", card.get("reference_origin")),
+                        ("Fórmula", card.get("formula")),
+                        (
+                            "Lectura",
+                            f"Datos faltantes: {card.get('missing_inputs')}"
+                            if card.get("missing_inputs")
+                            else card.get("description"),
+                        ),
+                    ],
+                }
+                for card in ratio_cards
+                if isinstance(card, dict)
+            ],
+            min_width_px=280,
+        )
+        st.caption(
+            "Los rangos mostrados son referencias internas configurables de gestión; no corresponden a límites regulatorios."
+        )
     rows = [
         {
             "Indicador": item.get("indicator"),
@@ -2763,6 +2804,36 @@ def _render_goal_budget_tab(st: Any, report_model: dict[str, Any]) -> None:
         elif spec:
             st.markdown(f"#### {group.get('title')}")
             st.dataframe(spec["data"]["values"], use_container_width=True, hide_index=True)
+    units = goals.get("organizational_units", {}) if isinstance(goals, dict) else {}
+    if isinstance(units, dict) and units.get("available"):
+        st.markdown("### Comparación por unidad organizacional")
+        st.caption(
+            "La comparación utiliza las unidades disponibles en el reporte: escuela, facultad, departamento o unidad académica según el archivo fuente."
+        )
+        for group in units.get("chart_groups", []):
+            spec = _goal_comparison_chart_spec(group) if isinstance(group, dict) else {}
+            if spec and hasattr(st, "vega_lite_chart"):
+                st.markdown(f"#### {group.get('title')}")
+                st.vega_lite_chart(spec, use_container_width=True)
+            elif spec:
+                st.markdown(f"#### {group.get('title')}")
+                st.dataframe(spec["data"]["values"], use_container_width=True, hide_index=True)
+        unit_rows = [
+            {
+                "Unidad": row.get("unit"),
+                "Presupuesto ingresos": row.get("budget_revenue_display"),
+                "Ingresos reales": row.get("actual_revenue_display"),
+                "Presupuesto gastos": row.get("budget_expenses_display"),
+                "Gastos reales": row.get("actual_expenses_display"),
+                "Diferencia gasto": row.get("expense_variance_display"),
+                "Diferencia %": row.get("expense_variance_pct_display"),
+                "Contribución neta": row.get("net_contribution_display"),
+            }
+            for row in units.get("rows", [])
+            if isinstance(row, dict)
+        ]
+        if unit_rows:
+            st.dataframe(unit_rows, use_container_width=True, hide_index=True)
     with st.expander("Detalles técnicos de cálculo y proveniencia", expanded=False):
         st.write(goals.get("technical_details_display", {}))
         st.dataframe(

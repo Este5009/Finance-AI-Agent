@@ -166,10 +166,21 @@ def build_executive_evidence_package(
     department_drivers = []
     for row in sorted(department_rows, key=lambda item: abs(_numeric(item.get("expense_variance")) or _numeric(item.get("variance")) or 0.0), reverse=True)[: active_limits.department_drivers]:
         actual = _numeric(row.get("actual_expenses"))
+        actual_revenue = _numeric(row.get("actual_revenue"))
+        budget_revenue = _numeric(row.get("budget_revenue"))
+        net_contribution = _numeric(row.get("net_operating_result"))
         department_drivers.append({
-            "department": row.get("department"), "actual_expense": actual,
-            "budget": row.get("budget_expenses"), "gap": row.get("expense_variance", row.get("variance")),
+            "department": row.get("department"),
+            "actual_revenue": actual_revenue,
+            "budget_revenue": budget_revenue,
+            "revenue_gap": row.get("revenue_variance"),
+            "revenue_gap_pct": row.get("revenue_variance_pct"),
+            "actual_expense": actual,
+            "budget_expense": row.get("budget_expenses"),
+            "budget": row.get("budget_expenses"),
+            "gap": row.get("expense_variance", row.get("variance")),
             "gap_pct": row.get("expense_variance_pct"),
+            "net_contribution": net_contribution,
             "materiality": (actual / total_expense if actual is not None and total_expense else None),
         })
     severity_rank = {"critical": 3, "high": 2, "medium": 1, "low": 0}

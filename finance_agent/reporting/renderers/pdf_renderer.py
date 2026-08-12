@@ -611,6 +611,34 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
 
     _section_title(story, "kpi_overview", styles, view)
     _append_narrative(story, view, "kpi_overview", styles)
+    ratio_rows = [
+        [
+            row.get("label", ""),
+            row.get("value", ""),
+            row.get("classification", ""),
+            row.get("reference_range", ""),
+            row.get("reference_origin", ""),
+        ]
+        for row in view.get("financial_health_ratios", [])
+        if isinstance(row, dict)
+    ]
+    if ratio_rows:
+        story.append(_para("Ratios de salud financiera", styles["h2"]))
+        story.append(
+            _table(
+                ["Ratio", "Valor", "Clasificación", "Rango de referencia", "Origen"],
+                ratio_rows,
+                styles,
+                widths=[1.35 * inch, 0.65 * inch, 0.85 * inch, 2.25 * inch, 1.4 * inch],
+                force=True,
+            )
+        )
+        story.append(
+            _para(
+                "Estos rangos son referencias internas configurables de gestión; no corresponden a límites regulatorios.",
+                styles["small"],
+            )
+        )
     if len(view["kpis"]) > 6:
         story.append(
             _table(
@@ -665,6 +693,45 @@ def _build_story(report_model: dict[str, Any], *, mode: str = "executive") -> li
             if chart_rows:
                 story.append(Spacer(1, 0.08 * inch))
                 story.append(HorizontalBarChart(chart_rows, str(group.get("title") or "Real vs referencia")))
+        units = goal_budget.get("organizational_units", {})
+        if isinstance(units, dict) and units.get("available"):
+            story.append(_para("Comparación por unidad organizacional", styles["h2"]))
+            for group in units.get("chart_groups", [])[:2]:
+                chart_rows = [
+                    {
+                        "label": f"{row.get('metric')} · {row.get('series')}",
+                        "value": row.get("value"),
+                        "unit": group.get("unit") or "",
+                    }
+                    for row in group.get("rows", [])[:12]
+                    if isinstance(row, dict)
+                ]
+                if chart_rows:
+                    story.append(Spacer(1, 0.08 * inch))
+                    story.append(HorizontalBarChart(chart_rows, str(group.get("title") or "Unidad real vs presupuesto")))
+            unit_rows = [
+                [
+                    row.get("unit", ""),
+                    row.get("budget_revenue_display", ""),
+                    row.get("actual_revenue_display", ""),
+                    row.get("budget_expenses_display", ""),
+                    row.get("actual_expenses_display", ""),
+                    row.get("expense_variance_display", ""),
+                    row.get("expense_variance_pct_display", ""),
+                ]
+                for row in units.get("rows", [])[:8]
+                if isinstance(row, dict)
+            ]
+            if unit_rows:
+                story.append(
+                    _table(
+                        ["Unidad", "Pres. ingresos", "Ingresos", "Pres. gastos", "Gastos", "Dif. gasto", "Dif. %"],
+                        unit_rows,
+                        styles,
+                        widths=[1.15 * inch, 0.85 * inch, 0.85 * inch, 0.85 * inch, 0.85 * inch, 0.85 * inch, 0.7 * inch],
+                        force=True,
+                    )
+                )
         rows = [
             [
                 item["label"],

@@ -132,3 +132,30 @@ def test_financial_category_is_extracted_as_dimension() -> None:
 
     assert [feature.semantic_name for feature in dimensions] == ["revenue_category"]
     assert [feature.semantic_name for feature in metrics] == ["actual_revenue"]
+
+
+def test_classifies_financial_position_with_spanish_aliases() -> None:
+    """Verify generic financial-position aliases are normalized and classified."""
+
+    table = _detected_table(
+        sheet_name="Estado Situacion Financiera",
+        columns=[
+            "Activo Corriente",
+            "Pasivo Corriente",
+            "Efectivo y Equivalentes",
+            "Activo Total",
+            "Pasivo Total",
+        ],
+        rows=[[1_800_000, 1_200_000, 700_000, 10_000_000, 4_800_000]],
+    )
+    normalized = normalize_detected_table(table)
+    classification = classify_table(table, normalized)
+
+    assert normalized.normalized_columns == [
+        "current_assets",
+        "current_liabilities",
+        "cash_and_equivalents",
+        "total_assets",
+        "total_liabilities",
+    ]
+    assert classification.detected_type == "Financial_Position"

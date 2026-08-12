@@ -100,9 +100,50 @@ CLASSIFICATION_RULES = (
                 "department_summary",
                 "resumen_departamento",
                 "resumen_departamental",
+                "school_summary",
+                "faculty_summary",
+                "organizational_unit_summary",
+                "resumen_facultad",
+                "resumen_escuela",
+                "resumen_unidad_academica",
             }
         ),
         frozenset({"department", "revenue", "expenses", "variance", "status"}),
+    ),
+    ClassificationRule(
+        "Financial_Position",
+        frozenset(
+            {
+                "financial_position",
+                "balance_sheet",
+                "statement_of_financial_position",
+                "estado_situacion_financiera",
+                "balance_general",
+                "posicion_financiera",
+            }
+        ),
+        frozenset(
+            {
+                "current_assets",
+                "current_liabilities",
+                "cash_and_equivalents",
+                "total_assets",
+                "total_liabilities",
+            }
+        ),
+    ),
+    ClassificationRule(
+        "Profitability",
+        frozenset(
+            {
+                "profitability",
+                "income_statement",
+                "estado_resultados",
+                "resultados",
+                "rentabilidad",
+            }
+        ),
+        frozenset({"ebitda", "net_income", "revenue"}),
     ),
     ClassificationRule(
         "Executive_Summary",

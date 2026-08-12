@@ -17,6 +17,10 @@ from finance_agent.calculations.finance_calculations import (
     calculate_total_revenue,
 )
 from finance_agent.calculations.finance_engine import run_finance_calculations
+from finance_agent.calculations.financial_health_ratios import (
+    calculate_financial_health_ratios,
+    classify_financial_health_ratio,
+)
 
 
 def _table(
@@ -143,3 +147,56 @@ def test_engine_marks_missing_metrics_unavailable() -> None:
         result.kpi_summary["metric"] == "total_expenses"
     ].iloc[0]
     assert expense_kpi["availability"] == "unavailable"
+
+
+def test_financial_health_ratios_calculate_from_wide_position_table() -> None:
+    """Verify management ratios are deterministic and provenance-backed."""
+
+    position = _table(
+        "Financial_Position",
+        {
+            "current_assets": [1_800_000],
+            "current_liabilities": [1_200_000],
+            "cash_and_equivalents": [720_000],
+            "total_assets": [10_000_000],
+            "total_liabilities": [4_800_000],
+            "ebitda": [660_000],
+            "net_income": [1_000_000],
+        },
+    )
+
+    ratios = {
+        row["metric"]: row
+        for row in calculate_financial_health_ratios([position], {"total_revenue": 2_000_000})
+    }
+
+    assert ratios["current_ratio"]["value"] == pytest.approx(1.5)
+    assert ratios["cash_ratio"]["classification"] == "Bueno"
+    assert ratios["total_debt_ratio"]["classification"] == "Bueno"
+    assert ratios["ebitda_margin"]["value"] == pytest.approx(0.33)
+    assert ratios["net_margin"]["classification"] == "Bueno"
+    assert ratios["return_on_assets"]["classification"] == "Aceptable"
+    assert ratios["current_ratio"]["reference_origin"] == "configurable_internal_management_threshold"
+    assert ratios["current_ratio"]["is_regulatory_limit"] is False
+
+
+def test_financial_health_ratios_remain_unavailable_when_inputs_missing() -> None:
+    """Verify missing source values are not fabricated for ratios."""
+
+    ratios = {
+        row["metric"]: row
+        for row in calculate_financial_health_ratios([], {"total_revenue": 2_000_000})
+    }
+
+    assert ratios["current_ratio"]["availability"] == "unavailable"
+    assert set(ratios["current_ratio"]["missing_inputs"]) == {"current_assets", "current_liabilities"}
+    assert ratios["ebitda_margin"]["missing_inputs"] == ["ebitda"]
+
+
+def test_financial_health_ratio_threshold_bands() -> None:
+    """Verify the canonical management-threshold bands."""
+
+    assert classify_financial_health_ratio("current_ratio", 0.99) == "Crítico"
+    assert classify_financial_health_ratio("current_ratio", 1.20) == "Aceptable"
+    assert classify_financial_health_ratio("current_ratio", 1.50) == "Bueno"
+    assert classify_financial_health_ratio("total_debt_ratio", 0.61) == "Crítico"

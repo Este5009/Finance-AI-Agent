@@ -561,6 +561,20 @@ def _render_kpis(view: dict[str, Any]) -> str:
     Assumptions: no KPI calculations are performed here.
     """
 
+    ratio_cards: list[str] = []
+    for item in view.get("financial_health_ratios", []):
+        klass = _status_class(item.get("status", "neutral"))
+        missing = item.get("missing_inputs")
+        ratio_cards.append(
+            f"<article class='kpi-card {klass}'>"
+            f"<div class='card-head'><span>{_escape(item.get('label'))}</span>"
+            f"<em class='badge {klass}'>{_escape(item.get('classification') or item.get('badge', {}).get('label', 'Info'))}</em></div>"
+            f"<strong>{_escape(item.get('value'))}</strong>"
+            f"<small><b>Rango de referencia:</b> {_escape(item.get('reference_range'))}</small>"
+            f"<small><b>Origen:</b> {_escape(item.get('reference_origin'))}. No corresponde a un límite regulatorio.</small>"
+            f"<small>{_escape(missing and ('Datos faltantes: ' + missing) or item.get('description') or '')}</small>"
+            "</article>"
+        )
     mini_cards: list[str] = []
     for item in view["kpis"]:
         klass = item.get("badge", {}).get("class", "neutral")
@@ -583,6 +597,7 @@ def _render_kpis(view: dict[str, Any]) -> str:
         "<section id='kpi_overview'>"
         + _section_heading(view, "kpi_overview")
         + _narrative(view, "kpi_overview")
+        + ("<h3>Ratios de salud financiera</h3><div class='kpi-grid'>" + "".join(ratio_cards) + "</div>" if ratio_cards else "")
         + (f"<div class='mini-grid'>{cards}</div>" if cards else "")
         + detail
         + "</section>"
@@ -617,6 +632,23 @@ def _render_goal_budget(view: dict[str, Any]) -> str:
     chart_markup = ""
     for group in goals.get("chart_groups", []):
         chart_markup += _grouped_goal_bar_chart(group)
+    units = goals.get("organizational_units", {}) if isinstance(goals, dict) else {}
+    unit_chart_markup = ""
+    for group in units.get("chart_groups", []) if isinstance(units, dict) else []:
+        unit_chart_markup += _grouped_goal_bar_chart(group)
+    unit_rows = [
+        [
+            row.get("unit"),
+            row.get("budget_revenue_display"),
+            row.get("actual_revenue_display"),
+            row.get("budget_expenses_display"),
+            row.get("actual_expenses_display"),
+            row.get("expense_variance_display"),
+            row.get("expense_variance_pct_display"),
+            row.get("net_contribution_display"),
+        ]
+        for row in units.get("rows", []) if isinstance(units, dict) and isinstance(row, dict)
+    ]
     rows = [
         [
             item["label"],
@@ -638,6 +670,17 @@ def _render_goal_budget(view: dict[str, Any]) -> str:
         + summary_cards
         + status_chart
         + chart_markup
+        + (
+            "<h3>Comparación por unidad organizacional</h3>"
+            + unit_chart_markup
+            + _table(
+                ["Unidad", "Presupuesto ingresos", "Ingresos reales", "Presupuesto gastos", "Gastos reales", "Diferencia gasto", "Diferencia %", "Contribución neta"],
+                unit_rows,
+                force=True,
+            )
+            if unit_rows
+            else ""
+        )
         + _table(
             ["Meta", "Real", "Referencia", "Tipo de referencia", "Brecha", "Puntaje", "Estado", "Dirección histórica", "Fuente"],
             rows,
