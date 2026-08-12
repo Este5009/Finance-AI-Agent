@@ -8,7 +8,13 @@ from pathlib import Path
 import pytest
 from openpyxl import load_workbook
 
+from finance_agent.calculations.calculation_loader import load_intermediate_model
+from finance_agent.calculations.finance_engine import run_finance_calculations
 from finance_agent.synthetic_history import SyntheticHistoryConfig, generate_synthetic_history, validate_generated_history
+from finance_agent.understanding.intermediate import (
+    build_financial_document_model,
+    save_intermediate_outputs,
+)
 
 
 def _generate(tmp_path: Path, seed: int = 42, overwrite: bool = False):
@@ -160,3 +166,60 @@ def test_financial_position_sheet_supports_health_ratios(tmp_path: Path) -> None
     assert float(row["Total_Assets"]) > float(row["Current_Assets"])
     assert "EBITDA" in row
     assert "Net_Income" in row
+
+
+def test_representative_workbook_ratios_are_available_end_to_end(tmp_path: Path) -> None:
+    """Verify the tracked representative workbook feeds all six health ratios."""
+
+    report = Path(
+        "data/synthetic_history/recovery_2026/reports/"
+        "university_financial_report_2026_09.xlsx"
+    )
+    if not report.exists():
+        pytest.skip("Tracked recovery history fixture is not available.")
+
+    # This follows the real deterministic path used by the pipeline: understand
+    # the workbook, persist normalized tables, reload them, then calculate KPIs.
+    document_model = build_financial_document_model([report])
+    position_tables = [
+        table for table in document_model.tables if table.sheet == "Financial_Position"
+    ]
+    assert position_tables
+    assert position_tables[0].detected_type == "Financial_Position"
+
+    paths = save_intermediate_outputs(document_model, tmp_path / "intermediate")
+    loaded_model = load_intermediate_model(paths["financial_document_model"])
+    result = run_finance_calculations(
+        loaded_model,
+        source_workbook=str(report),
+        report_period="2026_09",
+    )
+    ratios = {
+        row["metric"]: row
+        for row in result.kpi_summary.to_dict(orient="records")
+        if row["metric"]
+        in {
+            "current_ratio",
+            "cash_ratio",
+            "total_debt_ratio",
+            "ebitda_margin",
+            "net_margin",
+            "return_on_assets",
+        }
+    }
+
+    expected = {
+        "current_ratio": (1.4808053691275167, "Aceptable"),
+        "cash_ratio": (0.7033557046979866, "Bueno"),
+        "total_debt_ratio": (0.5209015095534677, "Aceptable"),
+        "ebitda_margin": (0.2893226659434538, "Aceptable"),
+        "net_margin": (-0.008239730000527343, "Crítico"),
+        "return_on_assets": (-0.0018473556423519476, "Crítico"),
+    }
+
+    assert set(ratios) == set(expected)
+    for metric, (value, classification) in expected.items():
+        assert ratios[metric]["availability"] == "available"
+        assert ratios[metric]["missing_inputs"] == []
+        assert ratios[metric]["value"] == pytest.approx(value)
+        assert ratios[metric]["classification"] == classification

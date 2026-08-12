@@ -180,6 +180,36 @@ def test_financial_health_ratios_calculate_from_wide_position_table() -> None:
     assert ratios["current_ratio"]["is_regulatory_limit"] is False
 
 
+def test_financial_health_ratios_accept_spanish_and_english_position_aliases() -> None:
+    """Verify the generic alias layer recognizes common financial-position labels."""
+
+    position = _table(
+        "Financial_Position",
+        {
+            "Activo corriente": [1_800_000],
+            "Pasivo corriente": [1_200_000],
+            "Efectivo y equivalentes de efectivo": [720_000],
+            "Activo total": [10_000_000],
+            "Pasivo total": [5_500_000],
+            "EBITDA": [600_000],
+            "Utilidad del ejercicio": [250_000],
+        },
+    )
+
+    ratios = {
+        row["metric"]: row
+        for row in calculate_financial_health_ratios([position], {"total_revenue": 2_000_000})
+    }
+
+    assert ratios["current_ratio"]["value"] == pytest.approx(1.5)
+    assert ratios["cash_ratio"]["value"] == pytest.approx(0.6)
+    assert ratios["total_debt_ratio"]["value"] == pytest.approx(0.55)
+    assert ratios["ebitda_margin"]["value"] == pytest.approx(0.3)
+    assert ratios["net_margin"]["value"] == pytest.approx(0.125)
+    assert ratios["return_on_assets"]["value"] == pytest.approx(0.025)
+    assert all(ratios[metric]["availability"] == "available" for metric in ratios)
+
+
 def test_financial_health_ratios_remain_unavailable_when_inputs_missing() -> None:
     """Verify missing source values are not fabricated for ratios."""
 

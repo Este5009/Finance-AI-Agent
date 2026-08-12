@@ -11,7 +11,7 @@
     "Student Services",
     "Administration"
   ],
-  "reports": [
+  "integrated_workbooks": [
     "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_01.xlsx",
     "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_02.xlsx",
     "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_03.xlsx",
@@ -25,19 +25,19 @@
     "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_11.xlsx",
     "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_12.xlsx"
   ],
-  "goals": [
-    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_01.pdf",
-    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_02.pdf",
-    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_03.pdf",
-    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_04.pdf",
-    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_05.pdf",
-    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_06.pdf",
-    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_07.pdf",
-    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_08.pdf",
-    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_09.pdf",
-    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_10.pdf",
-    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_11.pdf",
-    "data/synthetic_history/recovery_2026/goals/financial_goals_2026_12.pdf"
+  "reports": [
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_01.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_02.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_03.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_04.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_05.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_06.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_07.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_08.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_09.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_10.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_11.xlsx",
+    "data/synthetic_history/recovery_2026/reports/university_financial_report_2026_12.xlsx"
   ],
   "monthly_payroll_ratio_trend": {
     "2026_01": 0.38,
