@@ -222,3 +222,4 @@ __marimo__/
 # Personal AI assistant context files
 AGENTS.md
 MEMORY.md
+.DS_Store
